@@ -1,0 +1,773 @@
+2026-01-23 17:49:05 | ERROR | [3dc38f80214e49bb87400ed98883694c] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:49:05 | ERROR | [07171a3fd28a4edabbf38987762742b7] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:49:39 | ERROR | [b09ef87b9ab24261ad2f6ef5aaf43c2f] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:49:41 | ERROR | [70fcf613bed3435c938a914bd9738e4a] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:49:52 | ERROR | [5be1512de4df4d42839fa8e6b8a0bfb1] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:50:11 | ERROR | [f5606ba0733743048ce1e0d1c27a7406] | app.dependencies | 数据库会话异常: (psycopg2.errors.UndefinedFunction) operator does not exist: json @> unknown
+LINE 3: ..._endpoints.version_id = 4 AND (api_endpoints.tags @> '["user...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT api_endpoints.id AS api_endpoints_id, api_endpoints.project_id AS api_endpoints_project_id, api_endpoints.document_id AS api_endpoints_document_id, api_endpoints.path AS api_endpoints_path, api_endpoints.method AS api_endpoints_method, api_endpoints.summary AS api_endpoints_summary, api_endpoints.description AS api_endpoints_description, api_endpoints.request_schema AS api_endpoints_request_schema, api_endpoints.response_schema AS api_endpoints_response_schema, api_endpoints.tags AS api_endpoints_tags, api_endpoints.group_id AS api_endpoints_group_id, api_endpoints.created_at AS api_endpoints_created_at, api_endpoints.updated_at AS api_endpoints_updated_at 
+FROM api_endpoints JOIN version_endpoints ON api_endpoints.id = version_endpoints.endpoint_id LEFT OUTER JOIN api_endpoint_groups ON api_endpoint_groups.id = api_endpoints.group_id 
+WHERE api_endpoints.project_id = %(project_id_1)s AND version_endpoints.version_id = %(version_id_1)s AND (api_endpoints.tags @> %(tags_1)s) ORDER BY api_endpoints.id DESC]
+[parameters: {'project_id_1': 2, 'version_id_1': 4, 'tags_1': '["user"]'}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedFunction: operator does not exist: json @> unknown
+LINE 3: ..._endpoints.version_id = 4 AND (api_endpoints.tags @> '["user...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 768, in search_endpoints
+    endpoints = query.order_by(ApiEndpoint.id.desc()).all()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2704, in all
+    return self._iter().all()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedFunction) operator does not exist: json @> unknown
+LINE 3: ..._endpoints.version_id = 4 AND (api_endpoints.tags @> '["user...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT api_endpoints.id AS api_endpoints_id, api_endpoints.project_id AS api_endpoints_project_id, api_endpoints.document_id AS api_endpoints_document_id, api_endpoints.path AS api_endpoints_path, api_endpoints.method AS api_endpoints_method, api_endpoints.summary AS api_endpoints_summary, api_endpoints.description AS api_endpoints_description, api_endpoints.request_schema AS api_endpoints_request_schema, api_endpoints.response_schema AS api_endpoints_response_schema, api_endpoints.tags AS api_endpoints_tags, api_endpoints.group_id AS api_endpoints_group_id, api_endpoints.created_at AS api_endpoints_created_at, api_endpoints.updated_at AS api_endpoints_updated_at 
+FROM api_endpoints JOIN version_endpoints ON api_endpoints.id = version_endpoints.endpoint_id LEFT OUTER JOIN api_endpoint_groups ON api_endpoint_groups.id = api_endpoints.group_id 
+WHERE api_endpoints.project_id = %(project_id_1)s AND version_endpoints.version_id = %(version_id_1)s AND (api_endpoints.tags @> %(tags_1)s) ORDER BY api_endpoints.id DESC]
+[parameters: {'project_id_1': 2, 'version_id_1': 4, 'tags_1': '["user"]'}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-01-23 17:50:11 | ERROR | [f5606ba0733743048ce1e0d1c27a7406] | app.main | 未捕获的异常: (psycopg2.errors.UndefinedFunction) operator does not exist: json @> unknown
+LINE 3: ..._endpoints.version_id = 4 AND (api_endpoints.tags @> '["user...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT api_endpoints.id AS api_endpoints_id, api_endpoints.project_id AS api_endpoints_project_id, api_endpoints.document_id AS api_endpoints_document_id, api_endpoints.path AS api_endpoints_path, api_endpoints.method AS api_endpoints_method, api_endpoints.summary AS api_endpoints_summary, api_endpoints.description AS api_endpoints_description, api_endpoints.request_schema AS api_endpoints_request_schema, api_endpoints.response_schema AS api_endpoints_response_schema, api_endpoints.tags AS api_endpoints_tags, api_endpoints.group_id AS api_endpoints_group_id, api_endpoints.created_at AS api_endpoints_created_at, api_endpoints.updated_at AS api_endpoints_updated_at 
+FROM api_endpoints JOIN version_endpoints ON api_endpoints.id = version_endpoints.endpoint_id LEFT OUTER JOIN api_endpoint_groups ON api_endpoint_groups.id = api_endpoints.group_id 
+WHERE api_endpoints.project_id = %(project_id_1)s AND version_endpoints.version_id = %(version_id_1)s AND (api_endpoints.tags @> %(tags_1)s) ORDER BY api_endpoints.id DESC]
+[parameters: {'project_id_1': 2, 'version_id_1': 4, 'tags_1': '["user"]'}]
+(Background on this error at: https://sqlalche.me/e/20/f405) | 路径: /api/v1/api-integration/endpoints/search | 方法: POST
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedFunction: operator does not exist: json @> unknown
+LINE 3: ..._endpoints.version_id = 4 AND (api_endpoints.tags @> '["user...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+  File "D:\code\BugSeek\backend\app\main.py", line 29, in trace_id_middleware
+    response = await call_next(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 768, in search_endpoints
+    endpoints = query.order_by(ApiEndpoint.id.desc()).all()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2704, in all
+    return self._iter().all()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedFunction) operator does not exist: json @> unknown
+LINE 3: ..._endpoints.version_id = 4 AND (api_endpoints.tags @> '["user...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT api_endpoints.id AS api_endpoints_id, api_endpoints.project_id AS api_endpoints_project_id, api_endpoints.document_id AS api_endpoints_document_id, api_endpoints.path AS api_endpoints_path, api_endpoints.method AS api_endpoints_method, api_endpoints.summary AS api_endpoints_summary, api_endpoints.description AS api_endpoints_description, api_endpoints.request_schema AS api_endpoints_request_schema, api_endpoints.response_schema AS api_endpoints_response_schema, api_endpoints.tags AS api_endpoints_tags, api_endpoints.group_id AS api_endpoints_group_id, api_endpoints.created_at AS api_endpoints_created_at, api_endpoints.updated_at AS api_endpoints_updated_at 
+FROM api_endpoints JOIN version_endpoints ON api_endpoints.id = version_endpoints.endpoint_id LEFT OUTER JOIN api_endpoint_groups ON api_endpoint_groups.id = api_endpoints.group_id 
+WHERE api_endpoints.project_id = %(project_id_1)s AND version_endpoints.version_id = %(version_id_1)s AND (api_endpoints.tags @> %(tags_1)s) ORDER BY api_endpoints.id DESC]
+[parameters: {'project_id_1': 2, 'version_id_1': 4, 'tags_1': '["user"]'}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-01-23 17:50:27 | ERROR | [1a689fed5c9c4afbacc5e821e67fb3ab] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:50:27 | ERROR | [eaadc4fdf3534ac6bc8c95a463b62d9b] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:50:36 | ERROR | [6700ec87827e4dd4921b88ca53ce5530] | app.dependencies | 数据库会话异常: (psycopg2.errors.UndefinedFunction) operator does not exist: json @> unknown
+LINE 3: ..._endpoints.version_id = 4 AND (api_endpoints.tags @> '["user...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT api_endpoints.id AS api_endpoints_id, api_endpoints.project_id AS api_endpoints_project_id, api_endpoints.document_id AS api_endpoints_document_id, api_endpoints.path AS api_endpoints_path, api_endpoints.method AS api_endpoints_method, api_endpoints.summary AS api_endpoints_summary, api_endpoints.description AS api_endpoints_description, api_endpoints.request_schema AS api_endpoints_request_schema, api_endpoints.response_schema AS api_endpoints_response_schema, api_endpoints.tags AS api_endpoints_tags, api_endpoints.group_id AS api_endpoints_group_id, api_endpoints.created_at AS api_endpoints_created_at, api_endpoints.updated_at AS api_endpoints_updated_at 
+FROM api_endpoints JOIN version_endpoints ON api_endpoints.id = version_endpoints.endpoint_id LEFT OUTER JOIN api_endpoint_groups ON api_endpoint_groups.id = api_endpoints.group_id 
+WHERE api_endpoints.project_id = %(project_id_1)s AND version_endpoints.version_id = %(version_id_1)s AND (api_endpoints.tags @> %(tags_1)s) ORDER BY api_endpoints.id DESC]
+[parameters: {'project_id_1': 2, 'version_id_1': 4, 'tags_1': '["user"]'}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedFunction: operator does not exist: json @> unknown
+LINE 3: ..._endpoints.version_id = 4 AND (api_endpoints.tags @> '["user...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 768, in search_endpoints
+    endpoints = query.order_by(ApiEndpoint.id.desc()).all()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2704, in all
+    return self._iter().all()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedFunction) operator does not exist: json @> unknown
+LINE 3: ..._endpoints.version_id = 4 AND (api_endpoints.tags @> '["user...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT api_endpoints.id AS api_endpoints_id, api_endpoints.project_id AS api_endpoints_project_id, api_endpoints.document_id AS api_endpoints_document_id, api_endpoints.path AS api_endpoints_path, api_endpoints.method AS api_endpoints_method, api_endpoints.summary AS api_endpoints_summary, api_endpoints.description AS api_endpoints_description, api_endpoints.request_schema AS api_endpoints_request_schema, api_endpoints.response_schema AS api_endpoints_response_schema, api_endpoints.tags AS api_endpoints_tags, api_endpoints.group_id AS api_endpoints_group_id, api_endpoints.created_at AS api_endpoints_created_at, api_endpoints.updated_at AS api_endpoints_updated_at 
+FROM api_endpoints JOIN version_endpoints ON api_endpoints.id = version_endpoints.endpoint_id LEFT OUTER JOIN api_endpoint_groups ON api_endpoint_groups.id = api_endpoints.group_id 
+WHERE api_endpoints.project_id = %(project_id_1)s AND version_endpoints.version_id = %(version_id_1)s AND (api_endpoints.tags @> %(tags_1)s) ORDER BY api_endpoints.id DESC]
+[parameters: {'project_id_1': 2, 'version_id_1': 4, 'tags_1': '["user"]'}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-01-23 17:50:36 | ERROR | [6700ec87827e4dd4921b88ca53ce5530] | app.main | 未捕获的异常: (psycopg2.errors.UndefinedFunction) operator does not exist: json @> unknown
+LINE 3: ..._endpoints.version_id = 4 AND (api_endpoints.tags @> '["user...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT api_endpoints.id AS api_endpoints_id, api_endpoints.project_id AS api_endpoints_project_id, api_endpoints.document_id AS api_endpoints_document_id, api_endpoints.path AS api_endpoints_path, api_endpoints.method AS api_endpoints_method, api_endpoints.summary AS api_endpoints_summary, api_endpoints.description AS api_endpoints_description, api_endpoints.request_schema AS api_endpoints_request_schema, api_endpoints.response_schema AS api_endpoints_response_schema, api_endpoints.tags AS api_endpoints_tags, api_endpoints.group_id AS api_endpoints_group_id, api_endpoints.created_at AS api_endpoints_created_at, api_endpoints.updated_at AS api_endpoints_updated_at 
+FROM api_endpoints JOIN version_endpoints ON api_endpoints.id = version_endpoints.endpoint_id LEFT OUTER JOIN api_endpoint_groups ON api_endpoint_groups.id = api_endpoints.group_id 
+WHERE api_endpoints.project_id = %(project_id_1)s AND version_endpoints.version_id = %(version_id_1)s AND (api_endpoints.tags @> %(tags_1)s) ORDER BY api_endpoints.id DESC]
+[parameters: {'project_id_1': 2, 'version_id_1': 4, 'tags_1': '["user"]'}]
+(Background on this error at: https://sqlalche.me/e/20/f405) | 路径: /api/v1/api-integration/endpoints/search | 方法: POST
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedFunction: operator does not exist: json @> unknown
+LINE 3: ..._endpoints.version_id = 4 AND (api_endpoints.tags @> '["user...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+  File "D:\code\BugSeek\backend\app\main.py", line 29, in trace_id_middleware
+    response = await call_next(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 768, in search_endpoints
+    endpoints = query.order_by(ApiEndpoint.id.desc()).all()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2704, in all
+    return self._iter().all()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedFunction) operator does not exist: json @> unknown
+LINE 3: ..._endpoints.version_id = 4 AND (api_endpoints.tags @> '["user...
+                                                             ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT api_endpoints.id AS api_endpoints_id, api_endpoints.project_id AS api_endpoints_project_id, api_endpoints.document_id AS api_endpoints_document_id, api_endpoints.path AS api_endpoints_path, api_endpoints.method AS api_endpoints_method, api_endpoints.summary AS api_endpoints_summary, api_endpoints.description AS api_endpoints_description, api_endpoints.request_schema AS api_endpoints_request_schema, api_endpoints.response_schema AS api_endpoints_response_schema, api_endpoints.tags AS api_endpoints_tags, api_endpoints.group_id AS api_endpoints_group_id, api_endpoints.created_at AS api_endpoints_created_at, api_endpoints.updated_at AS api_endpoints_updated_at 
+FROM api_endpoints JOIN version_endpoints ON api_endpoints.id = version_endpoints.endpoint_id LEFT OUTER JOIN api_endpoint_groups ON api_endpoint_groups.id = api_endpoints.group_id 
+WHERE api_endpoints.project_id = %(project_id_1)s AND version_endpoints.version_id = %(version_id_1)s AND (api_endpoints.tags @> %(tags_1)s) ORDER BY api_endpoints.id DESC]
+[parameters: {'project_id_1': 2, 'version_id_1': 4, 'tags_1': '["user"]'}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-01-23 17:51:20 | ERROR | [4c33fefb9d9047fb8fdf3e06220db1fe] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:51:23 | ERROR | [1ca4c5828e904d80baf5204e64a6b7ad] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:51:41 | ERROR | [85e6b8cc75ff4061a0da63e3c74ad491] | app.api.v1.api_integration | 解析文档时出错: document_id=5, error=(psycopg2.errors.NotNullViolation) null value in column "endpoint_id" of relation "version_endpoints" violates not-null constraint
+DETAIL:  Failing row contains (1289, 4, null, 2026-01-23 09:51:41.21349, 2026-01-23 09:51:41.21349).
+
+[SQL: INSERT INTO version_endpoints (version_id, endpoint_id, created_at, updated_at) SELECT p0::INTEGER, p1::INTEGER, p2::TIMESTAMP WITHOUT TIME ZONE, p3::TIMESTAMP WITHOUT TIME ZONE FROM (VALUES (%(version_id__0)s, %(endpoint_id__0)s, %(created_at__0)s,  ... 58661 characters truncated ...  p3, sen_counter) ORDER BY sen_counter RETURNING version_endpoints.id, version_endpoints.id AS id__1]
+[parameters: {'endpoint_id__0': None, 'created_at__0': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__0': 4, 'updated_at__0': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__1': None, 'created_at__1': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__1': 4, 'updated_at__1': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__2': None, 'created_at__2': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__2': 4, 'updated_at__2': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__3': None, 'created_at__3': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__3': 4, 'updated_at__3': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__4': None, 'created_at__4': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__4': 4, 'updated_at__4': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__5': None, 'created_at__5': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__5': 4, 'updated_at__5': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__6': None, 'created_at__6': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__6': 4, 'updated_at__6': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__7': None, 'created_at__7': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__7': 4, 'updated_at__7': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__8': None, 'created_at__8': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__8': 4, 'updated_at__8': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__9': None, 'created_at__9': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__9': 4, 'updated_at__9': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__10': None, 'created_at__10': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__10': 4, 'updated_at__10': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__11': None, 'created_at__11': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__11': 4, 'updated_at__11': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__12': None, 'created_at__12': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc) ... 2476 parameters truncated ... 'version_id__631': 4, 'updated_at__631': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__632': None, 'created_at__632': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__632': 4, 'updated_at__632': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__633': None, 'created_at__633': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__633': 4, 'updated_at__633': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__634': None, 'created_at__634': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__634': 4, 'updated_at__634': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__635': None, 'created_at__635': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__635': 4, 'updated_at__635': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__636': None, 'created_at__636': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__636': 4, 'updated_at__636': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__637': None, 'created_at__637': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__637': 4, 'updated_at__637': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__638': None, 'created_at__638': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__638': 4, 'updated_at__638': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__639': None, 'created_at__639': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__639': 4, 'updated_at__639': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__640': None, 'created_at__640': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__640': 4, 'updated_at__640': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__641': None, 'created_at__641': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__641': 4, 'updated_at__641': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__642': None, 'created_at__642': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__642': 4, 'updated_at__642': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__643': None, 'created_at__643': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__643': 4, 'updated_at__643': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2026-01-23 17:51:41 | ERROR | [85e6b8cc75ff4061a0da63e3c74ad491] | app.dependencies | 数据库会话异常: 500: 文档解析失败，请检查文档格式
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2125, in _exec_insertmany_context
+    dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.NotNullViolation: null value in column "endpoint_id" of relation "version_endpoints" violates not-null constraint
+DETAIL:  Failing row contains (1289, 4, null, 2026-01-23 09:51:41.21349, 2026-01-23 09:51:41.21349).
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\api_integration.py", line 342, in parse_document
+    db.commit()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 1311, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 1286, in _prepare_impl
+    self.session.flush()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 4331, in flush
+    self._flush(objects)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 4466, in _flush
+    with util.safe_reraise():
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 4427, in _flush
+    flush_context.execute()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\persistence.py", line 1143, in _emit_insert_statements
+    result = connection.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1844, in _execute_context
+    return self._exec_insertmany_context(dialect, context)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2133, in _exec_insertmany_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2125, in _exec_insertmany_context
+    dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.NotNullViolation) null value in column "endpoint_id" of relation "version_endpoints" violates not-null constraint
+DETAIL:  Failing row contains (1289, 4, null, 2026-01-23 09:51:41.21349, 2026-01-23 09:51:41.21349).
+
+[SQL: INSERT INTO version_endpoints (version_id, endpoint_id, created_at, updated_at) SELECT p0::INTEGER, p1::INTEGER, p2::TIMESTAMP WITHOUT TIME ZONE, p3::TIMESTAMP WITHOUT TIME ZONE FROM (VALUES (%(version_id__0)s, %(endpoint_id__0)s, %(created_at__0)s,  ... 58661 characters truncated ...  p3, sen_counter) ORDER BY sen_counter RETURNING version_endpoints.id, version_endpoints.id AS id__1]
+[parameters: {'endpoint_id__0': None, 'created_at__0': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__0': 4, 'updated_at__0': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__1': None, 'created_at__1': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__1': 4, 'updated_at__1': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__2': None, 'created_at__2': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__2': 4, 'updated_at__2': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__3': None, 'created_at__3': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__3': 4, 'updated_at__3': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__4': None, 'created_at__4': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__4': 4, 'updated_at__4': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__5': None, 'created_at__5': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__5': 4, 'updated_at__5': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__6': None, 'created_at__6': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__6': 4, 'updated_at__6': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__7': None, 'created_at__7': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__7': 4, 'updated_at__7': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__8': None, 'created_at__8': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__8': 4, 'updated_at__8': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__9': None, 'created_at__9': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__9': 4, 'updated_at__9': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__10': None, 'created_at__10': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__10': 4, 'updated_at__10': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__11': None, 'created_at__11': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__11': 4, 'updated_at__11': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__12': None, 'created_at__12': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc) ... 2476 parameters truncated ... 'version_id__631': 4, 'updated_at__631': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__632': None, 'created_at__632': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__632': 4, 'updated_at__632': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__633': None, 'created_at__633': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__633': 4, 'updated_at__633': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__634': None, 'created_at__634': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__634': 4, 'updated_at__634': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__635': None, 'created_at__635': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__635': 4, 'updated_at__635': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__636': None, 'created_at__636': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__636': 4, 'updated_at__636': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__637': None, 'created_at__637': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__637': 4, 'updated_at__637': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__638': None, 'created_at__638': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__638': 4, 'updated_at__638': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__639': None, 'created_at__639': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__639': 4, 'updated_at__639': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__640': None, 'created_at__640': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__640': 4, 'updated_at__640': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__641': None, 'created_at__641': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__641': 4, 'updated_at__641': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__642': None, 'created_at__642': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__642': 4, 'updated_at__642': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'endpoint_id__643': None, 'created_at__643': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc), 'version_id__643': 4, 'updated_at__643': datetime.datetime(2026, 1, 23, 9, 51, 41, 213490, tzinfo=datetime.timezone.utc)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\core\rate_limit.py", line 67, in wrapper
+    return await func(*args, **kwargs)
+  File "D:\code\BugSeek\backend\app\api\v1\api_integration.py", line 357, in parse_document
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: 文档解析失败，请检查文档格式
+2026-01-23 17:51:41 | ERROR | [f16d094688a94da7bdb0ee983fdbd02f] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:51:41 | ERROR | [b4cbafe74e4d4c7bb1ba11fd52cea7cb] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:51:58 | ERROR | [a9283bab37484d7498735887c098d805] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:51:58 | ERROR | [fd63c4eca4ea4533ba2bc421a6b6fafa] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:57:50 | ERROR | [69a988d6a3284bcc85862468f4dd7bd0] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:57:50 | ERROR | [23d7c56db4d44bf7adc5e8b80eb62ac8] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:57:55 | ERROR | [8b8d5652a1a64f36b655297e7b095e9a] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+2026-01-23 17:57:55 | ERROR | [5c8cc490d0864724aa35b4e868c7bb0a] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'int_parsing', 'loc': ('path', 'endpoint_id'), 'msg': 'Input should be a valid integer, unable to parse string as an integer', 'input': 'groups'}
+
+  File "D:\code\BugSeek\backend\app\api\v1\endpoints.py", line 237, in get_endpoint
+    GET /api/v1/api-integration/endpoints/{endpoint_id}
