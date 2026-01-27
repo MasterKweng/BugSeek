@@ -1,3 +1,8 @@
+from dotenv import load_dotenv
+
+# 加载环境变量（必须在导入其他模块之前）
+load_dotenv()
+
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -17,6 +22,17 @@ app = FastAPI(
     version=settings.VERSION,
     description="BugSeek API",
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
+)
+
+# CORS 配置（必须在其他中间件之前注册）
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 允许所有源，生产环境应指定具体域名
+    allow_credentials=True,
+    allow_methods=["*"],  # 允许所有 HTTP 方法
+    allow_headers=["*"],  # 允许所有请求头
+    expose_headers=["*"],  # 暴露所有响应头
+    max_age=600,  # 预检请求缓存时间（秒）
 )
 
 
@@ -46,16 +62,6 @@ async def global_exception_handler(request: Request, exc: Exception):
             "data": None
         }
     )
-
-
-# CORS 配置
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # 注册路由
 app.include_router(api_router, prefix=settings.API_V1_STR)

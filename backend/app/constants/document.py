@@ -15,3 +15,4 @@ class DocumentConstants:
     DEFAULT_VERSION = "1.0.0"
     MAX_CONTENT_SIZE = 10 * 1024 * 1024  # 10MB
     URL_TIMEOUT = 30.0  # 秒
+    DEFAULT_ENCODING = 'utf-8'  # 默认字符编码

@@ -20,7 +20,7 @@ class User(Base, TimestampMixin):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
     email = Column(String(100), unique=True, index=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
+    password_hash = Column(String(255), nullable=False)  # bcrypt 加密存储
     nickname = Column(String(50), nullable=True)
     avatar = Column(String(255), nullable=True)
     is_active = Column(Boolean, default=True)
@@ -234,4 +234,112 @@ class ApiEndpointGroup(Base, TimestampMixin):
     __table_args__ = (
         Index('ix_api_endpoint_groups_project_id', 'project_id'),
         UniqueConstraint('project_id', 'name', name='uq_project_group_name'),
+    )
+
+
+class ApiTestScript(Base, TimestampMixin):
+    """测试脚本表"""
+    __tablename__ = "api_test_scripts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    endpoint_id = Column(Integer, ForeignKey("api_endpoints.id"), nullable=False)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    script_content = Column(JSON, nullable=False)  # 脚本内容（JSON格式）
+    test_type = Column(String(50), nullable=False)  # positive/negative/boundary/exception
+    generated_by = Column(String(50), default="ai")  # ai/manual
+    status = Column(String(20), default="active")  # active/archived
+
+    # 关系定义
+    endpoint = relationship("ApiEndpoint", foreign_keys=[endpoint_id])
+
+    __table_args__ = (
+        Index('ix_api_test_scripts_project_id', 'project_id'),
+        Index('ix_api_test_scripts_endpoint_id', 'endpoint_id'),
+        Index('ix_api_test_scripts_test_type', 'test_type'),
+    )
+
+
+class TestType(Base, TimestampMixin):
+    """测试类型配置表"""
+    __tablename__ = "test_types"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    name = Column(String(50), nullable=False)
+    code = Column(String(50), nullable=False)
+    description = Column(Text)
+    is_preset = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    sort_order = Column(Integer, default=0)
+    
+    __table_args__ = (
+        Index('ix_test_types_project_id', 'project_id'),
+        UniqueConstraint('project_id', 'code', name='uq_project_type_code'),
+    )
+
+
+class ScriptGeneration(Base, TimestampMixin):
+    """脚本生成记录表"""
+    __tablename__ = "script_generations"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    endpoint_id = Column(Integer, ForeignKey("api_endpoints.id"), nullable=False)
+    test_types = Column(JSON, nullable=False)
+    generated_count = Column(Integer, default=0)
+    status = Column(String(20), default="completed")
+    error_message = Column(Text)
+    
+    __table_args__ = (
+        Index('ix_script_generations_project_id', 'project_id'),
+        Index('ix_script_generations_endpoint_id', 'endpoint_id'),
+    )
+
+
+class ScriptExecution(Base, TimestampMixin):
+    """脚本执行记录表"""
+    __tablename__ = "script_executions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    script_id = Column(Integer, ForeignKey("api_test_scripts.id"), nullable=False)
+    endpoint_id = Column(Integer, ForeignKey("api_endpoints.id"), nullable=False)
+    environment_id = Column(Integer, ForeignKey("environments.id"), nullable=False)
+    
+    status = Column(String(20), default="pending")
+    duration_ms = Column(Integer)
+    
+    request_url = Column(String(500))
+    request_method = Column(String(10))
+    request_headers = Column(JSON)
+    request_body = Column(JSON)
+    request_size = Column(Integer)
+
+    response_status_code = Column(Integer)
+    response_headers = Column(JSON)
+    response_body = Column(JSON)
+    response_size = Column(Integer)
+    response_time_ms = Column(Integer)
+
+    # 性能分析
+    dns_time_ms = Column(Integer)
+    tcp_time_ms = Column(Integer)
+    tls_time_ms = Column(Integer)
+    transfer_time_ms = Column(Integer)
+    
+    assertion_results = Column(JSON)
+    error_message = Column(Text)
+    
+    # 关系定义
+    script = relationship("ApiTestScript", foreign_keys=[script_id])
+    endpoint = relationship("ApiEndpoint", foreign_keys=[endpoint_id])
+    environment = relationship("Environment", foreign_keys=[environment_id])
+    
+    __table_args__ = (
+        Index('ix_script_executions_project_id', 'project_id'),
+        Index('ix_script_executions_script_id', 'script_id'),
+        Index('ix_script_executions_endpoint_id', 'endpoint_id'),
+        Index('ix_script_executions_environment_id', 'environment_id'),
     )

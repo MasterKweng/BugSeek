@@ -64,19 +64,30 @@ class BaseParser(ABC):
         import json
         import yaml
 
+        # 检查内容是否为空
+        if not self.content or not self.content.strip():
+            raise ValueError("文档内容为空")
+
+        content_preview = self.content[:200] if len(self.content) > 200 else self.content
+        logger.info(f"尝试解析文档内容，预览: {content_preview}...")
+
         try:
             # 尝试 JSON 格式
-            return json.loads(self.content)
-        except json.JSONDecodeError:
-            pass
+            result = json.loads(self.content)
+            logger.info("文档解析为 JSON 格式成功")
+            return result
+        except json.JSONDecodeError as e:
+            logger.debug(f"JSON 解析失败: {str(e)}")
 
         try:
             # 尝试 YAML 格式
-            return yaml.safe_load(self.content)
-        except yaml.YAMLError:
-            pass
+            result = yaml.safe_load(self.content)
+            logger.info("文档解析为 YAML 格式成功")
+            return result
+        except yaml.YAMLError as e:
+            logger.debug(f"YAML 解析失败: {str(e)}")
 
-        raise ValueError("无法解析文档内容，仅支持 JSON 或 YAML 格式")
+        raise ValueError(f"无法解析文档内容，仅支持 JSON 或 YAML 格式。内容预览: {content_preview}")
 
     def extract_common_fields(self, path_item: Dict[str, Any], method: str) -> Dict[str, Any]:
         """

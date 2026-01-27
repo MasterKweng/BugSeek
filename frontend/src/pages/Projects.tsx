@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin } from 'antd'
+import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin, Tabs, Empty } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import * as projectService from '../services/project'
 import type { Project, ProjectCreate, ProjectUpdate } from '../types'
+import { get, post, put, del } from '../services/request'
 
 const { TextArea } = Input
 const { Option } = Select
@@ -24,6 +25,17 @@ const Projects: React.FC = () => {
   const [editForm] = Form.useForm<ProjectUpdate>()
   const [createLoading, setCreateLoading] = useState(false)
   const [editLoading, setEditLoading] = useState(false)
+
+  // 环境管理相关状态
+  const [environments, setEnvironments] = useState<any[]>([])
+  const [envLoading, setEnvLoading] = useState(false)
+  const [addEnvModalVisible, setAddEnvModalVisible] = useState(false)
+  const [editEnvModalVisible, setEditEnvModalVisible] = useState(false)
+  const [currentEnv, setCurrentEnv] = useState<any>(null)
+  const [addEnvForm] = Form.useForm()
+  const [editEnvForm] = Form.useForm()
+  const [addEnvLoading, setAddEnvLoading] = useState(false)
+  const [editEnvLoading, setEditEnvLoading] = useState(false)
 
   const businessDomains = ['电商', '金融', 'SaaS', '社交']
 
@@ -104,9 +116,147 @@ const Projects: React.FC = () => {
   const handleEditClick = (project: Project) => {
     setCurrentProject(project)
     editForm.setFieldsValue(project)
+    fetchEnvironments(project.id)
     setEditModalVisible(true)
   }
-
+  
+    // 获取环境列表
+  
+      const fetchEnvironments = async (projectId: number) => {
+  
+        setEnvLoading(true)
+  
+        try {
+  
+          const response = await get(`/projects/${projectId}/environments`, { page: 1, page_size: 100 })
+  
+          console.log('环境列表响应:', response)
+  
+          if (response && typeof response === 'object') {
+  
+            // 检查是否有 items 字段（完整版接口）
+  
+            if ('items' in response && Array.isArray(response.items)) {
+  
+              setEnvironments(response.items)
+  
+            } 
+  
+            // 检查是否有 environments 字段（简化版接口）
+  
+            else if ('environments' in response && Array.isArray(response.environments)) {
+  
+              setEnvironments(response.environments)
+  
+            }
+  
+            // 如果有分页信息但没有 items 字段，设置空数组
+  
+            else if ('total' in response && 'page' in response && 'page_size' in response) {
+  
+              console.warn('环境列表响应缺少 items 字段:', response)
+  
+              setEnvironments([])
+  
+            } else {
+  
+              console.error('环境列表数据格式错误:', response)
+  
+              setEnvironments([])
+  
+            }
+  
+          } else {
+  
+            console.error('环境列表响应格式错误:', response)
+  
+            setEnvironments([])
+  
+          }
+  
+        } catch (error: any) {
+  
+          console.error('获取环境列表失败:', error)
+  
+          message.error(error.message || '获取环境列表失败')
+  
+          setEnvironments([])
+  
+        } finally {
+  
+          setEnvLoading(false)
+  
+        }
+  
+      }    // 添加环境
+    const handleAddEnv = async () => {
+      if (!currentProject) return
+      try {
+        const values = await addEnvForm.validateFields()
+        setAddEnvLoading(true)
+        await post(`/projects/${currentProject.id}/environments`, values)
+        message.success('环境添加成功')
+        setAddEnvModalVisible(false)
+        addEnvForm.resetFields()
+        fetchEnvironments(currentProject.id)
+        // 刷新项目详情，更新环境数量
+        const projectDetail = await projectService.getProject(currentProject.id)
+        setCurrentProject(projectDetail.data)
+      } catch (error: any) {
+        if (error.errorFields) {
+          message.warning('请填写完整信息')
+        } else {
+          message.error(error.message || '环境添加失败')
+        }
+      } finally {
+        setAddEnvLoading(false)
+      }
+    }
+  
+    // 编辑环境
+    const handleEditEnv = async () => {
+      if (!currentProject || !currentEnv) return
+      try {
+        const values = await editEnvForm.validateFields()
+        setEditEnvLoading(true)
+        await put(`/projects/${currentProject.id}/environments/${currentEnv.id}`, values)
+        message.success('环境更新成功')
+        setEditEnvModalVisible(false)
+        editEnvForm.resetFields()
+        setCurrentEnv(null)
+        fetchEnvironments(currentProject.id)
+      } catch (error: any) {
+        if (error.errorFields) {
+          message.warning('请填写完整信息')
+        } else {
+          message.error(error.message || '环境更新失败')
+        }
+      } finally {
+        setEditEnvLoading(false)
+      }
+    }
+  
+    // 删除环境
+    const handleDeleteEnv = async (envId: number, envName: string) => {
+      if (!currentProject) return
+      try {
+        await del(`/projects/${currentProject.id}/environments/${envId}`)
+        message.success('环境删除成功')
+        fetchEnvironments(currentProject.id)
+        // 刷新项目详情，更新环境数量
+        const projectDetail = await projectService.getProject(currentProject.id)
+        setCurrentProject(projectDetail.data)
+      } catch (error: any) {
+        message.error(error.message || '环境删除失败')
+      }
+    }
+  
+    // 打开编辑环境弹窗
+    const handleEditEnvClick = (env: any) => {
+      setCurrentEnv(env)
+      editEnvForm.setFieldsValue(env)
+      setEditEnvModalVisible(true)
+    }
   const columns: ColumnsType<Project> = [
     {
       title: '项目名称',
@@ -130,6 +280,12 @@ const Projects: React.FC = () => {
           {record.database && <Tag color="orange">{record.database}</Tag>}
         </Space>
       )
+    },
+    {
+      title: '环境数',
+      dataIndex: 'environments_count',
+      key: 'environments_count',
+      render: (count: number) => <Tag color="purple">{count} 个</Tag>
     },
     {
       title: '创建时间',
@@ -287,54 +443,149 @@ const Projects: React.FC = () => {
           setEditModalVisible(false)
           editForm.resetFields()
           setCurrentProject(null)
+          setEnvironments([])
         }}
-        onOk={handleEdit}
-        confirmLoading={editLoading}
+        footer={null}
         destroyOnClose
-        width={600}
+        width={800}
       >
-        <Form
-          form={editForm}
-          layout="vertical"
-          autoComplete="off"
-        >
-          <Form.Item
-            name="name"
-            label="项目名称"
-            rules={[{ required: true, message: '请输入项目名称' }]}
-          >
-            <Input placeholder="请输入项目名称" />
-          </Form.Item>
-          <Form.Item
-            name="business_domain"
-            label="业务领域"
-            rules={[{ required: true, message: '请选择业务领域' }]}
-          >
-            <Select placeholder="请选择业务领域">
-              {businessDomains.map(domain => (
-                <Option key={domain} value={domain}>{domain}</Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="description"
-            label="项目描述"
-          >
-            <TextArea rows={3} placeholder="请输入项目描述" />
-          </Form.Item>
-          <Form.Item name="backend_language" label="后端语言">
-            <Input placeholder="例如: Python" />
-          </Form.Item>
-          <Form.Item name="backend_framework" label="后端框架">
-            <Input placeholder="例如: FastAPI" />
-          </Form.Item>
-          <Form.Item name="database" label="数据库">
-            <Input placeholder="例如: PostgreSQL" />
-          </Form.Item>
-          <Form.Item name="frontend_framework" label="前端框架">
-            <Input placeholder="例如: React" />
-          </Form.Item>
-        </Form>
+        <Tabs defaultActiveKey="project" items={[
+          {
+            key: 'project',
+            label: '项目信息',
+            children: (
+              <Form
+                form={editForm}
+                layout="vertical"
+                autoComplete="off"
+              >
+                <Form.Item
+                  name="name"
+                  label="项目名称"
+                  rules={[{ required: true, message: '请输入项目名称' }]}
+                >
+                  <Input placeholder="请输入项目名称" />
+                </Form.Item>
+                <Form.Item
+                  name="business_domain"
+                  label="业务领域"
+                  rules={[{ required: true, message: '请选择业务领域' }]}
+                >
+                  <Select placeholder="请选择业务领域">
+                    {businessDomains.map(domain => (
+                      <Option key={domain} value={domain}>{domain}</Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+                <Form.Item
+                  name="description"
+                  label="项目描述"
+                >
+                  <TextArea rows={3} placeholder="请输入项目描述" />
+                </Form.Item>
+                <Form.Item name="backend_language" label="后端语言">
+                  <Input placeholder="例如: Python" />
+                </Form.Item>
+                <Form.Item name="backend_framework" label="后端框架">
+                  <Input placeholder="例如: FastAPI" />
+                </Form.Item>
+                <Form.Item name="database" label="数据库">
+                  <Input placeholder="例如: PostgreSQL" />
+                </Form.Item>
+                <Form.Item name="frontend_framework" label="前端框架">
+                  <Input placeholder="例如: React" />
+                </Form.Item>
+                <div style={{ textAlign: 'right', marginTop: 16 }}>
+                  <Button onClick={() => setEditModalVisible(false)}>取消</Button>
+                  <Button type="primary" onClick={handleEdit} loading={editLoading}>
+                    保存项目信息
+                  </Button>
+                </div>
+              </Form>
+            )
+          },
+          {
+            key: 'environments',
+            label: '环境管理',
+            children: (
+              <div>
+                <div style={{ marginBottom: 16 }}>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setAddEnvModalVisible(true)}
+                  >
+                    添加环境
+                  </Button>
+                </div>
+                <Table
+                  dataSource={environments}
+                  loading={envLoading}
+                  rowKey="id"
+                  pagination={false}
+                  size="small"
+                  columns={[
+                    {
+                      title: '环境名称',
+                      dataIndex: 'name',
+                      key: 'name'
+                    },
+                    {
+                      title: '基础URL',
+                      dataIndex: 'base_url',
+                      key: 'base_url',
+                      ellipsis: true
+                    },
+                    {
+                      title: '创建时间',
+                      dataIndex: 'created_at',
+                      key: 'created_at',
+                      render: (date: string) => new Date(date).toLocaleString('zh-CN')
+                    },
+                    {
+                      title: '操作',
+                      key: 'action',
+                      width: 150,
+                      render: (_, record) => (
+                        <Space size="small">
+                          <Button
+                            type="link"
+                            size="small"
+                            onClick={() => handleEditEnvClick(record)}
+                          >
+                            编辑
+                          </Button>
+                          <Popconfirm
+                            title="确认删除"
+                            description={`确定要删除环境 "${record.name}" 吗？`}
+                            onConfirm={() => handleDeleteEnv(record.id, record.name)}
+                            okText="确定"
+                            cancelText="取消"
+                            okButtonProps={{ danger: true }}
+                          >
+                            <Button
+                              type="link"
+                              size="small"
+                              danger
+                            >
+                              删除
+                            </Button>
+                          </Popconfirm>
+                        </Space>
+                      )
+                    }
+                  ]}
+                />
+                {environments.length === 0 && (
+                  <Empty description="暂无环境，请点击上方按钮添加" />
+                )}
+                <div style={{ textAlign: 'right', marginTop: 16 }}>
+                  <Button onClick={() => setEditModalVisible(false)}>关闭</Button>
+                </div>
+              </div>
+            )
+          }
+        ]} />
       </Modal>
 
       {/* 项目详情抽屉 */}
@@ -365,10 +616,87 @@ const Projects: React.FC = () => {
               <Descriptions.Item label="更新时间">
                 {new Date(currentProject.updated_at).toLocaleString('zh-CN')}
               </Descriptions.Item>
+              <Descriptions.Item label="环境列表">
+                {currentProject.environments && currentProject.environments.length > 0 ? (
+                  <Space direction="vertical" size="small">
+                    {currentProject.environments.map((env: any) => (
+                      <Tag key={env.id} color="green">
+                        {env.name} - {env.base_url}
+                      </Tag>
+                    ))}
+                    {currentProject.environments_count && currentProject.environments_count > 5 && (
+                      <Tag color="default">等 {currentProject.environments_count} 个环境</Tag>
+                    )}
+                  </Space>
+                ) : (
+                  <span style={{ color: '#999' }}>暂无环境</span>
+                )}
+              </Descriptions.Item>
             </Descriptions>
           </Spin>
         ) : null}
       </Drawer>
+
+      {/* 添加环境弹窗 */}
+      <Modal
+        title="添加环境"
+        open={addEnvModalVisible}
+        onCancel={() => {
+          setAddEnvModalVisible(false)
+          addEnvForm.resetFields()
+        }}
+        onOk={handleAddEnv}
+        confirmLoading={addEnvLoading}
+        destroyOnClose
+      >
+        <Form form={addEnvForm} layout="vertical">
+          <Form.Item
+            name="name"
+            label="环境名称"
+            rules={[{ required: true, message: '请输入环境名称' }]}
+          >
+            <Input placeholder="例如: 开发环境" />
+          </Form.Item>
+          <Form.Item
+            name="base_url"
+            label="基础URL"
+            rules={[{ required: true, message: '请输入基础URL' }]}
+          >
+            <Input placeholder="例如: http://dev.example.com" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 编辑环境弹窗 */}
+      <Modal
+        title="编辑环境"
+        open={editEnvModalVisible}
+        onCancel={() => {
+          setEditEnvModalVisible(false)
+          editEnvForm.resetFields()
+          setCurrentEnv(null)
+        }}
+        onOk={handleEditEnv}
+        confirmLoading={editEnvLoading}
+        destroyOnClose
+      >
+        <Form form={editEnvForm} layout="vertical">
+          <Form.Item
+            name="name"
+            label="环境名称"
+            rules={[{ required: true, message: '请输入环境名称' }]}
+          >
+            <Input placeholder="例如: 开发环境" />
+          </Form.Item>
+          <Form.Item
+            name="base_url"
+            label="基础URL"
+            rules={[{ required: true, message: '请输入基础URL' }]}
+          >
+            <Input placeholder="例如: http://dev.example.com" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   )
 }

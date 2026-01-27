@@ -7,6 +7,7 @@ import logging
 from app.dependencies import get_db
 from app.db.base import Project, Environment, User, GlobalVar
 from app.api.v1.deps import get_current_user
+from app.context import get_current_project_id
 from app.core.trace import get_trace_id
 
 router = APIRouter()
@@ -76,6 +77,69 @@ def check_environment_permission(project: Project, current_user: User, action: s
 
 
 # API 接口
+@router.get("/environments", response_model=ApiResponse)
+async def get_environments_simple(
+    project_id: Optional[int] = Query(None, description="项目ID过滤（可选，未提供则使用用户上下文）"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    获取环境列表（简化版，使用用户上下文）
+    
+    - **project_id**: 项目ID过滤（可选，未提供则使用用户上下文）
+    """
+    trace_id = get_trace_id()
+    
+    # 优先使用查询参数，否则使用用户上下文
+    if project_id is None:
+        project_id = get_current_project_id(db, current_user)
+    
+    if not project_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="请先选择项目"
+        )
+    
+    logger.info(f"[{trace_id}] 用户 {current_user.username} 获取环境列表: project_id={project_id}")
+    
+    try:
+        # 检查项目是否存在
+        project = db.query(Project).filter(Project.id == project_id).first()
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="项目不存在"
+            )
+        
+        # 权限校验
+        check_environment_permission(project, current_user, "查看环境")
+        
+        # 查询环境列表
+        environments = db.query(Environment).filter(
+            Environment.project_id == project_id
+        ).order_by(Environment.created_at.desc()).all()
+        
+        # 转换为响应模型
+        items = [EnvironmentResponse.from_orm(env).model_dump() for env in environments]
+        
+        logger.info(f"[{trace_id}] 获取环境列表成功: total={len(items)}")
+        
+        return ApiResponse(
+            message="success",
+            data={
+                "environments": items
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[{trace_id}] 获取环境列表失败: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="获取环境列表失败"
+        )
+
+
 @router.post("/projects/{project_id}/environments", response_model=ApiResponse)
 async def create_environment(
     project_id: int,

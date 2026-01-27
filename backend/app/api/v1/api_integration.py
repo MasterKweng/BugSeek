@@ -92,7 +92,7 @@ async def import_document(
     # 从文件或 URL 获取内容
     if file:
         content = await file.read()
-        content_str = content.decode('utf-8')
+        content_str = content.decode(DocumentConstants.DEFAULT_ENCODING)
     elif source_url:
         async with httpx.AsyncClient(timeout=DocumentConstants.URL_TIMEOUT) as client:
             response = await client.get(source_url)
@@ -287,7 +287,19 @@ async def parse_document(
         )
 
     # 校验资源归属人 (IDOR 防护)
-    # TODO: 添加 project_id 校验，确保用户有权限操作该文档
+    if document.project_id:
+        # 获取用户当前项目ID
+        current_project_id = get_current_project_id(db, current_user)
+        if current_project_id and document.project_id != current_project_id:
+            logger.warning(
+                f"用户 {current_user.username} 尝试访问不属于自己的文档: "
+                f"document_id={document_id}, document_project_id={document.project_id}, "
+                f"user_project_id={current_project_id}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="无权限操作该文档"
+            )
 
     endpoints_count = 0
 
@@ -324,12 +336,11 @@ async def parse_document(
                     response_schema=endpoint_data.get('response_schema'),
                     tags=endpoint_data.get('tags', []),
                 )
+                db.add(endpoint)
+                db.flush()  # 获取 endpoint.id
                 endpoints.append(endpoint)
 
             if endpoints:
-                db.bulk_save_objects(endpoints)
-                db.flush()  # 获取所有 endpoint.id
-
                 # 如果文档关联了版本，创建版本-接口关联
                 if document.version_id:
                     for endpoint in endpoints:
@@ -416,7 +427,18 @@ async def create_document_version(
         )
 
     # 校验资源归属人 (IDOR 防护)
-    # TODO: 添加 project_id 校验
+    if current_doc.project_id:
+        current_project_id = get_current_project_id(db, current_user)
+        if current_project_id and current_doc.project_id != current_project_id:
+            logger.warning(
+                f"用户 {current_user.username} 尝试访问不属于自己的文档: "
+                f"document_id={document_id}, document_project_id={current_doc.project_id}, "
+                f"user_project_id={current_project_id}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="无权限操作该文档"
+            )
 
     # 将当前文档标记为非最新
     current_doc.is_latest = False
@@ -504,7 +526,18 @@ async def rollback_document_version(
         )
 
     # 校验资源归属人 (IDOR 防护)
-    # TODO: 添加 project_id 校验
+    if current_doc.project_id:
+        current_project_id = get_current_project_id(db, current_user)
+        if current_project_id and current_doc.project_id != current_project_id:
+            logger.warning(
+                f"用户 {current_user.username} 尝试访问不属于自己的文档: "
+                f"document_id={document_id}, document_project_id={current_doc.project_id}, "
+                f"user_project_id={current_project_id}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="无权限操作该文档"
+            )
 
     # 生成新版本号
     current_version_parts = current_doc.version.split('.')

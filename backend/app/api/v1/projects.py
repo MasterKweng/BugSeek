@@ -5,7 +5,7 @@ from typing import Optional, List
 from pydantic import BaseModel
 import logging
 from app.dependencies import get_db
-from app.db.base import Project, User
+from app.db.base import Project, User, Environment
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id, generate_trace_id
 
@@ -55,6 +55,24 @@ class TechStackUpdate(BaseModel):
     frontend_framework: Optional[str] = None
 
 
+class ProjectEnvironmentResponse(BaseModel):
+    """项目环境响应模型（简化版）"""
+    id: int
+    name: str
+    base_url: str
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def from_orm(cls, obj):
+        return cls(
+            id=obj.id,
+            name=obj.name,
+            base_url=obj.base_url
+        )
+
+
 class ProjectResponse(BaseModel):
     """项目响应模型"""
     id: int
@@ -71,13 +89,17 @@ class ProjectResponse(BaseModel):
     is_deleted: bool = False
     created_at: str
     updated_at: str
+    # 环境列表（仅项目详情接口返回）
+    environments: List[ProjectEnvironmentResponse] = []
+    # 环境数量
+    environments_count: int = 0
 
     class Config:
         from_attributes = True
 
     @classmethod
-    def from_orm(cls, obj):
-        """转换 datetime 为 ISO 8601 字符串"""
+    def from_orm(cls, obj, environments: Optional[List[Environment]] = None):
+        """转换 datetime 为 ISO 8601 字符串，并包含环境列表"""
         data = {
             "id": obj.id,
             "name": obj.name,
@@ -93,6 +115,8 @@ class ProjectResponse(BaseModel):
             "is_deleted": obj.is_deleted,
             "created_at": obj.created_at.isoformat() if obj.created_at else None,
             "updated_at": obj.updated_at.isoformat() if obj.updated_at else None,
+            "environments": [ProjectEnvironmentResponse.from_orm(env) for env in (environments or [])],
+            "environments_count": len(environments or [])
         }
         return cls(**data)
 
@@ -209,7 +233,7 @@ async def get_project(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """获取项目详情"""
+    """获取项目详情（包含环境列表）"""
     trace_id = get_trace_id()
     logger.info(f"[{trace_id}] 用户 {current_user.username} 获取项目详情: project_id={project_id}")
 
@@ -225,11 +249,16 @@ async def get_project(
         # 权限校验
         check_project_permission(project, current_user, "查看")
 
-        logger.info(f"[{trace_id}] 获取项目详情成功: project_id={project_id}")
+        # 查询项目环境列表（最多返回5个）
+        environments = db.query(Environment).filter(
+            Environment.project_id == project_id
+        ).order_by(Environment.created_at.desc()).limit(5).all()
+
+        logger.info(f"[{trace_id}] 获取项目详情成功: project_id={project_id}, environments_count={len(environments)}")
 
         return ApiResponse(
             message="success",
-            data=ProjectResponse.from_orm(project).model_dump()
+            data=ProjectResponse.from_orm(project, environments).model_dump()
         )
     except HTTPException:
         raise

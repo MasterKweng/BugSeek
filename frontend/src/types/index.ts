@@ -24,6 +24,13 @@ export interface ApiEndpoint {
   tags: string[] | null
 }
 
+// 环境相关类型
+export interface ProjectEnvironment {
+  id: number
+  name: string
+  base_url: string
+}
+
 // 项目相关类型
 export interface Project {
   id: number
@@ -40,6 +47,10 @@ export interface Project {
   is_deleted: boolean
   created_at: string
   updated_at: string
+  // 环境列表
+  environments?: ProjectEnvironment[]
+  // 环境数量
+  environments_count?: number
 }
 
 export interface ProjectCreate {

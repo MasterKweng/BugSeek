@@ -17,7 +17,7 @@ const Versions = lazy(() => import('./pages/Versions'))
 // 接口集成模块
 const Documents = lazy(() => import('./pages/api/Documents'))
 const Endpoints = lazy(() => import('./pages/api/Endpoints'))
-const Scripts = lazy(() => import('./pages/api/Scripts'))
+const Scripts = lazy(() => import('./pages/api/Scripts_new'))
 const Scenarios = lazy(() => import('./pages/api/Scenarios'))
 const Mock = lazy(() => import('./pages/api/Mock'))
 const TestSuites = lazy(() => import('./pages/api/TestSuites'))

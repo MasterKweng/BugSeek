@@ -1,7 +1,7 @@
 """接口定义管理接口"""
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 import logging
@@ -59,6 +59,7 @@ class EndpointResponse(BaseModel):
     group_name: Optional[str]
     created_at: str
     updated_at: str
+    script_count: int = 0
 
     class Config:
         from_attributes = True
@@ -148,7 +149,7 @@ class ApiResponse(BaseModel):
 @router.get("/endpoints", response_model=ApiResponse)
 async def get_endpoints(
     skip: int = Query(0, ge=0, description="跳过记录数"),
-    limit: int = Query(100, ge=1, le=1000, description="每页记录数"),
+    limit: int = Query(50, ge=1, le=200, description="每页记录数"),
     method: Optional[str] = Query(None, description="请求方法过滤"),
     tag: Optional[str] = Query(None, description="标签过滤"),
     group_id: Optional[int] = Query(None, description="分组ID过滤"),
@@ -221,251 +222,37 @@ async def get_endpoints(
     total = query.count()
     endpoints = query.order_by(ApiEndpoint.id.desc()).offset(skip).limit(limit).all()
 
+    # 获取接口ID列表
+    endpoint_ids = [ep.id for ep in endpoints]
+    
+    # 查询每个接口的脚本数量
+    script_counts = {}
+    if endpoint_ids:
+        from app.db.base import ApiTestScript
+        script_counts_query = db.query(
+            ApiTestScript.endpoint_id,
+            func.count(ApiTestScript.id).label('count')
+        ).filter(
+            ApiTestScript.endpoint_id.in_(endpoint_ids)
+        ).group_by(ApiTestScript.endpoint_id).all()
+        
+        script_counts = {row.endpoint_id: row.count for row in script_counts_query}
+
     logger.info(f"[{trace_id}] 查询到 {len(endpoints)} 个接口，total={total}")
+
+    # 构建响应，添加脚本数量
+    endpoints_data = []
+    for ep in endpoints:
+        ep_dict = EndpointResponse.from_orm(ep).model_dump()
+        ep_dict['script_count'] = script_counts.get(ep.id, 0)
+        endpoints_data.append(ep_dict)
 
     return ApiResponse(
         message="success",
         data={
-            "endpoints": [EndpointResponse.from_orm(ep).model_dump() for ep in endpoints],
+            "endpoints": endpoints_data,
             "total": total
         }
-    )
-
-
-# ========== E3: 接口详情查询接口 ==========
-
-@router.get("/endpoints/{endpoint_id}", response_model=ApiResponse)
-async def get_endpoint(
-    endpoint_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    获取接口详情
-
-    - **endpoint_id**: 接口ID
-    """
-    trace_id = get_trace_id()
-    logger.info(f"[{trace_id}] 查询接口详情: id={endpoint_id}, user={current_user.username}")
-
-    # 查询接口，关联文档和分组
-    endpoint = db.query(ApiEndpoint).filter(
-        ApiEndpoint.id == endpoint_id
-    ).first()
-
-    # 存在性检查
-    if not endpoint:
-        logger.warning(f"[{trace_id}] 接口不存在: id={endpoint_id}")
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"接口 ID {endpoint_id} 不存在"
-        )
-
-    # 构建响应数据
-    response_data = {
-        **EndpointResponse.from_orm(endpoint).model_dump(),
-        "statistics": {
-            "request_params_count": len(endpoint.request_schema.get('properties', {})) if endpoint.request_schema else 0,
-            "response_params_count": len(endpoint.response_schema.get('properties', {})) if endpoint.response_schema else 0,
-        }
-    }
-
-    logger.info(f"[{trace_id}] 接口详情查询成功: id={endpoint_id}")
-
-    return ApiResponse(
-        message="success",
-        data=response_data
-    )
-
-
-# ========== E4: 接口创建接口 ==========
-
-@router.post("/endpoints", response_model=ApiResponse)
-async def create_endpoint(
-    request: EndpointCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    创建接口
-
-    - **path**: 接口路径
-    - **method**: 请求方法
-    - **summary**: 接口摘要
-    - **description**: 接口描述
-    - **request_schema**: 请求参数Schema
-    - **response_schema**: 响应参数Schema
-    - **tags**: 标签列表
-    - **group_id**: 分组ID
-    """
-    trace_id = get_trace_id()
-    logger.info(f"[{trace_id}] 创建接口: path={request.path}, method={request.method}, user={current_user.username}")
-
-    # 标签规范化
-    tags = list(set([tag.strip().lower() for tag in request.tags if tag.strip()]))
-
-    # 检查路径+方法是否已存在
-    existing = db.query(ApiEndpoint).filter(
-        ApiEndpoint.path == request.path,
-        ApiEndpoint.method == request.method.upper()
-    ).first()
-
-    if existing:
-        logger.warning(f"[{trace_id}] 接口已存在: {request.method.upper()} {request.path}")
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"接口 {request.method.upper()} {request.path} 已存在"
-        )
-
-    # 验证分组是否存在
-    if request.group_id:
-        group = db.query(ApiEndpointGroup).filter(
-            ApiEndpointGroup.id == request.group_id
-        ).first()
-
-        if not group:
-            logger.warning(f"[{trace_id}] 分组不存在: id={request.group_id}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"分组 ID {request.group_id} 不存在"
-            )
-
-    # 创建接口
-    endpoint = ApiEndpoint(
-        project_id=1,  # TODO: 从当前项目获取
-        path=request.path,
-        method=request.method.upper(),
-        summary=request.summary,
-        description=request.description,
-        request_schema=request.request_schema,
-        response_schema=request.response_schema,
-        tags=tags,
-        group_id=request.group_id
-    )
-
-    db.add(endpoint)
-    db.commit()
-    db.refresh(endpoint)
-
-    logger.info(f"[{trace_id}] 接口创建成功: id={endpoint.id}")
-
-    return ApiResponse(
-        message="接口创建成功",
-        data=EndpointResponse.from_orm(endpoint).model_dump()
-    )
-
-
-# ========== E5: 接口更新接口 ==========
-
-@router.put("/endpoints/{endpoint_id}", response_model=ApiResponse)
-async def update_endpoint(
-    endpoint_id: int,
-    request: EndpointUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    更新接口
-
-    - **endpoint_id**: 接口ID
-    - **path**: 接口路径（可选）
-    - **method**: 请求方法（可选）
-    - **summary**: 接口摘要（可选）
-    - **description**: 接口描述（可选）
-    - **request_schema**: 请求参数Schema（可选）
-    - **response_schema**: 响应参数Schema（可选）
-    - **tags**: 标签列表（可选）
-    - **group_id**: 分组ID（可选）
-    """
-    trace_id = get_trace_id()
-    logger.info(f"[{trace_id}] 更新接口: id={endpoint_id}, user={current_user.username}")
-
-    # 查询接口
-    endpoint = db.query(ApiEndpoint).filter(
-        ApiEndpoint.id == endpoint_id
-    ).first()
-
-    if not endpoint:
-        logger.warning(f"[{trace_id}] 接口不存在: id={endpoint_id}")
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"接口 ID {endpoint_id} 不存在"
-        )
-
-    # 构建更新数据
-    update_data = {}
-
-    if request.path is not None:
-        update_data['path'] = request.path
-
-    if request.method is not None:
-        update_data['method'] = request.method.upper()
-
-    if request.summary is not None:
-        update_data['summary'] = request.summary
-
-    if request.description is not None:
-        update_data['description'] = request.description
-
-    if request.request_schema is not None:
-        update_data['request_schema'] = request.request_schema
-
-    if request.response_schema is not None:
-        update_data['response_schema'] = request.response_schema
-
-    if request.tags is not None:
-        # 标签规范化
-        tags = list(set([tag.strip().lower() for tag in request.tags if tag.strip()]))
-        update_data['tags'] = tags
-
-    if request.group_id is not None:
-        # 验证分组是否存在
-        if request.group_id:
-            group = db.query(ApiEndpointGroup).filter(
-                ApiEndpointGroup.id == request.group_id
-            ).first()
-
-            if not group:
-                logger.warning(f"[{trace_id}] 分组不存在: id={request.group_id}")
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"分组 ID {request.group_id} 不存在"
-                )
-
-        update_data['group_id'] = request.group_id
-
-    # 检查路径+方法冲突
-    if 'path' in update_data or 'method' in update_data:
-        new_path = update_data.get('path', endpoint.path)
-        new_method = update_data.get('method', endpoint.method)
-
-        conflict = db.query(ApiEndpoint).filter(
-            ApiEndpoint.path == new_path,
-            ApiEndpoint.method == new_method,
-            ApiEndpoint.id != endpoint_id
-        ).first()
-
-        if conflict:
-            logger.warning(f"[{trace_id}] 接口冲突: {new_method} {new_path}")
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"接口 {new_method} {new_path} 已存在"
-            )
-
-    # 执行更新
-    for key, value in update_data.items():
-        setattr(endpoint, key, value)
-
-    endpoint.updated_at = datetime.utcnow()
-
-    db.commit()
-    db.refresh(endpoint)
-
-    logger.info(f"[{trace_id}] 接口更新成功: id={endpoint_id}")
-
-    return ApiResponse(
-        message="接口更新成功",
-        data=EndpointResponse.from_orm(endpoint).model_dump()
     )
 
 
@@ -473,25 +260,176 @@ async def update_endpoint(
 
 @router.get("/endpoints/groups", response_model=ApiResponse)
 async def get_endpoint_groups(
+    selected_endpoint_ids: Optional[str] = Query(None, description="已选中的接口ID列表，逗号分隔"),
+    count_type: Optional[str] = Query("endpoint", description="统计类型：endpoint=接口数量，script=脚本数量"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """获取所有分组"""
+    """
+    获取所有分组（包含未分组接口）及每个分组的数量
+    
+    返回的分组列表中包含一个虚拟的"未分组"分组（id=0），
+    用于显示所有 group_id 为 null 的接口
+    
+    - **selected_endpoint_ids**: 已选中的接口ID列表（逗号分隔），用于计算每个分组的已选数量
+    - **count_type**: 统计类型，endpoint=接口数量（默认），script=脚本数量
+    """
     trace_id = get_trace_id()
-    logger.info(f"[{trace_id}] 查询分组列表: user={current_user.username}")
+    logger.info(f"[{trace_id}] 查询分组列表: user={current_user.username}, selected_endpoint_ids={selected_endpoint_ids}, count_type={count_type}")
 
-    groups = db.query(ApiEndpointGroup).order_by(
+    # 获取用户上下文
+    project_id = get_current_project_id(db, current_user)
+    version_id = get_current_version_id(db, current_user)
+
+    # 解析已选接口ID列表
+    selected_ids = []
+    if selected_endpoint_ids:
+        try:
+            selected_ids = [int(x.strip()) for x in selected_endpoint_ids.split(',') if x.strip().isdigit()]
+        except (ValueError, AttributeError) as e:
+            logger.warning(f"[{trace_id}] 解析 selected_endpoint_ids 失败: {e}")
+
+    # 获取所有真实分组
+    groups_query = db.query(ApiEndpointGroup)
+    
+    # 项目过滤
+    if project_id:
+        groups_query = groups_query.filter(ApiEndpointGroup.project_id == project_id)
+    
+    groups = groups_query.order_by(
         ApiEndpointGroup.sort_order,
         ApiEndpointGroup.id
     ).all()
 
-    logger.info(f"[{trace_id}] 查询到 {len(groups)} 个分组")
+    # 统计每个分组的数量
+    group_counts = {}
+    group_selected_counts = {}
+    
+    if count_type == "script":
+        # 统计脚本数量
+        from app.db.base import ApiTestScript
+        
+        # 获取所有有脚本的接口ID及其分组
+        script_endpoints_query = db.query(
+            ApiTestScript.endpoint_id,
+            ApiEndpoint.group_id
+        ).join(
+            ApiEndpoint, ApiTestScript.endpoint_id == ApiEndpoint.id
+        )
+        
+        # 项目和版本过滤
+        if project_id:
+            script_endpoints_query = script_endpoints_query.filter(ApiEndpoint.project_id == project_id)
+        if version_id:
+            script_endpoints_query = script_endpoints_query.join(
+                VersionEndpoint, ApiEndpoint.id == VersionEndpoint.endpoint_id
+            ).filter(VersionEndpoint.version_id == version_id)
+        
+        script_endpoints = script_endpoints_query.all()
+        
+        # 统计每个分组的脚本数量
+        for group in groups:
+            # 统计该分组下有脚本的接口数量
+            group_endpoints_with_scripts = [
+                se for se in script_endpoints 
+                if se.group_id == group.id
+            ]
+            group_counts[group.id] = len(group_endpoints_with_scripts)
+            
+            # 统计已选接口中该分组的有脚本的接口数量
+            if selected_ids:
+                selected_with_scripts = [
+                    se for se in group_endpoints_with_scripts
+                    if se.endpoint_id in selected_ids
+                ]
+                group_selected_counts[group.id] = len(selected_with_scripts)
+            else:
+                group_selected_counts[group.id] = 0
+        
+        # 统计未分组的脚本数量
+        ungrouped_endpoints_with_scripts = [
+            se for se in script_endpoints
+            if se.group_id is None
+        ]
+        ungrouped_count = len(ungrouped_endpoints_with_scripts)
+        ungrouped_selected_count = 0
+        if selected_ids:
+            ungrouped_selected_count = len([
+                se for se in ungrouped_endpoints_with_scripts
+                if se.endpoint_id in selected_ids
+            ])
+    else:
+        # 统计接口数量（原有逻辑）
+        for group in groups:
+            # 查询该分组的所有接口
+            query = db.query(ApiEndpoint).filter(
+                ApiEndpoint.group_id == group.id
+            )
+            
+            # 如果有版本过滤，也需要应用
+            if version_id:
+                query = query.join(VersionEndpoint, ApiEndpoint.id == VersionEndpoint.endpoint_id).filter(
+                    VersionEndpoint.version_id == version_id
+                )
+            
+            endpoints = query.all()
+            
+            # 统计总数
+            group_counts[group.id] = len(endpoints)
+            
+            # 统计已选数量（在内存中计算，避免额外的数据库查询）
+            if selected_ids:
+                selected_count = sum(1 for e in endpoints if e.id in selected_ids)
+                group_selected_counts[group.id] = selected_count
+            else:
+                group_selected_counts[group.id] = 0
+
+        # 统计未分组的接口数量和已选数量
+        ungrouped_query = db.query(ApiEndpoint).filter(
+            ApiEndpoint.group_id.is_(None)
+        )
+        if version_id:
+            ungrouped_query = ungrouped_query.join(VersionEndpoint, ApiEndpoint.id == VersionEndpoint.endpoint_id).filter(
+                VersionEndpoint.version_id == version_id
+            )
+        ungrouped_endpoints = ungrouped_query.all()
+        
+        ungrouped_count = len(ungrouped_endpoints)
+        ungrouped_selected_count = 0
+        if selected_ids:
+            ungrouped_selected_count = sum(1 for e in ungrouped_endpoints if e.id in selected_ids)
+
+    # 构建分组列表，包含虚拟分组
+    groups_data = []
+    for group in groups:
+        group_dict = EndpointGroupResponse.from_orm(group).model_dump()
+        group_dict['endpoint_count'] = group_counts.get(group.id, 0)
+        group_dict['selected_count'] = group_selected_counts.get(group.id, 0)
+        groups_data.append(group_dict)
+
+    # 添加"未分组"虚拟分组
+    ungrouped_group = {
+        "id": 0,
+        "project_id": project_id if project_id else 0,
+        "name": "未分组",
+        "description": "未分配分组的接口",
+        "sort_order": -1,
+        "created_at": "",
+        "updated_at": "",
+        "endpoint_count": ungrouped_count,
+        "selected_count": ungrouped_selected_count
+    }
+    
+    # 将未分组放在最前面
+    groups_data.insert(0, ungrouped_group)
+
+    logger.info(f"[{trace_id}] 查询到 {len(groups)} 个真实分组 + 1 个未分组")
 
     return ApiResponse(
         message="success",
         data={
-            "groups": [EndpointGroupResponse.from_orm(g).model_dump() for g in groups],
-            "total": len(groups)
+            "groups": groups_data,
+            "total": len(groups_data)
         }
     )
 
@@ -676,7 +614,7 @@ async def get_endpoint_tags(
     )
 
 
-# ========== E7: 高级搜索接口 ==========
+# ========== E7: 高级搜索接口 (必须在动态路径之前定义) ==========
 
 @router.post("/endpoints/search", response_model=ApiResponse)
 async def search_endpoints(
@@ -775,6 +713,246 @@ async def search_endpoints(
             "endpoints": [EndpointResponse.from_orm(ep).model_dump() for ep in endpoints],
             "total": len(endpoints)
         }
+    )
+
+
+# ========== E3: 接口详情查询接口 (必须在所有静态路径之后定义) ==========
+
+@router.get("/endpoints/{endpoint_id}", response_model=ApiResponse)
+async def get_endpoint(
+    endpoint_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    获取接口详情
+
+    - **endpoint_id**: 接口ID
+    """
+    trace_id = get_trace_id()
+    logger.info(f"[{trace_id}] 查询接口详情: id={endpoint_id}, user={current_user.username}")
+
+    # 查询接口，关联文档和分组
+    endpoint = db.query(ApiEndpoint).filter(
+        ApiEndpoint.id == endpoint_id
+    ).first()
+
+    # 存在性检查
+    if not endpoint:
+        logger.warning(f"[{trace_id}] 接口不存在: id={endpoint_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"接口 ID {endpoint_id} 不存在"
+        )
+
+    # 构建响应数据
+    response_data = {
+        **EndpointResponse.from_orm(endpoint).model_dump(),
+        "statistics": {
+            "request_params_count": len(endpoint.request_schema.get('properties', {})) if endpoint.request_schema else 0,
+            "response_params_count": len(endpoint.response_schema.get('properties', {})) if endpoint.response_schema else 0,
+        }
+    }
+
+    logger.info(f"[{trace_id}] 接口详情查询成功: id={endpoint_id}")
+
+    return ApiResponse(
+        message="success",
+        data=response_data
+    )
+
+
+# ========== E4: 接口创建接口 ==========
+
+@router.post("/endpoints", response_model=ApiResponse)
+async def create_endpoint(
+    request: EndpointCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    创建接口
+
+    - **path**: 接口路径
+    - **method**: 请求方法
+    - **summary**: 接口摘要
+    - **description**: 接口描述
+    - **request_schema**: 请求参数Schema
+    - **response_schema**: 响应参数Schema
+    - **tags**: 标签列表
+    - **group_id**: 分组ID
+    """
+    trace_id = get_trace_id()
+    logger.info(f"[{trace_id}] 创建接口: path={request.path}, method={request.method}, user={current_user.username}")
+
+    # 标签规范化
+    tags = list(set([tag.strip().lower() for tag in request.tags if tag.strip()]))
+
+    # 检查路径+方法是否已存在
+    existing = db.query(ApiEndpoint).filter(
+        ApiEndpoint.path == request.path,
+        ApiEndpoint.method == request.method.upper()
+    ).first()
+
+    if existing:
+        logger.warning(f"[{trace_id}] 接口已存在: {request.method.upper()} {request.path}")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"接口 {request.method.upper()} {request.path} 已存在"
+        )
+
+    # 验证分组是否存在（group_id=0 表示未分组，不需要验证）
+    if request.group_id and request.group_id > 0:
+        group = db.query(ApiEndpointGroup).filter(
+            ApiEndpointGroup.id == request.group_id
+        ).first()
+
+        if not group:
+            logger.warning(f"[{trace_id}] 分组不存在: id={request.group_id}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"分组 ID {request.group_id} 不存在"
+            )
+
+    # 创建接口
+    endpoint = ApiEndpoint(
+        project_id=1,  # TODO: 从当前项目获取
+        path=request.path,
+        method=request.method.upper(),
+        summary=request.summary,
+        description=request.description,
+        request_schema=request.request_schema,
+        response_schema=request.response_schema,
+        tags=tags,
+        group_id=request.group_id if request.group_id > 0 else None
+    )
+
+    db.add(endpoint)
+    db.commit()
+    db.refresh(endpoint)
+
+    logger.info(f"[{trace_id}] 接口创建成功: id={endpoint.id}")
+
+    return ApiResponse(
+        message="接口创建成功",
+        data=EndpointResponse.from_orm(endpoint).model_dump()
+    )
+
+
+# ========== E5: 接口更新接口 ==========
+
+@router.put("/endpoints/{endpoint_id}", response_model=ApiResponse)
+async def update_endpoint(
+    endpoint_id: int,
+    request: EndpointUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    更新接口
+
+    - **endpoint_id**: 接口ID
+    - **path**: 接口路径（可选）
+    - **method**: 请求方法（可选）
+    - **summary**: 接口摘要（可选）
+    - **description**: 接口描述（可选）
+    - **request_schema**: 请求参数Schema（可选）
+    - **response_schema**: 响应参数Schema（可选）
+    - **tags**: 标签列表（可选）
+    - **group_id**: 分组ID（可选）
+    """
+    trace_id = get_trace_id()
+    logger.info(f"[{trace_id}] 更新接口: id={endpoint_id}, user={current_user.username}")
+
+    # 查询接口
+    endpoint = db.query(ApiEndpoint).filter(
+        ApiEndpoint.id == endpoint_id
+    ).first()
+
+    if not endpoint:
+        logger.warning(f"[{trace_id}] 接口不存在: id={endpoint_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"接口 ID {endpoint_id} 不存在"
+        )
+
+    # 构建更新数据
+    update_data = {}
+
+    if request.path is not None:
+        update_data['path'] = request.path
+
+    if request.method is not None:
+        update_data['method'] = request.method.upper()
+
+    if request.summary is not None:
+        update_data['summary'] = request.summary
+
+    if request.description is not None:
+        update_data['description'] = request.description
+
+    if request.request_schema is not None:
+        update_data['request_schema'] = request.request_schema
+
+    if request.response_schema is not None:
+        update_data['response_schema'] = request.response_schema
+
+    if request.tags is not None:
+        # 标签规范化
+        tags = list(set([tag.strip().lower() for tag in request.tags if tag.strip()]))
+        update_data['tags'] = tags
+
+    if request.group_id is not None:
+        # 验证分组是否存在（group_id=0 表示未分组，不需要验证）
+        if request.group_id > 0:
+            group = db.query(ApiEndpointGroup).filter(
+                ApiEndpointGroup.id == request.group_id
+            ).first()
+
+            if not group:
+                logger.warning(f"[{trace_id}] 分组不存在: id={request.group_id}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"分组 ID {request.group_id} 不存在"
+                )
+
+        update_data['group_id'] = request.group_id if request.group_id > 0 else None
+
+    # 检查路径+方法冲突（只在路径或方法实际改变时检查）
+    path_changed = 'path' in update_data and update_data['path'] != endpoint.path
+    method_changed = 'method' in update_data and update_data['method'] != endpoint.method
+
+    if path_changed or method_changed:
+        new_path = update_data.get('path', endpoint.path)
+        new_method = update_data.get('method', endpoint.method)
+
+        conflict = db.query(ApiEndpoint).filter(
+            ApiEndpoint.path == new_path,
+            ApiEndpoint.method == new_method,
+            ApiEndpoint.id != endpoint_id
+        ).first()
+
+        if conflict:
+            logger.warning(f"[{trace_id}] 接口冲突: {new_method} {new_path}")
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"接口 {new_method} {new_path} 已存在"
+            )
+
+    # 执行更新
+    for key, value in update_data.items():
+        setattr(endpoint, key, value)
+
+    endpoint.updated_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(endpoint)
+
+    logger.info(f"[{trace_id}] 接口更新成功: id={endpoint_id}")
+
+    return ApiResponse(
+        message="接口更新成功",
+        data=EndpointResponse.from_orm(endpoint).model_dump()
     )
 
 

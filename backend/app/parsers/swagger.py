@@ -32,8 +32,10 @@ class SwaggerParser(BaseParser):
                 self.openapi_version = self._raw_data.get('openapi')
                 return self.openapi_version.startswith('3.')
             else:
+                logger.error(f"文档缺少 swagger 或 openapi 字段，找到的键: {list(self._raw_data.keys())[:5]}")
                 return False
-        except Exception:
+        except Exception as e:
+            logger.error(f"文档格式验证失败: {str(e)}", exc_info=True)
             return False
 
     def parse(self) -> ParseResult:
@@ -135,12 +137,9 @@ class SwaggerParser(BaseParser):
         for content_type, content_obj in content.items():
             schema = content_obj.get('schema', {})
             if schema:
-                return {
-                    'content_type': content_type,
-                    'schema': schema,
-                    'required': request_body.get('required', False),
-                    'description': request_body.get('description', '')
-                }
+                # 解析 $ref 引用
+                resolved_schema = self._resolve_refs(schema)
+                return resolved_schema
 
         return None
 
@@ -167,23 +166,81 @@ class SwaggerParser(BaseParser):
                 for content_type, content_obj in content.items():
                     schema = content_obj.get('schema', {})
                     if schema:
-                        return {
-                            'status_code': status_code,
-                            'content_type': content_type,
-                            'schema': schema,
-                            'description': response.get('description', '')
-                        }
+                        # 解析 $ref 引用
+                        resolved_schema = self._resolve_refs(schema)
+                        return resolved_schema
 
         # OpenAPI 2.0 兼容
         for response in responses.values():
             schema = response.get('schema')
             if schema:
-                return {
-                    'schema': schema,
-                    'description': response.get('description', '')
-                }
+                # 解析 $ref 引用
+                resolved_schema = self._resolve_refs(schema)
+                return resolved_schema
 
         return None
+
+    def _resolve_refs(self, schema: Dict[str, Any], visited: Optional[set] = None) -> Dict[str, Any]:
+        """
+        递归解析 $ref 引用
+
+        Args:
+            schema: Schema 对象，可能包含 $ref
+            visited: 已访问的引用路径，用于防止循环引用
+
+        Returns:
+            Dict: 解析后的 Schema 对象
+        """
+        if visited is None:
+            visited = set()
+
+        if not isinstance(schema, dict):
+            return schema
+
+        # 如果有 $ref，解析引用
+        if '$ref' in schema:
+            ref_path = schema['$ref']
+            
+            # 防止循环引用
+            if ref_path in visited:
+                logger.warning(f"检测到循环引用: {ref_path}")
+                return schema
+            
+            visited.add(ref_path)
+            
+            # 解析引用路径，例如 "#/components/schemas/User"
+            parts = ref_path.split('/')
+            if parts[0] != '#':
+                logger.warning(f"不支持的引用类型: {ref_path}")
+                return schema
+            
+            # 从 raw_data 中查找引用
+            ref_obj = self._raw_data
+            for part in parts[1:]:
+                if isinstance(ref_obj, dict) and part in ref_obj:
+                    ref_obj = ref_obj[part]
+                else:
+                    logger.warning(f"无法解析引用: {ref_path}")
+                    return schema
+            
+            # 递归解析引用对象中的其他引用
+            resolved = self._resolve_refs(ref_obj, visited)
+            return resolved
+        
+        # 递归解析嵌套对象
+        result = {}
+        for key, value in schema.items():
+            if key == '$ref':
+                continue
+            
+            if isinstance(value, dict):
+                result[key] = self._resolve_refs(value, visited.copy())
+            elif isinstance(value, list):
+                result[key] = [self._resolve_refs(item, visited.copy()) if isinstance(item, dict) else item for item in value]
+            else:
+                result[key] = value
+        
+        return result
 
     def _extract_parameters(self, operation: Dict[str, Any], path_item: Dict[str, Any]) -> List[Dict[str, Any]]:
         """

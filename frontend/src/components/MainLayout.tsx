@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Space } from 'antd';
+import { Layout, Menu, Button, Space, Dropdown, Avatar } from 'antd';
 import {
   HomeOutlined,
   UserOutlined,
@@ -12,6 +12,7 @@ import {
   LogoutOutlined,
   ProjectOutlined,
   BranchesOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth';
@@ -19,10 +20,9 @@ import { useProjectStore } from '../store/project';
 import ProjectSelector from './ProjectSelector';
 import VersionSelector from './VersionSelector';
 
-const { Header, Sider, Content } = Layout;
+const { Header, Content } = Layout;
 
 const MainLayout: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuthStore();
@@ -154,11 +154,6 @@ const MainLayout: React.FC = () => {
         },
       ],
     },
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: '个人中心',
-    },
   ];
 
   const getSelectedKeys = () => {
@@ -171,83 +166,91 @@ const MainLayout: React.FC = () => {
     return [path];
   };
 
-  const getOpenKeys = () => {
-    const path = location.pathname;
-    if (path.startsWith('/api')) return ['api-integration'];
-    if (path.startsWith('/requirements')) return ['requirements'];
-    if (path.startsWith('/code-quality')) return ['code-quality'];
-    if (path.startsWith('/ui-automation')) return ['ui-automation'];
-    if (path.startsWith('/orchestrator')) return ['orchestrator'];
-    if (path.startsWith('/infra')) return ['infra'];
-    if (path.startsWith('/projects')) return ['projects'];
-    return [];
+  const handleMenuClick = ({ key }: { key: string }) => {
+    if (key === 'profile') {
+      navigate('/profile');
+    } else if (key === 'versions') {
+      // 版本管理特殊处理
+      if (currentProject) {
+        navigate(`/projects/${currentProject.id}/versions`);
+      } else {
+        // 如果未选择项目，跳转到项目列表并提示用户
+        navigate('/projects');
+      }
+    } else {
+      navigate(key);
+    }
   };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
+      <Header style={{
+        background: '#fff',
+        padding: '0 24px',
+        display: 'flex',
+        alignItems: 'center',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        height: 64,
+      }}>
+        {/* Logo */}
         <div style={{
-          height: 64,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: collapsed ? 16 : 20,
+          marginRight: 40,
+          fontSize: 20,
           fontWeight: 'bold',
-          background: '#001529',
-        }}>
-          {collapsed ? 'BS' : 'BugSeek'}
+          color: '#1890ff',
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+        }} onClick={() => navigate('/')}>
+          BugSeek
         </div>
+
+        {/* 顶部导航菜单 */}
         <Menu
-          theme="dark"
-          mode="inline"
+          theme="light"
+          mode="horizontal"
           selectedKeys={getSelectedKeys()}
-          defaultOpenKeys={getOpenKeys()}
           items={menuItems}
-          onClick={({ key }) => {
-            if (key === 'profile') {
-              navigate('/profile');
-            } else if (key === 'versions') {
-              // 版本管理特殊处理
-              if (currentProject) {
-                navigate(`/projects/${currentProject.id}/versions`);
-              } else {
-                // 如果未选择项目，跳转到项目列表并提示用户
-                navigate('/projects');
-              }
-            } else {
-              navigate(key);
-            }
-          }}
+          onClick={handleMenuClick}
+          style={{ flex: 1, lineHeight: '64px', border: 'none' }}
         />
-      </Sider>
-      <Layout>
-        <Header style={{
-          background: '#fff',
-          padding: '0 24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        }}>
-          <Space size="large">
-            <ProjectSelector />
-            <VersionSelector />
-          </Space>
-          <Button
-            type="text"
-            icon={<LogoutOutlined />}
-            onClick={handleLogout}
+
+        {/* 右侧工具栏 */}
+        <Space size="middle" style={{ marginLeft: 24 }}>
+          <ProjectSelector />
+          <VersionSelector />
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: 'profile',
+                  icon: <UserOutlined />,
+                  label: '个人中心',
+                  onClick: () => navigate('/profile'),
+                },
+                {
+                  type: 'divider',
+                },
+                {
+                  key: 'logout',
+                  icon: <LogoutOutlined />,
+                  label: '退出登录',
+                  onClick: handleLogout,
+                },
+              ],
+            }}
+            placement="bottomRight"
           >
-            退出登录
-          </Button>
-        </Header>
-        <Content style={{ margin: '24px 16px 0', overflow: 'auto' }}>
-          <div style={{ padding: 24, minHeight: 360, background: '#fff' }}>
-            <Outlet />
-          </div>
-        </Content>
-      </Layout>
+            <Button type="text" icon={<Avatar icon={<UserOutlined />} />}>
+              <DownOutlined />
+            </Button>
+          </Dropdown>
+        </Space>
+      </Header>
+      <Content style={{ margin: '24px', overflow: 'auto' }}>
+        <div style={{ padding: 24, minHeight: 'calc(100vh - 112px)', background: '#fff', borderRadius: 8 }}>
+          <Outlet />
+        </div>
+      </Content>
     </Layout>
   );
 };

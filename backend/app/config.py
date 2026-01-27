@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     LOG_DIR: str = "./logs"
     LOG_LEVEL: str = "INFO"
 
+    # AI 配置
+    AI_PROVIDER: str = "openai"
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "Qwen/Qwen2.5-Coder-7B-Instruct"
+    OPENAI_BASE_URL: str = "https://api.siliconflow.cn/v1"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

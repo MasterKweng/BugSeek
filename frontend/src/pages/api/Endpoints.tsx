@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Table, Button, Space, Tag, Input, Select, message, Spin, Modal, Drawer, Descriptions, Form } from 'antd';
-import { ReloadOutlined, PlusOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Space, Tag, Input, Select, message, Spin, Modal, Drawer, Descriptions, Form, Skeleton, Row, Col, Collapse, Checkbox, Divider, Alert } from 'antd';
+import { ReloadOutlined, PlusOutlined, SearchOutlined, PlusSquareOutlined } from '@ant-design/icons';
 import { useProjectStore } from '../../store/project';
+import { get, post, put, del } from '../../services/request';
+import { useDebounce } from '../../hooks/useDebounce';
+import { TestType } from '../../constants/script';
+import GroupTree from '../../components/GroupTree';
 
 const { Search } = Input;
 const { Option } = Select;
@@ -12,6 +16,7 @@ const Endpoints: React.FC = () => {
   const [endpoints, setEndpoints] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const debouncedSearchText = useDebounce(searchText, 300); // 防抖 300ms
   const [filterMethod, setFilterMethod] = useState<string | undefined>(undefined);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -31,86 +36,210 @@ const Endpoints: React.FC = () => {
   const [advancedSearchVisible, setAdvancedSearchVisible] = useState(false);
   const [advancedSearchForm] = Form.useForm();
   const [advancedSearchLoading, setAdvancedSearchLoading] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+  const [groupEndpointsCount, setGroupEndpointsCount] = useState<{[key: number]: number}>({});
+
+  // 生成测试脚本相关状态
+  const [generateVisible, setGenerateVisible] = useState(false);
+  const [selectedEndpointIds, setSelectedEndpointIds] = useState<number[]>([]);
+  const [selectedTestTypes, setSelectedTestTypes] = useState<string[]>([TestType.POSITIVE, TestType.NEGATIVE]);
+  const [testTypes, setTestTypes] = useState<any>({ preset_types: [], custom_types: [] });
+  const [customTypes, setCustomTypes] = useState<any[]>([]);
+  const [addCustomTypeVisible, setAddCustomTypeVisible] = useState(false);
+  const [customTypeForm] = Form.useForm();
+  const [groupEndpointsCache, setGroupEndpointsCache] = useState<{[key: number]: any[]}>({});
 
   // 获取接口列表
   const fetchEndpoints = useCallback(async () => {
     setLoading(true);
     try {
-      // 从 localStorage 获取 token
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
+      const params: Record<string, any> = {
+        skip: (page - 1) * pageSize,
+        limit: pageSize,
       };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+
+      if (selectedGroupId !== null) {
+        params.group_id = selectedGroupId;
       }
-      
-      // 不再传递 project_id 和 version_id，后端会自动从用户上下文获取
-      const params = new URLSearchParams({
-        skip: ((page - 1) * pageSize).toString(),
-        limit: pageSize.toString(),
-      });
-      
+
       if (filterMethod) {
-        params.append('method', filterMethod);
+        params.method = filterMethod;
       }
-      
-      if (searchText) {
-        params.append('keyword', searchText);
+
+      if (debouncedSearchText) {
+        params.keyword = debouncedSearchText;
       }
-      
-      const response = await fetch(`/api/v1/api-integration/endpoints?${params}`, {
-        method: 'GET',
-        headers,
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const result = await response.json();
-      
-      if (result.code === 0) {
-        setEndpoints(result.data.endpoints || []);
-        setTotal(result.data.total || 0);
-      } else {
-        message.error(result.message || '获取接口列表失败');
-      }
+
+      const result = await get('/api-integration/endpoints', params);
+
+      setEndpoints(result.endpoints || []);
+      setTotal(result.total || 0);
     } catch (error: any) {
       console.error('获取接口列表失败:', error);
-      message.error('获取接口列表失败，请稍后重试');
+      message.error(error.message || '获取接口列表失败，请稍后重试');
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, filterMethod, searchText]);
+  }, [page, pageSize, filterMethod, debouncedSearchText, selectedGroupId]);
 
   // 获取分组列表
   const fetchGroups = useCallback(async () => {
+    setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/v1/api-integration/endpoints/groups', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const params: Record<string, any> = {};
       
-      const result = await response.json();
-      if (result.code === 0) {
-        setGroups(result.data.groups || []);
+      // 传递已选中的接口ID列表
+      if (selectedEndpointIds.length > 0) {
+        params.selected_endpoint_ids = selectedEndpointIds.join(',');
       }
+      
+      const result = await get('/api-integration/endpoints/groups', params);
+      setGroups(result.groups || []);
     } catch (error) {
       console.error('获取分组列表失败:', error);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [selectedEndpointIds]);
+
+  // 获取测试类型列表
+  const fetchTestTypes = async () => {
+    try {
+      const result = await get('/api-integration/test-types');
+      setTestTypes(result || { preset_types: [], custom_types: [] });
+    } catch (error) {
+      console.error('获取测试类型失败:', error);
+    }
+  };
+
+  // 生成测试脚本
+  const handleGenerate = async () => {
+    if (selectedEndpointIds.length === 0) {
+      message.warning('请至少选择一个接口');
+      return;
+    }
+
+    if (selectedTestTypes.length === 0) {
+      message.warning('请至少选择一种测试类型');
+      return;
+    }
+
+    setLoading(true);
+    setGenerateVisible(false);
+    try {
+      // 构建自定义类型描述
+      const customTypeDescriptions: Record<string, string> = {};
+      customTypes.forEach(ct => {
+        if (selectedTestTypes.includes(ct.code)) {
+          customTypeDescriptions[ct.code] = ct.description;
+        }
+      });
+
+      const result = await post('/api-integration/scripts/generate', {
+        endpoint_ids: selectedEndpointIds,
+        test_types: selectedTestTypes,
+        custom_type_descriptions: customTypeDescriptions
+      }, 120000);
+
+      message.success(`成功生成 ${result?.scripts_count || 0} 个测试脚本`);
+      setSelectedEndpointIds([]);
+      setSelectedTestTypes([TestType.POSITIVE, TestType.NEGATIVE]);
+      setCustomTypes([]);
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      fetchEndpoints();
+    } catch (error) {
+      console.error('生成失败:', error);
+      message.error('生成失败，请稍后重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 添加自定义测试类型
+  const handleAddCustomType = async () => {
+    try {
+      const values = await customTypeForm.validateFields();
+
+      const result = await post('/api-integration/test-types', values);
+
+      message.success('添加成功');
+      customTypeForm.resetFields();
+      setAddCustomTypeVisible(false);
+      fetchTestTypes();
+    } catch (error) {
+      console.error('添加失败:', error);
+      message.error('添加失败，请稍后重试');
+    }
+  };
+
+  // 获取某个分组下的所有接口（分页循环获取）
+  const fetchGroupEndpoints = async (groupId: number) => {
+    // 如果缓存中有数据，直接返回
+    if (groupEndpointsCache[groupId]) {
+      return groupEndpointsCache[groupId];
+    }
+
+    let allEndpoints = [];
+    let skip = 0;
+    const limit = 200;
+    let hasMore = true;
+
+    while (hasMore) {
+      const result = await get('/api-integration/endpoints', { 
+        group_id: groupId, 
+        skip,
+        limit 
+      });
+      const endpoints = result.endpoints || [];
+      allEndpoints = [...allEndpoints, ...endpoints];
+      
+      if (endpoints.length < limit) {
+        hasMore = false;
+      } else {
+        skip += limit;
+      }
+    }
+
+    // 缓存数据
+    setGroupEndpointsCache(prev => ({
+      ...prev,
+      [groupId]: allEndpoints
+    }));
+
+    return allEndpoints;
+  };
+
+  // 切换分组的选中状态
+  const handleToggleGroup = async (groupId: number, select: boolean) => {
+    const groupEndpoints = await fetchGroupEndpoints(groupId);
+    const groupEndpointIds = groupEndpoints.map((e: any) => e.id);
+
+    if (select) {
+      setSelectedEndpointIds(prev => [...new Set([...prev, ...groupEndpointIds])]);
+    } else {
+      setSelectedEndpointIds(prev => prev.filter(id => !groupEndpointIds.includes(id)));
+    }
+  };
 
   // 组件加载时获取数据
   useEffect(() => {
-    fetchEndpoints();
     fetchGroups();
-  }, [fetchEndpoints, fetchGroups]);
+    fetchTestTypes();
+  }, [fetchGroups]);
+
+  // 监听分组切换，重新加载接口列表
+  useEffect(() => {
+    fetchEndpoints();
+  }, [fetchEndpoints]);
+
+  // 监听搜索文本变化
+  useEffect(() => {
+    if (debouncedSearchText) {
+      setPage(1);
+    }
+  }, [debouncedSearchText]);
 
   const columns = [
     {
@@ -173,11 +302,13 @@ const Endpoints: React.FC = () => {
     },
   ];
 
-  // 如果没有选择项目或版本，显示提示
+  // 如果没有选择项目或版本，显示骨架屏
   if (!currentProject || !currentVersion) {
     return (
-      <div style={{ padding: '24px', textAlign: 'center' }}>
-        <Spin size="large" tip="加载中..." />
+      <div style={{ padding: '24px' }}>
+        <Card>
+          <Skeleton active paragraph={{ rows: 6 }} />
+        </Card>
       </div>
     );
   }
@@ -198,6 +329,8 @@ const Endpoints: React.FC = () => {
       description: endpoint.description || '',
       group_id: endpoint.group_id,
       tags: endpoint.tags || [],
+      request_schema: endpoint.request_schema ? JSON.stringify(endpoint.request_schema, null, 2) : '',
+      response_schema: endpoint.response_schema ? JSON.stringify(endpoint.response_schema, null, 2) : '',
     });
     setEditVisible(true);
   };
@@ -212,25 +345,12 @@ const Endpoints: React.FC = () => {
       okButtonProps: { danger: true },
       onOk: async () => {
         try {
-          const token = localStorage.getItem('token');
-          const response = await fetch(`/api/v1/api-integration/endpoints/${id}`, {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-          
-          const result = await response.json();
-          if (result.code === 0) {
-            message.success('删除成功');
-            setPage(1); // 重新加载第一页
-          } else {
-            message.error(result.message || '删除失败');
-          }
+          await del(`/api-integration/endpoints/${id}`);
+          message.success('删除成功');
+          setPage(1); // 重新加载第一页
         } catch (error: any) {
           console.error('删除失败:', error);
-          message.error('删除失败，请稍后重试');
+          message.error(error.message || '删除失败，请稍后重试');
         }
       },
     });
@@ -240,29 +360,46 @@ const Endpoints: React.FC = () => {
   const handleEditSubmit = async () => {
     try {
       const values = await editForm.validateFields();
-      setEditLoading(true);
-      
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/api-integration/endpoints/${selectedEndpoint.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(values),
-      });
-      
-      const result = await response.json();
-      if (result.code === 0) {
-        message.success('更新成功');
-        setEditVisible(false);
-        setPage(1); // 重新加载第一页
-      } else {
-        message.error(result.message || '更新失败');
+
+      // 解析 JSON 字段
+      if (values.request_schema && typeof values.request_schema === 'string') {
+        try {
+          const parsed = JSON.parse(values.request_schema);
+          values.request_schema = parsed;
+        } catch (e) {
+          message.error('请求参数 JSON 格式错误');
+          return;
+        }
+      } else if (!values.request_schema) {
+        values.request_schema = null;
       }
+
+      if (values.response_schema && typeof values.response_schema === 'string') {
+        try {
+          const parsed = JSON.parse(values.response_schema);
+          values.response_schema = parsed;
+        } catch (e) {
+          message.error('响应参数 JSON 格式错误');
+          return;
+        }
+      } else if (!values.response_schema) {
+        values.response_schema = null;
+      }
+
+      // 处理 group_id
+      if (values.group_id === 0) {
+        values.group_id = null;
+      }
+
+      setEditLoading(true);
+
+      await put(`/api-integration/endpoints/${selectedEndpoint.id}`, values);
+      message.success('更新成功');
+      setEditVisible(false);
+      setPage(1); // 重新加载第一页
     } catch (error: any) {
       console.error('更新失败:', error);
-      message.error('更新失败，请稍后重试');
+      message.error(error.message || '更新失败，请稍后重试');
     } finally {
       setEditLoading(false);
     }
@@ -278,29 +415,46 @@ const Endpoints: React.FC = () => {
   const handleCreateSubmit = async () => {
     try {
       const values = await createForm.validateFields();
-      setCreateLoading(true);
-      
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/v1/api-integration/endpoints', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(values),
-      });
-      
-      const result = await response.json();
-      if (result.code === 0) {
-        message.success('创建成功');
-        setCreateVisible(false);
-        setPage(1); // 重新加载第一页
-      } else {
-        message.error(result.message || '创建失败');
+
+      // 解析 JSON 字段
+      if (values.request_schema && typeof values.request_schema === 'string') {
+        try {
+          const parsed = JSON.parse(values.request_schema);
+          values.request_schema = parsed;
+        } catch (e) {
+          message.error('请求参数 JSON 格式错误');
+          return;
+        }
+      } else if (!values.request_schema) {
+        values.request_schema = null;
       }
+
+      if (values.response_schema && typeof values.response_schema === 'string') {
+        try {
+          const parsed = JSON.parse(values.response_schema);
+          values.response_schema = parsed;
+        } catch (e) {
+          message.error('响应参数 JSON 格式错误');
+          return;
+        }
+      } else if (!values.response_schema) {
+        values.response_schema = null;
+      }
+
+      // 处理 group_id
+      if (values.group_id === 0) {
+        values.group_id = null;
+      }
+
+      setCreateLoading(true);
+
+      await post('/api-integration/endpoints', values);
+      message.success('创建成功');
+      setCreateVisible(false);
+      setPage(1); // 重新加载第一页
     } catch (error: any) {
       console.error('创建失败:', error);
-      message.error('创建失败，请稍后重试');
+      message.error(error.message || '创建失败，请稍后重试');
     } finally {
       setCreateLoading(false);
     }
@@ -312,34 +466,14 @@ const Endpoints: React.FC = () => {
   };
 
   // 创建分组
-  const handleCreateGroup = async () => {
+  const handleCreateGroup = async (values: any) => {
     try {
-      const values = await groupForm.validateFields();
-      setGroupLoading(true);
-      
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/v1/api-integration/endpoints/groups', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(values),
-      });
-      
-      const result = await response.json();
-      if (result.code === 0) {
-        message.success('创建分组成功');
-        groupForm.resetFields();
-        fetchGroups(); // 重新加载分组列表
-      } else {
-        message.error(result.message || '创建分组失败');
-      }
+      await post('/api-integration/endpoints/groups', values);
+      message.success('创建分组成功');
+      fetchGroups(); // 重新加载分组列表
     } catch (error: any) {
       console.error('创建分组失败:', error);
-      message.error('创建分组失败，请稍后重试');
-    } finally {
-      setGroupLoading(false);
+      message.error(error.message || '创建分组失败，请稍后重试');
     }
   };
 
@@ -348,36 +482,55 @@ const Endpoints: React.FC = () => {
     try {
       const values = await advancedSearchForm.validateFields();
       setAdvancedSearchLoading(true);
-      
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/v1/api-integration/endpoints/search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(values),
-      });
-      
-      const result = await response.json();
-      if (result.code === 0) {
-        setEndpoints(result.data.endpoints || []);
-        setTotal(result.data.total || 0);
-        setAdvancedSearchVisible(false);
-        message.success(`找到 ${result.data.total} 个接口`);
-      } else {
-        message.error(result.message || '搜索失败');
-      }
+
+      const result = await post('/api-integration/endpoints/search', values);
+      setEndpoints(result.endpoints || []);
+      setTotal(result.total || 0);
+      setAdvancedSearchVisible(false);
+      message.success(`找到 ${result.total} 个接口`);
     } catch (error: any) {
       console.error('高级搜索失败:', error);
-      message.error('高级搜索失败，请稍后重试');
+      message.error(error.message || '高级搜索失败，请稍后重试');
     } finally {
       setAdvancedSearchLoading(false);
     }
   };
 
+// 处理分组选择
+  const handleGroupSelect = (groupId: number | null) => {
+    setSelectedGroupId(groupId);
+    setPage(1);
+  };
+
+  // 处理分组编辑
+  const handleGroupUpdate = async (groupId: number, values: any) => {
+    try {
+      await put(`/api-integration/endpoints/groups/${groupId}`, values);
+      message.success('分组更新成功');
+      fetchGroups(); // 重新加载分组列表
+    } catch (error: any) {
+      console.error('更新分组失败:', error);
+      message.error(error.message || '更新分组失败');
+    }
+  };
+
+  // 处理分组删除
+  const handleGroupDelete = async (groupId: number) => {
+    try {
+      await del(`/api-integration/endpoints/groups/${groupId}`);
+      message.success('分组删除成功');
+      fetchGroups(); // 重新加载分组列表
+      if (selectedGroupId === groupId) {
+        setSelectedGroupId(null);
+      }
+    } catch (error: any) {
+      console.error('删除分组失败:', error);
+      message.error(error.message || '删除分组失败');
+    }
+  };
+
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: '24px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
       <Card
         title={
           <Space>
@@ -387,67 +540,109 @@ const Endpoints: React.FC = () => {
           </Space>
         }
         extra={
-          <Space>
-            <Button onClick={() => setAdvancedSearchVisible(true)}>
-              高级搜索
-            </Button>
-            <Button icon={<PlusOutlined />} onClick={handleManageGroups}>
-              管理分组
-            </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-              新建接口
-            </Button>
-            <Search
-              placeholder="搜索接口"
-              style={{ width: 200 }}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              onSearch={() => setPage(1)}
-              allowClear
-            />
-            <Select
-              placeholder="筛选方法"
-              style={{ width: 120 }}
-              allowClear
-              value={filterMethod}
-              onChange={(value) => {
-                setFilterMethod(value);
-                setPage(1);
-              }}
-            >
-              <Option value="GET">GET</Option>
-              <Option value="POST">POST</Option>
-              <Option value="PUT">PUT</Option>
-              <Option value="DELETE">DELETE</Option>
-              <Option value="PATCH">PATCH</Option>
-            </Select>
-            <Button 
-              icon={<ReloadOutlined />} 
-              onClick={() => setPage(1)}
-              loading={loading}
-            >
-              刷新
-            </Button>
-          </Space>
+          <Button
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setGenerateVisible(true);
+            }}
+          >
+            生成测试脚本
+          </Button>
         }
+        style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+        styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', padding: 0 } }}
       >
-        <Table
-          columns={columns}
-          dataSource={endpoints}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            current: page,
-            pageSize,
-            total,
-            showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 条`,
-            onChange: (page, pageSize) => {
-              setPage(page);
-              setPageSize(pageSize);
-            },
-          }}
-        />
+        <Row style={{ flex: 1, height: '100%', overflow: 'hidden' }}>
+          {/* 左侧分组树 */}
+          <Col span={5} style={{ borderRight: '1px solid #f0f0f0', height: '100%', overflow: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', backgroundColor: '#fafafa' }}>
+            <div style={{ flex: 1, overflow: 'auto' }}>
+              <GroupTree
+                groups={groups}
+                selectedGroupId={selectedGroupId}
+                onGroupSelect={handleGroupSelect}
+                onGroupCreate={handleCreateGroup}
+                onGroupUpdate={handleGroupUpdate}
+                onGroupDelete={handleGroupDelete}
+                selectedEndpointIds={selectedEndpointIds}
+                onToggleGroup={handleToggleGroup}
+              />
+            </div>
+          </Col>
+
+          {/* 右侧接口列表 */}
+          <Col span={19} style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              {/* 搜索和筛选栏 */}
+                            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                              <span style={{ fontSize: 16, fontWeight: 500, color: '#333' }}>
+                                {selectedGroupId 
+                                  ? `${groups.find(g => g.id === selectedGroupId)?.name || '接口'} 共 (${total}) 个`
+                                  : '全部接口'
+                                }
+                              </span>
+                              <Space>
+                                <Input
+                                  placeholder="搜索接口路径、摘要、标签..."
+                                  prefix={<SearchOutlined />}
+                                  style={{ width: 300 }}
+                                  value={searchText}
+                                  onChange={(e) => setSearchText(e.target.value)}
+                                  onPressEnter={() => setPage(1)}
+                                  allowClear
+                                />
+                                <Select
+                                  placeholder="筛选方法"
+                                  style={{ width: 120 }}
+                                  allowClear
+                                  value={filterMethod}
+                                  onChange={(value) => {
+                                    setFilterMethod(value);
+                                    setPage(1);
+                                  }}
+                                >
+                                  <Option value="GET">GET</Option>
+                                  <Option value="POST">POST</Option>
+                                  <Option value="PUT">PUT</Option>
+                                  <Option value="DELETE">DELETE</Option>
+                                  <Option value="PATCH">PATCH</Option>
+                                </Select>
+                                <Button icon={<ReloadOutlined />} onClick={() => {
+                                  setPage(1);
+                                  fetchEndpoints();
+                                }} loading={loading}>
+                                  刷新
+                                </Button>
+                              </Space>
+                            </div>
+              {/* 接口列表 */}
+              <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
+                <Table
+                  columns={columns}
+                  dataSource={endpoints}
+                  rowKey="id"
+                  loading={loading}
+                  scroll={{ y: 'calc(100vh - 320px)' }}
+                  rowSelection={{
+                    selectedRowKeys: selectedEndpointIds,
+                    onChange: (selectedRowKeys) => setSelectedEndpointIds(selectedRowKeys as number[]),
+                    preserveSelectedRowKeys: true,  // 关键：保留分页时的选中状态
+                  }}
+                  pagination={{
+                    current: page,
+                    pageSize,
+                    total,
+                    showSizeChanger: true,
+                    showTotal: (total) => `共 ${total} 条`,
+                    onChange: (page, pageSize) => {
+                      setPage(page);
+                      setPageSize(pageSize);
+                    },
+                  }}
+                />
+              </div>
+            </div>
+          </Col>
+        </Row>
       </Card>
 
       {/* 接口详情抽屉 */}
@@ -544,6 +739,22 @@ const Endpoints: React.FC = () => {
               ))}
             </Select>
           </Form.Item>
+
+          <Form.Item label="请求参数 (JSON)" name="request_schema">
+            <TextArea 
+              rows={6} 
+              placeholder='{"type": "object", "properties": {...}}'
+              style={{ fontFamily: 'monospace' }}
+            />
+          </Form.Item>
+
+          <Form.Item label="响应参数 (JSON)" name="response_schema">
+            <TextArea 
+              rows={6} 
+              placeholder='{"type": "object", "properties": {...}}'
+              style={{ fontFamily: 'monospace' }}
+            />
+          </Form.Item>
         </Form>
       </Modal>
 
@@ -593,6 +804,22 @@ const Endpoints: React.FC = () => {
                 <Option key={group.id} value={group.id}>{group.name}</Option>
               ))}
             </Select>
+          </Form.Item>
+
+          <Form.Item label="请求参数 (JSON)" name="request_schema">
+            <TextArea 
+              rows={6} 
+              placeholder='{"type": "object", "properties": {...}}'
+              style={{ fontFamily: 'monospace' }}
+            />
+          </Form.Item>
+
+          <Form.Item label="响应参数 (JSON)" name="response_schema">
+            <TextArea 
+              rows={6} 
+              placeholder='{"type": "object", "properties": {...}}'
+              style={{ fontFamily: 'monospace' }}
+            />
           </Form.Item>
         </Form>
       </Modal>
@@ -681,8 +908,157 @@ const Endpoints: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </div>
-  );
-};
 
-export default Endpoints;
+      {/* 生成测试脚本弹窗 */}
+      <Modal
+        title="生成测试脚本"
+        open={generateVisible}
+        onCancel={() => setGenerateVisible(false)}
+        footer={null}
+        width={700}
+      >
+        <Alert
+          message={`已选择 ${selectedEndpointIds.length} 个接口`}
+          description="将在主页面上选中的接口生成测试脚本"
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+        
+        <Collapse
+          defaultActiveKey={['preset']}
+          items={[
+            {
+              key: 'preset',
+              label: '预设测试类型',
+              children: (
+                <Checkbox.Group
+                  value={selectedTestTypes}
+                  onChange={(values) => setSelectedTestTypes(values as string[])}
+                >
+                  <Space direction="vertical">
+                    {testTypes.preset_types?.map((type: any) => (
+                      <Checkbox key={type.code} value={type.code}>
+                        {type.name} - {type.description}
+                      </Checkbox>
+                    ))}
+                  </Space>
+                </Checkbox.Group>
+              )
+            },
+            {
+              key: 'custom',
+              label: '自定义测试类型',
+              children: (
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <Button
+                    icon={<PlusSquareOutlined />}
+                    onClick={() => setAddCustomTypeVisible(true)}
+                  >
+                    添加自定义类型
+                  </Button>
+
+                  {customTypes.length > 0 && (
+                    <div>
+                      <Checkbox.Group
+                        value={selectedTestTypes}
+                        onChange={(values) => setSelectedTestTypes(values as string[])}
+                      >
+                        <Space direction="vertical">
+                          {customTypes.map((type: any) => (
+                            <div key={type.code} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <Checkbox value={type.code}>
+                                {type.name}
+                              </Checkbox>
+                              <span style={{ color: '#999', fontSize: 12 }}>
+                                {type.description}
+                              </span>
+                            </div>
+                          ))}
+                        </Space>
+                      </Checkbox.Group>
+                    </div>
+                  )}
+
+                  {testTypes.custom_types?.map((type: any) => (
+                    <div key={type.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Checkbox
+                        checked={selectedTestTypes.includes(type.code)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedTestTypes([...selectedTestTypes, type.code]);
+                          } else {
+                            setSelectedTestTypes(selectedTestTypes.filter(t => t !== type.code));
+                          }
+                        }}
+                      >
+                        {type.name}
+                      </Checkbox>
+                      <span style={{ color: '#999', fontSize: 12 }}>
+                        {type.description}
+                      </span>
+                    </div>
+                  ))}
+                </Space>
+              )
+            }
+          ]}
+        />
+
+        <Divider />
+
+        <div style={{ textAlign: 'right' }}>
+          <span style={{ marginRight: 16, color: '#999' }}>
+            预计生成：{selectedEndpointIds.length} 个接口 × {selectedTestTypes.length} 种类型 = {selectedEndpointIds.length * selectedTestTypes.length} 个脚本
+          </span>
+          <Button onClick={() => setGenerateVisible(false)}>
+            取消
+          </Button>
+          <Button
+            type="primary"
+            onClick={handleGenerate}
+            loading={loading}
+            disabled={selectedEndpointIds.length === 0 || selectedTestTypes.length === 0}
+          >
+            开始生成
+          </Button>
+        </div>
+      </Modal>
+
+      {/* 添加自定义类型弹窗 */}
+      <Modal
+        title="添加自定义测试类型"
+        open={addCustomTypeVisible}
+        onCancel={() => setAddCustomTypeVisible(false)}
+        onOk={handleAddCustomType}
+        width={600}
+      >
+        <Form form={customTypeForm} layout="vertical">
+          <Form.Item
+            label="类型名称"
+            name="name"
+            rules={[{ required: true, message: '请输入类型名称' }]}
+          >
+            <Input placeholder="类型名称" />
+          </Form.Item>
+          <Form.Item
+            label="类型代码"
+            name="code"
+            rules={[{ required: true, message: '请输入类型代码' }]}
+          >
+            <Input placeholder="类型代码" />
+          </Form.Item>
+          <Form.Item
+            label="类型描述"
+            name="description"
+            rules={[{ required: true, message: '请输入类型描述' }]}
+          >
+            <Input.TextArea rows={3} placeholder="类型描述" />
+          </Form.Item>
+        </Form>
+      </Modal>
+      </div>
+    );
+  };
+
+export default React.memo(Endpoints);
