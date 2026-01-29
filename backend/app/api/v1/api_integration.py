@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Optional, List
 from pydantic import BaseModel
 from app.dependencies import get_db
-from app.db.base import ApiDocument, ApiEndpoint, VersionEndpoint
+from app.db.base import ApiDocument, ApiEndpoint, ApiEndpointGroup, VersionEndpoint
 from app.api.v1.deps import get_current_user
 from app.constants.document import DocumentSourceType, DocumentConstants
 from app.constants.version import VersionAction, VersionConstants
@@ -129,8 +129,46 @@ async def import_document(
             parse_result = parser.parse()
 
             if parse_result.success:
-                # 保存提取的接口
+                groups_count = 0
+
+                # 自动创建分组
+                groups_map = {}  # group_name -> group_id
+                groups = parse_result.groups or []
+
+                if groups:
+                    # 批量查询已存在的分组，避免N+1问题
+                    group_names = [g.get('name') for g in groups if g.get('name')]
+                    if group_names:
+                        existing_groups = db.query(ApiEndpointGroup).filter(
+                            ApiEndpointGroup.project_id == document.project_id,
+                            ApiEndpointGroup.name.in_(group_names)
+                        ).all()
+
+                        # 建立已存在分组的映射
+                        for existing_group in existing_groups:
+                            groups_map[existing_group.name] = existing_group.id
+
+                    # 创建不存在的分组
+                    for group_data in groups:
+                        group_name = group_data.get('name')
+                        if group_name and group_name not in groups_map:
+                            new_group = ApiEndpointGroup(
+                                project_id=document.project_id,
+                                name=group_name,
+                                description=group_data.get('description', ''),
+                                sort_order=len(groups_map)
+                            )
+                            db.add(new_group)
+                            db.flush()  # 获取 group.id
+                            groups_map[group_name] = new_group.id
+                            groups_count += 1
+
+                # 批量保存接口定义
+                endpoints = []
                 for endpoint_data in parse_result.endpoints:
+                    group_name = endpoint_data.get('group_name')
+                    group_id = groups_map.get(group_name) if group_name else None
+
                     endpoint = ApiEndpoint(
                         project_id=document.project_id,
                         document_id=document.id,
@@ -141,23 +179,33 @@ async def import_document(
                         request_schema=endpoint_data.get('request_schema'),
                         response_schema=endpoint_data.get('response_schema'),
                         tags=endpoint_data.get('tags', []),
+                        group_id=group_id
                     )
                     db.add(endpoint)
                     db.flush()  # 获取 endpoint.id
+                    endpoints.append(endpoint)
 
-                    # 如果文档关联了版本，创建版本-接口关联
-                    if document.version_id:
-                        version_endpoint = VersionEndpoint(
+                # 批量创建版本-接口关联
+                if document.version_id and endpoints:
+                    version_endpoints = [
+                        VersionEndpoint(
                             version_id=document.version_id,
                             endpoint_id=endpoint.id
                         )
-                        db.add(version_endpoint)
+                        for endpoint in endpoints
+                    ]
+                    db.add_all(version_endpoints)
 
                 db.commit()
-                endpoints_count = len(parse_result.endpoints)
+                endpoints_count = len(endpoints)
+
+                logger.info(
+                    f"文档解析成功: document_id={document.id}, "
+                    f"endpoints_count={endpoints_count}, groups_count={groups_count}"
+                )
         except Exception as e:
             # 解析失败不影响文档导入
-            logger.error(f"解析文档失败: {str(e)}")
+            logger.error(f"解析文档失败: document_id={document.id}, error={str(e)}", exc_info=True)
 
     return ApiResponse(
         message="文档导入成功",
@@ -302,6 +350,7 @@ async def parse_document(
             )
 
     endpoints_count = 0
+    groups_count = 0
 
     try:
         # 根据文档类型选择解析器
@@ -322,9 +371,40 @@ async def parse_document(
                 # 删除接口定义
                 db.delete(old_endpoint)
 
+            # 自动创建分组
+            groups_map = {}  # group_name -> group_id
+            groups = parse_result.groups or []
+
+            for group_data in groups:
+                group_name = group_data.get('name')
+                if group_name:
+                    # 检查分组是否已存在
+                    existing_group = db.query(ApiEndpointGroup).filter(
+                        ApiEndpointGroup.project_id == document.project_id,
+                        ApiEndpointGroup.name == group_name
+                    ).first()
+
+                    if existing_group:
+                        groups_map[group_name] = existing_group.id
+                    else:
+                        # 创建新分组
+                        new_group = ApiEndpointGroup(
+                            project_id=document.project_id,
+                            name=group_name,
+                            description=group_data.get('description', ''),
+                            sort_order=len(groups_map)  # 按顺序排序
+                        )
+                        db.add(new_group)
+                        db.flush()  # 获取 group.id
+                        groups_map[group_name] = new_group.id
+                        groups_count += 1
+
             # 批量保存新的接口定义
             endpoints = []
             for endpoint_data in parse_result.endpoints:
+                group_name = endpoint_data.get('group_name')
+                group_id = groups_map.get(group_name) if group_name else None
+
                 endpoint = ApiEndpoint(
                     project_id=document.project_id,
                     document_id=document_id,
@@ -335,6 +415,7 @@ async def parse_document(
                     request_schema=endpoint_data.get('request_schema'),
                     response_schema=endpoint_data.get('response_schema'),
                     tags=endpoint_data.get('tags', []),
+                    group_id=group_id
                 )
                 db.add(endpoint)
                 db.flush()  # 获取 endpoint.id
@@ -353,7 +434,7 @@ async def parse_document(
                 db.commit()
                 endpoints_count = len(endpoints)
 
-            logger.info(f"文档解析成功: document_id={document_id}, endpoints_count={endpoints_count}")
+            logger.info(f"文档解析成功: document_id={document_id}, endpoints_count={endpoints_count}, groups_count={groups_count}")
         else:
             logger.error(f"文档解析失败: document_id={document_id}, error={parse_result.error}")
             raise HTTPException(
@@ -373,8 +454,8 @@ async def parse_document(
     return ApiResponse(
         message="文档解析成功",
         data={
-            "document_id": document_id,
-            "endpoints_count": endpoints_count
+            "endpoints_count": endpoints_count,
+            "groups_count": groups_count
         }
     )
 

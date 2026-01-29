@@ -343,9 +343,9 @@ const VirtualScriptList: React.FC<VirtualScriptListProps> = ({
           </Button>
         </Space>
       </div>
-
-      {/* 分组列表 */}
-      <div>
+  
+      {/* 分组列表 - 添加固定高度滚动 */}
+      <div style={{ overflowY: 'auto', maxHeight: 500 }}>
         {paginatedGroups.map(group => (
           <ScriptGroup
             key={group.group_id}
@@ -362,7 +362,7 @@ const VirtualScriptList: React.FC<VirtualScriptListProps> = ({
           />
         ))}
       </div>
-
+  
       {/* 分页 */}
       {totalGroups > pageSize && (
         <div style={{ marginTop: 24, display: 'flex', justifyContent: 'flex-end' }}>
@@ -380,7 +380,6 @@ const VirtualScriptList: React.FC<VirtualScriptListProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  );};
 
 export default memo(VirtualScriptList);

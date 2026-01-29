@@ -56,7 +56,21 @@ class SwaggerParser(BaseParser):
         try:
             self.info = self._raw_data.get('info', {})
             paths = self._raw_data.get('paths', {})
+            tags = self._raw_data.get('tags', [])  # Swagger/OpenAPI 的 tags 定义
+
             endpoints = []
+            groups = {}
+
+            # 提取所有 tags 作为分组
+            for tag in tags:
+                tag_name = tag.get('name')
+                tag_description = tag.get('description', '')
+                if tag_name:
+                    groups[tag_name] = {
+                        'name': tag_name,
+                        'description': tag_description,
+                        'source': 'tags'
+                    }
 
             for path, path_item in paths.items():
                 # 为每个 HTTP 方法提取接口信息
@@ -64,6 +78,29 @@ class SwaggerParser(BaseParser):
                     if method in path_item:
                         endpoint = self._extract_endpoint(path, path_item, method)
                         if endpoint:
+                            # 从 endpoint 的 tags 中提取分组信息
+                            endpoint_tags = endpoint.get('tags', [])
+                            if endpoint_tags:
+                                # 使用第一个 tag 作为分组
+                                group_name = endpoint_tags[0]
+                                if group_name not in groups:
+                                    groups[group_name] = {
+                                        'name': group_name,
+                                        'description': '',
+                                        'source': 'endpoint_tags'
+                                    }
+                                endpoint['group_name'] = group_name
+                            else:
+                                # 如果没有 tag，使用路径前缀作为分组
+                                group_name = self._extract_group_from_path(path)
+                                if group_name and group_name not in groups:
+                                    groups[group_name] = {
+                                        'name': group_name,
+                                        'description': '',
+                                        'source': 'path_prefix'
+                                    }
+                                endpoint['group_name'] = group_name
+
                             endpoints.append(endpoint)
 
             metadata = {
@@ -74,11 +111,12 @@ class SwaggerParser(BaseParser):
                 'total_endpoints': len(endpoints)
             }
 
-            logger.info(f"Swagger/OpenAPI 文档解析成功: title={self.info.get('title')}, version={self.openapi_version}, endpoints={len(endpoints)}")
+            logger.info(f"Swagger/OpenAPI 文档解析成功: title={self.info.get('title')}, version={self.openapi_version}, endpoints={len(endpoints)}, groups={len(groups)}")
             return ParseResult(
                 success=True,
                 endpoints=endpoints,
-                metadata=metadata
+                metadata=metadata,
+                groups=list(groups.values())
             )
 
         except Exception as e:
@@ -280,6 +318,25 @@ class SwaggerParser(BaseParser):
         servers = self._raw_data.get('servers', [])
         if servers:
             return servers[0].get('url', '')
+
+    def _extract_group_from_path(self, path: str) -> str:
+        """
+        从路径中提取分组名称
+
+        Args:
+            path: 接口路径
+
+        Returns:
+            str: 分组名称
+        """
+        # 去除开头的 /
+        path = path.lstrip('/')
+        # 分割路径
+        parts = path.split('/')
+        # 返回第一部分作为分组名称
+        if parts:
+            return parts[0]
+        return '默认分组'
 
         # OpenAPI 2.0 兼容
         schemes = self._raw_data.get('schemes', ['http'])

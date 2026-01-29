@@ -67,6 +67,34 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
+# 启动异步任务工作线程
+@app.on_event("startup")
+async def startup_event():
+    """应用启动事件"""
+    logger.info("启动异步任务工作线程...")
+
+    from app.core.async_task import get_task_manager
+    from app.db.session import get_db
+
+    # 获取数据库会话
+    db_gen = get_db()
+    db = next(db_gen)
+
+    try:
+        # 获取任务管理器并启动工作线程
+        task_manager = get_task_manager(db)
+
+        # 在后台启动工作线程
+        import asyncio
+        asyncio.create_task(task_manager.start_worker())
+
+        logger.info("异步任务工作线程已启动")
+    except Exception as e:
+        logger.error(f"启动异步任务工作线程失败: {str(e)}", exc_info=True)
+    finally:
+        db.close()
+
+
 @app.get("/")
 async def root():
     return {"message": "BugSeek API", "version": settings.VERSION}

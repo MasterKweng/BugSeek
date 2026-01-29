@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/auth'
 // 创建自定义 axios 实例，拦截器返回 response.data
 const instance = axios.create({
   baseURL: '/api/v1',
-  timeout: 10000,
+  timeout: 60000, // 增加到60秒，适应依赖分析等耗时操作
 })
 
 // 请求拦截器

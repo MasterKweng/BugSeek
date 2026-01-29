@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Input, Space, Button, List, Empty, message } from 'antd';
+import { Input, Space, Button, List, Empty, message, Tag } from 'antd';
 import {
   FolderOutlined,
   FolderOpenOutlined,
@@ -43,44 +43,63 @@ const GroupEndpointTree: React.FC<GroupEndpointTreeProps> = ({
   // 获取分组下的接口列表（根据脚本数量过滤）
   const getGroupEndpoints = (groupId: number) => {
     let groupEndpoints = endpoints.filter(e => e.group_id === groupId);
-    
+
     // 如果启用了只显示有脚本的接口，则过滤
     if (showOnlyWithScripts) {
       groupEndpoints = groupEndpoints.filter(e => e.script_count > 0);
     }
-    
+
     return groupEndpoints;
   };
 
   // 过滤分组和接口
   const filteredGroups = groups.map(group => {
+    // 过滤掉"未分组"且接口数量为0的分组
+    if (group.name === '未分组' && (group.endpoint_count || 0) === 0) {
+      return null;
+    }
+
     const groupEndpoints = getGroupEndpoints(group.id);
-    
+
+    // 如果启用只显示有脚本的接口，且该分组下没有有脚本的接口，则不显示该分组
+    if (showOnlyWithScripts && groupEndpoints.length === 0) {
+      return null;
+    }
+
     if (!searchValue) {
       return { group, endpoints: groupEndpoints };
     }
-    
+
     const lowerSearchValue = searchValue.toLowerCase();
-    
+
     // 检查分组名称是否匹配
     const groupMatches = group.name.toLowerCase().includes(lowerSearchValue);
-    
+
     // 检查接口路径是否匹配
-    const matchingEndpoints = groupEndpoints.filter(e => 
-      e.path.toLowerCase().includes(lowerSearchValue) || 
+    const matchingEndpoints = groupEndpoints.filter(e =>
+      e.path.toLowerCase().includes(lowerSearchValue) ||
       e.summary?.toLowerCase().includes(lowerSearchValue)
     );
-    
+
     // 如果分组名称匹配，或者有接口匹配，则显示该分组
     if (groupMatches || matchingEndpoints.length > 0) {
-      return { 
-        group, 
-        endpoints: groupMatches ? groupEndpoints : matchingEndpoints 
+      return {
+        group,
+        endpoints: groupMatches ? groupEndpoints : matchingEndpoints
       };
     }
-    
+
     return null;
   }).filter(item => item !== null);
+
+  // 添加调试日志
+  useEffect(() => {
+    console.log('=== GroupEndpointTree 调试信息 ===');
+    console.log('传入的分组数量:', groups.length);
+    console.log('传入的接口数量:', endpoints.length);
+    console.log('只显示有脚本的接口:', showOnlyWithScripts);
+    console.log('过滤后的分组:', filteredGroups.length);
+  }, [groups, endpoints, showOnlyWithScripts, filteredGroups.length]);
 
   // 搜索过滤
   const handleSearch = (value: string) => {
@@ -111,7 +130,7 @@ const GroupEndpointTree: React.FC<GroupEndpointTreeProps> = ({
   };
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div>
       {/* 搜索框 */}
       <div style={{ marginBottom: 12, flexShrink: 0 }}>
         <Input
@@ -124,7 +143,7 @@ const GroupEndpointTree: React.FC<GroupEndpointTreeProps> = ({
       </div>
 
       {/* 分组和接口列表 */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div>
         {filteredGroups.length === 0 ? (
           <Empty
             description={searchValue ? '未找到匹配的分组或接口' : '暂无分组'}
@@ -151,23 +170,27 @@ const GroupEndpointTree: React.FC<GroupEndpointTreeProps> = ({
                   }}
                   onClick={() => handleGroupClick(group.id)}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    {/* 展开/折叠图标 */}
-                    {groupEndpoints.length > 0 && (
-                      <span style={{ marginRight: 8, color: '#999' }}>
-                        {isExpanded ? <DownOutlined /> : <RightOutlined />}
-                      </span>
-                    )}
-                    {!groupEndpoints.length && (
-                      <span style={{ width: 14, marginRight: 8 }} />
-                    )}
-                    
-                    {/* 文件夹图标 */}
-                    <FolderOutlined style={{ color: '#1890ff', fontSize: 16, marginRight: 8 }} />
-                    
-                    {/* 分组名称和数量 */}
-                    <span style={{ fontSize: 14 }}>{group.name}</span>
-                    <span style={{ color: '#999', fontSize: 12, marginLeft: 4 }}>({group.endpoint_count || 0})</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                      {/* 展开/折叠图标 */}
+                      {groupEndpoints.length > 0 && (
+                        <span style={{ marginRight: 8, color: '#999' }}>
+                          {isExpanded ? <DownOutlined /> : <RightOutlined />}
+                        </span>
+                      )}
+                      {!groupEndpoints.length && (
+                        <span style={{ width: 14, marginRight: 8 }} />
+                      )}
+
+                      {/* 文件夹图标 */}
+                      <FolderOutlined style={{ color: '#1890ff', fontSize: 16, marginRight: 8 }} />
+
+                      {/* 分组名称 */}
+                      <span style={{ fontSize: 14 }}>{group.name}</span>
+                    </div>
+
+                    {/* 接口数量 */}
+                    <Tag color="blue" style={{ marginLeft: 12 }}>{group.endpoint_count || 0}</Tag>
                   </div>
                 </div>
 

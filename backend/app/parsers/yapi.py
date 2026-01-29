@@ -54,9 +54,40 @@ class YApiParser(BaseParser):
                 interfaces = self._extract_interfaces_from_tree()
 
             endpoints = []
+            groups = {}
+
+            # 提取所有分类作为分组
+            cat_list = self._raw_data.get('cat', [])
+            for cat in cat_list:
+                cat_id = cat.get('_id')
+                cat_name = cat.get('name')
+                if cat_id and cat_name:
+                    groups[cat_id] = {
+                        'id': cat_id,
+                        'name': cat_name,
+                        'description': '',
+                        'source': 'category'
+                    }
+
             for interface in interfaces:
                 endpoint = self._extract_endpoint(interface)
                 if endpoint:
+                    # 从 interface 的 catid 提取分组信息
+                    catid = interface.get('catid')
+                    if catid and catid in groups:
+                        endpoint['group_name'] = groups[catid]['name']
+                    else:
+                        # 如果没有 catid，使用路径前缀作为分组
+                        path = interface.get('path', '')
+                        group_name = self._extract_group_from_path(path)
+                        if group_name and group_name not in groups:
+                            groups[group_name] = {
+                                'name': group_name,
+                                'description': '',
+                                'source': 'path_prefix'
+                            }
+                        endpoint['group_name'] = group_name
+
                     endpoints.append(endpoint)
 
             metadata = {
@@ -66,11 +97,12 @@ class YApiParser(BaseParser):
                 'total_endpoints': len(endpoints)
             }
 
-            logger.info(f"YApi 文档解析成功: project={self.project_info.get('name')}, endpoints={len(endpoints)}")
+            logger.info(f"YApi 文档解析成功: project={self.project_info.get('name')}, endpoints={len(endpoints)}, groups={len(groups)}")
             return ParseResult(
                 success=True,
                 endpoints=endpoints,
-                metadata=metadata
+                metadata=metadata,
+                groups=list(groups.values())
             )
 
         except Exception as e:
@@ -316,6 +348,29 @@ class YApiParser(BaseParser):
             str: 基础 URL
         """
         # YApi 可能包含环境配置
+        project_config = self.project_info.get('env', [])
+        if project_config and len(project_config) > 0:
+            return project_config[0].get('domain', '')
+        return ''
+
+    def _extract_group_from_path(self, path: str) -> str:
+        """
+        从路径中提取分组名称
+
+        Args:
+            path: 接口路径
+
+        Returns:
+            str: 分组名称
+        """
+        # 去除开头的 /
+        path = path.lstrip('/')
+        # 分割路径
+        parts = path.split('/')
+        # 返回第一部分作为分组名称
+        if parts:
+            return parts[0]
+        return '默认分组'
         envs = self._raw_data.get('env', [])
         if envs:
             # 使用第一个环境的域名

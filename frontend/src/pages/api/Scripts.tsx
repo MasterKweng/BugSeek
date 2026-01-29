@@ -525,7 +525,7 @@ const Scripts: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div>
       <Card
         title={
           <Space>

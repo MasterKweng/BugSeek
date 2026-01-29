@@ -530,7 +530,7 @@ const Endpoints: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '24px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+    <div>
       <Card
         title={
           <Space>
@@ -549,13 +549,18 @@ const Endpoints: React.FC = () => {
             生成测试脚本
           </Button>
         }
-        style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-        styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', padding: 0 } }}
       >
-        <Row style={{ flex: 1, height: '100%', overflow: 'hidden' }}>
+        <Row>
           {/* 左侧分组树 */}
-          <Col span={5} style={{ borderRight: '1px solid #f0f0f0', height: '100%', overflow: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', backgroundColor: '#fafafa' }}>
-            <div style={{ flex: 1, overflow: 'auto' }}>
+          <Col 
+            span={5}
+            style={{ 
+              borderRight: '1px solid #f0f0f0', 
+              padding: '16px', 
+              backgroundColor: '#fafafa'
+            }}
+          >
+            <div style={{ height: 500, overflowY: 'auto' }}>
               <GroupTree
                 groups={groups}
                 selectedGroupId={selectedGroupId}
@@ -570,58 +575,94 @@ const Endpoints: React.FC = () => {
           </Col>
 
           {/* 右侧接口列表 */}
-          <Col span={19} style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <Col span={19}>
+            <div style={{ padding: '16px' }}>
               {/* 搜索和筛选栏 */}
-                            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-                              <span style={{ fontSize: 16, fontWeight: 500, color: '#333' }}>
-                                {selectedGroupId 
-                                  ? `${groups.find(g => g.id === selectedGroupId)?.name || '接口'} 共 (${total}) 个`
-                                  : '全部接口'
-                                }
-                              </span>
-                              <Space>
-                                <Input
-                                  placeholder="搜索接口路径、摘要、标签..."
-                                  prefix={<SearchOutlined />}
-                                  style={{ width: 300 }}
-                                  value={searchText}
-                                  onChange={(e) => setSearchText(e.target.value)}
-                                  onPressEnter={() => setPage(1)}
-                                  allowClear
-                                />
-                                <Select
-                                  placeholder="筛选方法"
-                                  style={{ width: 120 }}
-                                  allowClear
-                                  value={filterMethod}
-                                  onChange={(value) => {
-                                    setFilterMethod(value);
-                                    setPage(1);
-                                  }}
-                                >
-                                  <Option value="GET">GET</Option>
-                                  <Option value="POST">POST</Option>
-                                  <Option value="PUT">PUT</Option>
-                                  <Option value="DELETE">DELETE</Option>
-                                  <Option value="PATCH">PATCH</Option>
-                                </Select>
-                                <Button icon={<ReloadOutlined />} onClick={() => {
-                                  setPage(1);
-                                  fetchEndpoints();
-                                }} loading={loading}>
-                                  刷新
-                                </Button>
-                              </Space>
-                            </div>
+              <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Space>
+                  <span style={{ fontSize: 16, fontWeight: 500, color: '#333' }}>
+                    {selectedGroupId
+                      ? `${groups.find(g => g.id === selectedGroupId)?.name || '接口'} 共 (${total}) 个`
+                      : '全部接口'
+                    }
+                  </span>
+                  {selectedEndpointIds.length > 0 && (
+                    <span style={{ fontSize: 14, color: '#666' }}>
+                      已选 {selectedEndpointIds.length}/{total}
+                    </span>
+                  )}
+                </Space>
+                <Space>
+                  <Input
+                    placeholder="搜索接口路径、摘要、标签..."
+                    prefix={<SearchOutlined />}
+                    style={{ width: 150 }}
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    onPressEnter={() => setPage(1)}
+                    allowClear
+                  />
+                  <Select
+                    placeholder="筛选方法"
+                    style={{ width: 120 }}
+                    allowClear
+                    value={filterMethod}
+                    onChange={(value) => {
+                      setFilterMethod(value);
+                      setPage(1);
+                    }}
+                  >
+                    <Option value="GET">GET</Option>
+                    <Option value="POST">POST</Option>
+                    <Option value="PUT">PUT</Option>
+                    <Option value="DELETE">DELETE</Option>
+                    <Option value="PATCH">PATCH</Option>
+                  </Select>
+                  <Button
+                    icon={<ReloadOutlined />}
+                    onClick={() => {
+                      setPage(1);
+                      fetchEndpoints();
+                    }}
+                    loading={loading}
+                  >
+                    刷新
+                  </Button>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setCreateVisible(true)}
+                  >
+                    新建接口
+                  </Button>
+                  <Button
+                    icon={<PlusOutlined />}
+                    onClick={() => setImportVisible(true)}
+                  >
+                    导入接口
+                  </Button>
+                  {selectedEndpointIds.length > 0 && (
+                    <Button
+                      type="primary"
+                      icon={<ReloadOutlined />}
+                      onClick={() => {
+                        navigate('/api/scripts');
+                      }}
+                    >
+                      生成脚本
+                    </Button>
+                  )}
+                </Space>
+              </div>
+
               {/* 接口列表 */}
-              <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
+              <div>
                 <Table
                   columns={columns}
                   dataSource={endpoints}
                   rowKey="id"
                   loading={loading}
-                  scroll={{ y: 'calc(100vh - 320px)' }}
+                  scroll={{ y: 500 }}
                   rowSelection={{
                     selectedRowKeys: selectedEndpointIds,
                     onChange: (selectedRowKeys) => setSelectedEndpointIds(selectedRowKeys as number[]),

@@ -51,14 +51,23 @@ const GroupTree: React.FC<GroupTreeProps> = ({
 
   // 过滤分组
   useEffect(() => {
-    if (!searchValue) {
-      setFilteredGroups(groups);
-      return;
+    let filtered = groups;
+
+    // 过滤掉"未分组"且接口数量为0的分组
+    filtered = filtered.filter(group => {
+      if (group.name === '未分组' && (group.endpoint_count || 0) === 0) {
+        return false;
+      }
+      return true;
+    });
+
+    // 如果有搜索内容，进一步过滤
+    if (searchValue) {
+      filtered = filtered.filter(group =>
+        group.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
     }
 
-    const filtered = groups.filter(group => 
-      group.name.toLowerCase().includes(searchValue.toLowerCase())
-    );
     setFilteredGroups(filtered);
   }, [groups, searchValue]);
 
@@ -108,7 +117,17 @@ const GroupTree: React.FC<GroupTreeProps> = ({
   };
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <>
+      <style>{`
+        .group-list-item .ant-list-item-action {
+          min-width: auto !important;
+          margin-left: 12px !important;
+        }
+        .group-list-item .ant-list-item-action li {
+          padding: 0 4px !important;
+        }
+      `}</style>
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* 搜索框和添加按钮 */}
       <div style={{ marginBottom: 12, flexShrink: 0 }}>
         <Space.Compact style={{ width: '100%' }}>
@@ -152,6 +171,7 @@ const GroupTree: React.FC<GroupTreeProps> = ({
                 }}
                 onClick={() => onGroupSelect(group.id)}
                 actions={[
+                  <Tag key="count" color="blue">{group.endpoint_count || 0}</Tag>,
                   <Dropdown
                     key="actions"
                     menu={{
@@ -185,12 +205,13 @@ const GroupTree: React.FC<GroupTreeProps> = ({
                     }}
                     trigger={['click']}
                   >
-                    <MoreOutlined 
+                    <MoreOutlined
                       style={{ color: '#999', padding: '4px' }}
                       onClick={(e) => e.stopPropagation()}
                     />
                   </Dropdown>
                 ]}
+                className="group-list-item"
               >
                 <List.Item.Meta
                   avatar={
@@ -208,19 +229,7 @@ const GroupTree: React.FC<GroupTreeProps> = ({
                       <FolderOutlined style={{ color: '#1890ff', fontSize: 16 }} />
                     </div>
                   }
-                  title={
-                    <Space>
-                      <span style={{ fontSize: 14 }}>{group.name}</span>
-                      <Tag color="blue">{group.endpoint_count || 0}</Tag>
-                    </Space>
-                  }
-                  description={
-                    onToggleGroup && group.endpoint_count > 0 && (
-                      <span style={{ color: '#999', fontSize: 12 }}>
-                        已选 {group.selected_count || 0} / {group.endpoint_count}
-                      </span>
-                    )
-                  }
+                  title={<span style={{ fontSize: 14 }}>{group.name}</span>}
                 />
               </List.Item>
             )}
@@ -279,6 +288,7 @@ const GroupTree: React.FC<GroupTreeProps> = ({
         </Form>
       </Modal>
     </div>
+    </>
   );
 };
 

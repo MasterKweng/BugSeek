@@ -52,6 +52,7 @@ class PostmanParser(BaseParser):
             # 提取接口列表（支持嵌套文件夹）
             items = self._raw_data.get('item', [])
             endpoints = []
+            groups = {}
 
             def extract_from_item(item: Dict[str, Any], folder_path: List[str] = None):
                 """递归提取接口"""
@@ -63,6 +64,14 @@ class PostmanParser(BaseParser):
                     folder_name = item.get('name', '')
                     new_path = folder_path + [folder_name]
 
+                    # 将文件夹作为分组
+                    if folder_name and folder_name not in groups:
+                        groups[folder_name] = {
+                            'name': folder_name,
+                            'description': item.get('description', ''),
+                            'source': 'folder'
+                        }
+
                     for sub_item in item['item']:
                         extract_from_item(sub_item, new_path)
                 else:
@@ -71,6 +80,28 @@ class PostmanParser(BaseParser):
                     if request:
                         endpoint = self._extract_endpoint(item, folder_path)
                         if endpoint:
+                            # 使用文件夹路径作为分组
+                            if folder_path:
+                                group_name = folder_path[0]  # 使用第一级文件夹作为分组
+                                if group_name not in groups:
+                                    groups[group_name] = {
+                                        'name': group_name,
+                                        'description': '',
+                                        'source': 'folder'
+                                    }
+                                endpoint['group_name'] = group_name
+                            else:
+                                # 如果没有文件夹，使用路径前缀作为分组
+                                path = endpoint.get('path', '')
+                                group_name = self._extract_group_from_path(path)
+                                if group_name and group_name not in groups:
+                                    groups[group_name] = {
+                                        'name': group_name,
+                                        'description': '',
+                                        'source': 'path_prefix'
+                                    }
+                                endpoint['group_name'] = group_name
+
                             endpoints.append(endpoint)
 
             for item in items:
@@ -84,11 +115,12 @@ class PostmanParser(BaseParser):
                 'total_endpoints': len(endpoints)
             }
 
-            logger.info(f"Postman 文档解析成功: collection={self.collection_info.get('name')}, endpoints={len(endpoints)}")
+            logger.info(f"Postman 文档解析成功: collection={self.collection_info.get('name')}, endpoints={len(endpoints)}, groups={len(groups)}")
             return ParseResult(
                 success=True,
                 endpoints=endpoints,
-                metadata=metadata
+                metadata=metadata,
+                groups=list(groups.values())
             )
 
         except Exception as e:
@@ -356,6 +388,33 @@ class PostmanParser(BaseParser):
         headers = response.get('header', [])
 
         # 提取响应体
+        body = response.get('body', '')
+
+        # 简单的响应 schema
+        return {
+            'status_code': status_code,
+            'headers': headers,
+            'body': body
+        }
+
+    def _extract_group_from_path(self, path: str) -> str:
+        """
+        从路径中提取分组名称
+
+        Args:
+            path: 接口路径
+
+        Returns:
+            str: 分组名称
+        """
+        # 去除开头的 /
+        path = path.lstrip('/')
+        # 分割路径
+        parts = path.split('/')
+        # 返回第一部分作为分组名称
+        if parts:
+            return parts[0]
+        return '默认分组'
         body = response.get('body', '')
         if isinstance(body, str):
             try:

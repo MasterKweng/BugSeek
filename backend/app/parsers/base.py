@@ -14,6 +14,7 @@ class ParseResult:
     endpoints: List[Dict[str, Any]]
     error: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
+    groups: List[Dict[str, Any]] = None  # 分组信息
 
 
 class BaseParser(ABC):

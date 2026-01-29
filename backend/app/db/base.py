@@ -1,6 +1,6 @@
 """数据库模型基类"""
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, JSON, ForeignKey, Index, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, JSON, ForeignKey, Index, UniqueConstraint, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -197,6 +197,7 @@ class ApiEndpoint(Base, TimestampMixin):
     response_schema = Column(JSON, nullable=True)
     tags = Column(JSON, nullable=True)  # ["user", "auth"]
     group_id = Column(Integer, ForeignKey("api_endpoint_groups.id"), nullable=True)
+    is_deleted = Column(Boolean, default=False)  # 软删除标记
 
     # 关系定义
     group = relationship("ApiEndpointGroup", foreign_keys=[group_id])
@@ -206,6 +207,7 @@ class ApiEndpoint(Base, TimestampMixin):
         Index('ix_api_endpoints_document_id', 'document_id'),
         Index('ix_api_endpoints_path_method', 'path', 'method'),
         Index('ix_api_endpoints_group_id', 'group_id'),
+        Index('ix_api_endpoints_is_deleted', 'is_deleted'),
     )
 
 
@@ -228,11 +230,22 @@ class ApiEndpointGroup(Base, TimestampMixin):
     description = Column(Text, nullable=True)
     sort_order = Column(Integer, default=0)
 
+    # 模块分析状态
+    analysis_status = Column(String(20), default="pending")  # pending | analyzing | completed
+
+    # 模块的输入/输出接口（用于模块间依赖分析）
+    input_endpoints = Column(JSON, nullable=True)  # [endpoint_id, ...]
+    output_endpoints = Column(JSON, nullable=True)  # [endpoint_id, ...]
+
+    # 模块内的业务链路
+    internal_chains = Column(JSON, nullable=True)  # [[endpoint_id, ...], ...]
+
     # 关系定义
     endpoints = relationship("ApiEndpoint", back_populates="group")
 
     __table_args__ = (
         Index('ix_api_endpoint_groups_project_id', 'project_id'),
+        Index('ix_api_endpoint_groups_analysis_status', 'analysis_status'),
         UniqueConstraint('project_id', 'name', name='uq_project_group_name'),
     )
 
@@ -342,4 +355,389 @@ class ScriptExecution(Base, TimestampMixin):
         Index('ix_script_executions_script_id', 'script_id'),
         Index('ix_script_executions_endpoint_id', 'endpoint_id'),
         Index('ix_script_executions_environment_id', 'environment_id'),
+    )
+
+
+class TestExecution(Base, TimestampMixin):
+    """统一测试执行记录表（支持单接口、场景、套件）"""
+    __tablename__ = "test_executions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+
+    # 执行类型：single | scenario | suite
+    execution_type = Column(String(20), nullable=False, index=True)
+
+    # 关联ID（根据类型不同，指向不同的表）
+    target_id = Column(Integer, nullable=False, index=True)  # script_id | scenario_id | suite_id
+
+    # 执行环境
+    environment_id = Column(Integer, ForeignKey("environments.id"), nullable=True)
+
+    # 执行配置
+    execution_mode = Column(String(20))  # sequential | parallel
+    triggered_by = Column(String(50), index=True)  # manual | jenkins | schedule
+
+    # 执行状态
+    status = Column(String(20), default="pending", index=True)  # pending | running | completed | failed
+    started_at = Column(DateTime)
+    finished_at = Column(DateTime)
+    duration = Column(Integer)
+
+    # 执行统计
+    total = Column(Integer)
+    passed = Column(Integer)
+    failed = Column(Integer)
+    skipped = Column(Integer)
+
+    # Jenkins 相关（仅套件执行需要）
+    jenkins_job_name = Column(String(100))
+    jenkins_build_number = Column(Integer)
+    jenkins_build_url = Column(String(255))
+
+    # CI/CD 回调
+    webhook_url = Column(String(255))
+    callback_status = Column(String(20))
+
+    # 关系定义
+    environment = relationship("Environment", foreign_keys=[environment_id])
+
+    __table_args__ = (
+        Index('ix_test_executions_project_id', 'project_id'),
+        Index('ix_test_executions_execution_type', 'execution_type'),
+        Index('ix_test_executions_target_id', 'target_id'),
+        Index('ix_test_executions_status', 'status'),
+        Index('ix_test_executions_triggered_by', 'triggered_by'),
+    )
+
+
+class TestExecutionResult(Base, TimestampMixin):
+    """测试执行结果明细表"""
+    __tablename__ = "test_execution_results"
+
+    id = Column(Integer, primary_key=True, index=True)
+    execution_id = Column(Integer, ForeignKey("test_executions.id"), nullable=False, index=True)
+
+    # 原始数据
+    target_type = Column(String(20), index=True)  # script | endpoint
+    target_id = Column(Integer, index=True)
+
+    # 执行结果
+    status = Column(String(20), index=True)
+    response_time = Column(Integer)
+    response_code = Column(Integer)
+    response_body = Column(JSON)
+    request_body = Column(JSON)
+
+    # 断言结果
+    assertion_results = Column(JSON)
+    error_message = Column(Text)
+
+    # 关系定义
+    execution = relationship("TestExecution", foreign_keys=[execution_id])
+
+    __table_args__ = (
+        Index('ix_test_execution_results_execution_id', 'execution_id'),
+        Index('ix_test_execution_results_target_type', 'target_type'),
+        Index('ix_test_execution_results_target_id', 'target_id'),
+        Index('ix_test_execution_results_status', 'status'),
+    )
+
+
+class ApiDependency(Base, TimestampMixin):
+    """接口依赖关系表"""
+    __tablename__ = "api_dependencies"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    
+    # 依赖关系
+    source_endpoint_id = Column(Integer, ForeignKey("api_endpoints.id"), nullable=False)
+    target_endpoint_id = Column(Integer, ForeignKey("api_endpoints.id"), nullable=False)
+    
+    # 映射规则：如何从源接口的响应提取数据，传递到目标接口的请求
+    # 示例：{"source_path": "data.order_id", "target_path": "order_id"}
+    mapping_rule = Column(JSON, nullable=True)
+    
+    # 依赖类型
+    dependency_type = Column(String(20), nullable=False)  # direct | indirect | reference
+    
+    # 依赖强度（0-1）：用于计算业务链路的完整性
+    dependency_strength = Column(Float, default=1.0)
+    
+    # 发现方式
+    discovery_method = Column(String(50))  # ai_analysis | manual | schema_inference
+    
+    # 关系定义
+    source_endpoint = relationship("ApiEndpoint", foreign_keys=[source_endpoint_id])
+    target_endpoint = relationship("ApiEndpoint", foreign_keys=[target_endpoint_id])
+    
+    __table_args__ = (
+        Index('ix_api_dependencies_project_id', 'project_id'),
+        Index('ix_api_dependencies_source_endpoint_id', 'source_endpoint_id'),
+        Index('ix_api_dependencies_target_endpoint_id', 'target_endpoint_id'),
+        Index('ix_api_dependencies_dependency_type', 'dependency_type'),
+        UniqueConstraint('source_endpoint_id', 'target_endpoint_id', name='uq_source_target'),
+    )
+
+
+class ApiScenario(Base, TimestampMixin):
+    """业务场景表"""
+    __tablename__ = "api_scenarios"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    
+    # 场景基本信息
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    
+    # 场景类型
+    scenario_type = Column(String(50), nullable=False)  # business_flow | test_chain | regression
+    category = Column(String(50))  # 订单流程 | 用户注册 | 支付流程
+    
+    # 涉及的接口（按执行顺序）
+    endpoint_ids = Column(JSON, nullable=False)  # [1, 5, 9]
+    
+    # 执行顺序（包含变量传递规则）
+    execution_order = Column(JSON, nullable=False)
+    # 示例：
+    # [
+    #   {
+    #     "step": 1,
+    #     "endpoint_id": 1,
+    #     "name": "创建订单",
+    #     "variables": {},
+    #     "extract": {"order_id": "data.id"}
+    #   },
+    #   {
+    #     "step": 2,
+    #     "endpoint_id": 5,
+    #     "name": "查询订单",
+    #     "variables": {"order_id": "{{step1.order_id}}"},
+    #     "depends_on": [1]
+    #   }
+    # ]
+    
+    # 场景级变量
+    variables = Column(JSON, nullable=True)  # 场景初始化变量
+    
+    # 场景配置
+    timeout = Column(Integer, default=300)  # 超时时间（秒）
+    retry_count = Column(Integer, default=0)  # 失败重试次数
+    continue_on_failure = Column(Boolean, default=False)  # 失败后是否继续执行
+    
+    # 统计信息
+    endpoint_count = Column(Integer, default=0)
+    
+    # 状态
+    status = Column(String(20), default="active")  # active | archived
+    
+    # 关系定义
+    endpoints = relationship("ApiEndpoint", secondary="scenario_endpoints", backref="scenarios")
+    
+    __table_args__ = (
+        Index('ix_api_scenarios_project_id', 'project_id'),
+        Index('ix_api_scenarios_scenario_type', 'scenario_type'),
+        Index('ix_api_scenarios_category', 'category'),
+        Index('ix_api_scenarios_status', 'status'),
+    )
+
+
+class ScenarioEndpoint(Base, TimestampMixin):
+    """场景与接口的关联表"""
+    __tablename__ = "scenario_endpoints"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    scenario_id = Column(Integer, ForeignKey("api_scenarios.id"), nullable=False)
+    endpoint_id = Column(Integer, ForeignKey("api_endpoints.id"), nullable=False)
+    step_order = Column(Integer, nullable=False)  # 执行步骤顺序
+    
+    # 关系定义
+    scenario = relationship("ApiScenario", foreign_keys=[scenario_id])
+    endpoint = relationship("ApiEndpoint", foreign_keys=[endpoint_id])
+    
+    __table_args__ = (
+        Index('ix_scenario_endpoints_scenario_id', 'scenario_id'),
+        Index('ix_scenario_endpoints_endpoint_id', 'endpoint_id'),
+        Index('ix_scenario_endpoints_step_order', 'step_order'),
+        UniqueConstraint('scenario_id', 'endpoint_id', name='uq_scenario_endpoint'),
+    )
+
+
+class AsyncTask(Base, TimestampMixin):
+    """异步任务表"""
+    __tablename__ = "async_tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    group_id = Column(Integer, ForeignKey("api_endpoint_groups.id"), nullable=True)  # 分组ID
+
+    # 任务类型
+    task_type = Column(String(50), nullable=False, index=True)  # dependency_analysis | code_generation
+
+    # 任务状态
+    status = Column(String(20), default="pending", index=True)  # pending | running | completed | failed | cancelled
+
+    # 任务参数
+    task_params = Column(JSON, nullable=True)
+
+    # 任务结果
+    task_result = Column(JSON, nullable=True)
+
+    # 进度信息
+    progress = Column(Integer, default=0)  # 0-100
+    progress_message = Column(Text, nullable=True)
+
+    # 错误信息
+    error_message = Column(Text, nullable=True)
+
+    # Celery 任务ID
+    celery_task_id = Column(String(255), nullable=True, index=True)
+
+    # 任务优先级
+    priority = Column(Integer, default=5)  # 0-10，数字越小优先级越高
+
+    # 重试次数
+    retry_count = Column(Integer, default=0)
+    max_retries = Column(Integer, default=3)
+
+    # 时间信息
+    started_at = Column(DateTime, nullable=True)
+    finished_at = Column(DateTime, nullable=True)
+    estimated_duration = Column(Integer, nullable=True)  # 预计耗时（秒）
+
+    # 关系定义
+    project = relationship("Project", foreign_keys=[project_id])
+    user = relationship("User", foreign_keys=[user_id])
+
+    __table_args__ = (
+        Index('ix_async_tasks_project_id', 'project_id'),
+        Index('ix_async_tasks_user_id', 'user_id'),
+        Index('ix_async_tasks_group_id', 'group_id'),
+        Index('ix_async_tasks_task_type', 'task_type'),
+        Index('ix_async_tasks_status', 'status'),
+        Index('ix_async_tasks_celery_task_id', 'celery_task_id'),
+    )
+
+
+class GroupDependency(Base, TimestampMixin):
+    """分组依赖关系表"""
+    __tablename__ = "group_dependencies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+
+    # 分组间的依赖
+    source_group_id = Column(Integer, ForeignKey("api_endpoint_groups.id"), nullable=False)
+    target_group_id = Column(Integer, ForeignKey("api_endpoint_groups.id"), nullable=False)
+
+    # 依赖强度
+    dependency_strength = Column(Float, default=1.0)
+
+    # 依赖类型
+    dependency_type = Column(String(20), nullable=False)  # direct | indirect | reference
+
+    # 映射规则
+    mapping_rule = Column(JSON, nullable=True)
+
+    # 关系定义
+    source_group = relationship("ApiEndpointGroup", foreign_keys=[source_group_id])
+    target_group = relationship("ApiEndpointGroup", foreign_keys=[target_group_id])
+
+    __table_args__ = (
+        Index('ix_group_dependencies_project_id', 'project_id'),
+        Index('ix_group_dependencies_source_group_id', 'source_group_id'),
+        Index('ix_group_dependencies_target_group_id', 'target_group_id'),
+        UniqueConstraint('source_group_id', 'target_group_id', name='uq_group_source_target'),
+    )
+
+
+class ApiModuleDependency(Base, TimestampMixin):
+    """模块依赖关系表"""
+    __tablename__ = "api_module_dependencies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+
+    # 依赖关系（模块级）
+    source_group_id = Column(Integer, ForeignKey("api_endpoint_groups.id"), nullable=False)
+    target_group_id = Column(Integer, ForeignKey("api_endpoint_groups.id"), nullable=False)
+
+    # 跨模块接口映射
+    # 哪些接口输出数据，哪些接口接收数据
+    endpoint_mappings = Column(JSON, nullable=False, default=list)
+    # 示例：
+    # {
+    #   "outputs": [
+    #     {"endpoint_id": 1, "fields": ["user_id", "order_id"]}
+    #   ],
+    #   "inputs": [
+    #     {"endpoint_id": 5, "fields": ["user_id"]}
+    #   ]
+    # }
+
+    # 依赖强度
+    dependency_strength = Column(Float, default=1.0)
+
+    # 关系定义
+    source_group = relationship("ApiEndpointGroup", foreign_keys=[source_group_id])
+    target_group = relationship("ApiEndpointGroup", foreign_keys=[target_group_id])
+
+    __table_args__ = (
+        Index('ix_api_module_dependencies_project_id', 'project_id'),
+        Index('ix_api_module_dependencies_source_group_id', 'source_group_id'),
+        Index('ix_api_module_dependencies_target_group_id', 'target_group_id'),
+        UniqueConstraint('source_group_id', 'target_group_id', name='uq_module_source_target'),
+    )
+
+
+class ApiModuleChain(Base, TimestampMixin):
+    """模块业务链路表"""
+    __tablename__ = "api_module_chains"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+
+    # 链路信息
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+
+    # 涉及的模块（按执行顺序）
+    group_ids = Column(JSON, nullable=False, default=list)
+
+    # 链路结构（嵌套的执行顺序）
+    # 每个模块内部有自己的执行顺序，模块间有数据传递
+    chain_structure = Column(JSON, nullable=False, default=list)
+    # 示例：
+    # [
+    #   {
+    #     "step": 1,
+    #     "group_id": 1,
+    #     "group_name": "用户模块",
+    #     "internal_chain": [endpoint_1, endpoint_2],  # 模块内链路
+    #     "output_fields": {"user_id": "step1.endpoint_1.data.id"},
+    #     "next_group_id": 3
+    #   },
+    #   {
+    #     "step": 2,
+    #     "group_id": 3,
+    #     "group_name": "订单模块",
+    #     "internal_chain": [endpoint_5, endpoint_6],
+    #     "input_fields": {"user_id": "{{step1.user_id}}"},
+    #     "next_group_id": 5
+    #   }
+    # ]
+
+    # 统计信息
+    endpoint_count = Column(Integer, default=0)
+    group_count = Column(Integer, default=0)
+
+    # 状态
+    status = Column(String(20), default="active")  # active | archived
+
+    __table_args__ = (
+        Index('ix_api_module_chains_project_id', 'project_id'),
+        Index('ix_api_module_chains_status', 'status'),
     )

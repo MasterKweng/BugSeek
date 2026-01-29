@@ -4,6 +4,9 @@ from sqlalchemy.orm import Session
 from typing import List, Optional, Any, Dict
 from pydantic import BaseModel
 import logging
+import asyncio
+import json
+import re
 
 from app.dependencies import get_db
 from app.api.v1.deps import get_current_user
@@ -91,6 +94,144 @@ PRESET_TEST_TYPES = [
     {"code": "exception", "name": "异常测试", "description": "超长字符串、特殊字符测试"},
 ]
 
+# 预设测试类型代码映射
+PRESET_TEST_TYPE_CODES = {
+    "positive": "positive",
+    "negative": "negative",
+    "boundary": "boundary",
+    "exception": "exception"
+}
+
+
+async def process_single_endpoint(
+    endpoint: ApiEndpoint,
+    test_types_config: Dict[str, Any],
+    trace_id: str,
+    db: Session,
+    ai_service: AIService,
+    semaphore: asyncio.Semaphore
+) -> tuple:
+    """
+    处理单个接口的脚本生成（异步任务）
+
+    Args:
+        endpoint: 接口对象
+        test_types_config: 测试类型配置
+        trace_id: 追踪ID
+        db: 数据库会话
+        ai_service: AI服务实例
+        semaphore: 信号量，控制并发数
+
+    Returns:
+        tuple: (endpoint_id, success, scripts_count, error_message)
+    """
+    async with semaphore:
+        endpoint_id = endpoint.id
+        endpoint_path = endpoint.path
+        endpoint_method = endpoint.method
+
+        logger.info(f"[{trace_id}] 开始处理接口: endpoint_id={endpoint_id}, path={endpoint_path}, method={endpoint_method}")
+
+        ai_request = {
+            "path": endpoint_path,
+            "method": endpoint_method,
+            "description": endpoint.description or "",
+            "request_schema": endpoint.request_schema,
+            "response_schema": endpoint.response_schema,
+            "test_types_config": test_types_config
+        }
+
+        try:
+            # 调用 AI 服务生成脚本
+            result = await ai_service.execute(
+                task_type="api_test_generation",
+                project_id=endpoint.project_id,
+                input_data=ai_request
+            )
+
+            if not result.get("success"):
+                error_msg = result.get('error', 'Unknown error')
+                logger.error(f"[{trace_id}] AI 生成失败: endpoint_id={endpoint_id}, endpoint={endpoint_path}, error={error_msg}")
+                return (endpoint_id, False, 0, error_msg)
+
+            # 解析并保存脚本
+            result_data = result["result"]
+
+            # 如果是字符串，尝试提取 JSON
+            if isinstance(result_data, str):
+                logger.info(f"[{trace_id}] AI 返回字符串，尝试提取 JSON...")
+
+                # 修复全角字符
+                result_data = result_data.replace('：', ':').replace('，', ',').replace('"', '"')
+
+                # 清除 JavaScript 注释（单行 // 和多行 /* */）
+                result_data = re.sub(r'//.*?\n', '\n', result_data)
+                result_data = re.sub(r'/\*.*?\*/', '', result_data, flags=re.DOTALL)
+
+                # 提取 JSON
+                json_match = re.search(r'\{[\s\S]*\}', result_data)
+                if json_match:
+                    json_str = json_match.group(0)
+                    try:
+                        result_data = json.loads(json_str)
+                        logger.info(f"[{trace_id}] JSON 提取成功")
+                    except json.JSONDecodeError as e:
+                        logger.error(f"[{trace_id}] JSON 解析失败: {str(e)}")
+                        logger.error(f"[{trace_id}] AI 原始返回（前1000字符）: {result_data[:1000]}")
+                        return (endpoint_id, False, 0, f"JSON 解析失败: {str(e)}")
+                else:
+                    logger.error(f"[{trace_id}] 未找到 JSON 格式")
+                    logger.error(f"[{trace_id}] AI 原始返回（前1000字符）: {result_data[:1000]}")
+                    return (endpoint_id, False, 0, "未找到 JSON 格式")
+
+            # 检查是否为字典
+            if not isinstance(result_data, dict):
+                logger.error(f"[{trace_id}] AI 返回格式错误，期望字典，实际: {type(result_data)}")
+                return (endpoint_id, False, 0, f"AI 返回格式错误: {type(result_data)}")
+
+            scripts_data = result_data.get("scripts", [])
+            logger.info(f"[{trace_id}] AI 返回 {len(scripts_data)} 个脚本 for endpoint {endpoint_path}")
+
+            # 保存脚本到数据库
+            saved_count = 0
+            for script_data in scripts_data:
+                script = ApiTestScript(
+                    project_id=endpoint.project_id,
+                    endpoint_id=endpoint.id,
+                    name=script_data.get("name"),
+                    description=script_data.get("description"),
+                    script_content={
+                        "endpoint": endpoint_path,
+                        "method": endpoint_method,
+                        "request": script_data.get("request_body", {}),
+                        "assertions": script_data.get("assertions", [])
+                    },
+                    test_type=script_data.get("test_type", PRESET_TEST_TYPE_CODES["positive"]),
+                    generated_by=GeneratedBy.AI
+                )
+
+                db.add(script)
+                saved_count += 1
+
+            # 提交事务
+            try:
+                db.commit()
+                logger.info(f"[{trace_id}] 成功保存 {saved_count} 个脚本 for endpoint {endpoint_path}, endpoint_id={endpoint_id}")
+            except Exception as e:
+                db.rollback()
+                logger.error(f"[{trace_id}] 数据库提交失败: endpoint_id={endpoint_id}, error={str(e)}", exc_info=True)
+                return (endpoint_id, False, 0, f"数据库提交失败: {str(e)}")
+
+            return (endpoint_id, True, saved_count, None)
+
+        except Exception as e:
+            logger.error(f"[{trace_id}] 处理接口异常: endpoint_id={endpoint_id}, endpoint={endpoint_path}, error={str(e)}", exc_info=True)
+            try:
+                db.rollback()
+            except:
+                pass
+            return (endpoint_id, False, 0, str(e))
+
 # 预设测试类型代码常量
 PRESET_TEST_TYPE_CODES = {
     "positive": "positive",
@@ -125,7 +266,7 @@ async def generate_scripts(
     endpoint_ids = []
     if request.endpoint_ids:
         endpoint_ids = request.endpoint_ids
-        logger.info(f"[{trace_id}] 批量生成测试脚本: endpoint_ids={endpoint_ids}, user={current_user.username}")
+        logger.info(f"[{trace_id}] 批量生成测试脚本: endpoint_ids数量={len(endpoint_ids)}, endpoint_ids={endpoint_ids}, user={current_user.username}")
     elif request.endpoint_id:
         endpoint_ids = [request.endpoint_id]
         logger.info(f"[{trace_id}] 单个生成测试脚本: endpoint_id={request.endpoint_id}, user={current_user.username}")
@@ -139,9 +280,13 @@ async def generate_scripts(
     endpoints = db.query(ApiEndpoint).filter(
         ApiEndpoint.id.in_(endpoint_ids)
     ).all()
-    
+
+    logger.info(f"[{trace_id}] 数据库查询结果: 请求接口数={len(endpoint_ids)}, 找到接口数={len(endpoints)}")
+    logger.info(f"[{trace_id}] 找到的接口ID列表: {[e.id for e in endpoints]}")
+
     if len(endpoints) != len(endpoint_ids):
         logger.warning(f"[{trace_id}] 部分接口不存在: 请求 {len(endpoint_ids)} 个，找到 {len(endpoints)} 个")
+        logger.warning(f"[{trace_id}] 未找到的接口ID: {set(endpoint_ids) - set([e.id for e in endpoints])}")
     
     if not endpoints:
         raise HTTPException(
@@ -177,108 +322,73 @@ async def generate_scripts(
                 }
     
     logger.info(f"[{trace_id}] 测试类型配置: {list(test_types_config.keys())}")
-    
-    # 3. 调用 AI 服务生成脚本
+
+    # 3. 使用异步队列并发处理接口
     ai_service = AIService()
-    saved_scripts = []
-    total_scripts_count = 0
-    
-    for endpoint in endpoints:
-        ai_request = {
-            "path": endpoint.path,
-            "method": endpoint.method,
-            "description": endpoint.description or "",
-            "request_schema": endpoint.request_schema,
-            "response_schema": endpoint.response_schema,
-            "test_types_config": test_types_config
-        }
-        
-        logger.info(f"[{trace_id}] 调用 AI 服务生成脚本: endpoint={endpoint.path}, method={endpoint.method}")
-        
-        result = await ai_service.execute(
-            task_type="api_test_generation",
-            project_id=endpoint.project_id,
-            input_data=ai_request
+
+    # 控制并发数，避免过多并发请求导致资源耗尽
+    MAX_CONCURRENT = 5
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT)
+
+    logger.info(f"[{trace_id}] 开始并发处理 {len(endpoints)} 个接口，最大并发数: {MAX_CONCURRENT}")
+
+    # 创建异步任务
+    tasks = [
+        process_single_endpoint(
+            endpoint=endpoint,
+            test_types_config=test_types_config,
+            trace_id=trace_id,
+            db=db,
+            ai_service=ai_service,
+            semaphore=semaphore
         )
-        
-        if not result.get("success"):
-            logger.error(f"[{trace_id}] AI 生成失败: endpoint={endpoint.path}, error={result.get('error')}")
-            continue  # 跳过失败的接口，继续生成其他接口的脚本
-        
-        # 4. 解析并保存脚本
-        try:
-            import json
-            import re
-            
-            # 处理 AI 返回结果
-            result_data = result["result"]
-            
-            # 如果是字符串，尝试提取 JSON
-            if isinstance(result_data, str):
-                logger.info(f"[{trace_id}] AI 返回字符串，尝试提取 JSON...")
-                
-                # 修复全角字符
-                result_data = result_data.replace('：', ':').replace('，', ',').replace('"', '"')
-                
-                # 提取 JSON
-                json_match = re.search(r'\{[\s\S]*\}', result_data)
-                if json_match:
-                    json_str = json_match.group(0)
-                    try:
-                        result_data = json.loads(json_str)
-                        logger.info(f"[{trace_id}] JSON 提取成功")
-                    except json.JSONDecodeError as e:
-                        logger.error(f"[{trace_id}] JSON 解析失败: {str(e)}")
-                        logger.error(f"[{trace_id}] AI 原始返回（前500字符）: {result_data[:500]}")
-                        continue
-                else:
-                    logger.error(f"[{trace_id}] 未找到 JSON 格式")
-                    logger.error(f"[{trace_id}] AI 原始返回（前500字符）: {result_data[:500]}")
-                    continue
-            
-            # 检查是否为字典
-            if not isinstance(result_data, dict):
-                logger.error(f"[{trace_id}] AI 返回格式错误，期望字典，实际: {type(result_data)}")
-                continue
-            
-            scripts_data = result_data.get("scripts", [])
-            logger.info(f"[{trace_id}] AI 返回 {len(scripts_data)} 个脚本 for endpoint {endpoint.path}")
-            
-            for script_data in scripts_data:
-                script = ApiTestScript(
-                    project_id=endpoint.project_id,
-                    endpoint_id=endpoint.id,
-                    name=script_data.get("name"),
-                    description=script_data.get("description"),
-                    script_content={
-                        "endpoint": endpoint.path,
-                        "method": endpoint.method,
-                        "request": script_data.get("request_body", {}),
-                        "assertions": script_data.get("assertions", [])
-                    },
-                    test_type=script_data.get("test_type", PRESET_TEST_TYPE_CODES["positive"]),
-                    generated_by=GeneratedBy.AI
-                )
-                
-                db.add(script)
-                db.flush()
-                saved_scripts.append(script)
-            
-            db.commit()
-            logger.info(f"[{trace_id}] 成功保存 {len(saved_scripts)} 个脚本 for endpoint {endpoint.path}")
-            total_scripts_count += len(scripts_data)
-            
-        except Exception as e:
-            db.rollback()
-            logger.error(f"[{trace_id}] 保存脚本失败: endpoint={endpoint.path}, error={str(e)}", exc_info=True)
-            continue  # 跳过失败的接口，继续生成其他接口的脚本
-    
+        for endpoint in endpoints
+    ]
+
+    # 并发执行所有任务
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    # 统计结果
+    success_count = 0
+    failed_count = 0
+    total_scripts = 0
+    failed_endpoints = []
+
+    for result in results:
+        if isinstance(result, Exception):
+            logger.error(f"[{trace_id}] 任务执行异常: {str(result)}", exc_info=True)
+            failed_count += 1
+        else:
+            endpoint_id, success, scripts_count, error_msg = result
+            if success:
+                success_count += 1
+                total_scripts += scripts_count
+            else:
+                failed_count += 1
+                failed_endpoints.append({
+                    "endpoint_id": endpoint_id,
+                    "error": error_msg
+                })
+
+    logger.info(f"[{trace_id}] 批量生成完成: 成功={success_count}, 失败={failed_count}, 总脚本数={total_scripts}")
+
+    if failed_endpoints:
+        logger.warning(f"[{trace_id}] 失败的接口详情: {failed_endpoints}")
+
+    # 查询所有生成的脚本
+    saved_scripts = db.query(ApiTestScript).filter(
+        ApiTestScript.endpoint_id.in_([e.id for e in endpoints])
+    ).order_by(ApiTestScript.created_at.desc()).limit(100).all()
+
     return ApiResponse(
-        message="测试脚本生成成功",
+        message="测试脚本生成完成",
         data={
             "endpoints_count": len(endpoints),
-            "scripts_count": total_scripts_count,
+            "success_count": success_count,
+            "failed_count": failed_count,
+            "scripts_count": total_scripts,
             "test_types_used": list(test_types_config.keys()),
+            "failed_endpoints": failed_endpoints if failed_endpoints else None,
             "scripts": [ScriptResponse.from_orm(s).model_dump() for s in saved_scripts]
         }
     )
@@ -354,109 +464,75 @@ async def generate_scripts_by_group(
     
     logger.info(f"[{trace_id}] 测试类型配置: {list(test_types_config.keys())}")
     
-    # 4. 调用 AI 服务生成脚本
+# 4. 使用异步队列并发处理接口
     ai_service = AIService()
-    saved_scripts = []
-    total_scripts_count = 0
-    
-    for endpoint in endpoints:
-        ai_request = {
-            "path": endpoint.path,
-            "method": endpoint.method,
-            "description": endpoint.description or "",
-            "request_schema": endpoint.request_schema,
-            "response_schema": endpoint.response_schema,
-            "test_types_config": test_types_config
-        }
-        
-        logger.info(f"[{trace_id}] 调用 AI 服务生成脚本: endpoint={endpoint.path}, method={endpoint.method}")
-        
-        result = await ai_service.execute(
-            task_type="api_test_generation",
-            project_id=endpoint.project_id,
-            input_data=ai_request
+
+    # 控制并发数，避免过多并发请求导致资源耗尽
+    MAX_CONCURRENT = 5
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT)
+
+    logger.info(f"[{trace_id}] 开始并发处理 {len(endpoints)} 个接口，最大并发数: {MAX_CONCURRENT}")
+
+    # 创建异步任务
+    tasks = [
+        process_single_endpoint(
+            endpoint=endpoint,
+            test_types_config=test_types_config,
+            trace_id=trace_id,
+            db=db,
+            ai_service=ai_service,
+            semaphore=semaphore
         )
-        
-        if not result.get("success"):
-            logger.error(f"[{trace_id}] AI 生成失败: endpoint={endpoint.path}, error={result.get('error')}")
-            continue  # 跳过失败的接口，继续生成其他接口的脚本
-        
-        # 5. 解析并保存脚本
-        try:
-            import json
-            import re
-            
-            # 处理 AI 返回结果
-            result_data = result["result"]
-            
-            # 如果是字符串，尝试提取 JSON
-            if isinstance(result_data, str):
-                logger.info(f"[{trace_id}] AI 返回字符串，尝试提取 JSON...")
-                
-                # 修复全角字符
-                result_data = result_data.replace('：', ':').replace('，', ',').replace('"', '"')
-                
-                # 提取 JSON
-                json_match = re.search(r'\{[\s\S]*\}', result_data)
-                if json_match:
-                    json_str = json_match.group(0)
-                    try:
-                        result_data = json.loads(json_str)
-                        logger.info(f"[{trace_id}] JSON 提取成功")
-                    except json.JSONDecodeError as e:
-                        logger.error(f"[{trace_id}] JSON 解析失败: {str(e)}")
-                        logger.error(f"[{trace_id}] AI 原始返回（前500字符）: {result_data[:500]}")
-                        continue
-                else:
-                    logger.error(f"[{trace_id}] 未找到 JSON 格式")
-                    logger.error(f"[{trace_id}] AI 原始返回（前500字符）: {result_data[:500]}")
-                    continue
-            
-            # 检查是否为字典
-            if not isinstance(result_data, dict):
-                logger.error(f"[{trace_id}] AI 返回格式错误，期望字典，实际: {type(result_data)}")
-                continue
-            
-            scripts_data = result_data.get("scripts", [])
-            logger.info(f"[{trace_id}] AI 返回 {len(scripts_data)} 个脚本 for endpoint {endpoint.path}")
-            
-            for script_data in scripts_data:
-                script = ApiTestScript(
-                    project_id=endpoint.project_id,
-                    endpoint_id=endpoint.id,
-                    name=script_data.get("name"),
-                    description=script_data.get("description"),
-                    script_content={
-                        "endpoint": endpoint.path,
-                        "method": endpoint.method,
-                        "request": script_data.get("request_body", {}),
-                        "assertions": script_data.get("assertions", [])
-                    },
-                    test_type=script_data.get("test_type", PRESET_TEST_TYPE_CODES["positive"]),
-                    generated_by=GeneratedBy.AI
-                )
-                
-                db.add(script)
-                db.flush()
-                saved_scripts.append(script)
-            
-            db.commit()
-            logger.info(f"[{trace_id}] 成功保存 {len(saved_scripts)} 个脚本 for endpoint {endpoint.path}")
-            total_scripts_count += len(scripts_data)
-            
-        except Exception as e:
-            db.rollback()
-            logger.error(f"[{trace_id}] 保存脚本失败: endpoint={endpoint.path}, error={str(e)}", exc_info=True)
-            continue  # 跳过失败的接口，继续生成其他接口的脚本
-    
+        for endpoint in endpoints
+    ]
+
+    # 并发执行所有任务
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    # 统计结果
+    success_count = 0
+    failed_count = 0
+    total_scripts = 0
+    failed_endpoints = []
+
+    for result in results:
+        if isinstance(result, Exception):
+            logger.error(f"[{trace_id}] 任务执行异常: {str(result)}", exc_info=True)
+            failed_count += 1
+        else:
+            endpoint_id, success, scripts_count, error_msg = result
+            if success:
+                success_count += 1
+                total_scripts += scripts_count
+            else:
+                failed_count += 1
+                failed_endpoints.append({
+                    "endpoint_id": endpoint_id,
+                    "error": error_msg
+                })
+
+    logger.info(f"[{trace_id}] 按分组生成完成: 成功={success_count}, 失败={failed_count}, 总脚本数={total_scripts}")
+
+    if failed_endpoints:
+        logger.warning(f"[{trace_id}] 失败的接口详情: {failed_endpoints}")
+
+    # 查询所有生成的脚本
+    saved_scripts = db.query(ApiTestScript).filter(
+        ApiTestScript.endpoint_id.in_([e.id for e in endpoints])
+    ).order_by(ApiTestScript.created_at.desc()).limit(100).all()
+
     return ApiResponse(
-        message="测试脚本生成成功",
+        message="测试脚本生成完成",
         data={
-            "group_id": group.id,
+            "group_id": request.group_id,
             "group_name": group.name,
             "endpoints_count": len(endpoints),
-            "scripts_count": total_scripts_count,
-            "test_types_used": list(test_types_config.keys())
+            "success_count": success_count,
+            "failed_count": failed_count,
+            "scripts_count": total_scripts,
+            "test_types_used": list(test_types_config.keys()),
+            "failed_endpoints": failed_endpoints if failed_endpoints else None,
+            "scripts": [ScriptResponse.from_orm(s).model_dump() for s in saved_scripts]
         }
     )
 
@@ -512,9 +588,8 @@ async def get_scripts(
     
     # 如果指定了 group_id，返回树形结构
     if group_id is not None:
-    
-    result_groups = []
-    total_scripts = 0
+        result_groups = []
+        total_scripts = 0
     
     # 构建基础查询：只查询有脚本的接口
     base_script_query = db.query(ApiTestScript)

@@ -480,8 +480,38 @@ const Scripts: React.FC = () => {
     );
   }
 
+  // 添加调试日志
+  useEffect(() => {
+    console.log('=== 调试信息 ===');
+    console.log('当前项目:', currentProject);
+    console.log('当前版本:', currentVersion);
+    console.log('分组数量:', groups.length);
+    console.log('接口数量:', endpoints.length);
+    console.log('有脚本的接口:', endpoints.filter(e => e.script_count > 0).length);
+    
+    // 检查窗口高度
+    console.log('窗口高度:', window.innerHeight, 'px');
+    console.log('计算高度: calc(100vh - 64px) =', window.innerHeight - 64, 'px');
+  }, [currentProject, currentVersion, groups, endpoints]);
+
+  // 添加页面布局调试
+  useEffect(() => {
+    const checkLayout = () => {
+      const rootDiv = document.querySelector('[style*="calc(100vh - 64px)"]');
+      if (rootDiv) {
+        console.log('=== 布局调试 ===');
+        console.log('根容器高度:', (rootDiv as HTMLElement).clientHeight, 'px');
+      }
+    };
+    
+    // 延迟检查，确保DOM已渲染
+    setTimeout(checkLayout, 100);
+    setTimeout(checkLayout, 500);
+    setTimeout(checkLayout, 1000);
+  }, []);
+
   return (
-    <div style={{ padding: '24px', height: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+    <div>
       <Card
         title={
           <Space>
@@ -495,23 +525,25 @@ const Scripts: React.FC = () => {
             <Button
               icon={<PlusOutlined />}
               onClick={() => {
-                if (allEndpoints.length === 0) {
-                  fetchAllEndpoints();
-                }
-                setGenerateVisible(true);
+                navigate('/api/endpoints');
               }}
             >
               生成测试脚本
             </Button>
           </Space>
         }
-        style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-        styles={{ body: { flex: 1, display: 'flex', flexDirection: 'column', padding: 0 } }}
       >
-        <Row style={{ flex: 1, height: '100%', overflow: 'hidden' }}>
+        <Row>
           {/* 左侧分组接口树 */}
-          <Col span={5} style={{ borderRight: '1px solid #f0f0f0', height: '100%', overflow: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', backgroundColor: '#fafafa' }}>
-            <div style={{ flex: 1, overflow: 'auto' }}>
+          <Col 
+            span={5}
+            style={{ 
+              borderRight: '1px solid #f0f0f0', 
+              padding: '16px', 
+              backgroundColor: '#fafafa'
+            }}
+          >
+            <div style={{ height: 500, overflowY: 'auto' }}>
               <GroupEndpointTree
                 groups={groups}
                 endpoints={endpoints}
@@ -525,10 +557,10 @@ const Scripts: React.FC = () => {
           </Col>
 
           {/* 右侧脚本列表 */}
-          <Col span={19} style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <Col span={19}>
+            <div style={{ padding: '16px' }}>
               {/* 标题和工具栏 */}
-              <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+              <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: 16, fontWeight: 500, color: '#333' }}>
                   {selectedEndpoint
                     ? `${selectedEndpoint.method} ${selectedEndpoint.path} 的脚本 共 (${total}) 条`
@@ -570,7 +602,7 @@ const Scripts: React.FC = () => {
               </div>
 
               {/* 脚本列表 */}
-              <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
+              <div>
                 {scripts.length === 0 ? (
                   <Empty
                     description={selectedEndpoint ? '该接口暂无测试脚本' : '请选择接口查看脚本'}
@@ -582,7 +614,7 @@ const Scripts: React.FC = () => {
                     dataSource={scripts}
                     rowKey="id"
                     loading={scriptsLoading}
-                    scroll={{ y: 'calc(100vh - 320px)' }}
+                    scroll={{ y: 500 }}
                     pagination={{
                       current: page,
                       pageSize,
@@ -597,8 +629,8 @@ const Scripts: React.FC = () => {
                   />
                 )}
               </div>
-            </div>
-          </Col>
+              </div>
+            </Col>
         </Row>
       </Card>
 

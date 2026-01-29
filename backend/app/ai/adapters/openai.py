@@ -43,11 +43,13 @@ class OpenAIAdapter(BaseModelAdapter):
                 messages.append({"role": "system", "content": system_prompt})
             messages.append({"role": "user", "content": prompt})
 
+            # 设置超时时间为120秒
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 temperature=0.7,
-                max_tokens=2000
+                max_tokens=2000,
+                timeout=120.0
             )
 
             result = response.choices[0].message.content
