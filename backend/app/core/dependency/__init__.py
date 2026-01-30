@@ -10,3 +10,10 @@ __all__ = [
     'ModuleAnalyzer',
     'ModuleDependencyAnalyzer',
 ]
+
+# 导入 ModuleAnalyzerV2，兼容旧代码
+try:
+    from .module_analyzer_v2 import ModuleAnalyzerV2, create_module_analyzer
+    __all__.extend(['ModuleAnalyzerV2', 'create_module_analyzer'])
+except ImportError:
+    pass

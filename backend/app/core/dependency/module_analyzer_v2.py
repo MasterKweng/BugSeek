@@ -1,10 +1,20 @@
-"""模块内依赖分析器"""
+"""
+改造模块分析逻辑，将链路保存到 api_internal_chains 表
+
+功能：
+1. 分析模块内部依赖
+2. 生成业务链路
+3. 保存到 api_internal_chains 表
+4. 同时更新 api_endpoint_groups 表的 internal_chains 字段（向后兼容）
+"""
+
+from datetime import datetime
 from typing import List, Dict, Set, Tuple, Optional
 from sqlalchemy.orm import Session
 import logging
 
 from app.db.base import (
-    ApiEndpoint, ApiEndpointGroup, ApiDependency
+    ApiEndpoint, ApiEndpointGroup, ApiDependency, ApiInternalChain
 )
 from app.core.dependency import DependencyAnalyzer
 from app.core.trace import get_trace_id
@@ -12,8 +22,8 @@ from app.core.trace import get_trace_id
 logger = logging.getLogger(__name__)
 
 
-class ModuleAnalyzer:
-    """模块内依赖分析器"""
+class ModuleAnalyzerV2:
+    """模块内依赖分析器 V2 - 支持保存到独立链路表"""
 
     def __init__(self, db: Session):
         """
@@ -32,16 +42,15 @@ class ModuleAnalyzer:
         version_id: Optional[int] = None
     ) -> Dict[str, any]:
         """
-        分析单个模块内部的依赖关系
+        分析单个模块内部的依赖关系（V2版本）
 
         流程：
         1. 获取该模块的所有接口
         2. 分析接口间的依赖关系（使用现有的 DependencyAnalyzer）
         3. 识别模块内的业务链路
         4. 识别模块的输入/输出接口
-            - 输入接口：被其他模块依赖的接口（输出数据）
-            - 输出接口：依赖其他模块的接口（需要外部数据）
-        5. 保存结果到 ApiEndpointGroup
+        5. 保存结果到 ApiInternalChain 表（新增）
+        6. 同时更新 ApiEndpointGroup 表（向后兼容）
 
         Args:
             project_id: 项目ID
@@ -55,7 +64,8 @@ class ModuleAnalyzer:
                 "internal_chains": [[1, 2, 3], [4, 5]],
                 "input_endpoints": [1, 3],
                 "output_endpoints": [5, 6],
-                "status": "completed"
+                "status": "completed",
+                "chain_ids": [chain_id_1, chain_id_2]  # 新增：返回创建的链路ID
             }
         """
         logger.info(
@@ -72,18 +82,9 @@ class ModuleAnalyzer:
         if not group:
             raise ValueError(f"模块不存在: group_id={group_id}")
 
-        # 打印原有链路数据
-        old_chains_count = len(group.internal_chains or [])
-        logger.info(f"[{self.trace_id}] 准备重新分析模块 {group.name} (ID: {group_id})")
-        logger.info(f"[{self.trace_id}] 清除原有内部链路数: {old_chains_count} 条")
-        logger.info(f"[{self.trace_id}] 原有输入接口数: {len(group.input_endpoints or [])} 条")
-        logger.info(f"[{self.trace_id}] 原有输出接口数: {len(group.output_endpoints or [])} 条")
-
         # 2. 更新分析状态为 analyzing
         group.analysis_status = "analyzing"
         self.db.commit()
-
-        logger.info(f"[{self.trace_id}] 开始重新分析链路...")
 
         try:
             # 3. 获取该模块的所有接口
@@ -117,7 +118,8 @@ class ModuleAnalyzer:
                     "internal_chains": [],
                     "input_endpoints": [],
                     "output_endpoints": [],
-                    "status": "completed"
+                    "status": "completed",
+                    "chain_ids": []
                 }
 
             logger.info(f"[{self.trace_id}] 模块 {group_id} 查询到 {len(endpoints)} 个接口")
@@ -132,27 +134,83 @@ class ModuleAnalyzer:
             internal_chains = analyzer.find_business_chains(dependencies)
             logger.info(f"[{self.trace_id}] 生成新链路完成，共 {len(internal_chains)} 条链路")
             
+            # 6. 保存到 api_internal_chains 表
+            analysis_version = f"v{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            
+            # 删除旧的自动生成链路
+            old_chains = self.db.query(ApiInternalChain).filter(
+                ApiInternalChain.group_id == group_id,
+                ApiInternalChain.auto_generated == True
+            ).all()
+            
+            for old_chain in old_chains:
+                logger.info(f"[{self.trace_id}] 删除旧链路: {old_chain.name} (ID: {old_chain.id})")
+                self.db.delete(old_chain)
+            
+            self.db.flush()  # 确保删除操作生效
+            
+            # 创建新的链路记录
+            created_chains = []
             for idx, chain in enumerate(internal_chains, 1):
-                # 获取链路中每个接口的详细信息
+                # 构建执行顺序
+                execution_order = []
+                for order_idx, endpoint_id in enumerate(chain, 1):
+                    endpoint = next((e for e in endpoints if e.id == endpoint_id), None)
+                    if endpoint:
+                        execution_order.append({
+                            "endpoint_id": endpoint_id,
+                            "order": order_idx,
+                            "name": endpoint.summary or endpoint.path,
+                            "method": endpoint.method,
+                            "path": endpoint.path
+                        })
+                
+                # 计算复杂度
+                complexity_score = min(5, max(1, len(chain) // 2))
+                
+                # 创建链路记录
+                new_chain = ApiInternalChain(
+                    group_id=group_id,
+                    project_id=project_id,
+                    name=f"{group.name}-链路{idx}",
+                    description=f"自动生成的业务链路，包含{len(chain)}个接口",
+                    endpoint_ids=chain,
+                    execution_order=execution_order,
+                    chain_type="business",
+                    complexity_score=complexity_score,
+                    auto_generated=True,
+                    analysis_version=analysis_version,
+                    endpoint_count=len(chain),
+                    dependency_count=len(chain) - 1,
+                    status="active"
+                )
+                
+                self.db.add(new_chain)
+                created_chains.append(new_chain)
+                
+                logger.info(f"[{self.trace_id}] 创建新链路: {new_chain.name} (ID: {new_chain.id}), 接口数: {len(chain)}")
+                
+                # 打印链路详情
                 chain_details = []
                 for endpoint_id in chain:
                     endpoint = next((e for e in endpoints if e.id == endpoint_id), None)
                     if endpoint:
                         chain_details.append(f"{endpoint.id}:{endpoint.path}")
-                    else:
-                        chain_details.append(f"{endpoint_id}:?")
                 logger.info(f"[{self.trace_id}] 生成新链路第{idx}条: [{' -> '.join(chain_details)}]")
+            
+            self.db.commit()
 
-            # 6. 识别模块的输入/输出接口
+            # 7. 识别模块的输入/输出接口
             input_endpoints, output_endpoints = self._identify_module_inputs_outputs(
                 group_id,
                 endpoints,
                 dependencies
             )
+            
             logger.info(f"[{self.trace_id}] 识别输入接口: {input_endpoints}")
             logger.info(f"[{self.trace_id}] 识别输出接口: {output_endpoints}")
 
-            # 7. 更新模块信息
+            # 8. 更新模块信息（向后兼容）
             group.analysis_status = "completed"
             group.input_endpoints = input_endpoints
             group.output_endpoints = output_endpoints
@@ -171,7 +229,8 @@ class ModuleAnalyzer:
                 "internal_chains": internal_chains,
                 "input_endpoints": input_endpoints,
                 "output_endpoints": output_endpoints,
-                "status": "completed"
+                "status": "completed",
+                "chain_ids": [c.id for c in created_chains]  # 新增：返回创建的链路ID
             }
 
         except Exception as e:
@@ -192,64 +251,36 @@ class ModuleAnalyzer:
         """
         识别模块的输入/输出接口
 
-        判断逻辑：
-        - 输入接口：在依赖关系中作为 source，但 source 和 target 不在同一分组
-            - 即：该接口输出的数据被其他模块使用
-        - 输出接口：在依赖关系中作为 target，但 source 和 target 不在同一分组
-            - 即：该接口需要使用其他模块输出的数据
-
-        注意：这里的命名可能有歧义，按照数据流方向：
-        - source（数据输出者）= 输入到其他模块 = input_endpoints
-        - target（数据接收者）= 从其他模块输入 = output_endpoints
-
-        为了更清晰，我们重新定义：
-        - data_provider_endpoints: 向外提供数据的接口（source在其他分组）
-        - data_consumer_endpoints: 消费外部数据的接口（target在其他分组）
-
-        但为了与设计文档保持一致，我们使用：
-        - input_endpoints: 接收外部数据的接口（target在其他分组）
-        - output_endpoints: 向外输出数据的接口（source在其他分组）
-
         Args:
             group_id: 分组ID
-            endpoints: 该分组的所有接口
+            endpoints: 该模块的所有接口
             dependencies: 依赖关系列表
 
         Returns:
             (input_endpoints, output_endpoints)
         """
-        input_endpoints = set()
-        output_endpoints = set()
+        # 获取该模块的所有接口ID
+        module_endpoint_ids = {ep.id for ep in endpoints}
 
-        # 获取该分组所有接口的ID集合
-        group_endpoint_ids = {ep.id for ep in endpoints}
+        # 输入接口：被其他模块依赖的接口（输出数据）
+        input_endpoints = []
 
+        # 输出接口：依赖其他模块的接口（需要外部数据）
+        output_endpoints = []
+
+        # 遍历所有依赖关系
         for dep in dependencies:
-            # 检查 source 是否在当前分组
-            source_in_group = dep.source_endpoint_id in group_endpoint_ids
-            # 检查 target 是否在当前分组
-            target_in_group = dep.target_endpoint_id in group_endpoint_ids
+            if dep.source_endpoint_id in module_endpoint_ids:
+                # 源接口在当前模块中，是输出接口
+                if dep.source_endpoint_id not in output_endpoints:
+                    output_endpoints.append(dep.source_endpoint_id)
 
-            # 如果 source 和 target 都在当前分组，是模块内依赖，不计入输入输出
-            if source_in_group and target_in_group:
-                continue
+            if dep.target_endpoint_id in module_endpoint_ids:
+                # 目标接口在当前模块中，是输入接口
+                if dep.target_endpoint_id not in input_endpoints:
+                    input_endpoints.append(dep.target_endpoint_id)
 
-            # 如果 source 在当前分组，target 不在当前分组
-            # 说明当前分组的接口向外输出数据
-            if source_in_group and not target_in_group:
-                output_endpoints.add(dep.source_endpoint_id)
-
-            # 如果 target 在当前分组，source 不在当前分组
-            # 说明当前分组的接口接收外部数据
-            if target_in_group and not source_in_group:
-                input_endpoints.add(dep.target_endpoint_id)
-
-        logger.info(
-            f"[{self.trace_id}] 模块输入输出识别: "
-            f"input={input_endpoints}, output={output_endpoints}"
-        )
-
-        return list(input_endpoints), list(output_endpoints)
+        return input_endpoints, output_endpoints
 
     def get_module_analysis_status(
         self,
@@ -299,56 +330,8 @@ class ModuleAnalyzer:
             "output_endpoints": group.output_endpoints or []
         }
 
-    def analyze_all_modules(
-        self,
-        project_id: int,
-        version_id: Optional[int] = None
-    ) -> List[Dict[str, any]]:
-        """
-        分析项目的所有模块
 
-        Args:
-            project_id: 项目ID
-            version_id: 版本ID（可选）
-
-        Returns:
-            所有模块的分析结果列表
-        """
-        logger.info(
-            f"[{self.trace_id}] 开始分析所有模块: "
-            f"project_id={project_id}, version_id={version_id}"
-        )
-
-        # 获取所有分组
-        groups = self.db.query(ApiEndpointGroup).filter(
-            ApiEndpointGroup.project_id == project_id
-        ).all()
-
-        results = []
-
-        for group in groups:
-            try:
-                result = self.analyze_module_dependencies(
-                    project_id=project_id,
-                    group_id=group.id,
-                    version_id=version_id
-                )
-                results.append(result)
-            except Exception as e:
-                logger.error(
-                    f"[{self.trace_id}] 模块 {group.id} 分析失败: {str(e)}",
-                    exc_info=True
-                )
-                results.append({
-                    "group_id": group.id,
-                    "group_name": group.name,
-                    "status": "failed",
-                    "error": str(e)
-                })
-
-        logger.info(
-            f"[{self.trace_id}] 所有模块分析完成: "
-            f"total={len(groups)}, success={len([r for r in results if r.get('status') == 'completed'])}"
-        )
-
-        return results
+# 替换原有的 ModuleAnalyzer
+def create_module_analyzer(db: Session) -> ModuleAnalyzerV2:
+    """创建模块分析器实例"""
+    return ModuleAnalyzerV2(db)

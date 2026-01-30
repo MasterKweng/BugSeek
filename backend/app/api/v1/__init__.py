@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, api_integration, projects, versions, environments, variables, endpoints, context, scripts, test_types, script_executions, scenarios, modules
+from app.api.v1 import auth, api_integration, projects, versions, environments, variables, endpoints, context, scripts, test_types, script_executions, scenarios, modules, chains
 from app.ai import router as ai_router
 
 api_router = APIRouter()
@@ -13,6 +13,7 @@ api_router.include_router(test_types.router, prefix="/api-integration", tags=["�
 api_router.include_router(script_executions.router, prefix="/api-integration", tags=["脚本执行"])
 api_router.include_router(scenarios.router, prefix="/api-integration", tags=["场景管理"])
 api_router.include_router(modules.router, prefix="/api-integration", tags=["模块依赖分析"])
+api_router.include_router(chains.router, prefix="/api-integration", tags=["链路管理"])
 api_router.include_router(api_integration.router, prefix="/api-integration", tags=["接口集成"])
 api_router.include_router(projects.router, tags=["项目管理"])
 api_router.include_router(versions.router, tags=["版本管理"])

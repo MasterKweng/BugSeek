@@ -21,6 +21,10 @@ import {
   Empty,
   Tooltip
 } from 'antd';
+import { Row, Col } from 'antd';
+import { LinkOutlined, ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons';
+import ModuleDetailPanel from './components/ModuleDetailPanel';
+
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -94,6 +98,28 @@ interface ModuleChain {
 }
 
 const Scenarios: React.FC = () => {
+  // 模块详情相关状态
+  const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
+  const [selectedDetailType, setSelectedDetailType] = useState<'dependencies' | 'input' | 'output' | null>(null);
+
+  // 处理显示依赖关系
+  const handleShowDependencies = (moduleId: number) => {
+    setSelectedModuleId(moduleId);
+    setSelectedDetailType('dependencies');
+  };
+
+  // 处理显示输入接口
+  const handleShowInputEndpoints = (moduleId: number) => {
+    setSelectedModuleId(moduleId);
+    setSelectedDetailType('input');
+  };
+
+  // 处理显示输出接口
+  const handleShowOutputEndpoints = (moduleId: number) => {
+    setSelectedModuleId(moduleId);
+    setSelectedDetailType('output');
+  };
+
   const { currentProject } = useProjectStore();
   const [activeTab, setActiveTab] = useState('modules');
 
@@ -591,10 +617,63 @@ const Scenarios: React.FC = () => {
       )
     },
     {
-      title: '描述',
-      dataIndex: 'description',
-      key: 'description',
-      ellipsis: true
+      title: '详细信息',
+      key: 'details',
+      render: (_: any, record: Module) => (
+        <Space size="small">
+          <Tooltip title="点击查看依赖关系">
+            <Button 
+              type="text" 
+              size="small"
+              icon={<LinkOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShowDependencies(record.id);
+              }}
+              style={{ 
+                color: '#1890ff',
+                fontWeight: selectedModuleId === record.id && selectedDetailType === 'dependencies' ? 'bold' : 'normal'
+              }}
+            >
+              依赖: {record.dependency_count || 0}
+            </Button>
+          </Tooltip>
+          <Tooltip title="点击查看输入接口">
+            <Button 
+              type="text" 
+              size="small"
+              icon={<ArrowDownOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShowInputEndpoints(record.id);
+              }}
+              style={{ 
+                color: '#52c41a',
+                fontWeight: selectedModuleId === record.id && selectedDetailType === 'input' ? 'bold' : 'normal'
+              }}
+            >
+              输入: {record.input_endpoint_count || 0}
+            </Button>
+          </Tooltip>
+          <Tooltip title="点击查看输出接口">
+            <Button 
+              type="text" 
+              size="small"
+              icon={<ArrowUpOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShowOutputEndpoints(record.id);
+              }}
+              style={{ 
+                color: '#fa8c16',
+                fontWeight: selectedModuleId === record.id && selectedDetailType === 'output' ? 'bold' : 'normal'
+              }}
+            >
+              输出: {record.output_endpoint_count || 0}
+            </Button>
+          </Tooltip>
+        </Space>
+      ),
     },
     {
       title: '接口数量',
@@ -611,11 +690,9 @@ const Scenarios: React.FC = () => {
           <Button type="link" icon={<EyeOutlined />} onClick={() => viewModuleDetail(record)}>
             详情
           </Button>
-          {record.analysis_status !== 'completed' && (
-            <Button type="link" icon={<PlayCircleOutlined />} onClick={() => analyzeModule(record.id)}>
-              分析
-            </Button>
-          )}
+          <Button type="link" icon={<PlayCircleOutlined />} onClick={() => analyzeModule(record.id)}>
+            {record.analysis_status === 'completed' ? '重新分析' : '分析'}
+          </Button>
         </Space>
       )
     }
@@ -760,12 +837,88 @@ const Scenarios: React.FC = () => {
       <Card>
         <Tabs activeKey={activeTab} onChange={setActiveTab}>
           {/* 模块分析标签页 - 第一步：分析模块内部依赖 */}
-          <TabPane tab="模块分析" key="modules">
+                              <TabPane tab="模块分析" key="modules">
+            <Card
+              title="模块列表"
+              extra={
+                <Space>
+                  <Button icon={<ReloadOutlined />} onClick={loadModules} loading={loadingModules}>
+                    刷新
+                  </Button>
+                  <Button type="primary" icon={<PlayCircleOutlined />} onClick={analyzeAllModules} loading={analyzing}>
+                    分析所有模块
+                  </Button>
+                  <Button
+                    type="primary"
+                    icon={<PlayCircleOutlined />}
+                    onClick={analyzeSelectedModules}
+                    loading={analyzing}
+                    disabled={selectedModuleIds.length === 0}
+                  >
+                    分析选中模块 ({selectedModuleIds.length})
+                  </Button>
+                  <Button icon={<PlayCircleOutlined />} onClick={analyzeCrossModuleDependencies} loading={analyzingCrossModule}>
+                    分析模块间依赖
+                  </Button>
+                  <Button onClick={() => setDependencyGraphVisible(true)} disabled={dependencies.length === 0 || analyzingCrossModule}>
+                    查看依赖图
+                  </Button>
+                </Space>
+              }
+            >
+              <Table
+                columns={moduleColumns}
+                dataSource={modules}
+                rowKey="id"
+                scroll={{ y: 500 }}
+                pagination={false}
+                locale={{
+                  emptyText: (
+                    <Empty
+                      description={
+                      <div>
+                        <p>暂无模块数据</p>
+                        <p style={{ fontSize: '12px', color: '#999' }}>
+                          请先在"接口定义"页面创建分组并添加接口，<br/>
+                          只有包含接口的分组才会作为模块显示
+                        </p>
+                      </div>
+                    }
+                  />
+                )
+                }}
+                rowSelection={{
+                  selectedRowKeys: selectedModuleIds,
+                  onChange: (selectedKeys) => setSelectedModuleIds(selectedKeys as number[]),
+                  getCheckboxProps: (record: Module) => ({
+                    disabled: record.analysis_status === 'completed',
+                  }),
+                }}
+                expandable={{
+                  expandedRowRender: (record: Module) => (
+                    <div style={{ padding: '16px 0' }}>
+                      <ModuleDetailPanel 
+                        moduleId={record.id}
+                        projectId={currentProject?.id}
+                        detailType={selectedDetailType}
+                      />
+                    </div>
+                  ),
+                  expandIcon: ({ expanded, onExpand, record }) => {
+                    if (expanded) {
+                      return <Button type="link" size="small" onClick={(e) => onExpand(record, e)}>收起 ▲</Button>;
+                    }
+                    return <Button type="link" size="small" onClick={(e) => onExpand(record, e)}>展开 ▼</Button>;
+                  },
+                }}
+              />
+            </Card>
+
             {/* 任务状态显示 */}
             {currentTaskId && (
               <Card 
                 size="small" 
-                style={{ marginBottom: 16, backgroundColor: '#f6ffed', borderColor: '#b7eb8f' }}
+                style={{ marginTop: 16, backgroundColor: '#f6ffed', borderColor: '#b7eb8f' }}
               >
                 <Space direction="vertical" style={{ width: '100%' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -818,67 +971,6 @@ const Scenarios: React.FC = () => {
                 </Space>
               </Card>
             )}
-
-            <div style={{ marginBottom: 16 }}>
-              <Space>
-                <Button icon={<ReloadOutlined />} onClick={loadModules} loading={loadingModules}>
-                  刷新
-                </Button>
-                <Button type="primary" icon={<PlayCircleOutlined />} onClick={analyzeAllModules} loading={analyzing}>
-                  分析所有模块
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<PlayCircleOutlined />}
-                  onClick={analyzeSelectedModules}
-                  loading={analyzing}
-                  disabled={selectedModuleIds.length === 0}
-                >
-                  分析选中模块 ({selectedModuleIds.length})
-                </Button>
-                <Button icon={<PlayCircleOutlined />} onClick={analyzeCrossModuleDependencies} loading={analyzingCrossModule}>
-                  分析模块间依赖
-                </Button>
-                <Button onClick={() => setDependencyGraphVisible(true)} disabled={dependencies.length === 0 || analyzingCrossModule}>
-                  查看依赖图
-                </Button>
-              </Space>
-              {selectedModuleIds.length > 0 && (
-                <div style={{ marginTop: 8 }}>
-                  <Button size="small" onClick={() => setSelectedModuleIds([])}>
-                    清除选择
-                  </Button>
-                </div>
-              )}
-            </div>            <Table
-              columns={moduleColumns}
-              dataSource={modules}
-              rowKey="id"
-              scroll={{ y: 500 }}
-              pagination={false}
-              locale={{
-                emptyText: (
-                  <Empty
-                    description={
-                      <div>
-                        <p>暂无模块数据</p>
-                        <p style={{ fontSize: '12px', color: '#999' }}>
-                          请先在"接口定义"页面创建分组并添加接口，<br/>
-                          只有包含接口的分组才会作为模块显示
-                        </p>
-                      </div>
-                    }
-                  />
-                )
-              }}
-              rowSelection={{
-                selectedRowKeys: selectedModuleIds,
-                onChange: (selectedKeys) => setSelectedModuleIds(selectedKeys as number[]),
-                getCheckboxProps: (record: Module) => ({
-                  disabled: record.analysis_status === 'completed',
-                }),
-              }}
-            />
           </TabPane>
 
           {/* 跨模块组合标签页 */}

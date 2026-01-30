@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, Table, Button, Space, Tag, Input, Select, message, Spin, Modal, Drawer, Descriptions, Form, Skeleton, Row, Col, Collapse, Checkbox, Divider, Alert } from 'antd';
 import { ReloadOutlined, PlusOutlined, SearchOutlined, PlusSquareOutlined } from '@ant-design/icons';
 import { useProjectStore } from '../../store/project';
@@ -12,6 +13,7 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const Endpoints: React.FC = () => {
+  const navigate = useNavigate();
   const { currentProject, currentVersion } = useProjectStore();
   const [endpoints, setEndpoints] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -646,7 +648,7 @@ const Endpoints: React.FC = () => {
                       type="primary"
                       icon={<ReloadOutlined />}
                       onClick={() => {
-                        navigate('/api/scripts');
+                        setGenerateVisible(true);
                       }}
                     >
                       生成脚本

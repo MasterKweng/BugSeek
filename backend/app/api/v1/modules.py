@@ -10,7 +10,7 @@ from app.db.base import (
 from app.db.session import get_db
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
-from app.core.dependency import ModuleAnalyzer, ModuleDependencyAnalyzer
+from app.core.dependency import ModuleAnalyzerV2, ModuleDependencyAnalyzer
 from app.core.scenario import ModuleChainComposer
 from app.core.rate_limit import API_RATE_LIMIT
 from app.constants.task import TaskType, AnalysisStatus
@@ -91,7 +91,7 @@ async def analyze_module(
         raise HTTPException(status_code=404, detail="模块不存在")
 
     # 分析模块
-    analyzer = ModuleAnalyzer(db)
+    analyzer = ModuleAnalyzerV2(db)
     result = analyzer.analyze_module_dependencies(
         project_id=request.project_id,
         group_id=group_id,
@@ -168,7 +168,7 @@ async def get_module_analysis_status(
     """
     trace_id = get_trace_id()
 
-    analyzer = ModuleAnalyzer(db)
+    analyzer = ModuleAnalyzerV2(db)
     status = analyzer.get_module_analysis_status(group_id)
 
     return ApiResponse(
@@ -341,6 +341,114 @@ async def list_module_dependencies(
         data={
             "count": len(dependencies),
             "dependencies": dependencies
+        }
+    )
+
+
+@router.delete("/modules/dependencies", response_model=ApiResponse)
+async def clear_module_dependencies(
+    project_id: int = None,
+    group_id: int = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    清除模块的依赖关系和相关的跨模块链路
+
+    用途：
+    - 重新解析模块时，清除旧的依赖数据
+    - 确保重新分析后不会残留旧的链路数据
+
+    参数：
+    - project_id: 项目ID（必需）
+    - group_id: 模块ID（可选，如果不提供则清除项目下所有模块的依赖）
+
+    Returns:
+        {
+            "deleted_count": 5
+        }
+    """
+    trace_id = get_trace_id()
+
+    logger.info(
+        f"[{trace_id}] 开始清除模块依赖: "
+        f"project_id={project_id}, group_id={group_id}"
+    )
+
+    deleted_count = 0
+
+    # 1. 清除模块依赖关系
+    from app.db.base import ApiModuleDependency, ApiModuleChain
+
+    query = db.query(ApiModuleDependency).filter(
+        ApiModuleDependency.project_id == project_id
+    )
+
+    if group_id:
+        # 清除与该模块相关的依赖
+        query = query.filter(
+            (ApiModuleDependency.source_group_id == group_id) |
+            (ApiModuleDependency.target_group_id == group_id)
+        )
+
+    dependencies = query.all()
+    logger.info(f"[{trace_id}] 查询到 {len(dependencies)} 个跨模块依赖需要清除")
+    for dep in dependencies:
+        logger.info(f"[{trace_id}] 清除跨模块依赖: 模块{dep.source_group_id} -> 模块{dep.target_group_id}")
+        db.delete(dep)
+        deleted_count += 1
+
+    # 2. 清除包含该模块的模块链路
+    chain_query = db.query(ApiModuleChain).filter(
+        ApiModuleChain.project_id == project_id
+    )
+
+    if group_id:
+        # 清除包含该模块的链路
+        from sqlalchemy import cast
+        from sqlalchemy.dialects.postgresql import JSONB
+        chain_query = chain_query.filter(
+            ApiModuleChain.group_ids.op('@>')(
+                cast([group_id], JSONB)
+            )
+        )
+
+    chains = chain_query.all()
+    logger.info(f"[{trace_id}] 查询到 {len(chains)} 个模块链路需要清除")
+    for chain in chains:
+        logger.info(f"[{trace_id}] 清除模块链路: {chain.name} (ID: {chain.id}), 包含模块: {chain.group_ids}")
+        db.delete(chain)
+        deleted_count += 1
+
+    # 3. 重置模块的分析状态
+    from app.db.base import ApiEndpointGroup
+    group_query = db.query(ApiEndpointGroup).filter(
+        ApiEndpointGroup.project_id == project_id
+    )
+
+    if group_id:
+        group_query = group_query.filter(ApiEndpointGroup.id == group_id)
+
+    groups = group_query.all()
+    logger.info(f"[{trace_id}] 重置 {len(groups)} 个模块的分析状态")
+    for group in groups:
+        old_chains_count = len(group.internal_chains or [])
+        logger.info(f"[{trace_id}] 重置模块 {group.name} (ID: {group.id})，清除原有内部链路数: {old_chains_count} 条")
+        group.analysis_status = "pending"
+        group.internal_chains = []
+        group.input_endpoints = []
+        group.output_endpoints = []
+
+    db.commit()
+
+    logger.info(
+        f"[{trace_id}] 模块依赖清除成功: deleted_count={deleted_count}"
+    )
+
+    return ApiResponse(
+        message="模块依赖清除成功",
+        data={
+            "deleted_count": deleted_count
         }
     )
 

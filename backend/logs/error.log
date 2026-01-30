@@ -1,17 +1,8 @@
-2026-01-29 14:46:04 | ERROR | [2a8879dc32bd4e59b05c5a8140f4833c] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 24, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
+2026-01-30 16:43:44 | ERROR | [1e7da41bade7401c84256266d79a490a] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'missing', 'loc': ('query', 'request'), 'msg': 'Field required', 'input': None}
 
-During handling of the above exception, another exception occurred:
-
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 176, in get_projects
+    GET /api/v1/projects
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
     yield db
@@ -19,27 +10,18 @@ Traceback (most recent call last):
     yield await run_in_threadpool(cm.__enter__)
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
     response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 29, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-01-29 14:46:04 | ERROR | [aa3fa59c2142458aaff2d642eedcab2e] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 24, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'missing', 'loc': ('query', 'request'), 'msg': 'Field required', 'input': None}
 
-During handling of the above exception, another exception occurred:
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 176, in get_projects
+    GET /api/v1/projects
+2026-01-30 16:43:44 | ERROR | [316e9e0986dc49578970d69692ec46c3] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'missing', 'loc': ('query', 'request'), 'msg': 'Field required', 'input': None}
 
+  File "D:\code\BugSeek\backend\app\api\v1\versions.py", line 240, in get_versions
+    GET /api/v1/projects/{project_id}/versions
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
     yield db
@@ -47,27 +29,18 @@ Traceback (most recent call last):
     yield await run_in_threadpool(cm.__enter__)
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
     response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 29, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-01-29 14:46:04 | ERROR | [1ac0d96fa4b047229ff82f07dd7f0869] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 24, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'missing', 'loc': ('query', 'request'), 'msg': 'Field required', 'input': None}
 
-During handling of the above exception, another exception occurred:
+  File "D:\code\BugSeek\backend\app\api\v1\versions.py", line 240, in get_versions
+    GET /api/v1/projects/{project_id}/versions
+2026-01-30 16:43:44 | ERROR | [dc6b7fb6a531410a9d71eb3db2dc1f5a] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'missing', 'loc': ('query', 'request'), 'msg': 'Field required', 'input': None}
 
+  File "D:\code\BugSeek\backend\app\api\v1\versions.py", line 240, in get_versions
+    GET /api/v1/projects/{project_id}/versions
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
     yield db
@@ -75,27 +48,18 @@ Traceback (most recent call last):
     yield await run_in_threadpool(cm.__enter__)
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
     response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 29, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-01-29 14:46:04 | ERROR | [15286330917b4173b380ab2059a99f71] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 24, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'missing', 'loc': ('query', 'request'), 'msg': 'Field required', 'input': None}
 
-During handling of the above exception, another exception occurred:
+  File "D:\code\BugSeek\backend\app\api\v1\versions.py", line 240, in get_versions
+    GET /api/v1/projects/{project_id}/versions
+2026-01-30 16:43:44 | ERROR | [321debe71b0a440cb3b3aa73da51e61f] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'missing', 'loc': ('query', 'request'), 'msg': 'Field required', 'input': None}
 
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 176, in get_projects
+    GET /api/v1/projects
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
     yield db
@@ -103,27 +67,18 @@ Traceback (most recent call last):
     yield await run_in_threadpool(cm.__enter__)
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
     response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 29, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-01-29 14:46:04 | ERROR | [c67e8031b66f4110b5ee8cd37c794eb8] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 24, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'missing', 'loc': ('query', 'request'), 'msg': 'Field required', 'input': None}
 
-During handling of the above exception, another exception occurred:
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 176, in get_projects
+    GET /api/v1/projects
+2026-01-30 16:43:44 | ERROR | [337dae34df4f47afbf235420b0922691] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'missing', 'loc': ('query', 'request'), 'msg': 'Field required', 'input': None}
 
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 176, in get_projects
+    GET /api/v1/projects
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
     yield db
@@ -131,27 +86,18 @@ Traceback (most recent call last):
     yield await run_in_threadpool(cm.__enter__)
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
     response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 29, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-01-29 14:46:04 | ERROR | [cea2351c9c7d4e6dace40713f5250c68] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 24, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'missing', 'loc': ('query', 'request'), 'msg': 'Field required', 'input': None}
 
-During handling of the above exception, another exception occurred:
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 176, in get_projects
+    GET /api/v1/projects
+2026-01-30 16:43:44 | ERROR | [04dd460d9354481fa689dd30d5dd5c6f] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'missing', 'loc': ('query', 'request'), 'msg': 'Field required', 'input': None}
 
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 176, in get_projects
+    GET /api/v1/projects
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
     yield db
@@ -159,178 +105,10 @@ Traceback (most recent call last):
     yield await run_in_threadpool(cm.__enter__)
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
     response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 29, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-01-29 14:46:04 | ERROR | [9382b57e91c14cd99bada3f8efcd5d3b] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 24, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'missing', 'loc': ('query', 'request'), 'msg': 'Field required', 'input': None}
 
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 29, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-01-29 14:46:04 | ERROR | [9575ad133fd644858c032363da6fc637] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 24, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 29, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-01-29 14:46:04 | ERROR | [4d55841f1d2f4b9da2eae0582767609e] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 24, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 29, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-01-29 14:46:04 | ERROR | [931051aed0a54cc0b4447efa6f45d129] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 24, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 29, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-01-29 14:46:04 | ERROR | [65b3c8fdf10141caa8e5da9e7323cb66] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 24, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 29, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-01-29 14:46:04 | ERROR | [34bad3fd57a941c1b6ee2e12dd56d279] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 24, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 29, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 176, in get_projects
+    GET /api/v1/projects

@@ -11,8 +11,12 @@ const instance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().token
+    console.log('请求拦截器 - URL:', config.url, 'Token存在:', !!token)
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+      console.log('已添加Authorization头，Token前20字符:', token.substring(0, 20) + '...')
+    } else {
+      console.warn('Token不存在，未添加Authorization头')
     }
 
     // 检查 URL 中的参数是否包含 NaN

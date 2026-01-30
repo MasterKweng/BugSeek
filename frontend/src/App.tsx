@@ -21,6 +21,7 @@ const Scripts = lazy(() => import('./pages/api/Scripts_new'))
 const Scenarios = lazy(() => import('./pages/api/Scenarios'))
 const Modules = lazy(() => import('./pages/api/Modules'))
 const ModuleChains = lazy(() => import('./pages/api/ModuleChains'))
+const ChainList = lazy(() => import('./pages/chains/ChainList'))
 const Mock = lazy(() => import('./pages/api/Mock'))
 const TestSuites = lazy(() => import('./pages/api/TestSuites'))
 const Executions = lazy(() => import('./pages/api/Executions'))
@@ -63,6 +64,7 @@ function App() {
           <Route path="api/scenarios" element={<ProjectVersionGuard><Scenarios /></ProjectVersionGuard>} />
           <Route path="api/modules" element={<ProjectVersionGuard><Modules /></ProjectVersionGuard>} />
           <Route path="api/module-chains" element={<ProjectVersionGuard><ModuleChains /></ProjectVersionGuard>} />
+          <Route path="api/chains" element={<ProjectVersionGuard><ChainList /></ProjectVersionGuard>} />
           <Route path="api/mock" element={<ProjectVersionGuard><Mock /></ProjectVersionGuard>} />
           <Route path="api/suites" element={<ProjectVersionGuard><TestSuites /></ProjectVersionGuard>} />
           <Route path="api/executions" element={<ProjectVersionGuard><Executions /></ProjectVersionGuard>} />
