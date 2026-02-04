@@ -118,6 +118,11 @@ class Environment(Base, TimestampMixin):
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     name = Column(String(50), nullable=False)  # Dev/Test/Staging/Prod
     base_url = Column(String(500), nullable=False)
+    
+    # V2.0 新增字段
+    headers = Column(JSON, default={})  # 全局 Header 配置
+    variables = Column(JSON, default={})  # 环境变量（包括鉴权账号密码等敏感信息）
+    is_default = Column(Boolean, default=False)  # 是否为默认环境
 
     __table_args__ = (
         Index('ix_environments_project_id', 'project_id'),
@@ -496,6 +501,10 @@ class ApiScenario(Base, TimestampMixin):
     scenario_type = Column(String(50), nullable=False)  # business_flow | test_chain | regression
     category = Column(String(50))  # 订单流程 | 用户注册 | 支付流程
     
+    # 场景来源追踪
+    source_type = Column(String(50), default="manual")  # manual | module_chain | cross_module
+    source_module_chain_id = Column(Integer, ForeignKey("api_module_chains.id"), nullable=True)  # 关联的模块链路ID
+    
     # 涉及的接口（按执行顺序）
     endpoint_ids = Column(JSON, nullable=False)  # [1, 5, 9]
     
@@ -535,12 +544,15 @@ class ApiScenario(Base, TimestampMixin):
     
     # 关系定义
     endpoints = relationship("ApiEndpoint", secondary="scenario_endpoints", backref="scenarios")
+    source_module_chain = relationship("ApiModuleChain", foreign_keys=[source_module_chain_id])
     
     __table_args__ = (
         Index('ix_api_scenarios_project_id', 'project_id'),
         Index('ix_api_scenarios_scenario_type', 'scenario_type'),
         Index('ix_api_scenarios_category', 'category'),
         Index('ix_api_scenarios_status', 'status'),
+        Index('ix_api_scenarios_source_type', 'source_type'),
+        Index('ix_api_scenarios_source_module_chain_id', 'source_module_chain_id'),
     )
 
 
@@ -680,15 +692,39 @@ class ApiModuleDependency(Base, TimestampMixin):
 
     # 依赖强度
     dependency_strength = Column(Float, default=1.0)
-
+    
+    # 依赖类型
+    dependency_type = Column(String(20), default="indirect")  # HARD | SOFT | indirect
+    
+    # 发现方式和详细信息
+    discovery_method = Column(String(50), default="resource_context")  # resource_context | manual | ai_analysis
+    discovery_details = Column(JSON, nullable=True)  # 分析详情（用于调试和追溯）
+    # 示例：
+    # {
+    #   "matched_resources": ["user", "order"],
+    #   "endpoint_pairs": [
+    #     {"source": 1, "target": 5, "strength": 0.9, "fields": ["user_id"]}
+    #   ],
+    #   "semantic_matches": [
+    #     {"input_field": "user_id", "output_field": "user.id", "confidence": 0.95}
+    #   ],
+    #   "analyzed_at": "2026-02-02T10:00:00Z",
+    #   "analyzer_version": "v1.0.0"
+    # }
+    
+    # 置信度分数（0-1）
+    confidence_score = Column(Float, default=1.0)
+    
     # 关系定义
     source_group = relationship("ApiEndpointGroup", foreign_keys=[source_group_id])
     target_group = relationship("ApiEndpointGroup", foreign_keys=[target_group_id])
-
+    
     __table_args__ = (
         Index('ix_api_module_dependencies_project_id', 'project_id'),
         Index('ix_api_module_dependencies_source_group_id', 'source_group_id'),
         Index('ix_api_module_dependencies_target_group_id', 'target_group_id'),
+        Index('ix_api_module_dependencies_discovery_method', 'discovery_method'),
+        Index('ix_api_module_dependencies_dependency_type', 'dependency_type'),
         UniqueConstraint('source_group_id', 'target_group_id', name='uq_module_source_target'),
     )
 
@@ -812,4 +848,291 @@ class ApiChainScenario(Base, TimestampMixin):
         UniqueConstraint('chain_id', 'chain_type', 'scenario_id', name='uq_chain_scenario'),
         Index('ix_api_chain_scenarios_chain_id', 'chain_id', 'chain_type'),
         Index('ix_api_chain_scenarios_scenario_id', 'scenario_id'),
+    )
+
+
+# ==================== API Hub - V2.0 层级一：API 资产库 ====================
+
+class ApiDefinition(Base, TimestampMixin):
+    """API 定义表（V2.0）- 单一数据源，接口定义和测试用例分离"""
+    __tablename__ = "api_definitions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    group_id = Column(Integer, ForeignKey("api_endpoint_groups.id", ondelete="SET NULL"), nullable=True)
+    
+    # 基本信息
+    method = Column(String(10), nullable=False)  # GET/POST/PUT/DELETE
+    path = Column(String(500), nullable=False)  # /api/users
+    summary = Column(String(200), nullable=True)  # 获取用户列表
+    description = Column(Text, nullable=True)
+    tags = Column(JSON, nullable=True)  # ["user", "public"]
+    
+    # 版本控制与变更追踪
+    version_hash = Column(String(64), nullable=True)  # Git commit hash
+    content_hash = Column(String(64), nullable=True)  # MD5(schema_snapshot) 用于快速比对
+    source_type = Column(String(20), nullable=True)  # swagger/yapi/postman/manual
+    source_url = Column(String(500), nullable=True)  # 文档来源 URL
+    source_version = Column(String(50), nullable=True)  # 文档版本号
+    
+    # Schema 存储结构化数据
+    schema_snapshot = Column(JSON, nullable=True)  # 完整的接口定义快照
+    request_schema = Column(JSON, nullable=True)  # 请求参数结构
+    response_schema = Column(JSON, nullable=True)  # 响应结构
+    
+    # Mock 数据
+    mock_data = Column(JSON, nullable=True)  # 示例响应数据
+    mock_rules = Column(JSON, nullable=True)  # Mock 规则配置
+    
+    # 状态管理
+    status = Column(String(20), default="active")  # active/archived
+    sync_status = Column(String(20), default="synced")  # synced/conflict/pending
+    lock_status = Column(String(20), default="unlocked")  # unlocked/locked（手动修改后锁定）
+    
+    # 同步相关
+    last_sync_at = Column(DateTime, nullable=True)
+    
+    # 审计字段
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    updated_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    
+    # 关系定义
+    project = relationship("Project", backref="api_definitions")
+    group = relationship("ApiEndpointGroup", backref="api_definitions")
+    creator = relationship("User", foreign_keys=[created_by])
+    updater = relationship("User", foreign_keys=[updated_by])
+    cases = relationship("ApiCase", back_populates="definition", cascade="all, delete-orphan")
+    
+    __table_args__ = (
+        Index('ix_api_definitions_project_id', 'project_id'),
+        Index('ix_api_definitions_group_id', 'group_id'),
+        Index('ix_api_definitions_path_method', 'path', 'method'),
+        Index('ix_api_definitions_status', 'status'),
+        Index('ix_api_definitions_sync_status', 'sync_status'),
+        Index('ix_api_definitions_lock_status', 'lock_status'),
+        Index('ix_api_definitions_content_hash', 'content_hash'),
+        UniqueConstraint('project_id', 'path', 'method', name='uq_project_path_method'),
+    )
+
+
+class ApiCase(Base, TimestampMixin):
+    """API 测试用例表（V2.0）- 原子化测试用例，作为接口定义的派生属性"""
+    __tablename__ = "api_cases"
+
+    id = Column(Integer, primary_key=True, index=True)
+    definition_id = Column(Integer, ForeignKey("api_definitions.id", ondelete="CASCADE"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    
+    # 基本信息
+    name = Column(String(100), nullable=False)  # 正常获取用户列表
+    description = Column(Text, nullable=True)
+    priority = Column(String(10), default="P2")  # P0/P1/P2/P3
+    case_type = Column(String(20), default="business")  # business/performance/security/corner
+    
+    # 请求数据（Delta 存储格式）
+    request_data = Column(JSON, nullable=True)  # 仅存储覆盖的参数值，运行时 Deep Merge
+    
+    # 执行配置
+    environment_id = Column(Integer, ForeignKey("environments.id", ondelete="SET NULL"), nullable=True)
+    
+    # 断言规则（标准化格式）
+    assertion_rules = Column(JSON, nullable=True)  # {"field": "data.id", "operator": "equals", "value": 1}
+    
+    # 变量提取规则（标准化格式）
+    extraction_rules = Column(JSON, nullable=True)  # {"field": "data.id", "var_name": "user_id"}
+    
+    # 数据库操作
+    pre_sql = Column(Text, nullable=True)  # 前置 SQL
+    post_sql = Column(Text, nullable=True)  # 后置 SQL
+    
+    # AI 生成相关
+    ai_generated = Column(Boolean, default=False)
+    ai_confidence = Column(Float, nullable=True)  # 0-1
+    ai_suggestions = Column(JSON, nullable=True)
+    
+    # 状态管理
+    status = Column(String(20), default="active")  # active/archived
+    fix_status = Column(String(20), default="normal")  # normal/fix_required/fixed
+    
+    # 审计字段
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    updated_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    
+    # 关系定义
+    definition = relationship("ApiDefinition", back_populates="cases")
+    project = relationship("Project", backref="api_cases")
+    environment = relationship("Environment", backref="api_cases")
+    creator = relationship("User", foreign_keys=[created_by])
+    updater = relationship("User", foreign_keys=[updated_by])
+    
+    __table_args__ = (
+        Index('ix_api_cases_definition_id', 'definition_id'),
+        Index('ix_api_cases_project_id', 'project_id'),
+        Index('ix_api_cases_environment_id', 'environment_id'),
+        Index('ix_api_cases_status', 'status'),
+        Index('ix_api_cases_priority', 'priority'),
+        Index('ix_api_cases_ai_generated', 'ai_generated'),
+    )
+
+
+class SyncTask(Base, TimestampMixin):
+    """同步任务表（V2.0）- 文档同步任务管理"""
+    __tablename__ = "sync_tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    version_id = Column(Integer, ForeignKey("versions.id", ondelete="SET NULL"), nullable=True)
+    
+    # 基本信息
+    name = Column(String(255), nullable=False)
+    source_type = Column(String(20), nullable=False)  # swagger/yapi/postman
+    source_url = Column(String(500), nullable=True)
+    source_version = Column(String(50), nullable=True)
+    
+    # 任务执行信息
+    task_id = Column(String(100), nullable=True, unique=True)  # Celery 任务 ID
+    status = Column(String(20), default="pending")  # pending/running/completed/failed/cancelled
+    progress = Column(Integer, default=0)  # 0-100
+    
+    # 执行结果
+    total_count = Column(Integer, default=0)  # 总接口数
+    added_count = Column(Integer, default=0)  # 新增接口数
+    updated_count = Column(Integer, default=0)  # 更新接口数
+    deleted_count = Column(Integer, default=0)  # 删除接口数
+    conflict_count = Column(Integer, default=0)  # 冲突接口数
+    
+    # 执行详情
+    error_message = Column(Text, nullable=True)
+    execution_log = Column(JSON, nullable=True)  # 执行日志列表
+    
+    # 变更数据（V2.0 扩展）
+    diff_data = Column(JSON, nullable=True)  # 接口变更详情（新增/删除/变更的接口列表）
+    impact_analysis = Column(JSON, nullable=True)  # 影响分析结果（受影响的用例和场景）
+    fix_data = Column(JSON, nullable=True)  # AI 修复结果数据
+    
+    # 执行时间
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    
+    # 审计字段
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    
+    # 关系定义
+    project = relationship("Project", backref="sync_tasks")
+    version = relationship("Version", backref="sync_tasks")
+    creator = relationship("User", foreign_keys=[created_by])
+    
+    __table_args__ = (
+        Index('ix_sync_tasks_project_id', 'project_id'),
+        Index('ix_sync_tasks_version_id', 'version_id'),
+        Index('ix_sync_tasks_status', 'status'),
+        Index('ix_sync_tasks_task_id', 'task_id'),
+    )
+
+
+class VersionSnapshot(Base, TimestampMixin):
+    """版本快照表（V2.0）- 存储单个接口定义的版本历史"""
+    __tablename__ = "version_snapshots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    definition_id = Column(Integer, ForeignKey("api_definitions.id", ondelete="CASCADE"), nullable=True)  # 单个接口快照
+    version_id = Column(Integer, ForeignKey("versions.id", ondelete="CASCADE"), nullable=True)  # 可选，批量快照时使用
+    
+    # 版本信息
+    version_hash = Column(String(64), nullable=True)  # 版本哈希，用于快速比对
+    version_tag = Column(String(50), nullable=True)  # 版本标签（如 v1.2.3）
+    source_version = Column(String(50), nullable=True)  # 文档版本标识
+    
+    # 快照信息
+    name = Column(String(255), nullable=True)  # 快照名称
+    description = Column(Text, nullable=True)  # 快照描述
+    snapshot_type = Column(String(20), default="manual")  # manual/auto
+    
+    # 快照数据
+    definition_ids = Column(JSON, nullable=False, default=list)  # 保留：批量快照（向后兼容）
+    schema_snapshot = Column(JSON, nullable=True)  # 单个接口的 Schema 快照
+    snapshot_data = Column(JSON, nullable=True)  # 批量快照数据（向后兼容）
+    
+    # 统计信息
+    total_count = Column(Integer, default=0)
+    
+    # 审计字段
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    
+    # 关系定义
+    project = relationship("Project", backref="version_snapshots")
+    version = relationship("Version", backref="version_snapshots")
+    definition = relationship("ApiDefinition", foreign_keys=[definition_id], backref="snapshots")
+    creator = relationship("User", foreign_keys=[created_by])
+    
+    __table_args__ = (
+        Index('ix_version_snapshots_project', 'project_id'),
+        Index('ix_version_snapshots_version', 'version_id'),
+        Index('ix_version_snapshots_definition', 'definition_id'),
+        Index('ix_version_snapshots_hash', 'version_hash'),
+        UniqueConstraint('definition_id', 'version_hash', name='uq_definition_version_hash'),
+    )
+    
+    __table_args__ = (
+        Index('ix_version_snapshots_project_id', 'project_id'),
+        Index('ix_version_snapshots_version_id', 'version_id'),
+        Index('ix_version_snapshots_type', 'snapshot_type'),
+    )
+
+
+# ==================== API Hub - 版本关联表 ====================
+
+class VersionApiDefinition(Base, TimestampMixin):
+    """版本与 API 定义的关联表（V2.0）"""
+    __tablename__ = "version_api_definitions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    version_id = Column(Integer, ForeignKey("versions.id", ondelete="CASCADE"), nullable=False)
+    definition_id = Column(Integer, ForeignKey("api_definitions.id", ondelete="CASCADE"), nullable=False)
+
+    # 关系定义
+    version = relationship("Version", backref="version_api_definitions")
+    definition = relationship("ApiDefinition", backref="version_associations")
+
+    __table_args__ = (
+        UniqueConstraint('version_id', 'definition_id', name='uq_version_definition'),
+        Index('ix_version_api_definitions_version_id', 'version_id'),
+        Index('ix_version_api_definitions_definition_id', 'definition_id'),
+    )
+
+
+# ==================== API Hub - 项目鉴权配置 ====================
+
+class ApiProjectAuthConfig(Base, TimestampMixin):
+    """项目鉴权配置表（V2.0 自动鉴权功能）"""
+    __tablename__ = "api_project_auth_config"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, unique=True)
+    
+    # 鉴权配置
+    enabled = Column(Boolean, default=False, nullable=False)  # 是否启用鉴权
+    auth_type = Column(String(50), default="bearer", nullable=False)  # 鉴权类型：bearer/api_key/custom
+    
+    # 登录接口配置
+    login_url = Column(String(500), nullable=True)  # 登录接口 URL
+    login_method = Column(String(10), default="POST", nullable=False)  # 登录接口请求方法
+    login_body_template = Column(JSON, default={}, nullable=False)  # 登录请求体模板（支持变量占位符）
+    
+    # Token 提取和注入配置
+    token_extract_expression = Column(String(500), nullable=True)  # Token 提取表达式（JSONPath）
+    token_inject_header = Column(String(100), default="Authorization", nullable=False)  # Token 注入的 Header 名称
+    token_inject_template = Column(String(200), default="Bearer {token}", nullable=False)  # Token 注入模板
+    
+    # 审计字段
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    
+    # 关系定义
+    project = relationship("Project", backref="auth_config", uselist=False)
+    creator = relationship("User", foreign_keys=[created_by])
+    
+    __table_args__ = (
+        Index('ix_api_project_auth_config_project_id', 'project_id'),
+        Index('ix_api_project_auth_config_enabled', 'enabled'),
     )

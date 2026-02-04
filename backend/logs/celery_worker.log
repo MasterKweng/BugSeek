@@ -1,0 +1,29 @@
+ 
+ -------------- celery@yukwengRu v5.6.2 (recovery)
+--- ***** ----- 
+-- ******* ---- Windows-10-10.0.26200-SP0 2026-02-03 18:35:51
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         bugseek:0x27effd75bd0
+- ** ---------- .> transport:   redis://127.0.0.1:6380/0
+- ** ---------- .> results:     redis://127.0.0.1:6380/1
+- *** --- * --- .> concurrency: 16 (solo)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> celery           exchange=celery(direct) key=celery
+                
+
+[tasks]
+  . app.celery.tasks.aggregate_group_results
+  . app.celery.tasks.analyze_cross_module_dependencies
+  . app.celery.tasks.analyze_group_dependencies
+  . app.celery.tasks.analyze_module
+  . app.celery.tasks.compare_and_detect_changes
+  . app.celery.tasks.compose_module_scenarios
+  . app.celery.tasks.create_group_analysis_tasks
+  . app.celery.tasks.create_module_analysis_tasks
+  . app.celery.tasks.execute_sync_task
+  . app.celery.tasks.fetch_and_parse_document
+  . app.celery.tasks.scan_impact_and_report
+

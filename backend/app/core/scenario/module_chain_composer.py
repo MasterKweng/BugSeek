@@ -79,14 +79,20 @@ class ModuleChainComposer:
         module_chains_data = {}
         for group_id in module_chain:
             group = group_map.get(group_id)
-            if group and group.internal_chains:
+            if group:
+                # 从 ApiInternalChain 表查询内部链路
+                internal_chains = self.db.query(ApiInternalChain).filter(
+                    ApiInternalChain.group_id == group_id
+                ).all()
+
                 # 选择最长的链路作为主链路
-                internal_chains = group.internal_chains
-                main_chain = max(internal_chains, key=len) if internal_chains else []
-                module_chains_data[group_id] = {
-                    "group": group,
-                    "internal_chain": main_chain
-                }
+                if internal_chains:
+                    main_chain = max(internal_chains, key=lambda c: len(c.endpoint_ids or []))
+                    module_chains_data[group_id] = {
+                        "group": group,
+                        "internal_chain": main_chain.endpoint_ids or [],
+                        "internal_chain_id": main_chain.id
+                    }
 
         # 3. 构建完整的执行顺序
         execution_order = self._build_execution_order(
@@ -113,7 +119,8 @@ class ModuleChainComposer:
             endpoint_ids=all_endpoint_ids,
             execution_order=execution_order,
             endpoint_count=len(all_endpoint_ids),
-            status="active"
+            status="active",
+            source_type="cross_module"  # 标记来源为跨模块组合
         )
 
         self.db.add(scenario)
@@ -162,7 +169,7 @@ class ModuleChainComposer:
                 logger.warning(f"[{self.trace_id}] 模块 {group_id} 没有内部链路，跳过")
                 continue
 
-            internal_chain = module_data["internal_chain"]
+            internal_chain = module_data.get("internal_chain", [])
 
             # 获取该模块的接口信息
             endpoints = self.db.query(ApiEndpoint).filter(
@@ -322,21 +329,29 @@ class ModuleChainComposer:
         for step, group_id in enumerate(module_chain, 1):
             group = group_map.get(group_id)
             if group:
+                # 从 ApiInternalChain 表查询内部链路
+                internal_chains = self.db.query(ApiInternalChain).filter(
+                    ApiInternalChain.group_id == group_id
+                ).all()
+                
                 chain_structure.append({
                     "step": step,
                     "group_id": group_id,
                     "group_name": group.name,
-                    "internal_chain": group.internal_chains or [],
+                    "internal_chain": [c.endpoint_ids for c in internal_chains],
                     "next_group_id": module_chain[step] if step < len(module_chain) else None
                 })
 
         # 统计接口数量
         all_endpoint_ids = []
         for group_id in module_chain:
-            group = group_map.get(group_id)
-            if group and group.internal_chains:
-                for chain in group.internal_chains:
-                    all_endpoint_ids.extend(chain)
+            # 从 ApiInternalChain 表查询
+            internal_chains = self.db.query(ApiInternalChain).filter(
+                ApiInternalChain.group_id == group_id
+            ).all()
+            
+            for chain in internal_chains:
+                all_endpoint_ids.extend(chain.endpoint_ids or [])
 
         # 创建模块链路
         module_chain_obj = ApiModuleChain(
@@ -351,12 +366,44 @@ class ModuleChainComposer:
         )
 
         self.db.add(module_chain_obj)
+        # 5. 创建场景（如果需要）
+        scenario = None
+        if True:  # 默认为每个模块链路生成场景
+            from app.core.scenario.generator import ScenarioGenerator
+            
+            generator = ScenarioGenerator(self.db)
+            
+            # 选择每个模块的最长内部链路
+            selected_chain = []
+            for group_id in module_chain:
+                internal_chains = self.db.query(ApiInternalChain).filter(
+                    ApiInternalChain.group_id == group_id
+                ).all()
+                
+                if internal_chains:
+                    # 选择最长的链路
+                    longest_chain = max(internal_chains, key=lambda c: len(c.endpoint_ids))
+                    selected_chain.extend(longest_chain.endpoint_ids)
+            
+            if selected_chain:
+                scenario = generator.generate_from_chain(
+                    project_id=project_id,
+                    chain=selected_chain,
+                    chain_name=f"{chain_name}_场景",
+                    description=f"由模块链路 {chain_name} 自动生成的场景"
+                )
+                
+                # 更新场景的来源信息
+                scenario.source_type = "module_chain"
+                scenario.source_module_chain_id = module_chain_obj.id
+                self.db.commit()
+        
         self.db.commit()
         self.db.refresh(module_chain_obj)
 
         logger.info(
             f"[{self.trace_id}] 模块链路保存成功: "
-            f"chain_id={module_chain_obj.id}"
+            f"chain_id={module_chain_obj.id}, scenario_id={scenario.id if scenario else None}"
         )
 
         return module_chain_obj

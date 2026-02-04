@@ -129,9 +129,6 @@ const Scripts: React.FC = () => {
         }
   
         const result = await get('/api-integration/scripts', params);
-        console.log('获取脚本列表返回结果:', result);
-        console.log('分组数量:', result?.groups?.length);
-        console.log('脚本总数:', result?.total_scripts);
         setGroups(result?.groups || []);
         setTotal(result?.total_scripts || 0);
       } catch (error) {
@@ -390,12 +387,6 @@ const Scripts: React.FC = () => {
         test_types: selectedTestTypes,
         custom_type_descriptions: customTypeDescriptions
       }, 120000); // 2分钟超时
-      
-      console.log('=== 生成脚本返回结果 ===');
-      console.log('完整返回数据:', result);
-      console.log('脚本数量:', result?.scripts_count);
-      console.log('接口数量:', result?.endpoints_count);
-      console.log('脚本列表:', result?.scripts);
       
       message.success(`成功生成 ${result?.scripts_count || 0} 个测试脚本`);
       setSelectedEndpointIds([]);

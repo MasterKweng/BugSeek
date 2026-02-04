@@ -1,5 +1,5 @@
-"""模块间依赖分析器"""
-from typing import List, Dict, Set, Optional
+"""模块间依赖分析器（基于资源上下文）"""
+from typing import List, Dict, Set, Optional, Any
 from sqlalchemy.orm import Session
 import logging
 import networkx as nx
@@ -8,12 +8,13 @@ from app.db.base import (
     ApiEndpoint, ApiEndpointGroup, ApiModuleDependency
 )
 from app.core.trace import get_trace_id
+from app.core.dependency.resource_context_analyzer import ResourceContextAnalyzer
 
 logger = logging.getLogger(__name__)
 
 
 class ModuleDependencyAnalyzer:
-    """模块间依赖分析器"""
+    """模块间依赖分析器（基于资源上下文）"""
 
     def __init__(self, db: Session):
         """
@@ -24,6 +25,7 @@ class ModuleDependencyAnalyzer:
         """
         self.db = db
         self.trace_id = get_trace_id()
+        self.resource_analyzer = ResourceContextAnalyzer(db)
 
     def analyze_module_dependencies(
         self,
@@ -31,16 +33,17 @@ class ModuleDependencyAnalyzer:
         version_id: Optional[int] = None
     ) -> List[ApiModuleDependency]:
         """
-        分析模块间的依赖关系
+        分析模块间的依赖关系（基于资源上下文）
 
         流程：
-        1. 获取所有已完成分析的模块
-        2. 对每对模块（source, target）：
-           - 比较模块 A 的输出接口字段和模块 B 的输入接口字段
-           - 如果有共同字段，则存在依赖关系
-           - 记录具体的接口映射关系
-        3. 计算模块间的依赖强度
-        4. 保存到 ApiModuleDependency
+        1. 使用 ResourceContextAnalyzer 进行资源级别的依赖分析
+        2. 将接口级依赖聚合为模块级依赖
+        3. 保存到 ApiModuleDependency
+
+        优化效果：
+        - 从 O(N²) 优化到接近 O(M) 的线性复杂度
+        - 基于语义映射表，解决"同义不同名"问题
+        - 只生成高置信度的依赖关系
 
         Args:
             project_id: 项目ID
@@ -50,266 +53,175 @@ class ModuleDependencyAnalyzer:
             模块依赖关系列表
         """
         logger.info(
-            f"[{self.trace_id}] 开始分析模块间依赖: "
+            f"[{self.trace_id}] 开始分析模块间依赖（基于资源上下文）: "
             f"project_id={project_id}, version_id={version_id}"
         )
 
-        # 1. 获取所有已完成分析的模块
-        groups = self.db.query(ApiEndpointGroup).filter(
-            ApiEndpointGroup.project_id == project_id,
-            ApiEndpointGroup.analysis_status == "completed"
-        ).all()
+        # 1. 使用 ResourceContextAnalyzer 分析依赖
+        endpoint_dependencies = self.resource_analyzer.analyze_module_dependencies(
+            project_id=project_id,
+            version_id=version_id
+        )
 
-        if len(groups) < 2:
-            logger.warning(f"[{self.trace_id}] 项目 {project_id} 模块数量不足，无法分析模块间依赖")
+        if not endpoint_dependencies:
+            logger.warning(f"[{self.trace_id}] 未发现任何模块间依赖关系")
             return []
 
-        logger.info(f"[{self.trace_id}] 查询到 {len(groups)} 个已完成分析的模块")
+        logger.info(
+            f"[{self.trace_id}] 发现 {len(endpoint_dependencies)} 个接口级依赖关系"
+        )
 
-        # 2. 提取所有模块的输入/输出接口及其字段
-        module_interfaces = self._extract_module_interfaces(groups)
+        # 2. 将接口级依赖聚合为模块级依赖
+        module_dependencies = self._aggregate_to_module_level(
+            project_id,
+            endpoint_dependencies
+        )
 
-        # 3. 分析每对模块之间的依赖关系
-        module_dependencies = []
+        logger.info(
+            f"[{self.trace_id}] 聚合为 {len(module_dependencies)} 个模块级依赖关系"
+        )
 
-        for i, source_group in enumerate(groups):
-            for j, target_group in enumerate(groups):
-                if i == j:
-                    continue
-
-                # 检查是否已存在依赖关系
-                existing_dep = self.db.query(ApiModuleDependency).filter(
-                    ApiModuleDependency.project_id == project_id,
-                    ApiModuleDependency.source_group_id == source_group.id,
-                    ApiModuleDependency.target_group_id == target_group.id
-                ).first()
-
-                if existing_dep:
-                    logger.debug(
-                        f"[{self.trace_id}] 模块依赖已存在: "
-                        f"{source_group.name} -> {target_group.name}"
-                    )
-                    module_dependencies.append(existing_dep)
-                    continue
-
-                # 分析依赖关系
-                dependency = self._analyze_single_module_dependency(
-                    project_id=project_id,
-                    source_group=source_group,
-                    target_group=target_group,
-                    source_interfaces=module_interfaces[source_group.id],
-                    target_interfaces=module_interfaces[target_group.id]
-                )
-
-                if dependency:
-                    self.db.add(dependency)
-                    module_dependencies.append(dependency)
-
+        # 3. 保存到数据库
+        from datetime import datetime
+        
+        for dep_data in module_dependencies:
+                        # 检查是否已存在
+                        existing = self.db.query(ApiModuleDependency).filter(
+                            ApiModuleDependency.project_id == project_id,
+                            ApiModuleDependency.source_group_id == dep_data['source_group_id'],
+                            ApiModuleDependency.target_group_id == dep_data['target_group_id']
+                        ).first()
+        
+                        if not existing:
+                            dependency = ApiModuleDependency(
+                                project_id=project_id,
+                                source_group_id=dep_data['source_group_id'],
+                                target_group_id=dep_data['target_group_id'],
+                                endpoint_mappings=dep_data['endpoint_mappings'],
+                                dependency_strength=dep_data['dependency_strength'],
+                                dependency_type=self._determine_dependency_type(dep_data['dependency_strength']),
+                                discovery_method="resource_context",
+                                discovery_details={
+                                    "endpoint_pairs": dep_data.get('endpoint_pairs', []),
+                                    "matched_resources": dep_data.get('matched_resources', []),
+                                    "analyzed_at": datetime.utcnow().isoformat(),
+                                    "analyzer_version": "v1.0.0"
+                                },
+                                confidence_score=dep_data.get('confidence_score', dep_data['dependency_strength'])
+                            )
+                            self.db.add(dependency)
+                        else:
+                            # 更新现有依赖
+                            existing.endpoint_mappings = dep_data['endpoint_mappings']
+                            existing.dependency_strength = dep_data['dependency_strength']
+                            existing.dependency_type = self._determine_dependency_type(dep_data['dependency_strength'])
+                            existing.discovery_details = {
+                                **existing.discovery_details,
+                                "updated_at": datetime.utcnow().isoformat(),
+                                "endpoint_pairs": dep_data.get('endpoint_pairs', [])
+                            }
+                            existing.confidence_score = dep_data.get('confidence_score', dep_data['dependency_strength'])
         self.db.commit()
 
         logger.info(
-            f"[{self.trace_id}] 模块间依赖分析完成: found {len(module_dependencies)} dependencies"
+            f"[{self.trace_id}] 模块间依赖分析完成: "
+            f"saved {len(module_dependencies)} dependencies"
         )
 
-        return module_dependencies
+        # 返回所有保存的依赖
+        return self.db.query(ApiModuleDependency).filter(
+            ApiModuleDependency.project_id == project_id
+        ).all()
 
-    def _extract_module_interfaces(
-        self,
-        groups: List[ApiEndpointGroup]
-    ) -> Dict[int, Dict[str, Dict]]:
-        """
-        提取所有模块的输入/输出接口及其字段
-
-        Args:
-            groups: 模块列表
-
-        Returns:
-            {
-                group_id: {
-                    "outputs": {endpoint_id: set(fields)},
-                    "inputs": {endpoint_id: set(fields)}
-                }
-            }
-        """
-        module_interfaces = {}
-
-        for group in groups:
-            # 获取该模块的接口
-            endpoints = self.db.query(ApiEndpoint).filter(
-                ApiEndpoint.group_id == group.id,
-                ApiEndpoint.is_deleted == False
-            ).all()
-
-            output_interfaces = {}
-            input_interfaces = {}
-
-            for endpoint in endpoints:
-                # 提取输出字段
-                output_fields = self._extract_fields_from_schema(endpoint.response_schema)
-                if output_fields:
-                    output_interfaces[endpoint.id] = output_fields
-
-                # 提取输入字段
-                input_fields = self._extract_fields_from_schema(endpoint.request_schema)
-                if input_fields:
-                    input_interfaces[endpoint.id] = input_fields
-
-            module_interfaces[group.id] = {
-                "outputs": output_interfaces,
-                "inputs": input_interfaces,
-                "group": group
-            }
-
-        logger.info(
-            f"[{self.trace_id}] 提取模块接口完成: {len(module_interfaces)} 个模块"
-        )
-
-        return module_interfaces
-
-    def _analyze_single_module_dependency(
+    def _aggregate_to_module_level(
         self,
         project_id: int,
-        source_group: ApiEndpointGroup,
-        target_group: ApiEndpointGroup,
-        source_interfaces: Dict[str, Dict],
-        target_interfaces: Dict[str, Dict]
-    ) -> Optional[ApiModuleDependency]:
+        endpoint_dependencies: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
-        分析单个模块对另一个模块的依赖关系
+        将接口级依赖聚合为模块级依赖
 
         Args:
             project_id: 项目ID
-            source_group: 源模块
-            target_group: 目标模块
-            source_interfaces: 源模块的接口信息
-            target_interfaces: 目标模块的接口信息
+            endpoint_dependencies: 接口级依赖列表
 
         Returns:
-            模块依赖关系（如果存在），否则返回 None
+            模块级依赖列表
         """
-        endpoint_mappings = {
-            "outputs": [],
-            "inputs": []
-        }
+        # 按模块对分组
+        module_pairs = {}
 
-        # 比较源模块的输出和目标模块的输入
-        for source_ep_id, source_fields in source_interfaces["outputs"].items():
-            for target_ep_id, target_fields in target_interfaces["inputs"].items():
-                # 查找共同字段
-                common_fields = source_fields & target_fields
+        for dep in endpoint_dependencies:
+            source_module = dep['source_module_id']
+            target_module = dep['target_module_id']
 
-                if common_fields:
-                    endpoint_mappings["outputs"].append({
-                        "endpoint_id": source_ep_id,
-                        "fields": list(common_fields)
-                    })
-                    endpoint_mappings["inputs"].append({
-                        "endpoint_id": target_ep_id,
-                        "fields": list(common_fields)
-                    })
+            key = (source_module, target_module)
 
-        # 如果没有映射关系，返回 None
-        if not endpoint_mappings["outputs"]:
-            return None
+            if key not in module_pairs:
+                module_pairs[key] = {
+                    'source_group_id': source_module,
+                    'target_group_id': target_module,
+                    'endpoint_mappings': {
+                        'outputs': [],
+                        'inputs': []
+                    },
+                    'dependencies': [],
+                    'endpoint_pairs': [],  # 记录接口级依赖对
+                    'matched_resources': [],  # 记录匹配的资源类型
+                    'total_pairs': 0,
+                    'avg_strength': 0.0
+                }
 
-        # 计算依赖强度
-        dependency_strength = self._calculate_module_dependency_strength(
-            endpoint_mappings,
-            source_interfaces,
-            target_interfaces
-        )
+            # 聚合映射关系
+            module_pairs[key]['endpoint_mappings']['outputs'].append({
+                'endpoint_id': dep['source_endpoint_id'],
+                'resource_type': dep['resource_type'],
+                'fields': [dep['mapping_rule']['output_field']]
+            })
 
-        logger.debug(
-            f"[{self.trace_id}] 发现模块依赖: "
-            f"{source_group.name} -> {target_group.name}, strength={dependency_strength:.2f}"
-        )
+            module_pairs[key]['endpoint_mappings']['inputs'].append({
+                'endpoint_id': dep['target_endpoint_id'],
+                'resource_type': dep['resource_type'],
+                'fields': [dep['mapping_rule']['input_field']]
+            })
 
-        return ApiModuleDependency(
-            project_id=project_id,
-            source_group_id=source_group.id,
-            target_group_id=target_group.id,
-            endpoint_mappings=endpoint_mappings,
-            dependency_strength=dependency_strength
-        )
+            module_pairs[key]['dependencies'].append(dep)
 
-    def _extract_fields_from_schema(self, schema: Optional[Dict]) -> Set[str]:
-        """
-        从schema中提取字段名
+        # 计算每个模块对的综合依赖强度
+        result = []
+        for key, data in module_pairs.items():
+            # 计算平均依赖强度
+            strengths = [d['dependency_strength'] for d in data['dependencies']]
+            avg_strength = sum(strengths) / len(strengths)
 
-        Args:
-            schema: JSON Schema对象
+            # 收集匹配的资源类型
+            matched_resources = list(set(
+                d['resource_type'] for d in data['dependencies']
+            ))
 
-        Returns:
-            字段名集合
-        """
-        if not schema:
-            return set()
+            # 收集接口对详情
+            endpoint_pairs = [
+                {
+                    "source_endpoint_id": d['source_endpoint_id'],
+                    "target_endpoint_id": d['target_endpoint_id'],
+                    "resource_type": d['resource_type'],
+                    "strength": d['dependency_strength'],
+                    "mapping_rule": d['mapping_rule']
+                }
+                for d in data['dependencies']
+            ]
 
-        fields = set()
+            result.append({
+                'source_group_id': data['source_group_id'],
+                'target_group_id': data['target_group_id'],
+                'endpoint_mappings': data['endpoint_mappings'],
+                'dependency_strength': avg_strength,
+                'endpoint_pairs': endpoint_pairs,
+                'matched_resources': matched_resources,
+                'confidence_score': avg_strength
+            })
 
-        def traverse(obj, prefix=''):
-            if isinstance(obj, dict):
-                if 'properties' in obj:
-                    for key, value in obj['properties'].items():
-                        fields.add(prefix + key)
-                        traverse(value, prefix + key + '.')
-            elif isinstance(obj, list) and obj:
-                traverse(obj[0], prefix)
-
-        traverse(schema)
-        return fields
-
-    def _calculate_module_dependency_strength(
-        self,
-        endpoint_mappings: Dict,
-        source_interfaces: Dict,
-        target_interfaces: Dict
-    ) -> float:
-        """
-        计算模块间的依赖强度（0-1）
-
-        计算公式：
-        1. 字段匹配度：匹配的字段数 / 目标模块输入字段总数
-        2. 接口覆盖度：涉及的接口数 / 目标模块接口总数
-        3. 综合强度 = (字段匹配度 * 0.7) + (接口覆盖度 * 0.3)
-
-        Args:
-            endpoint_mappings: 接口映射关系
-            source_interfaces: 源模块接口信息
-            target_interfaces: 目标模块接口信息
-
-        Returns:
-            依赖强度（0-1）
-        """
-        # 统计匹配的字段数
-        matched_fields = set()
-        for mapping in endpoint_mappings["inputs"]:
-            matched_fields.update(mapping["fields"])
-
-        # 目标模块的输入字段总数
-        total_input_fields = set()
-        for fields in target_interfaces["inputs"].values():
-            total_input_fields.update(fields)
-
-        # 字段匹配度
-        field_match_ratio = len(matched_fields) / max(len(total_input_fields), 1)
-
-        # 接口覆盖度
-        involved_input_eps = {m["endpoint_id"] for m in endpoint_mappings["inputs"]}
-        total_input_eps = len(target_interfaces["inputs"])
-        interface_coverage = len(involved_input_eps) / max(total_input_eps, 1)
-
-        # 综合强度
-        strength = (field_match_ratio * 0.7) + (interface_coverage * 0.3)
-
-        logger.debug(
-            f"[{self.trace_id}] 模块依赖强度计算: "
-            f"field_match={field_match_ratio:.2f}, "
-            f"interface_coverage={interface_coverage:.2f}, "
-            f"strength={strength:.2f}"
-        )
-
-        return min(strength, 1.0)
+        return result
 
     def find_module_chains(
         self,
@@ -350,13 +262,13 @@ class ModuleDependencyAnalyzer:
                 weight=dep.dependency_strength
             )
 
-        # 2. 查找路径（限制最大长度，避免无限链路）
+        # 2. 查找路径（限制最大长度为 3，避免过长链路）
         chains = []
         for source in G.nodes():
             for target in G.nodes():
                 if source != target:
                     try:
-                        paths = nx.all_simple_paths(G, source, target, cutoff=5)
+                        paths = nx.all_simple_paths(G, source, target, cutoff=3)
                         for path in paths:
                             if len(path) >= 2:  # 至少2个模块才构成链路
                                 chains.append(path)
@@ -386,6 +298,23 @@ class ModuleDependencyAnalyzer:
         )
 
         return unique_chains
+
+    def _determine_dependency_type(self, strength: float) -> str:
+        """
+        根据依赖强度确定依赖类型
+        
+        Args:
+            strength: 依赖强度（0-1）
+            
+        Returns:
+            依赖类型（HARD | SOFT | indirect）
+        """
+        if strength >= 0.7:
+            return "HARD"
+        elif strength >= 0.4:
+            return "SOFT"
+        else:
+            return "indirect"
 
     def _calculate_module_chain_strength(
         self,

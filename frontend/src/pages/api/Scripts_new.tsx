@@ -480,35 +480,6 @@ const Scripts: React.FC = () => {
     );
   }
 
-  // 添加调试日志
-  useEffect(() => {
-    console.log('=== 调试信息 ===');
-    console.log('当前项目:', currentProject);
-    console.log('当前版本:', currentVersion);
-    console.log('分组数量:', groups.length);
-    console.log('接口数量:', endpoints.length);
-    console.log('有脚本的接口:', endpoints.filter(e => e.script_count > 0).length);
-    
-    // 检查窗口高度
-    console.log('窗口高度:', window.innerHeight, 'px');
-    console.log('计算高度: calc(100vh - 64px) =', window.innerHeight - 64, 'px');
-  }, [currentProject, currentVersion, groups, endpoints]);
-
-  // 添加页面布局调试
-  useEffect(() => {
-    const checkLayout = () => {
-      const rootDiv = document.querySelector('[style*="calc(100vh - 64px)"]');
-      if (rootDiv) {
-        console.log('=== 布局调试 ===');
-        console.log('根容器高度:', (rootDiv as HTMLElement).clientHeight, 'px');
-      }
-    };
-    
-    // 延迟检查，确保DOM已渲染
-    setTimeout(checkLayout, 100);
-    setTimeout(checkLayout, 500);
-    setTimeout(checkLayout, 1000);
-  }, []);
 
   return (
     <div>

@@ -1,5 +1,5 @@
 """场景组装API接口"""
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -48,7 +48,8 @@ class ScenarioExecuteRequest(BaseModel):
 
 class ApiResponse(BaseModel):
     """通用API响应"""
-    message: str
+    code: int = 0
+    message: str = "success"
     data: Optional[dict] = None
 
 
@@ -78,6 +79,12 @@ async def analyze_dependencies(
     """
     分析接口依赖关系（基于分组的异步分析）
 
+    说明：
+    此接口分析接口之间的依赖关系，用于生成测试场景。
+    与模块分析不同：
+    - 模块分析：识别模块内部的资源生命周期链路（CRUD）
+    - 接口依赖分析：识别接口之间的数据传递关系（用于场景生成）
+
     流程：
     1. 使用 Celery 创建任务
     2. 为每个分组创建 Celery 子任务
@@ -86,20 +93,21 @@ async def analyze_dependencies(
     """
     trace_id = get_trace_id()
 
-    logger.info(f"[{trace_id}] 创建分组依赖分析任务: project_id={request.project_id}, version_id={request.version_id}")
+    logger.info(f"[{trace_id}] 创建接口依赖分析任务: project_id={request.project_id}, version_id={request.version_id}")
 
     # 使用 Celery 创建任务
     from app.celery.tasks import create_group_analysis_tasks
 
-    task_id = create_group_analysis_tasks.apply_async(
-        args=[request.project_id, current_user.id, request.version_id],
-        priority=5
-    ).get()
+    task_id = create_group_analysis_tasks(
+        project_id=request.project_id,
+        user_id=current_user.id,
+        version_id=request.version_id
+    )
 
-    logger.info(f"[{trace_id}] 分组依赖分析任务已创建: task_id={task_id}")
+    logger.info(f"[{trace_id}] 接口依赖分析任务已创建: task_id={task_id}")
 
     return ApiResponse(
-        message="依赖分析任务已创建，正在后台执行",
+        message="接口依赖分析任务已创建，正在后台执行",
         data={
             "task_id": task_id,
             "task_type": TaskType.DEPENDENCY_ANALYSIS.value,
@@ -270,6 +278,60 @@ async def execute_scenario(
 
     logger.info(f"[{trace_id}] 场景执行完成: execution_id={execution.id}")
 
+    # 4. 查询步骤级执行结果
+    scenario = db.query(ApiScenario).filter(
+        ApiScenario.id == request.scenario_id
+    ).first()
+
+    step_results = []
+    if scenario and scenario.execution_order:
+        for step_config in scenario.execution_order:
+            step = step_config.get('step')
+            endpoint_id = step_config.get('endpoint_id')
+
+            # 查询该步骤的执行记录
+            script_execution = db.query(ScriptExecution).filter(
+                ScriptExecution.project_id == scenario.project_id,
+                ScriptExecution.endpoint_id == endpoint_id,
+                ScriptExecution.started_at >= execution.started_at,
+                ScriptExecution.finished_at <= execution.finished_at
+            ).first()
+
+            # 查询接口信息
+            endpoint = db.query(ApiEndpoint).filter(
+                ApiEndpoint.id == endpoint_id
+            ).first()
+
+            step_info = {
+                "step": step,
+                "endpoint_id": endpoint_id,
+                "endpoint_name": f"{endpoint.method} {endpoint.path}" if endpoint else "未知接口",
+                "status": "skipped",
+                "duration_ms": 0,
+                "response_code": None,
+                "assertions": None,
+                "variables_used": step_config.get('variables', {}),
+                "extracted_variables": {}
+            }
+
+            if script_execution:
+                step_info["status"] = script_execution.status
+                step_info["duration_ms"] = script_execution.duration_ms
+                step_info["response_code"] = script_execution.response_code
+                step_info["assertions"] = script_execution.assertion_results
+
+                # 尝试提取变量
+                if script_execution.response_body and step_config.get('extract'):
+                    for field_name, json_path in step_config['extract'].items():
+                        extracted_value = _extract_value_by_path(
+                            script_execution.response_body,
+                            json_path
+                        )
+                        if extracted_value is not None:
+                            step_info["extracted_variables"][field_name] = extracted_value
+
+            step_results.append(step_info)
+
     return ApiResponse(
         message="场景执行成功",
         data={
@@ -282,7 +344,8 @@ async def execute_scenario(
             "passed_steps": execution.passed_steps,
             "failed_steps": execution.failed_steps,
             "started_at": execution.started_at.isoformat(),
-            "finished_at": execution.finished_at.isoformat()
+            "finished_at": execution.finished_at.isoformat(),
+            "steps": step_results
         }
     )
 
@@ -447,6 +510,229 @@ async def update_scenario(
             "continue_on_failure": scenario.continue_on_failure
         }
     )
+
+
+@router.get("/scenarios/{scenario_id}/executions", response_model=ApiResponse)
+async def get_scenario_executions(
+    scenario_id: int,
+    page: int = 1,
+    page_size: int = 20,
+    status: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    获取场景执行历史列表
+
+    Args:
+        scenario_id: 场景ID
+        page: 页码
+        page_size: 每页数量
+        status: 状态筛选（可选）
+
+    Returns:
+        执行历史列表
+    """
+    trace_id = get_trace_id()
+
+    # 1. 查询场景信息
+    scenario = db.query(ApiScenario).filter(
+        ApiScenario.id == scenario_id
+    ).first()
+
+    if not scenario:
+        raise HTTPException(status_code=404, detail="场景不存在")
+
+    # 2. 查询执行历史
+    query = db.query(TestExecution).filter(
+        TestExecution.execution_type == "scenario",
+        TestExecution.target_id == scenario_id
+    )
+
+    # 状态筛选
+    if status:
+        query = query.filter(TestExecution.status == status)
+
+    # 分页
+    total = query.count()
+    executions = query.order_by(TestExecution.started_at.desc()).offset(
+        (page - 1) * page_size
+    ).limit(page_size).all()
+
+    # 3. 关联环境信息
+    execution_list = []
+    for execution in executions:
+        environment = None
+        if execution.environment_id:
+            environment = db.query(Environment).filter(
+                Environment.id == execution.environment_id
+            ).first()
+
+        execution_list.append({
+            "id": execution.id,
+            "status": execution.status,
+            "duration_ms": execution.duration_ms,
+            "total_steps": execution.total_steps,
+            "passed_steps": execution.passed_steps,
+            "failed_steps": execution.failed_steps,
+            "environment_name": environment.name if environment else "未知环境",
+            "triggered_by": execution.triggered_by,
+            "started_at": execution.started_at.isoformat() if execution.started_at else None,
+            "finished_at": execution.finished_at.isoformat() if execution.finished_at else None
+        })
+
+    logger.info(f"[{trace_id}] 场景执行历史获取成功: scenario_id={scenario_id}, count={len(execution_list)}")
+
+    return ApiResponse(
+        message="执行历史获取成功",
+        data={
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "executions": execution_list
+        }
+    )
+
+
+@router.get("/scenarios/{scenario_id}/executions/{execution_id}", response_model=ApiResponse)
+async def get_scenario_execution_detail(
+    scenario_id: int,
+    execution_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    获取场景执行详情
+
+    Args:
+        scenario_id: 场景ID
+        execution_id: 执行记录ID
+
+    Returns:
+        执行详情（包含步骤级结果）
+    """
+    trace_id = get_trace_id()
+
+    # 1. 查询执行记录
+    execution = db.query(TestExecution).filter(
+        TestExecution.id == execution_id,
+        TestExecution.execution_type == "scenario",
+        TestExecution.target_id == scenario_id
+    ).first()
+
+    if not execution:
+        raise HTTPException(status_code=404, detail="执行记录不存在")
+
+    # 2. 查询场景信息
+    scenario = db.query(ApiScenario).filter(
+        ApiScenario.id == scenario_id
+    ).first()
+
+    # 3. 查询环境信息
+    environment = None
+    if execution.environment_id:
+        environment = db.query(Environment).filter(
+            Environment.id == execution.environment_id
+        ).first()
+
+    # 4. 查询步骤级执行结果（通过 ScriptExecution）
+    from app.db.base import ScriptExecution
+
+    step_results = []
+    if scenario and scenario.execution_order:
+        for step_config in scenario.execution_order:
+            step = step_config.get('step')
+            endpoint_id = step_config.get('endpoint_id')
+
+            # 查询该步骤的执行记录
+            script_execution = db.query(ScriptExecution).filter(
+                ScriptExecution.project_id == scenario.project_id,
+                ScriptExecution.endpoint_id == endpoint_id,
+                ScriptExecution.started_at >= execution.started_at,
+                ScriptExecution.finished_at <= execution.finished_at
+            ).first()
+
+            # 查询接口信息
+            endpoint = db.query(ApiEndpoint).filter(
+                ApiEndpoint.id == endpoint_id
+            ).first()
+
+            step_info = {
+                "step": step,
+                "endpoint_id": endpoint_id,
+                "endpoint_name": f"{endpoint.method} {endpoint.path}" if endpoint else "未知接口",
+                "status": "skipped",
+                "duration_ms": 0,
+                "response_code": None,
+                "assertions": None,
+                "variables_used": step_config.get('variables', {}),
+                "extracted_variables": {}
+            }
+
+            if script_execution:
+                step_info["status"] = script_execution.status
+                step_info["duration_ms"] = script_execution.duration_ms
+                step_info["response_code"] = script_execution.response_code
+                step_info["assertions"] = script_execution.assertion_results
+
+                # 尝试提取变量
+                if script_execution.response_body and step_config.get('extract'):
+                    for field_name, json_path in step_config['extract'].items():
+                        extracted_value = _extract_value_by_path(
+                            script_execution.response_body,
+                            json_path
+                        )
+                        if extracted_value is not None:
+                            step_info["extracted_variables"][field_name] = extracted_value
+
+            step_results.append(step_info)
+
+    logger.info(f"[{trace_id}] 场景执行详情获取成功: execution_id={execution_id}")
+
+    return ApiResponse(
+        message="执行详情获取成功",
+        data={
+            "id": execution.id,
+            "scenario_id": scenario_id,
+            "scenario_name": scenario.name if scenario else "未知场景",
+            "status": execution.status,
+            "duration_ms": execution.duration_ms,
+            "total_steps": execution.total_steps,
+            "passed_steps": execution.passed_steps,
+            "failed_steps": execution.failed_steps,
+            "environment_name": environment.name if environment else "未知环境",
+            "triggered_by": execution.triggered_by,
+            "started_at": execution.started_at.isoformat() if execution.started_at else None,
+            "finished_at": execution.finished_at.isoformat() if execution.finished_at else None,
+            "steps": step_results
+        }
+    )
+
+
+def _extract_value_by_path(data: Dict[str, Any], path: str) -> Any:
+    """
+    从数据中按路径提取值
+
+    Args:
+        data: 数据字典
+        path: 路径（如 "data.order_id" 或 "order_id"）
+
+    Returns:
+        提取的值
+    """
+    if not path:
+        return None
+
+    keys = path.split('.')
+    current = data
+
+    for key in keys:
+        if isinstance(current, dict) and key in current:
+            current = current[key]
+        else:
+            return None
+
+    return current
 
 
 @router.delete("/scenarios/{scenario_id}", response_model=ApiResponse)

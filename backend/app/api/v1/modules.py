@@ -219,12 +219,22 @@ async def list_modules(
 
         # 只返回包含接口的分组（作为模块）
         if endpoint_count > 0:
+            # 统计内部链路数量
+            internal_chains_count = len(group.internal_chains or [])
+            
+            # 统计输入输出接口数量
+            input_count = len(group.input_endpoints or [])
+            output_count = len(group.output_endpoints or [])
+            
             module_list.append({
                 "id": group.id,
                 "name": group.name,
                 "description": group.description,
                 "analysis_status": group.analysis_status,
-                "endpoint_count": endpoint_count
+                "endpoint_count": endpoint_count,
+                "internal_chains_count": internal_chains_count,
+                "input_endpoint_count": input_count,
+                "output_endpoint_count": output_count
             })
 
     logger.info(
@@ -432,10 +442,18 @@ async def clear_module_dependencies(
     groups = group_query.all()
     logger.info(f"[{trace_id}] 重置 {len(groups)} 个模块的分析状态")
     for group in groups:
-        old_chains_count = len(group.internal_chains or [])
+        # 从 ApiInternalChain 表查询并删除旧链路
+        old_chains = db.query(ApiInternalChain).filter(
+            ApiInternalChain.group_id == group.id
+        ).all()
+        old_chains_count = len(old_chains)
+        
         logger.info(f"[{trace_id}] 重置模块 {group.name} (ID: {group.id})，清除原有内部链路数: {old_chains_count} 条")
+        
+        for old_chain in old_chains:
+            db.delete(old_chain)
+        
         group.analysis_status = "pending"
-        group.internal_chains = []
         group.input_endpoints = []
         group.output_endpoints = []
 

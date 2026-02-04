@@ -100,3 +100,97 @@ class AIService:
         """获取使用统计"""
         adapter = self._get_adapter()
         return await adapter.get_usage_stats()
+
+    def generate_base_case(
+        self,
+        method: str,
+        path: str,
+        summary: Optional[str],
+        description: Optional[str],
+        request_schema: Optional[Dict[str, Any]],
+        response_schema: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        AI 生成基准用例
+
+        Args:
+            method: HTTP 方法
+            path: 接口路径
+            summary: 接口摘要
+            description: 接口描述
+            request_schema: 请求参数 Schema
+            response_schema: 响应参数 Schema
+
+        Returns:
+            Dict: 生成的用例数据
+        """
+        try:
+            import asyncio
+
+            # 构建输入数据
+            input_data = {
+                "method": method,
+                "path": path,
+                "summary": summary or "",
+                "description": description or "",
+                "request_schema": request_schema or {},
+                "response_schema": response_schema or {}
+            }
+
+            # 同步执行 AI 任务
+            result = asyncio.run(self.execute(
+                task_type="api_case_generation",
+                project_id=None,
+                input_data=input_data
+            ))
+
+            if result.get("success"):
+                return result["result"]
+            else:
+                raise Exception(result.get("error", "AI 生成失败"))
+
+        except Exception as e:
+            logger.error(f"AI 生成基准用例失败: {str(e)}")
+            raise
+
+    def generate_assertions(
+        self,
+        response_schema: Dict[str, Any],
+        response_sample: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        AI 生成断言规则
+
+        Args:
+            response_schema: 响应参数 Schema
+            response_sample: 参考响应数据
+
+        Returns:
+            Dict: 生成的断言规则
+        """
+        try:
+            import asyncio
+
+            # 构建输入数据
+            input_data = {
+                "method": "GET",  # 默认值，不使用
+                "path": "/",      # 默认值，不使用
+                "response_schema": response_schema,
+                "response_sample": response_sample or {}
+            }
+
+            # 同步执行 AI 任务
+            result = asyncio.run(self.execute(
+                task_type="assertion_generation",
+                project_id=None,
+                input_data=input_data
+            ))
+
+            if result.get("success"):
+                return result["result"]
+            else:
+                raise Exception(result.get("error", "AI 生成失败"))
+
+        except Exception as e:
+            logger.error(f"AI 生成断言失败: {str(e)}")
+            raise

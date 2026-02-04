@@ -25,12 +25,56 @@ class BaseParser(ABC):
         初始化解析器
 
         Args:
-            content: 文档内容 (JSON/YAML 字符串)
+            content: 文档内容 (JSON/YAML 字符串) 或 URL 地址
             source_url: 文档来源 URL (可选)
         """
-        self.content = content
-        self.source_url = source_url
+        # 检测 content 是否为 URL，如果是则获取内容
+        actual_content, actual_source_url = self._detect_and_fetch_content(content, source_url)
+        
+        self.content = actual_content
+        self.source_url = actual_source_url
         self._raw_data: Optional[Dict[str, Any]] = None
+
+    def _detect_and_fetch_content(self, content: str, source_url: Optional[str]) -> tuple[str, Optional[str]]:
+        """
+        检测 content 是否为 URL，如果是则获取内容
+
+        Args:
+            content: 文档内容或 URL 地址
+            source_url: 文档来源 URL
+
+        Returns:
+            tuple: (实际内容, 实际来源 URL)
+
+        Raises:
+            ValueError: URL 获取失败
+        """
+        import re
+
+        # URL 检测模式：http:// 或 https:// 开头
+        url_pattern = r'^https?://[^\s/$.?#].[^\s]*$'
+
+        if re.match(url_pattern, content.strip()):
+            logger.info(f"检测到 URL，正在获取内容: {content}")
+            try:
+                # 使用 httpx 进行 HTTP 请求（项目已有依赖）
+                import httpx
+                with httpx.Client(timeout=30.0) as client:
+                    response = client.get(content)
+                    response.raise_for_status()
+
+                    # 使用传入的 URL 作为 source_url，保持向后兼容
+                    if not source_url:
+                        source_url = content
+
+                    logger.info(f"URL 内容获取成功，大小: {len(response.content)} bytes")
+                    return response.text, source_url
+            except Exception as e:
+                logger.error(f"从 URL 获取内容失败: {str(e)}")
+                raise ValueError(f"无法从 URL 获取内容: {str(e)}")
+
+        # 如果不是 URL，直接返回原始内容和 source_url
+        return content, source_url
 
     @abstractmethod
     def parse(self) -> ParseResult:
@@ -67,7 +111,7 @@ class BaseParser(ABC):
 
         # 检查内容是否为空
         if not self.content or not self.content.strip():
-            raise ValueError("文档内容为空")
+            raise ValueError("文档内容为空，请提供有效的文档内容或 URL")
 
         content_preview = self.content[:200] if len(self.content) > 200 else self.content
         logger.info(f"尝试解析文档内容，预览: {content_preview}...")

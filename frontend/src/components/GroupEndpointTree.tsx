@@ -92,15 +92,6 @@ const GroupEndpointTree: React.FC<GroupEndpointTreeProps> = ({
     return null;
   }).filter(item => item !== null);
 
-  // 添加调试日志
-  useEffect(() => {
-    console.log('=== GroupEndpointTree 调试信息 ===');
-    console.log('传入的分组数量:', groups.length);
-    console.log('传入的接口数量:', endpoints.length);
-    console.log('只显示有脚本的接口:', showOnlyWithScripts);
-    console.log('过滤后的分组:', filteredGroups.length);
-  }, [groups, endpoints, showOnlyWithScripts, filteredGroups.length]);
-
   // 搜索过滤
   const handleSearch = (value: string) => {
     setSearchValue(value);

@@ -62,6 +62,7 @@ docker run -d \
   redis:7.0 \
   redis-server --port 6380
 ```
+docker start bugseek-redis
 
 **说明**: Redis 使用端口 6380（映射到容器内的 6379），与其他项目的 Redis（如 6379）分开，避免冲突。
 
@@ -197,6 +198,58 @@ celery -A app.celery_config worker --loglevel=info --pool=solo
 - 场景自动生成
 - 场景依赖图可视化
 - 场景执行（支持变量传递）
+
+#### 模块依赖分析模块
+- **基于资源生命周期的模块内链路生成**
+  - 资源聚类：按 URL 路径识别资源实体
+  - 操作分类：Creator/Reader/Updater/Deleter/Action
+  - 生命周期链路：POST → GET → PUT/PATCH → DELETE
+  - 优化效果：从 96,337 条链路优化到 5-8 条核心链路
+
+- **基于资源上下文的模块间依赖分析（通用算法）**
+  - **算法特点**：
+    - ✅ 高度通用：适用于任何基于 OpenAPI/Swagger 规范的 RESTful API 系统
+    - ✅ 核心算法抽象：倒排索引、资源上下文分析、多级匹配策略
+    - ✅ 可配置化：语义映射表、资源类型定义、权重系数均可定制
+    - ✅ 智能化：支持自动提取资源类型、智能推荐语义别名
+    - ✅ 性能优化：从 O(N²) 优化到接近 O(M) 的线性复杂度
+    - ✅ 高质量：只保留高置信度依赖，避免组合爆炸
+  
+  - **适用系统**：
+    - 🟢 **高度适用**：电商系统（Product, Order, Customer）、CRM 系统、ERP 系统
+    - 🟡 **中等适用**：社交平台（User, Post, Comment）、微服务架构
+    - ❌ **不适用**：没有 API 文档规范的遗留系统、非 RESTful 系统（RPC/GraphQL）
+
+  - **调整步骤**：
+    1. **定义语义映射表**（必填）：
+       ```python
+       semantic_map = {
+           'Product': ['product', 'item', 'goods', 'sku', 'product_id'],
+           'Order': ['order', 'purchase_order', 'transaction'],
+           'Customer': ['customer', 'user', 'buyer', 'client'],
+       }
+       ```
+    2. **自动提取资源类型**（推荐）：
+       ```python
+       analyzer = ResourceContextAnalyzer(db)
+       analyzer.auto_extract_resources_from_schemas(endpoints)
+       ```
+    3. **智能推荐语义别名**（可选）：
+       ```python
+       analyzer.infer_semantic_aliases('Product', field_names)
+       ```
+    4. **可选：调整权重系数**（根据业务需求微调）
+
+  - **核心算法流程**：
+    - 第一阶段：静态语义解析与索引构建（倒排索引）
+    - 第二阶段：生产者遍历与匹配（O(1) 查找）
+    - 第三阶段：评分与过滤（必填项 + Action 接口加权）
+
+  - **依赖类型标记**：
+    - HARD：强依赖（strength ≥ 0.8 或 Action 接口或必填项）
+    - SOFT：弱依赖（其他情况）
+
+  - **三角依赖保留**：确保关键业务链路不丢失
 
 ### 待实现
 

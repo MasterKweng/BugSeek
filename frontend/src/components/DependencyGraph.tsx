@@ -58,13 +58,8 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ dependencies }) => {
     const width = 1000;
     const height = 600;
 
-    // 创建力导向图
-    const simulation = d3
-      .forceSimulation(Array.from(nodes.values()) as any)
-      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(200))
-      .force('charge', d3.forceManyBody().strength(-500))
-      .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(50));
+    // 创建一个容器组，所有元素都放在这个组里
+    const container = svg.append('g');
 
     // 创建箭头标记
     svg.append('defs').append('marker')
@@ -79,8 +74,16 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ dependencies }) => {
       .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
       .attr('fill', '#999');
 
-    // 绘制连线
-    const link = svg.append('g')
+    // 创建力导向图
+    const simulation = d3
+      .forceSimulation(Array.from(nodes.values()) as any)
+      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(200))
+      .force('charge', d3.forceManyBody().strength(-500))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collision', d3.forceCollide().radius(50));
+
+    // 绘制连线（在容器组中）
+    const link = container.append('g')
       .selectAll('line')
       .data(links)
       .enter()
@@ -94,8 +97,8 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ dependencies }) => {
       .attr('stroke-width', (d: Link) => Math.max(1, d.strength * 3))
       .attr('marker-end', 'url(#arrowhead)');
 
-    // 绘制节点
-    const node = svg.append('g')
+    // 绘制节点（在容器组中）
+    const node = container.append('g')
       .selectAll('g')
       .data(Array.from(nodes.values()))
       .enter()
@@ -152,11 +155,11 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ dependencies }) => {
         .attr('transform', (d: any) => `translate(${d.x},${d.y})`);
     });
 
-    // 缩放和平移
+    // 缩放和平移 - 对容器组应用变换
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.5, 3])
       .on('zoom', (event) => {
-        svg.select('g').attr('transform', event.transform);
+        container.attr('transform', event.transform);
       });
 
     svg.call(zoom as any);

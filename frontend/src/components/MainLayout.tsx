@@ -13,6 +13,8 @@ import {
   ProjectOutlined,
   BranchesOutlined,
   DownOutlined,
+  CloudServerOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth';
@@ -61,24 +63,25 @@ const MainLayout: React.FC = () => {
       ],
     },
     {
-      key: 'requirements',
-      icon: <FileTextOutlined />,
-      label: '需求洞察',
+      key: 'api-hub',
+      icon: <CloudServerOutlined />,
+      label: 'API 资产库',
       children: [
         {
-          key: '/requirements',
-          label: '需求审查',
+          key: '/api-hub/definitions',
+          label: '接口定义',
         },
-      ],
-    },
-    {
-      key: 'code-quality',
-      icon: <CodeOutlined />,
-      label: '代码质量',
-      children: [
         {
-          key: '/code-quality',
-          label: '代码审查',
+          key: '/api-hub/cases',
+          label: '测试用例',
+        },
+        {
+          key: '/api-hub/sync',
+          label: '文档同步',
+        },
+        {
+          key: '/api-hub/snapshots',
+          label: '版本快照',
         },
       ],
     },
@@ -151,6 +154,25 @@ const MainLayout: React.FC = () => {
         {
           key: '/infra',
           label: '数据支撑',
+        },
+      ],
+    },
+    {
+      key: 'todo',
+      icon: <ExperimentOutlined />,
+      label: '待实现',
+      children: [
+        {
+          key: '/requirements',
+          label: '需求洞察',
+        },
+        {
+          key: '/code-quality',
+          label: '代码质量',
+        },
+        {
+          key: '/ui-automation',
+          label: 'UI 自动化',
         },
       ],
     },

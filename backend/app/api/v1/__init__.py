@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from app.api.v1 import auth, api_integration, projects, versions, environments, variables, endpoints, context, scripts, test_types, script_executions, scenarios, modules, chains
+from app.api.v1 import api_definitions, api_cases, sync_tasks, version_snapshots, project_auth_config
 from app.ai import router as ai_router
 
 api_router = APIRouter()
@@ -19,4 +20,10 @@ api_router.include_router(projects.router, tags=["项目管理"])
 api_router.include_router(versions.router, tags=["版本管理"])
 api_router.include_router(environments.router, tags=["环境管理"])
 api_router.include_router(variables.router, tags=["变量管理"])
+# V2.0 层级一 - API 资产库路由
+api_router.include_router(api_definitions.router, tags=["API定义管理"])
+api_router.include_router(api_cases.router, tags=["原子用例管理"])
+api_router.include_router(sync_tasks.router, tags=["同步任务管理"])
+api_router.include_router(version_snapshots.router, tags=["版本快照管理"])
+api_router.include_router(project_auth_config.router, tags=["项目鉴权配置"])
 api_router.include_router(ai_router, tags=["AI服务"])

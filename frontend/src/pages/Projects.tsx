@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin, Tabs, Empty } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined } from '@ant-design/icons'
+import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin, Tabs, Empty, Switch } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined, MinusCircleOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import * as projectService from '../services/project'
 import type { Project, ProjectCreate, ProjectUpdate } from '../types'
@@ -36,6 +36,12 @@ const Projects: React.FC = () => {
   const [editEnvForm] = Form.useForm()
   const [addEnvLoading, setAddEnvLoading] = useState(false)
   const [editEnvLoading, setEditEnvLoading] = useState(false)
+
+  // 鉴权配置相关状态（V2.0）
+  const [authConfig, setAuthConfig] = useState<any>(null)
+  const [authConfigLoading, setAuthConfigLoading] = useState(false)
+  const [authConfigForm] = Form.useForm()
+  const [authConfigSaving, setAuthConfigSaving] = useState(false)
 
   const businessDomains = ['电商', '金融', 'SaaS', '社交']
 
@@ -117,23 +123,21 @@ const Projects: React.FC = () => {
     setCurrentProject(project)
     editForm.setFieldsValue(project)
     fetchEnvironments(project.id)
+    fetchAuthConfig(project.id)
     setEditModalVisible(true)
   }
   
     // 获取环境列表
   
       const fetchEnvironments = async (projectId: number) => {
-  
-        setEnvLoading(true)
-  
-        try {
-  
-          const response = await get(`/projects/${projectId}/environments`, { page: 1, page_size: 100 })
-  
-          console.log('环境列表响应:', response)
-  
-          if (response && typeof response === 'object') {
-  
+      
+              setEnvLoading(true)
+      
+              try {
+      
+                const response = await get(`/projects/${projectId}/environments`, { page: 1, page_size: 100 })
+      
+                if (response && typeof response === 'object') {  
             // 检查是否有 items 字段（完整版接口）
   
             if ('items' in response && Array.isArray(response.items)) {
@@ -151,33 +155,24 @@ const Projects: React.FC = () => {
             }
   
             // 如果有分页信息但没有 items 字段，设置空数组
-  
-            else if ('total' in response && 'page' in response && 'page_size' in response) {
-  
-              console.warn('环境列表响应缺少 items 字段:', response)
-  
-              setEnvironments([])
-  
-            } else {
-  
-              console.error('环境列表数据格式错误:', response)
-  
-              setEnvironments([])
-  
-            }
-  
-          } else {
-  
-            console.error('环境列表响应格式错误:', response)
-  
-            setEnvironments([])
-  
-          }
-  
-        } catch (error: any) {
-  
-          console.error('获取环境列表失败:', error)
-  
+            
+                        else if ('total' in response && 'page' in response && 'page_size' in response) {
+            
+                          setEnvironments([])
+            
+                        } else {
+            
+                          setEnvironments([])
+            
+                        }
+            
+                      } else {
+            
+                        setEnvironments([])
+            
+                      }
+            
+                    } catch (error: any) {  
           message.error(error.message || '获取环境列表失败')
   
           setEnvironments([])
@@ -194,7 +189,15 @@ const Projects: React.FC = () => {
       try {
         const values = await addEnvForm.validateFields()
         setAddEnvLoading(true)
-        await post(`/projects/${currentProject.id}/environments`, values)
+        
+        // 转换 headers 和 variables 数组为对象
+        const payload = {
+          ...values,
+          headers: values.headers ? Object.fromEntries(values.headers.map((h: any) => [h.key, h.value])) : {},
+          variables: values.variables ? Object.fromEntries(values.variables.map((v: any) => [v.key, v.value])) : {}
+        }
+        
+        await post(`/projects/${currentProject.id}/environments`, payload)
         message.success('环境添加成功')
         setAddEnvModalVisible(false)
         addEnvForm.resetFields()
@@ -219,7 +222,15 @@ const Projects: React.FC = () => {
       try {
         const values = await editEnvForm.validateFields()
         setEditEnvLoading(true)
-        await put(`/projects/${currentProject.id}/environments/${currentEnv.id}`, values)
+        
+        // 转换 headers 和 variables 数组为对象
+        const payload = {
+          ...values,
+          headers: values.headers ? Object.fromEntries(values.headers.map((h: any) => [h.key, h.value])) : {},
+          variables: values.variables ? Object.fromEntries(values.variables.map((v: any) => [v.key, v.value])) : {}
+        }
+        
+        await put(`/projects/${currentProject.id}/environments/${currentEnv.id}`, payload)
         message.success('环境更新成功')
         setEditEnvModalVisible(false)
         editEnvForm.resetFields()
@@ -254,9 +265,73 @@ const Projects: React.FC = () => {
     // 打开编辑环境弹窗
     const handleEditEnvClick = (env: any) => {
       setCurrentEnv(env)
-      editEnvForm.setFieldsValue(env)
+      
+      // 转换 headers 和 variables 对象为数组格式以便显示
+      const formData = {
+        ...env,
+        headers: env.headers ? Object.entries(env.headers).map(([key, value]) => ({ key, value })) : [],
+        variables: env.variables ? Object.entries(env.variables).map(([key, value]) => ({ key, value })) : []
+      }
+      
+      editEnvForm.setFieldsValue(formData)
       setEditEnvModalVisible(true)
     }
+
+  // 鉴权配置相关函数（V2.0）
+  const fetchAuthConfig = async (projectId: number) => {
+    setAuthConfigLoading(true)
+    try {
+      const response = await get(`/projects/${projectId}/auth-config`)
+      // 检查 response 是否存在且 data 不为 null
+      if (response && response.data) {
+        setAuthConfig(response.data)
+        authConfigForm.setFieldsValue(response.data)
+      } else {
+        setAuthConfig(null)
+        authConfigForm.resetFields()
+      }
+    } catch (error: any) {
+      if (error.response?.status !== 404) {
+        message.error(error.message || '获取鉴权配置失败')
+      }
+      setAuthConfig(null)
+      authConfigForm.resetFields()
+    } finally {
+      setAuthConfigLoading(false)
+    }
+  }
+
+  const handleSaveAuthConfig = async () => {
+    if (!currentProject) return
+    try {
+      const values = await authConfigForm.validateFields()
+      setAuthConfigSaving(true)
+      await post(`/projects/${currentProject.id}/auth-config`, values)
+      message.success('鉴权配置保存成功')
+      fetchAuthConfig(currentProject.id)
+    } catch (error: any) {
+      if (error.errorFields) {
+        message.warning('请填写完整信息')
+      } else {
+        message.error(error.message || '鉴权配置保存失败')
+      }
+    } finally {
+      setAuthConfigSaving(false)
+    }
+  }
+
+  const handleDeleteAuthConfig = async () => {
+    if (!currentProject) return
+    try {
+      await del(`/projects/${currentProject.id}/auth-config`)
+      message.success('鉴权配置删除成功')
+      setAuthConfig(null)
+      authConfigForm.resetFields()
+    } catch (error: any) {
+      message.error(error.message || '鉴权配置删除失败')
+    }
+  }
+
   const columns: ColumnsType<Project> = [
     {
       title: '项目名称',
@@ -584,6 +659,114 @@ const Projects: React.FC = () => {
                 </div>
               </div>
             )
+          },
+          {
+            key: 'auth',
+            label: '鉴权配置',
+            children: (
+              <div>
+                <div style={{ marginBottom: 16 }}>
+                  <span style={{ color: '#666' }}>配置项目级别的自动鉴权策略，用例执行时会自动登录并注入 Token</span>
+                </div>
+                <Spin spinning={authConfigLoading}>
+                  <Form
+                    form={authConfigForm}
+                    layout="vertical"
+                    autoComplete="off"
+                  >
+                    <Form.Item
+                      name="enabled"
+                      label="启用鉴权"
+                      valuePropName="checked"
+                    >
+                      <Switch />
+                    </Form.Item>
+                    <Form.Item
+                      name="auth_type"
+                      label="鉴权类型"
+                      rules={[{ required: true }]}
+                    >
+                      <Select>
+                        <Option value="bearer">Bearer Token</Option>
+                        <Option value="api_key">API Key</Option>
+                        <Option value="custom">自定义</Option>
+                      </Select>
+                    </Form.Item>
+                    <Form.Item
+                      name="login_url"
+                      label="登录接口 URL"
+                      rules={[{ required: true }]}
+                    >
+                      <Input placeholder="例如: https://api.example.com/login" />
+                    </Form.Item>
+                    <Form.Item
+                      name="login_method"
+                      label="登录请求方法"
+                      rules={[{ required: true }]}
+                    >
+                      <Select>
+                        <Option value="POST">POST</Option>
+                        <Option value="GET">GET</Option>
+                      </Select>
+                    </Form.Item>
+                    <Form.Item
+                      name="login_body_template"
+                      label="登录请求体模板（支持变量）"
+                      tooltip="使用 {{变量名}} 引用环境变量，例如: {{auth_user}}, {{auth_password}}"
+                    >
+                      <Input.TextArea rows={4} placeholder='{"username": "{{auth_user}}", "password": "{{auth_password}}"}' />
+                    </Form.Item>
+                    <Form.Item
+                      name="token_extract_expression"
+                      label="Token 提取表达式"
+                      tooltip="使用 JSONPath 提取 Token，例如: $.data.token"
+                      rules={[{ required: true }]}
+                    >
+                      <Input placeholder="例如: $.data.token" />
+                    </Form.Item>
+                    <Form.Item
+                      name="token_inject_header"
+                      label="Token 注入 Header 名称"
+                      rules={[{ required: true }]}
+                    >
+                      <Input placeholder="例如: Authorization" />
+                    </Form.Item>
+                    <Form.Item
+                      name="token_inject_template"
+                      label="Token 注入模板"
+                      tooltip="使用 {token} 作为占位符"
+                      rules={[{ required: true }]}
+                    >
+                      <Input placeholder="例如: Bearer {token}" />
+                    </Form.Item>
+                    <div style={{ textAlign: 'right', marginTop: 16 }}>
+                      {authConfig && (
+                        <Popconfirm
+                          title="确认删除"
+                          description="确定要删除鉴权配置吗？"
+                          onConfirm={handleDeleteAuthConfig}
+                          okText="确定"
+                          cancelText="取消"
+                          okButtonProps={{ danger: true }}
+                        >
+                          <Button danger style={{ marginRight: 8 }}>
+                            删除配置
+                          </Button>
+                        </Popconfirm>
+                      )}
+                      <Button onClick={() => setEditModalVisible(false)}>关闭</Button>
+                      <Button 
+                        type="primary" 
+                        onClick={handleSaveAuthConfig} 
+                        loading={authConfigSaving}
+                      >
+                        保存配置
+                      </Button>
+                    </div>
+                  </Form>
+                </Spin>
+              </div>
+            )
           }
         ]} />
       </Modal>
@@ -648,6 +831,7 @@ const Projects: React.FC = () => {
         onOk={handleAddEnv}
         confirmLoading={addEnvLoading}
         destroyOnClose
+        width={800}
       >
         <Form form={addEnvForm} layout="vertical">
           <Form.Item
@@ -664,6 +848,93 @@ const Projects: React.FC = () => {
           >
             <Input placeholder="例如: http://dev.example.com" />
           </Form.Item>
+          <Form.Item
+            name="is_default"
+            label="设为默认环境"
+            valuePropName="checked"
+            initialValue={false}
+            tooltip="设置后，用例执行时默认选择此环境"
+          >
+            <Switch />
+          </Form.Item>
+          
+          {/* V2.0 新增：全局 Header 配置 */}
+          <Form.Item
+            label="全局 Header 配置"
+            tooltip="这些 Header 会自动添加到所有请求中"
+          >
+            <Form.List name="headers">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'key']}
+                        rules={[{ required: true, message: '请输入 Header 名称' }]}
+                        style={{ margin: 0 }}
+                      >
+                        <Input placeholder="Header 名称" style={{ width: 150 }} />
+                      </Form.Item>
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'value']}
+                        rules={[{ required: true, message: '请输入 Header 值' }]}
+                        style={{ margin: 0 }}
+                      >
+                        <Input placeholder="Header 值" style={{ width: 250 }} />
+                      </Form.Item>
+                      <MinusCircleOutlined onClick={() => remove(name)} />
+                    </Space>
+                  ))}
+                  <Form.Item>
+                    <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                      添加 Header
+                    </Button>
+                  </Form.Item>
+                </>
+              )}
+            </Form.List>
+          </Form.Item>
+          
+          {/* V2.0 新增：环境变量配置 */}
+          <Form.Item
+            label="环境变量"
+            tooltip="用于替换登录请求体模板中的变量，如鉴权账号密码"
+          >
+            <Form.List name="variables">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'key']}
+                        rules={[{ required: true, message: '请输入变量名' }]}
+                        style={{ margin: 0 }}
+                      >
+                        <Input placeholder="变量名（如 auth_user）" style={{ width: 180 }} />
+                      </Form.Item>
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'value']}
+                        rules={[{ required: true, message: '请输入变量值' }]}
+                        style={{ margin: 0 }}
+                      >
+                        <Input.Password placeholder="变量值" style={{ width: 220 }} />
+                      </Form.Item>
+                      <MinusCircleOutlined onClick={() => remove(name)} />
+                    </Space>
+                  ))}
+                  <Form.Item>
+                    <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                      添加变量
+                    </Button>
+                  </Form.Item>
+                </>
+              )}
+            </Form.List>
+          </Form.Item>
         </Form>
       </Modal>
 
@@ -679,6 +950,7 @@ const Projects: React.FC = () => {
         onOk={handleEditEnv}
         confirmLoading={editEnvLoading}
         destroyOnClose
+        width={800}
       >
         <Form form={editEnvForm} layout="vertical">
           <Form.Item
@@ -694,6 +966,92 @@ const Projects: React.FC = () => {
             rules={[{ required: true, message: '请输入基础URL' }]}
           >
             <Input placeholder="例如: http://dev.example.com" />
+          </Form.Item>
+          <Form.Item
+            name="is_default"
+            label="设为默认环境"
+            valuePropName="checked"
+            tooltip="设置后，用例执行时默认选择此环境"
+          >
+            <Switch />
+          </Form.Item>
+          
+          {/* V2.0 新增：全局 Header 配置 */}
+          <Form.Item
+            label="全局 Header 配置"
+            tooltip="这些 Header 会自动添加到所有请求中"
+          >
+            <Form.List name="headers">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'key']}
+                        rules={[{ required: true, message: '请输入 Header 名称' }]}
+                        style={{ margin: 0 }}
+                      >
+                        <Input placeholder="Header 名称" style={{ width: 150 }} />
+                      </Form.Item>
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'value']}
+                        rules={[{ required: true, message: '请输入 Header 值' }]}
+                        style={{ margin: 0 }}
+                      >
+                        <Input placeholder="Header 值" style={{ width: 250 }} />
+                      </Form.Item>
+                      <MinusCircleOutlined onClick={() => remove(name)} />
+                    </Space>
+                  ))}
+                  <Form.Item>
+                    <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                      添加 Header
+                    </Button>
+                  </Form.Item>
+                </>
+              )}
+            </Form.List>
+          </Form.Item>
+          
+          {/* V2.0 新增：环境变量配置 */}
+          <Form.Item
+            label="环境变量"
+            tooltip="用于替换登录请求体模板中的变量，如鉴权账号密码"
+          >
+            <Form.List name="variables">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'key']}
+                        rules={[{ required: true, message: '请输入变量名' }]}
+                        style={{ margin: 0 }}
+                      >
+                        <Input placeholder="变量名（如 auth_user）" style={{ width: 180 }} />
+                      </Form.Item>
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'value']}
+                        rules={[{ required: true, message: '请输入变量值' }]}
+                        style={{ margin: 0 }}
+                      >
+                        <Input.Password placeholder="变量值" style={{ width: 220 }} />
+                      </Form.Item>
+                      <MinusCircleOutlined onClick={() => remove(name)} />
+                    </Space>
+                  ))}
+                  <Form.Item>
+                    <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                      添加变量
+                    </Button>
+                  </Form.Item>
+                </>
+              )}
+            </Form.List>
           </Form.Item>
         </Form>
       </Modal>

@@ -1,7 +1,7 @@
 """环境管理接口"""
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 import logging
 from app.dependencies import get_db
@@ -19,12 +19,18 @@ class EnvironmentCreate(BaseModel):
     """创建环境请求模型"""
     name: str  # Dev/Test/Staging/Prod
     base_url: str
+    headers: Optional[Dict[str, str]] = None  # V2.0 新增：全局 Header
+    variables: Optional[Dict[str, Any]] = None  # V2.0 新增：环境变量
+    is_default: Optional[bool] = False  # V2.0 新增：是否为默认环境
 
 
 class EnvironmentUpdate(BaseModel):
     """更新环境请求模型"""
     name: Optional[str] = None
     base_url: Optional[str] = None
+    headers: Optional[Dict[str, str]] = None  # V2.0 新增：全局 Header
+    variables: Optional[Dict[str, Any]] = None  # V2.0 新增：环境变量
+    is_default: Optional[bool] = None  # V2.0 新增：是否为默认环境
 
 
 class EnvironmentResponse(BaseModel):
@@ -33,6 +39,9 @@ class EnvironmentResponse(BaseModel):
     project_id: int
     name: str
     base_url: str
+    headers: Optional[Dict[str, str]] = None  # V2.0 新增
+    variables: Optional[Dict[str, Any]] = None  # V2.0 新增
+    is_default: Optional[bool] = False  # V2.0 新增
     created_at: str
     updated_at: str
 
@@ -47,6 +56,9 @@ class EnvironmentResponse(BaseModel):
             "project_id": obj.project_id,
             "name": obj.name,
             "base_url": obj.base_url,
+            "headers": obj.headers if hasattr(obj, 'headers') else {},
+            "variables": obj.variables if hasattr(obj, 'variables') else {},
+            "is_default": obj.is_default if hasattr(obj, 'is_default') else False,
             "created_at": obj.created_at.isoformat() if obj.created_at else None,
             "updated_at": obj.updated_at.isoformat() if obj.updated_at else None,
         }
@@ -178,8 +190,20 @@ async def create_environment(
         environment = Environment(
             project_id=project_id,
             name=env_data.name,
-            base_url=env_data.base_url
+            base_url=env_data.base_url,
+            headers=env_data.headers or {},
+            variables=env_data.variables or {},
+            is_default=env_data.is_default or False
         )
+        
+        # 如果设置为默认环境，需要取消其他环境的默认状态
+        if environment.is_default:
+            db.query(Environment).filter(
+                Environment.project_id == project_id,
+                Environment.id != environment.id,
+                Environment.is_default == True
+            ).update({"is_default": False})
+        
         db.add(environment)
         db.commit()
         db.refresh(environment)
@@ -360,8 +384,23 @@ async def update_environment(
 
         # 更新字段
         update_data = env_data.model_dump(exclude_unset=True)
+        
+        # 处理 is_default 字段
+        if "is_default" in update_data and update_data["is_default"]:
+            # 如果设置为默认环境，需要取消其他环境的默认状态
+            db.query(Environment).filter(
+                Environment.project_id == project_id,
+                Environment.id != env_id,
+                Environment.is_default == True
+            ).update({"is_default": False})
+        
         for key, value in update_data.items():
-            setattr(environment, key, value)
+            if key == "headers" and value is None:
+                setattr(environment, key, {})
+            elif key == "variables" and value is None:
+                setattr(environment, key, {})
+            else:
+                setattr(environment, key, value)
 
         db.commit()
         db.refresh(environment)

@@ -62,24 +62,17 @@ const ChainList: React.FC = () => {
   const [selectedChain, setSelectedChain] = useState<ChainDetail | null>(null);
   const [filteredGroupId, setFilteredGroupId] = useState<number | null>(null);
 
-  // 检查token是否存在
-  useEffect(() => {
-    console.log('ChainList组件加载，token状态:', !!token, 'currentProject:', !!currentProject?.id);
-  }, [token, currentProject?.id]);
+  
 
   // 加载内部链路
   const loadInternalChains = useCallback(async () => {
     if (!token) {
-      console.log('未登录，跳过加载内部链路');
       return;
     }
     
     if (!currentProject?.id) {
-      console.log('未选择项目，跳过加载内部链路');
       return;
     }
-    
-    console.log('加载内部链路，project_id:', currentProject.id, 'group_id:', filteredGroupId);
     
     try {
       const params: any = { project_id: currentProject.id, chain_type: 'internal' };
@@ -103,12 +96,10 @@ const ChainList: React.FC = () => {
   // 加载跨模块链路
   const loadCrossModuleChains = useCallback(async () => {
     if (!token) {
-      console.log('未登录，跳过加载跨模块链路');
       return;
     }
     
     if (!currentProject?.id) {
-      console.log('未选择项目，跳过加载跨模块链路');
       return;
     }
     
@@ -349,12 +340,9 @@ const ChainList: React.FC = () => {
   // 测试chains API
   const handleTestChainsApi = async () => {
     try {
-      console.log('测试chains API...');
       const response = await api.get('/api-integration/chains/test');
-      console.log('测试结果:', response);
       message.success('chains API测试成功');
     } catch (error) {
-      console.error('chains API测试失败:', error);
       message.error('chains API测试失败');
     }
   };

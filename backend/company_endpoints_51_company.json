@@ -1,0 +1,5939 @@
+{
+  "group_id": 51,
+  "group_name": "company",
+  "endpoint_count": 59,
+  "endpoints": [
+    {
+      "id": 11044,
+      "method": "GET",
+      "path": "/api/company/",
+      "summary": "Override the GET method to determine export options.",
+      "description": "Override the GET method to determine export options.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "count",
+          "results"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "example": 123
+          },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=400&limit=100"
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=200&limit=100"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Serializer for Company object (full detail).",
+              "properties": {
+                "pk": {
+                  "type": "integer",
+                  "readOnly": true,
+                  "title": "ID"
+                },
+                "name": {
+                  "type": "string",
+                  "title": "Company name",
+                  "description": "Company name",
+                  "maxLength": 100
+                },
+                "description": {
+                  "type": "string",
+                  "title": "Company description",
+                  "description": "Description of the company",
+                  "maxLength": 500
+                },
+                "website": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "Company website URL",
+                  "maxLength": 2000
+                },
+                "phone": {
+                  "type": "string",
+                  "title": "Phone number",
+                  "description": "Contact phone number",
+                  "maxLength": 50
+                },
+                "address": {
+                  "type": "string",
+                  "readOnly": true,
+                  "nullable": true,
+                  "title": "Return the string representation for the primary address. This property exists for backwards compatibility."
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "nullable": true,
+                  "default": ""
+                },
+                "currency": {
+                  "type": "string",
+                  "description": "Default currency used for this supplier"
+                },
+                "contact": {
+                  "type": "string",
+                  "description": "Point of contact",
+                  "maxLength": 100
+                },
+                "link": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "Link to external company information",
+                  "maxLength": 2000
+                },
+                "image": {
+                  "type": "string",
+                  "format": "uri",
+                  "nullable": true
+                },
+                "active": {
+                  "type": "boolean",
+                  "description": "Is this company active?"
+                },
+                "is_customer": {
+                  "type": "boolean",
+                  "description": "Do you sell items to this company?"
+                },
+                "is_manufacturer": {
+                  "type": "boolean",
+                  "description": "Does this company manufacture parts?"
+                },
+                "is_supplier": {
+                  "type": "boolean",
+                  "description": "Do you purchase items from this company?"
+                },
+                "parts_supplied": {
+                  "type": "integer",
+                  "readOnly": true
+                },
+                "parts_manufactured": {
+                  "type": "integer",
+                  "readOnly": true
+                },
+                "remote_image": {
+                  "type": "string",
+                  "format": "uri",
+                  "writeOnly": true,
+                  "description": "URL of remote image file"
+                },
+                "address_count": {
+                  "type": "integer",
+                  "readOnly": true
+                },
+                "primary_address": {
+                  "allOf": [
+                    {
+                      "type": "object",
+                      "description": "Serializer for the Address Model.",
+                      "properties": {
+                        "pk": {
+                          "type": "integer",
+                          "readOnly": true,
+                          "title": "ID"
+                        },
+                        "company": {
+                          "type": "integer",
+                          "description": "Select company"
+                        },
+                        "title": {
+                          "type": "string",
+                          "title": "Address title",
+                          "description": "Title describing the address entry",
+                          "maxLength": 100
+                        },
+                        "primary": {
+                          "type": "boolean",
+                          "title": "Primary address",
+                          "description": "Set as primary address"
+                        },
+                        "line1": {
+                          "type": "string",
+                          "title": "Line 1",
+                          "description": "Address line 1",
+                          "maxLength": 50
+                        },
+                        "line2": {
+                          "type": "string",
+                          "title": "Line 2",
+                          "description": "Address line 2",
+                          "maxLength": 50
+                        },
+                        "postal_code": {
+                          "type": "string",
+                          "description": "Postal code",
+                          "maxLength": 10
+                        },
+                        "postal_city": {
+                          "type": "string",
+                          "title": "City/Region",
+                          "description": "Postal code city/region",
+                          "maxLength": 50
+                        },
+                        "province": {
+                          "type": "string",
+                          "title": "State/Province",
+                          "description": "State or province",
+                          "maxLength": 50
+                        },
+                        "country": {
+                          "type": "string",
+                          "description": "Address country",
+                          "maxLength": 50
+                        },
+                        "shipping_notes": {
+                          "type": "string",
+                          "title": "Courier shipping notes",
+                          "description": "Notes for shipping courier",
+                          "maxLength": 100
+                        },
+                        "internal_shipping_notes": {
+                          "type": "string",
+                          "description": "Shipping notes for internal use",
+                          "maxLength": 100
+                        },
+                        "link": {
+                          "type": "string",
+                          "format": "uri",
+                          "description": "Link to address information (external)",
+                          "maxLength": 2000
+                        }
+                      },
+                      "required": [
+                        "company",
+                        "pk",
+                        "title"
+                      ]
+                    }
+                  ],
+                  "readOnly": true,
+                  "nullable": true
+                },
+                "tax_id": {
+                  "type": "string",
+                  "description": "Company Tax ID",
+                  "maxLength": 50
+                }
+              },
+              "required": [
+                "address_count",
+                "currency",
+                "name",
+                "parts_manufactured",
+                "parts_supplied",
+                "pk"
+              ]
+            }
+          }
+        }
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11045,
+      "method": "POST",
+      "path": "/api/company/",
+      "summary": "API endpoint for accessing a list of Company objects.\n\nProvides two methods:\n\n- GET: Return list of objects\n- POST: Create a new Company object",
+      "description": "API endpoint for accessing a list of Company objects.\n\nProvides two methods:\n\n- GET: Return list of objects\n- POST: Create a new Company object",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for Company object (full detail).",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Company name",
+            "description": "Company name",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "title": "Company description",
+            "description": "Description of the company",
+            "maxLength": 500
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "Company website URL",
+            "maxLength": 2000
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone number",
+            "description": "Contact phone number",
+            "maxLength": 50
+          },
+          "address": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true,
+            "title": "Return the string representation for the primary address. This property exists for backwards compatibility."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "default": ""
+          },
+          "currency": {
+            "type": "string",
+            "description": "Default currency used for this supplier"
+          },
+          "contact": {
+            "type": "string",
+            "description": "Point of contact",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to external company information",
+            "maxLength": 2000
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this company active?"
+          },
+          "is_customer": {
+            "type": "boolean",
+            "description": "Do you sell items to this company?"
+          },
+          "is_manufacturer": {
+            "type": "boolean",
+            "description": "Does this company manufacture parts?"
+          },
+          "is_supplier": {
+            "type": "boolean",
+            "description": "Do you purchase items from this company?"
+          },
+          "parts_supplied": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "parts_manufactured": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "remote_image": {
+            "type": "string",
+            "format": "uri",
+            "writeOnly": true,
+            "description": "URL of remote image file"
+          },
+          "address_count": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "primary_address": {
+            "allOf": [
+              {
+                "type": "object",
+                "description": "Serializer for the Address Model.",
+                "properties": {
+                  "pk": {
+                    "type": "integer",
+                    "readOnly": true,
+                    "title": "ID"
+                  },
+                  "company": {
+                    "type": "integer",
+                    "description": "Select company"
+                  },
+                  "title": {
+                    "type": "string",
+                    "title": "Address title",
+                    "description": "Title describing the address entry",
+                    "maxLength": 100
+                  },
+                  "primary": {
+                    "type": "boolean",
+                    "title": "Primary address",
+                    "description": "Set as primary address"
+                  },
+                  "line1": {
+                    "type": "string",
+                    "title": "Line 1",
+                    "description": "Address line 1",
+                    "maxLength": 50
+                  },
+                  "line2": {
+                    "type": "string",
+                    "title": "Line 2",
+                    "description": "Address line 2",
+                    "maxLength": 50
+                  },
+                  "postal_code": {
+                    "type": "string",
+                    "description": "Postal code",
+                    "maxLength": 10
+                  },
+                  "postal_city": {
+                    "type": "string",
+                    "title": "City/Region",
+                    "description": "Postal code city/region",
+                    "maxLength": 50
+                  },
+                  "province": {
+                    "type": "string",
+                    "title": "State/Province",
+                    "description": "State or province",
+                    "maxLength": 50
+                  },
+                  "country": {
+                    "type": "string",
+                    "description": "Address country",
+                    "maxLength": 50
+                  },
+                  "shipping_notes": {
+                    "type": "string",
+                    "title": "Courier shipping notes",
+                    "description": "Notes for shipping courier",
+                    "maxLength": 100
+                  },
+                  "internal_shipping_notes": {
+                    "type": "string",
+                    "description": "Shipping notes for internal use",
+                    "maxLength": 100
+                  },
+                  "link": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Link to address information (external)",
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "company",
+                  "pk",
+                  "title"
+                ]
+              }
+            ],
+            "readOnly": true,
+            "nullable": true
+          },
+          "tax_id": {
+            "type": "string",
+            "description": "Company Tax ID",
+            "maxLength": 50
+          }
+        },
+        "required": [
+          "address_count",
+          "currency",
+          "name",
+          "parts_manufactured",
+          "parts_supplied",
+          "pk"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for Company object (full detail).",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Company name",
+            "description": "Company name",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "title": "Company description",
+            "description": "Description of the company",
+            "maxLength": 500
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "Company website URL",
+            "maxLength": 2000
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone number",
+            "description": "Contact phone number",
+            "maxLength": 50
+          },
+          "address": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true,
+            "title": "Return the string representation for the primary address. This property exists for backwards compatibility."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "default": ""
+          },
+          "currency": {
+            "type": "string",
+            "description": "Default currency used for this supplier"
+          },
+          "contact": {
+            "type": "string",
+            "description": "Point of contact",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to external company information",
+            "maxLength": 2000
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this company active?"
+          },
+          "is_customer": {
+            "type": "boolean",
+            "description": "Do you sell items to this company?"
+          },
+          "is_manufacturer": {
+            "type": "boolean",
+            "description": "Does this company manufacture parts?"
+          },
+          "is_supplier": {
+            "type": "boolean",
+            "description": "Do you purchase items from this company?"
+          },
+          "parts_supplied": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "parts_manufactured": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "remote_image": {
+            "type": "string",
+            "format": "uri",
+            "writeOnly": true,
+            "description": "URL of remote image file"
+          },
+          "address_count": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "primary_address": {
+            "allOf": [
+              {
+                "type": "object",
+                "description": "Serializer for the Address Model.",
+                "properties": {
+                  "pk": {
+                    "type": "integer",
+                    "readOnly": true,
+                    "title": "ID"
+                  },
+                  "company": {
+                    "type": "integer",
+                    "description": "Select company"
+                  },
+                  "title": {
+                    "type": "string",
+                    "title": "Address title",
+                    "description": "Title describing the address entry",
+                    "maxLength": 100
+                  },
+                  "primary": {
+                    "type": "boolean",
+                    "title": "Primary address",
+                    "description": "Set as primary address"
+                  },
+                  "line1": {
+                    "type": "string",
+                    "title": "Line 1",
+                    "description": "Address line 1",
+                    "maxLength": 50
+                  },
+                  "line2": {
+                    "type": "string",
+                    "title": "Line 2",
+                    "description": "Address line 2",
+                    "maxLength": 50
+                  },
+                  "postal_code": {
+                    "type": "string",
+                    "description": "Postal code",
+                    "maxLength": 10
+                  },
+                  "postal_city": {
+                    "type": "string",
+                    "title": "City/Region",
+                    "description": "Postal code city/region",
+                    "maxLength": 50
+                  },
+                  "province": {
+                    "type": "string",
+                    "title": "State/Province",
+                    "description": "State or province",
+                    "maxLength": 50
+                  },
+                  "country": {
+                    "type": "string",
+                    "description": "Address country",
+                    "maxLength": 50
+                  },
+                  "shipping_notes": {
+                    "type": "string",
+                    "title": "Courier shipping notes",
+                    "description": "Notes for shipping courier",
+                    "maxLength": 100
+                  },
+                  "internal_shipping_notes": {
+                    "type": "string",
+                    "description": "Shipping notes for internal use",
+                    "maxLength": 100
+                  },
+                  "link": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Link to address information (external)",
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "company",
+                  "pk",
+                  "title"
+                ]
+              }
+            ],
+            "readOnly": true,
+            "nullable": true
+          },
+          "tax_id": {
+            "type": "string",
+            "description": "Company Tax ID",
+            "maxLength": 50
+          }
+        },
+        "required": [
+          "address_count",
+          "currency",
+          "name",
+          "parts_manufactured",
+          "parts_supplied",
+          "pk"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11046,
+      "method": "GET",
+      "path": "/api/company/{id}/",
+      "summary": "API endpoint for detail of a single Company object.",
+      "description": "API endpoint for detail of a single Company object.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for Company object (full detail).",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Company name",
+            "description": "Company name",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "title": "Company description",
+            "description": "Description of the company",
+            "maxLength": 500
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "Company website URL",
+            "maxLength": 2000
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone number",
+            "description": "Contact phone number",
+            "maxLength": 50
+          },
+          "address": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true,
+            "title": "Return the string representation for the primary address. This property exists for backwards compatibility."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "default": ""
+          },
+          "currency": {
+            "type": "string",
+            "description": "Default currency used for this supplier"
+          },
+          "contact": {
+            "type": "string",
+            "description": "Point of contact",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to external company information",
+            "maxLength": 2000
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this company active?"
+          },
+          "is_customer": {
+            "type": "boolean",
+            "description": "Do you sell items to this company?"
+          },
+          "is_manufacturer": {
+            "type": "boolean",
+            "description": "Does this company manufacture parts?"
+          },
+          "is_supplier": {
+            "type": "boolean",
+            "description": "Do you purchase items from this company?"
+          },
+          "parts_supplied": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "parts_manufactured": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "remote_image": {
+            "type": "string",
+            "format": "uri",
+            "writeOnly": true,
+            "description": "URL of remote image file"
+          },
+          "address_count": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "primary_address": {
+            "allOf": [
+              {
+                "type": "object",
+                "description": "Serializer for the Address Model.",
+                "properties": {
+                  "pk": {
+                    "type": "integer",
+                    "readOnly": true,
+                    "title": "ID"
+                  },
+                  "company": {
+                    "type": "integer",
+                    "description": "Select company"
+                  },
+                  "title": {
+                    "type": "string",
+                    "title": "Address title",
+                    "description": "Title describing the address entry",
+                    "maxLength": 100
+                  },
+                  "primary": {
+                    "type": "boolean",
+                    "title": "Primary address",
+                    "description": "Set as primary address"
+                  },
+                  "line1": {
+                    "type": "string",
+                    "title": "Line 1",
+                    "description": "Address line 1",
+                    "maxLength": 50
+                  },
+                  "line2": {
+                    "type": "string",
+                    "title": "Line 2",
+                    "description": "Address line 2",
+                    "maxLength": 50
+                  },
+                  "postal_code": {
+                    "type": "string",
+                    "description": "Postal code",
+                    "maxLength": 10
+                  },
+                  "postal_city": {
+                    "type": "string",
+                    "title": "City/Region",
+                    "description": "Postal code city/region",
+                    "maxLength": 50
+                  },
+                  "province": {
+                    "type": "string",
+                    "title": "State/Province",
+                    "description": "State or province",
+                    "maxLength": 50
+                  },
+                  "country": {
+                    "type": "string",
+                    "description": "Address country",
+                    "maxLength": 50
+                  },
+                  "shipping_notes": {
+                    "type": "string",
+                    "title": "Courier shipping notes",
+                    "description": "Notes for shipping courier",
+                    "maxLength": 100
+                  },
+                  "internal_shipping_notes": {
+                    "type": "string",
+                    "description": "Shipping notes for internal use",
+                    "maxLength": 100
+                  },
+                  "link": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Link to address information (external)",
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "company",
+                  "pk",
+                  "title"
+                ]
+              }
+            ],
+            "readOnly": true,
+            "nullable": true
+          },
+          "tax_id": {
+            "type": "string",
+            "description": "Company Tax ID",
+            "maxLength": 50
+          }
+        },
+        "required": [
+          "address_count",
+          "currency",
+          "name",
+          "parts_manufactured",
+          "parts_supplied",
+          "pk"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11047,
+      "method": "PUT",
+      "path": "/api/company/{id}/",
+      "summary": "API endpoint for detail of a single Company object.",
+      "description": "API endpoint for detail of a single Company object.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for Company object (full detail).",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Company name",
+            "description": "Company name",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "title": "Company description",
+            "description": "Description of the company",
+            "maxLength": 500
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "Company website URL",
+            "maxLength": 2000
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone number",
+            "description": "Contact phone number",
+            "maxLength": 50
+          },
+          "address": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true,
+            "title": "Return the string representation for the primary address. This property exists for backwards compatibility."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "default": ""
+          },
+          "currency": {
+            "type": "string",
+            "description": "Default currency used for this supplier"
+          },
+          "contact": {
+            "type": "string",
+            "description": "Point of contact",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to external company information",
+            "maxLength": 2000
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this company active?"
+          },
+          "is_customer": {
+            "type": "boolean",
+            "description": "Do you sell items to this company?"
+          },
+          "is_manufacturer": {
+            "type": "boolean",
+            "description": "Does this company manufacture parts?"
+          },
+          "is_supplier": {
+            "type": "boolean",
+            "description": "Do you purchase items from this company?"
+          },
+          "parts_supplied": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "parts_manufactured": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "remote_image": {
+            "type": "string",
+            "format": "uri",
+            "writeOnly": true,
+            "description": "URL of remote image file"
+          },
+          "address_count": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "primary_address": {
+            "allOf": [
+              {
+                "type": "object",
+                "description": "Serializer for the Address Model.",
+                "properties": {
+                  "pk": {
+                    "type": "integer",
+                    "readOnly": true,
+                    "title": "ID"
+                  },
+                  "company": {
+                    "type": "integer",
+                    "description": "Select company"
+                  },
+                  "title": {
+                    "type": "string",
+                    "title": "Address title",
+                    "description": "Title describing the address entry",
+                    "maxLength": 100
+                  },
+                  "primary": {
+                    "type": "boolean",
+                    "title": "Primary address",
+                    "description": "Set as primary address"
+                  },
+                  "line1": {
+                    "type": "string",
+                    "title": "Line 1",
+                    "description": "Address line 1",
+                    "maxLength": 50
+                  },
+                  "line2": {
+                    "type": "string",
+                    "title": "Line 2",
+                    "description": "Address line 2",
+                    "maxLength": 50
+                  },
+                  "postal_code": {
+                    "type": "string",
+                    "description": "Postal code",
+                    "maxLength": 10
+                  },
+                  "postal_city": {
+                    "type": "string",
+                    "title": "City/Region",
+                    "description": "Postal code city/region",
+                    "maxLength": 50
+                  },
+                  "province": {
+                    "type": "string",
+                    "title": "State/Province",
+                    "description": "State or province",
+                    "maxLength": 50
+                  },
+                  "country": {
+                    "type": "string",
+                    "description": "Address country",
+                    "maxLength": 50
+                  },
+                  "shipping_notes": {
+                    "type": "string",
+                    "title": "Courier shipping notes",
+                    "description": "Notes for shipping courier",
+                    "maxLength": 100
+                  },
+                  "internal_shipping_notes": {
+                    "type": "string",
+                    "description": "Shipping notes for internal use",
+                    "maxLength": 100
+                  },
+                  "link": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Link to address information (external)",
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "company",
+                  "pk",
+                  "title"
+                ]
+              }
+            ],
+            "readOnly": true,
+            "nullable": true
+          },
+          "tax_id": {
+            "type": "string",
+            "description": "Company Tax ID",
+            "maxLength": 50
+          }
+        },
+        "required": [
+          "address_count",
+          "currency",
+          "name",
+          "parts_manufactured",
+          "parts_supplied",
+          "pk"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for Company object (full detail).",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Company name",
+            "description": "Company name",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "title": "Company description",
+            "description": "Description of the company",
+            "maxLength": 500
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "Company website URL",
+            "maxLength": 2000
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone number",
+            "description": "Contact phone number",
+            "maxLength": 50
+          },
+          "address": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true,
+            "title": "Return the string representation for the primary address. This property exists for backwards compatibility."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "default": ""
+          },
+          "currency": {
+            "type": "string",
+            "description": "Default currency used for this supplier"
+          },
+          "contact": {
+            "type": "string",
+            "description": "Point of contact",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to external company information",
+            "maxLength": 2000
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this company active?"
+          },
+          "is_customer": {
+            "type": "boolean",
+            "description": "Do you sell items to this company?"
+          },
+          "is_manufacturer": {
+            "type": "boolean",
+            "description": "Does this company manufacture parts?"
+          },
+          "is_supplier": {
+            "type": "boolean",
+            "description": "Do you purchase items from this company?"
+          },
+          "parts_supplied": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "parts_manufactured": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "remote_image": {
+            "type": "string",
+            "format": "uri",
+            "writeOnly": true,
+            "description": "URL of remote image file"
+          },
+          "address_count": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "primary_address": {
+            "allOf": [
+              {
+                "type": "object",
+                "description": "Serializer for the Address Model.",
+                "properties": {
+                  "pk": {
+                    "type": "integer",
+                    "readOnly": true,
+                    "title": "ID"
+                  },
+                  "company": {
+                    "type": "integer",
+                    "description": "Select company"
+                  },
+                  "title": {
+                    "type": "string",
+                    "title": "Address title",
+                    "description": "Title describing the address entry",
+                    "maxLength": 100
+                  },
+                  "primary": {
+                    "type": "boolean",
+                    "title": "Primary address",
+                    "description": "Set as primary address"
+                  },
+                  "line1": {
+                    "type": "string",
+                    "title": "Line 1",
+                    "description": "Address line 1",
+                    "maxLength": 50
+                  },
+                  "line2": {
+                    "type": "string",
+                    "title": "Line 2",
+                    "description": "Address line 2",
+                    "maxLength": 50
+                  },
+                  "postal_code": {
+                    "type": "string",
+                    "description": "Postal code",
+                    "maxLength": 10
+                  },
+                  "postal_city": {
+                    "type": "string",
+                    "title": "City/Region",
+                    "description": "Postal code city/region",
+                    "maxLength": 50
+                  },
+                  "province": {
+                    "type": "string",
+                    "title": "State/Province",
+                    "description": "State or province",
+                    "maxLength": 50
+                  },
+                  "country": {
+                    "type": "string",
+                    "description": "Address country",
+                    "maxLength": 50
+                  },
+                  "shipping_notes": {
+                    "type": "string",
+                    "title": "Courier shipping notes",
+                    "description": "Notes for shipping courier",
+                    "maxLength": 100
+                  },
+                  "internal_shipping_notes": {
+                    "type": "string",
+                    "description": "Shipping notes for internal use",
+                    "maxLength": 100
+                  },
+                  "link": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Link to address information (external)",
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "company",
+                  "pk",
+                  "title"
+                ]
+              }
+            ],
+            "readOnly": true,
+            "nullable": true
+          },
+          "tax_id": {
+            "type": "string",
+            "description": "Company Tax ID",
+            "maxLength": 50
+          }
+        },
+        "required": [
+          "address_count",
+          "currency",
+          "name",
+          "parts_manufactured",
+          "parts_supplied",
+          "pk"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11048,
+      "method": "DELETE",
+      "path": "/api/company/{id}/",
+      "summary": "API endpoint for detail of a single Company object.",
+      "description": "API endpoint for detail of a single Company object.",
+      "request_schema": null,
+      "response_schema": null,
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11049,
+      "method": "PATCH",
+      "path": "/api/company/{id}/",
+      "summary": "API endpoint for detail of a single Company object.",
+      "description": "API endpoint for detail of a single Company object.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for Company object (full detail).",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Company name",
+            "description": "Company name",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "title": "Company description",
+            "description": "Description of the company",
+            "maxLength": 500
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "Company website URL",
+            "maxLength": 2000
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone number",
+            "description": "Contact phone number",
+            "maxLength": 50
+          },
+          "address": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true,
+            "title": "Return the string representation for the primary address. This property exists for backwards compatibility."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "default": ""
+          },
+          "currency": {
+            "type": "string",
+            "description": "Default currency used for this supplier"
+          },
+          "contact": {
+            "type": "string",
+            "description": "Point of contact",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to external company information",
+            "maxLength": 2000
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this company active?"
+          },
+          "is_customer": {
+            "type": "boolean",
+            "description": "Do you sell items to this company?"
+          },
+          "is_manufacturer": {
+            "type": "boolean",
+            "description": "Does this company manufacture parts?"
+          },
+          "is_supplier": {
+            "type": "boolean",
+            "description": "Do you purchase items from this company?"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          },
+          "parts_supplied": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "parts_manufactured": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "remote_image": {
+            "type": "string",
+            "format": "uri",
+            "writeOnly": true,
+            "description": "URL of remote image file"
+          },
+          "address_count": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "primary_address": {
+            "allOf": [
+              {
+                "type": "object",
+                "description": "Serializer for the Address Model.",
+                "properties": {
+                  "pk": {
+                    "type": "integer",
+                    "readOnly": true,
+                    "title": "ID"
+                  },
+                  "company": {
+                    "type": "integer",
+                    "description": "Select company"
+                  },
+                  "title": {
+                    "type": "string",
+                    "title": "Address title",
+                    "description": "Title describing the address entry",
+                    "maxLength": 100
+                  },
+                  "primary": {
+                    "type": "boolean",
+                    "title": "Primary address",
+                    "description": "Set as primary address"
+                  },
+                  "line1": {
+                    "type": "string",
+                    "title": "Line 1",
+                    "description": "Address line 1",
+                    "maxLength": 50
+                  },
+                  "line2": {
+                    "type": "string",
+                    "title": "Line 2",
+                    "description": "Address line 2",
+                    "maxLength": 50
+                  },
+                  "postal_code": {
+                    "type": "string",
+                    "description": "Postal code",
+                    "maxLength": 10
+                  },
+                  "postal_city": {
+                    "type": "string",
+                    "title": "City/Region",
+                    "description": "Postal code city/region",
+                    "maxLength": 50
+                  },
+                  "province": {
+                    "type": "string",
+                    "title": "State/Province",
+                    "description": "State or province",
+                    "maxLength": 50
+                  },
+                  "country": {
+                    "type": "string",
+                    "description": "Address country",
+                    "maxLength": 50
+                  },
+                  "shipping_notes": {
+                    "type": "string",
+                    "title": "Courier shipping notes",
+                    "description": "Notes for shipping courier",
+                    "maxLength": 100
+                  },
+                  "internal_shipping_notes": {
+                    "type": "string",
+                    "description": "Shipping notes for internal use",
+                    "maxLength": 100
+                  },
+                  "link": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Link to address information (external)",
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "company",
+                  "pk",
+                  "title"
+                ]
+              }
+            ],
+            "readOnly": true,
+            "nullable": true
+          },
+          "tax_id": {
+            "type": "string",
+            "description": "Company Tax ID",
+            "maxLength": 50
+          }
+        }
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for Company object (full detail).",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Company name",
+            "description": "Company name",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "title": "Company description",
+            "description": "Description of the company",
+            "maxLength": 500
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "Company website URL",
+            "maxLength": 2000
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone number",
+            "description": "Contact phone number",
+            "maxLength": 50
+          },
+          "address": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true,
+            "title": "Return the string representation for the primary address. This property exists for backwards compatibility."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "default": ""
+          },
+          "currency": {
+            "type": "string",
+            "description": "Default currency used for this supplier"
+          },
+          "contact": {
+            "type": "string",
+            "description": "Point of contact",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to external company information",
+            "maxLength": 2000
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this company active?"
+          },
+          "is_customer": {
+            "type": "boolean",
+            "description": "Do you sell items to this company?"
+          },
+          "is_manufacturer": {
+            "type": "boolean",
+            "description": "Does this company manufacture parts?"
+          },
+          "is_supplier": {
+            "type": "boolean",
+            "description": "Do you purchase items from this company?"
+          },
+          "parts_supplied": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "parts_manufactured": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "remote_image": {
+            "type": "string",
+            "format": "uri",
+            "writeOnly": true,
+            "description": "URL of remote image file"
+          },
+          "address_count": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "primary_address": {
+            "allOf": [
+              {
+                "type": "object",
+                "description": "Serializer for the Address Model.",
+                "properties": {
+                  "pk": {
+                    "type": "integer",
+                    "readOnly": true,
+                    "title": "ID"
+                  },
+                  "company": {
+                    "type": "integer",
+                    "description": "Select company"
+                  },
+                  "title": {
+                    "type": "string",
+                    "title": "Address title",
+                    "description": "Title describing the address entry",
+                    "maxLength": 100
+                  },
+                  "primary": {
+                    "type": "boolean",
+                    "title": "Primary address",
+                    "description": "Set as primary address"
+                  },
+                  "line1": {
+                    "type": "string",
+                    "title": "Line 1",
+                    "description": "Address line 1",
+                    "maxLength": 50
+                  },
+                  "line2": {
+                    "type": "string",
+                    "title": "Line 2",
+                    "description": "Address line 2",
+                    "maxLength": 50
+                  },
+                  "postal_code": {
+                    "type": "string",
+                    "description": "Postal code",
+                    "maxLength": 10
+                  },
+                  "postal_city": {
+                    "type": "string",
+                    "title": "City/Region",
+                    "description": "Postal code city/region",
+                    "maxLength": 50
+                  },
+                  "province": {
+                    "type": "string",
+                    "title": "State/Province",
+                    "description": "State or province",
+                    "maxLength": 50
+                  },
+                  "country": {
+                    "type": "string",
+                    "description": "Address country",
+                    "maxLength": 50
+                  },
+                  "shipping_notes": {
+                    "type": "string",
+                    "title": "Courier shipping notes",
+                    "description": "Notes for shipping courier",
+                    "maxLength": 100
+                  },
+                  "internal_shipping_notes": {
+                    "type": "string",
+                    "description": "Shipping notes for internal use",
+                    "maxLength": 100
+                  },
+                  "link": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Link to address information (external)",
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "company",
+                  "pk",
+                  "title"
+                ]
+              }
+            ],
+            "readOnly": true,
+            "nullable": true
+          },
+          "tax_id": {
+            "type": "string",
+            "description": "Company Tax ID",
+            "maxLength": 50
+          }
+        },
+        "required": [
+          "address_count",
+          "currency",
+          "name",
+          "parts_manufactured",
+          "parts_supplied",
+          "pk"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11050,
+      "method": "GET",
+      "path": "/api/company/{id}/metadata/",
+      "summary": "Generic API endpoint for reading and editing metadata for a model.",
+      "description": "Generic API endpoint for reading and editing metadata for a model.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11051,
+      "method": "PUT",
+      "path": "/api/company/{id}/metadata/",
+      "summary": "Generic API endpoint for reading and editing metadata for a model.",
+      "description": "Generic API endpoint for reading and editing metadata for a model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11052,
+      "method": "PATCH",
+      "path": "/api/company/{id}/metadata/",
+      "summary": "Generic API endpoint for reading and editing metadata for a model.",
+      "description": "Generic API endpoint for reading and editing metadata for a model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        }
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11053,
+      "method": "GET",
+      "path": "/api/company/address/",
+      "summary": "Override the GET method to determine export options.",
+      "description": "Override the GET method to determine export options.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "count",
+          "results"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "example": 123
+          },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=400&limit=100"
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=200&limit=100"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Serializer for the Address Model.",
+              "properties": {
+                "pk": {
+                  "type": "integer",
+                  "readOnly": true,
+                  "title": "ID"
+                },
+                "company": {
+                  "type": "integer",
+                  "description": "Select company"
+                },
+                "title": {
+                  "type": "string",
+                  "title": "Address title",
+                  "description": "Title describing the address entry",
+                  "maxLength": 100
+                },
+                "primary": {
+                  "type": "boolean",
+                  "title": "Primary address",
+                  "description": "Set as primary address"
+                },
+                "line1": {
+                  "type": "string",
+                  "title": "Line 1",
+                  "description": "Address line 1",
+                  "maxLength": 50
+                },
+                "line2": {
+                  "type": "string",
+                  "title": "Line 2",
+                  "description": "Address line 2",
+                  "maxLength": 50
+                },
+                "postal_code": {
+                  "type": "string",
+                  "description": "Postal code",
+                  "maxLength": 10
+                },
+                "postal_city": {
+                  "type": "string",
+                  "title": "City/Region",
+                  "description": "Postal code city/region",
+                  "maxLength": 50
+                },
+                "province": {
+                  "type": "string",
+                  "title": "State/Province",
+                  "description": "State or province",
+                  "maxLength": 50
+                },
+                "country": {
+                  "type": "string",
+                  "description": "Address country",
+                  "maxLength": 50
+                },
+                "shipping_notes": {
+                  "type": "string",
+                  "title": "Courier shipping notes",
+                  "description": "Notes for shipping courier",
+                  "maxLength": 100
+                },
+                "internal_shipping_notes": {
+                  "type": "string",
+                  "description": "Shipping notes for internal use",
+                  "maxLength": 100
+                },
+                "link": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "Link to address information (external)",
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "company",
+                "pk",
+                "title"
+              ]
+            }
+          }
+        }
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11054,
+      "method": "POST",
+      "path": "/api/company/address/",
+      "summary": "API endpoint for list view of Address model.",
+      "description": "API endpoint for list view of Address model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for the Address Model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer",
+            "description": "Select company"
+          },
+          "title": {
+            "type": "string",
+            "title": "Address title",
+            "description": "Title describing the address entry",
+            "maxLength": 100
+          },
+          "primary": {
+            "type": "boolean",
+            "title": "Primary address",
+            "description": "Set as primary address"
+          },
+          "line1": {
+            "type": "string",
+            "title": "Line 1",
+            "description": "Address line 1",
+            "maxLength": 50
+          },
+          "line2": {
+            "type": "string",
+            "title": "Line 2",
+            "description": "Address line 2",
+            "maxLength": 50
+          },
+          "postal_code": {
+            "type": "string",
+            "description": "Postal code",
+            "maxLength": 10
+          },
+          "postal_city": {
+            "type": "string",
+            "title": "City/Region",
+            "description": "Postal code city/region",
+            "maxLength": 50
+          },
+          "province": {
+            "type": "string",
+            "title": "State/Province",
+            "description": "State or province",
+            "maxLength": 50
+          },
+          "country": {
+            "type": "string",
+            "description": "Address country",
+            "maxLength": 50
+          },
+          "shipping_notes": {
+            "type": "string",
+            "title": "Courier shipping notes",
+            "description": "Notes for shipping courier",
+            "maxLength": 100
+          },
+          "internal_shipping_notes": {
+            "type": "string",
+            "description": "Shipping notes for internal use",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to address information (external)",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "company",
+          "pk",
+          "title"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for the Address Model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer",
+            "description": "Select company"
+          },
+          "title": {
+            "type": "string",
+            "title": "Address title",
+            "description": "Title describing the address entry",
+            "maxLength": 100
+          },
+          "primary": {
+            "type": "boolean",
+            "title": "Primary address",
+            "description": "Set as primary address"
+          },
+          "line1": {
+            "type": "string",
+            "title": "Line 1",
+            "description": "Address line 1",
+            "maxLength": 50
+          },
+          "line2": {
+            "type": "string",
+            "title": "Line 2",
+            "description": "Address line 2",
+            "maxLength": 50
+          },
+          "postal_code": {
+            "type": "string",
+            "description": "Postal code",
+            "maxLength": 10
+          },
+          "postal_city": {
+            "type": "string",
+            "title": "City/Region",
+            "description": "Postal code city/region",
+            "maxLength": 50
+          },
+          "province": {
+            "type": "string",
+            "title": "State/Province",
+            "description": "State or province",
+            "maxLength": 50
+          },
+          "country": {
+            "type": "string",
+            "description": "Address country",
+            "maxLength": 50
+          },
+          "shipping_notes": {
+            "type": "string",
+            "title": "Courier shipping notes",
+            "description": "Notes for shipping courier",
+            "maxLength": 100
+          },
+          "internal_shipping_notes": {
+            "type": "string",
+            "description": "Shipping notes for internal use",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to address information (external)",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "company",
+          "pk",
+          "title"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11055,
+      "method": "DELETE",
+      "path": "/api/company/address/",
+      "summary": "Perform a DELETE operation against this list endpoint.\n\nNote that the typical DRF list endpoint does not support DELETE,\nso this method is provided as a custom implementation.",
+      "description": "Perform a DELETE operation against this list endpoint.\n\nNote that the typical DRF list endpoint does not support DELETE,\nso this method is provided as a custom implementation.",
+      "request_schema": {
+        "type": "object",
+        "description": "Parameters for selecting items for bulk operations.",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "title": "A list of primary key values"
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": {},
+            "title": "A dictionary of filter values"
+          }
+        }
+      },
+      "response_schema": null,
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11056,
+      "method": "GET",
+      "path": "/api/company/address/{id}/",
+      "summary": "API endpoint for a single Address object.",
+      "description": "API endpoint for a single Address object.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for the Address Model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer",
+            "description": "Select company"
+          },
+          "title": {
+            "type": "string",
+            "title": "Address title",
+            "description": "Title describing the address entry",
+            "maxLength": 100
+          },
+          "primary": {
+            "type": "boolean",
+            "title": "Primary address",
+            "description": "Set as primary address"
+          },
+          "line1": {
+            "type": "string",
+            "title": "Line 1",
+            "description": "Address line 1",
+            "maxLength": 50
+          },
+          "line2": {
+            "type": "string",
+            "title": "Line 2",
+            "description": "Address line 2",
+            "maxLength": 50
+          },
+          "postal_code": {
+            "type": "string",
+            "description": "Postal code",
+            "maxLength": 10
+          },
+          "postal_city": {
+            "type": "string",
+            "title": "City/Region",
+            "description": "Postal code city/region",
+            "maxLength": 50
+          },
+          "province": {
+            "type": "string",
+            "title": "State/Province",
+            "description": "State or province",
+            "maxLength": 50
+          },
+          "country": {
+            "type": "string",
+            "description": "Address country",
+            "maxLength": 50
+          },
+          "shipping_notes": {
+            "type": "string",
+            "title": "Courier shipping notes",
+            "description": "Notes for shipping courier",
+            "maxLength": 100
+          },
+          "internal_shipping_notes": {
+            "type": "string",
+            "description": "Shipping notes for internal use",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to address information (external)",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "company",
+          "pk",
+          "title"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11057,
+      "method": "PUT",
+      "path": "/api/company/address/{id}/",
+      "summary": "API endpoint for a single Address object.",
+      "description": "API endpoint for a single Address object.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for the Address Model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer",
+            "description": "Select company"
+          },
+          "title": {
+            "type": "string",
+            "title": "Address title",
+            "description": "Title describing the address entry",
+            "maxLength": 100
+          },
+          "primary": {
+            "type": "boolean",
+            "title": "Primary address",
+            "description": "Set as primary address"
+          },
+          "line1": {
+            "type": "string",
+            "title": "Line 1",
+            "description": "Address line 1",
+            "maxLength": 50
+          },
+          "line2": {
+            "type": "string",
+            "title": "Line 2",
+            "description": "Address line 2",
+            "maxLength": 50
+          },
+          "postal_code": {
+            "type": "string",
+            "description": "Postal code",
+            "maxLength": 10
+          },
+          "postal_city": {
+            "type": "string",
+            "title": "City/Region",
+            "description": "Postal code city/region",
+            "maxLength": 50
+          },
+          "province": {
+            "type": "string",
+            "title": "State/Province",
+            "description": "State or province",
+            "maxLength": 50
+          },
+          "country": {
+            "type": "string",
+            "description": "Address country",
+            "maxLength": 50
+          },
+          "shipping_notes": {
+            "type": "string",
+            "title": "Courier shipping notes",
+            "description": "Notes for shipping courier",
+            "maxLength": 100
+          },
+          "internal_shipping_notes": {
+            "type": "string",
+            "description": "Shipping notes for internal use",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to address information (external)",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "company",
+          "pk",
+          "title"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for the Address Model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer",
+            "description": "Select company"
+          },
+          "title": {
+            "type": "string",
+            "title": "Address title",
+            "description": "Title describing the address entry",
+            "maxLength": 100
+          },
+          "primary": {
+            "type": "boolean",
+            "title": "Primary address",
+            "description": "Set as primary address"
+          },
+          "line1": {
+            "type": "string",
+            "title": "Line 1",
+            "description": "Address line 1",
+            "maxLength": 50
+          },
+          "line2": {
+            "type": "string",
+            "title": "Line 2",
+            "description": "Address line 2",
+            "maxLength": 50
+          },
+          "postal_code": {
+            "type": "string",
+            "description": "Postal code",
+            "maxLength": 10
+          },
+          "postal_city": {
+            "type": "string",
+            "title": "City/Region",
+            "description": "Postal code city/region",
+            "maxLength": 50
+          },
+          "province": {
+            "type": "string",
+            "title": "State/Province",
+            "description": "State or province",
+            "maxLength": 50
+          },
+          "country": {
+            "type": "string",
+            "description": "Address country",
+            "maxLength": 50
+          },
+          "shipping_notes": {
+            "type": "string",
+            "title": "Courier shipping notes",
+            "description": "Notes for shipping courier",
+            "maxLength": 100
+          },
+          "internal_shipping_notes": {
+            "type": "string",
+            "description": "Shipping notes for internal use",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to address information (external)",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "company",
+          "pk",
+          "title"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11058,
+      "method": "DELETE",
+      "path": "/api/company/address/{id}/",
+      "summary": "API endpoint for a single Address object.",
+      "description": "API endpoint for a single Address object.",
+      "request_schema": null,
+      "response_schema": null,
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11059,
+      "method": "PATCH",
+      "path": "/api/company/address/{id}/",
+      "summary": "API endpoint for a single Address object.",
+      "description": "API endpoint for a single Address object.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for the Address Model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer",
+            "description": "Select company"
+          },
+          "title": {
+            "type": "string",
+            "title": "Address title",
+            "description": "Title describing the address entry",
+            "maxLength": 100
+          },
+          "primary": {
+            "type": "boolean",
+            "title": "Primary address",
+            "description": "Set as primary address"
+          },
+          "line1": {
+            "type": "string",
+            "title": "Line 1",
+            "description": "Address line 1",
+            "maxLength": 50
+          },
+          "line2": {
+            "type": "string",
+            "title": "Line 2",
+            "description": "Address line 2",
+            "maxLength": 50
+          },
+          "postal_code": {
+            "type": "string",
+            "description": "Postal code",
+            "maxLength": 10
+          },
+          "postal_city": {
+            "type": "string",
+            "title": "City/Region",
+            "description": "Postal code city/region",
+            "maxLength": 50
+          },
+          "province": {
+            "type": "string",
+            "title": "State/Province",
+            "description": "State or province",
+            "maxLength": 50
+          },
+          "country": {
+            "type": "string",
+            "description": "Address country",
+            "maxLength": 50
+          },
+          "shipping_notes": {
+            "type": "string",
+            "title": "Courier shipping notes",
+            "description": "Notes for shipping courier",
+            "maxLength": 100
+          },
+          "internal_shipping_notes": {
+            "type": "string",
+            "description": "Shipping notes for internal use",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to address information (external)",
+            "maxLength": 2000
+          }
+        }
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for the Address Model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer",
+            "description": "Select company"
+          },
+          "title": {
+            "type": "string",
+            "title": "Address title",
+            "description": "Title describing the address entry",
+            "maxLength": 100
+          },
+          "primary": {
+            "type": "boolean",
+            "title": "Primary address",
+            "description": "Set as primary address"
+          },
+          "line1": {
+            "type": "string",
+            "title": "Line 1",
+            "description": "Address line 1",
+            "maxLength": 50
+          },
+          "line2": {
+            "type": "string",
+            "title": "Line 2",
+            "description": "Address line 2",
+            "maxLength": 50
+          },
+          "postal_code": {
+            "type": "string",
+            "description": "Postal code",
+            "maxLength": 10
+          },
+          "postal_city": {
+            "type": "string",
+            "title": "City/Region",
+            "description": "Postal code city/region",
+            "maxLength": 50
+          },
+          "province": {
+            "type": "string",
+            "title": "State/Province",
+            "description": "State or province",
+            "maxLength": 50
+          },
+          "country": {
+            "type": "string",
+            "description": "Address country",
+            "maxLength": 50
+          },
+          "shipping_notes": {
+            "type": "string",
+            "title": "Courier shipping notes",
+            "description": "Notes for shipping courier",
+            "maxLength": 100
+          },
+          "internal_shipping_notes": {
+            "type": "string",
+            "description": "Shipping notes for internal use",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to address information (external)",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "company",
+          "pk",
+          "title"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11060,
+      "method": "GET",
+      "path": "/api/company/contact/",
+      "summary": "Override the GET method to determine export options.",
+      "description": "Override the GET method to determine export options.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "count",
+          "results"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "example": 123
+          },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=400&limit=100"
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=200&limit=100"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Serializer class for the Contact model.",
+              "properties": {
+                "pk": {
+                  "type": "integer",
+                  "readOnly": true,
+                  "title": "ID"
+                },
+                "company": {
+                  "type": "integer"
+                },
+                "company_name": {
+                  "type": "string",
+                  "readOnly": true
+                },
+                "name": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "phone": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "maxLength": 254
+                },
+                "role": {
+                  "type": "string",
+                  "maxLength": 100
+                }
+              },
+              "required": [
+                "company",
+                "company_name",
+                "name",
+                "pk"
+              ]
+            }
+          }
+        }
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11061,
+      "method": "POST",
+      "path": "/api/company/contact/",
+      "summary": "API endpoint for list view of Company model.",
+      "description": "API endpoint for list view of Company model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer class for the Contact model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer"
+          },
+          "company_name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "company",
+          "company_name",
+          "name",
+          "pk"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for the Contact model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer"
+          },
+          "company_name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "company",
+          "company_name",
+          "name",
+          "pk"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11062,
+      "method": "DELETE",
+      "path": "/api/company/contact/",
+      "summary": "Perform a DELETE operation against this list endpoint.\n\nNote that the typical DRF list endpoint does not support DELETE,\nso this method is provided as a custom implementation.",
+      "description": "Perform a DELETE operation against this list endpoint.\n\nNote that the typical DRF list endpoint does not support DELETE,\nso this method is provided as a custom implementation.",
+      "request_schema": {
+        "type": "object",
+        "description": "Parameters for selecting items for bulk operations.",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "title": "A list of primary key values"
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": {},
+            "title": "A dictionary of filter values"
+          }
+        }
+      },
+      "response_schema": null,
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11063,
+      "method": "GET",
+      "path": "/api/company/contact/{id}/",
+      "summary": "Detail endpoint for Company model.",
+      "description": "Detail endpoint for Company model.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for the Contact model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer"
+          },
+          "company_name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "company",
+          "company_name",
+          "name",
+          "pk"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11064,
+      "method": "PUT",
+      "path": "/api/company/contact/{id}/",
+      "summary": "Detail endpoint for Company model.",
+      "description": "Detail endpoint for Company model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer class for the Contact model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer"
+          },
+          "company_name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "company",
+          "company_name",
+          "name",
+          "pk"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for the Contact model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer"
+          },
+          "company_name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "company",
+          "company_name",
+          "name",
+          "pk"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11065,
+      "method": "DELETE",
+      "path": "/api/company/contact/{id}/",
+      "summary": "Detail endpoint for Company model.",
+      "description": "Detail endpoint for Company model.",
+      "request_schema": null,
+      "response_schema": null,
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11066,
+      "method": "PATCH",
+      "path": "/api/company/contact/{id}/",
+      "summary": "Detail endpoint for Company model.",
+      "description": "Detail endpoint for Company model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer class for the Contact model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer"
+          },
+          "company_name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 100
+          }
+        }
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for the Contact model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "company": {
+            "type": "integer"
+          },
+          "company_name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "company",
+          "company_name",
+          "name",
+          "pk"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11067,
+      "method": "GET",
+      "path": "/api/company/contact/{id}/metadata/",
+      "summary": "Generic API endpoint for reading and editing metadata for a model.",
+      "description": "Generic API endpoint for reading and editing metadata for a model.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11068,
+      "method": "PUT",
+      "path": "/api/company/contact/{id}/metadata/",
+      "summary": "Generic API endpoint for reading and editing metadata for a model.",
+      "description": "Generic API endpoint for reading and editing metadata for a model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11069,
+      "method": "PATCH",
+      "path": "/api/company/contact/{id}/metadata/",
+      "summary": "Generic API endpoint for reading and editing metadata for a model.",
+      "description": "Generic API endpoint for reading and editing metadata for a model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        }
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11070,
+      "method": "GET",
+      "path": "/api/company/part/",
+      "summary": "Override the GET method to determine export options.",
+      "description": "Override the GET method to determine export options.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "count",
+          "results"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "example": 123
+          },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=400&limit=100"
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=200&limit=100"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Serializer for SupplierPart object.",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Supplier part description",
+                  "maxLength": 250
+                },
+                "in_stock": {
+                  "type": "number",
+                  "format": "double",
+                  "readOnly": true,
+                  "nullable": true
+                },
+                "link": {
+                  "type": "string",
+                  "format": "uri",
+                  "nullable": true,
+                  "description": "URL for external supplier part link",
+                  "maxLength": 2000
+                },
+                "active": {
+                  "type": "boolean",
+                  "description": "Is this supplier part active?"
+                },
+                "manufacturer_part": {
+                  "type": "integer",
+                  "nullable": true,
+                  "description": "Select manufacturer part"
+                },
+                "MPN": {
+                  "type": "string",
+                  "readOnly": true,
+                  "nullable": true
+                },
+                "note": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Notes",
+                  "maxLength": 100
+                },
+                "pk": {
+                  "type": "integer",
+                  "readOnly": true,
+                  "title": "ID"
+                },
+                "barcode_hash": {
+                  "type": "string",
+                  "readOnly": true,
+                  "description": "Unique hash of barcode data"
+                },
+                "packaging": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Part packaging",
+                  "maxLength": 50
+                },
+                "pack_quantity": {
+                  "type": "string",
+                  "description": "Total quantity supplied in a single pack. Leave empty for single items.",
+                  "maxLength": 25
+                },
+                "pack_quantity_native": {
+                  "type": "number",
+                  "format": "double",
+                  "readOnly": true
+                },
+                "part": {
+                  "type": "integer",
+                  "title": "Base Part",
+                  "description": "Select part"
+                },
+                "SKU": {
+                  "type": "string",
+                  "description": "Supplier stock keeping unit",
+                  "maxLength": 100
+                },
+                "supplier": {
+                  "type": "integer"
+                },
+                "updated": {
+                  "type": "string",
+                  "format": "date-time",
+                  "readOnly": true,
+                  "nullable": true
+                },
+                "notes": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Markdown notes (optional)",
+                  "maxLength": 50000
+                }
+              },
+              "required": [
+                "SKU",
+                "barcode_hash",
+                "pack_quantity_native",
+                "part",
+                "pk",
+                "supplier"
+              ]
+            }
+          }
+        }
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11071,
+      "method": "POST",
+      "path": "/api/company/part/",
+      "summary": "API endpoint for list view of SupplierPart object.\n\n- GET: Return list of SupplierPart objects\n- POST: Create a new SupplierPart object",
+      "description": "API endpoint for list view of SupplierPart object.\n\n- GET: Return list of SupplierPart objects\n- POST: Create a new SupplierPart object",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPart object.",
+        "properties": {
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Supplier part description",
+            "maxLength": 250
+          },
+          "in_stock": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true,
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external supplier part link",
+            "maxLength": 2000
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this supplier part active?"
+          },
+          "manufacturer_part": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Select manufacturer part"
+          },
+          "MPN": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "description": "Notes",
+            "maxLength": 100
+          },
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "barcode_hash": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Unique hash of barcode data"
+          },
+          "packaging": {
+            "type": "string",
+            "nullable": true,
+            "description": "Part packaging",
+            "maxLength": 50
+          },
+          "pack_quantity": {
+            "type": "string",
+            "description": "Total quantity supplied in a single pack. Leave empty for single items.",
+            "maxLength": 25
+          },
+          "pack_quantity_native": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "SKU": {
+            "type": "string",
+            "description": "Supplier stock keeping unit",
+            "maxLength": 100
+          },
+          "supplier": {
+            "type": "integer"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          }
+        },
+        "required": [
+          "SKU",
+          "barcode_hash",
+          "pack_quantity_native",
+          "part",
+          "pk",
+          "supplier"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPart object.",
+        "properties": {
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Supplier part description",
+            "maxLength": 250
+          },
+          "in_stock": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true,
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external supplier part link",
+            "maxLength": 2000
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this supplier part active?"
+          },
+          "manufacturer_part": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Select manufacturer part"
+          },
+          "MPN": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "description": "Notes",
+            "maxLength": 100
+          },
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "barcode_hash": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Unique hash of barcode data"
+          },
+          "packaging": {
+            "type": "string",
+            "nullable": true,
+            "description": "Part packaging",
+            "maxLength": 50
+          },
+          "pack_quantity": {
+            "type": "string",
+            "description": "Total quantity supplied in a single pack. Leave empty for single items.",
+            "maxLength": 25
+          },
+          "pack_quantity_native": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "SKU": {
+            "type": "string",
+            "description": "Supplier stock keeping unit",
+            "maxLength": 100
+          },
+          "supplier": {
+            "type": "integer"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          }
+        },
+        "required": [
+          "SKU",
+          "barcode_hash",
+          "pack_quantity_native",
+          "part",
+          "pk",
+          "supplier"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11072,
+      "method": "DELETE",
+      "path": "/api/company/part/",
+      "summary": "Perform a DELETE operation against this list endpoint.\n\nNote that the typical DRF list endpoint does not support DELETE,\nso this method is provided as a custom implementation.",
+      "description": "Perform a DELETE operation against this list endpoint.\n\nNote that the typical DRF list endpoint does not support DELETE,\nso this method is provided as a custom implementation.",
+      "request_schema": {
+        "type": "object",
+        "description": "Parameters for selecting items for bulk operations.",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "title": "A list of primary key values"
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": {},
+            "title": "A dictionary of filter values"
+          }
+        }
+      },
+      "response_schema": null,
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11073,
+      "method": "GET",
+      "path": "/api/company/part/{id}/",
+      "summary": "API endpoint for detail view of SupplierPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "description": "API endpoint for detail view of SupplierPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPart object.",
+        "properties": {
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Supplier part description",
+            "maxLength": 250
+          },
+          "in_stock": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true,
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external supplier part link",
+            "maxLength": 2000
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this supplier part active?"
+          },
+          "manufacturer_part": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Select manufacturer part"
+          },
+          "MPN": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "description": "Notes",
+            "maxLength": 100
+          },
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "barcode_hash": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Unique hash of barcode data"
+          },
+          "packaging": {
+            "type": "string",
+            "nullable": true,
+            "description": "Part packaging",
+            "maxLength": 50
+          },
+          "pack_quantity": {
+            "type": "string",
+            "description": "Total quantity supplied in a single pack. Leave empty for single items.",
+            "maxLength": 25
+          },
+          "pack_quantity_native": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "SKU": {
+            "type": "string",
+            "description": "Supplier stock keeping unit",
+            "maxLength": 100
+          },
+          "supplier": {
+            "type": "integer"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          }
+        },
+        "required": [
+          "SKU",
+          "barcode_hash",
+          "pack_quantity_native",
+          "part",
+          "pk",
+          "supplier"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11074,
+      "method": "PUT",
+      "path": "/api/company/part/{id}/",
+      "summary": "API endpoint for detail view of SupplierPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "description": "API endpoint for detail view of SupplierPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPart object.",
+        "properties": {
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Supplier part description",
+            "maxLength": 250
+          },
+          "in_stock": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true,
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external supplier part link",
+            "maxLength": 2000
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this supplier part active?"
+          },
+          "manufacturer_part": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Select manufacturer part"
+          },
+          "MPN": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "description": "Notes",
+            "maxLength": 100
+          },
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "barcode_hash": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Unique hash of barcode data"
+          },
+          "packaging": {
+            "type": "string",
+            "nullable": true,
+            "description": "Part packaging",
+            "maxLength": 50
+          },
+          "pack_quantity": {
+            "type": "string",
+            "description": "Total quantity supplied in a single pack. Leave empty for single items.",
+            "maxLength": 25
+          },
+          "pack_quantity_native": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "SKU": {
+            "type": "string",
+            "description": "Supplier stock keeping unit",
+            "maxLength": 100
+          },
+          "supplier": {
+            "type": "integer"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          }
+        },
+        "required": [
+          "SKU",
+          "barcode_hash",
+          "pack_quantity_native",
+          "part",
+          "pk",
+          "supplier"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPart object.",
+        "properties": {
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Supplier part description",
+            "maxLength": 250
+          },
+          "in_stock": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true,
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external supplier part link",
+            "maxLength": 2000
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this supplier part active?"
+          },
+          "manufacturer_part": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Select manufacturer part"
+          },
+          "MPN": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "description": "Notes",
+            "maxLength": 100
+          },
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "barcode_hash": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Unique hash of barcode data"
+          },
+          "packaging": {
+            "type": "string",
+            "nullable": true,
+            "description": "Part packaging",
+            "maxLength": 50
+          },
+          "pack_quantity": {
+            "type": "string",
+            "description": "Total quantity supplied in a single pack. Leave empty for single items.",
+            "maxLength": 25
+          },
+          "pack_quantity_native": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "SKU": {
+            "type": "string",
+            "description": "Supplier stock keeping unit",
+            "maxLength": 100
+          },
+          "supplier": {
+            "type": "integer"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          }
+        },
+        "required": [
+          "SKU",
+          "barcode_hash",
+          "pack_quantity_native",
+          "part",
+          "pk",
+          "supplier"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11075,
+      "method": "DELETE",
+      "path": "/api/company/part/{id}/",
+      "summary": "API endpoint for detail view of SupplierPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "description": "API endpoint for detail view of SupplierPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "request_schema": null,
+      "response_schema": null,
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11076,
+      "method": "PATCH",
+      "path": "/api/company/part/{id}/",
+      "summary": "API endpoint for detail view of SupplierPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "description": "API endpoint for detail view of SupplierPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPart object.",
+        "properties": {
+          "available": {
+            "type": "number",
+            "format": "double"
+          },
+          "availability_updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true,
+            "description": "Date of last update of availability data"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "title": "描述",
+            "description": "Supplier part description",
+            "maxLength": 250
+          },
+          "in_stock": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true,
+            "nullable": true
+          },
+          "on_order": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true,
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external supplier part link",
+            "maxLength": 2000
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this supplier part active?"
+          },
+          "manufacturer_part": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Select manufacturer part"
+          },
+          "MPN": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "title": "注意",
+            "description": "Notes",
+            "maxLength": 100
+          },
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "barcode_hash": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Unique hash of barcode data"
+          },
+          "packaging": {
+            "type": "string",
+            "nullable": true,
+            "description": "Part packaging",
+            "maxLength": 50
+          },
+          "pack_quantity": {
+            "type": "string",
+            "description": "Total quantity supplied in a single pack. Leave empty for single items.",
+            "maxLength": 25
+          },
+          "pack_quantity_native": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "SKU": {
+            "type": "string",
+            "description": "Supplier stock keeping unit",
+            "maxLength": 100
+          },
+          "supplier": {
+            "type": "integer"
+          },
+          "supplier_detail": {
+            "allOf": [
+              {
+                "type": "object",
+                "description": "Serializer for Company object (limited detail).",
+                "properties": {
+                  "pk": {
+                    "type": "integer",
+                    "readOnly": true,
+                    "title": "ID"
+                  },
+                  "active": {
+                    "type": "boolean",
+                    "description": "Is this company active?"
+                  },
+                  "name": {
+                    "type": "string",
+                    "title": "Company name",
+                    "description": "Company name",
+                    "maxLength": 100
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "Company description",
+                    "description": "Description of the company",
+                    "maxLength": 500
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "uri",
+                    "readOnly": true
+                  },
+                  "thumbnail": {
+                    "type": "string",
+                    "readOnly": true
+                  },
+                  "currency": {
+                    "type": "string",
+                    "readOnly": true,
+                    "description": "Default currency used for this company"
+                  },
+                  "tax_id": {
+                    "type": "string",
+                    "description": "Company Tax ID",
+                    "maxLength": 50
+                  }
+                },
+                "required": [
+                  "currency",
+                  "image",
+                  "name",
+                  "pk",
+                  "thumbnail"
+                ]
+              }
+            ],
+            "readOnly": true,
+            "nullable": true,
+            "title": "Supplier"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPart object.",
+        "properties": {
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Supplier part description",
+            "maxLength": 250
+          },
+          "in_stock": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true,
+            "nullable": true
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external supplier part link",
+            "maxLength": 2000
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Is this supplier part active?"
+          },
+          "manufacturer_part": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Select manufacturer part"
+          },
+          "MPN": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "description": "Notes",
+            "maxLength": 100
+          },
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "barcode_hash": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Unique hash of barcode data"
+          },
+          "packaging": {
+            "type": "string",
+            "nullable": true,
+            "description": "Part packaging",
+            "maxLength": 50
+          },
+          "pack_quantity": {
+            "type": "string",
+            "description": "Total quantity supplied in a single pack. Leave empty for single items.",
+            "maxLength": 25
+          },
+          "pack_quantity_native": {
+            "type": "number",
+            "format": "double",
+            "readOnly": true
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "SKU": {
+            "type": "string",
+            "description": "Supplier stock keeping unit",
+            "maxLength": 100
+          },
+          "supplier": {
+            "type": "integer"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          }
+        },
+        "required": [
+          "SKU",
+          "barcode_hash",
+          "pack_quantity_native",
+          "part",
+          "pk",
+          "supplier"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11077,
+      "method": "GET",
+      "path": "/api/company/part/{id}/metadata/",
+      "summary": "Generic API endpoint for reading and editing metadata for a model.",
+      "description": "Generic API endpoint for reading and editing metadata for a model.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11078,
+      "method": "PUT",
+      "path": "/api/company/part/{id}/metadata/",
+      "summary": "Generic API endpoint for reading and editing metadata for a model.",
+      "description": "Generic API endpoint for reading and editing metadata for a model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11079,
+      "method": "PATCH",
+      "path": "/api/company/part/{id}/metadata/",
+      "summary": "Generic API endpoint for reading and editing metadata for a model.",
+      "description": "Generic API endpoint for reading and editing metadata for a model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        }
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11080,
+      "method": "GET",
+      "path": "/api/company/part/manufacturer/",
+      "summary": "Override the GET method to determine export options.",
+      "description": "Override the GET method to determine export options.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "count",
+          "results"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "example": 123
+          },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=400&limit=100"
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=200&limit=100"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Serializer for ManufacturerPart object.",
+              "properties": {
+                "pk": {
+                  "type": "integer",
+                  "readOnly": true,
+                  "title": "ID"
+                },
+                "part": {
+                  "type": "integer",
+                  "title": "Base Part",
+                  "description": "Select part"
+                },
+                "manufacturer": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true,
+                  "title": "描述",
+                  "description": "Manufacturer part description",
+                  "maxLength": 250
+                },
+                "MPN": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Manufacturer Part Number",
+                  "maxLength": 100
+                },
+                "link": {
+                  "type": "string",
+                  "format": "uri",
+                  "nullable": true,
+                  "description": "URL for external manufacturer part link",
+                  "maxLength": 2000
+                },
+                "barcode_hash": {
+                  "type": "string",
+                  "description": "Unique hash of barcode data",
+                  "maxLength": 128
+                },
+                "notes": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Markdown notes (optional)",
+                  "maxLength": 50000
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "manufacturer",
+                "part",
+                "pk"
+              ]
+            }
+          }
+        }
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11081,
+      "method": "POST",
+      "path": "/api/company/part/manufacturer/",
+      "summary": "API endpoint for list view of ManufacturerPart object.\n\n- GET: Return list of ManufacturerPart objects\n- POST: Create a new ManufacturerPart object",
+      "description": "API endpoint for list view of ManufacturerPart object.\n\n- GET: Return list of ManufacturerPart objects\n- POST: Create a new ManufacturerPart object",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for ManufacturerPart object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "manufacturer": {
+            "type": "integer"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "title": "描述",
+            "description": "Manufacturer part description",
+            "maxLength": 250
+          },
+          "MPN": {
+            "type": "string",
+            "nullable": true,
+            "description": "Manufacturer Part Number",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external manufacturer part link",
+            "maxLength": 2000
+          },
+          "barcode_hash": {
+            "type": "string",
+            "description": "Unique hash of barcode data",
+            "maxLength": 128
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "manufacturer",
+          "part",
+          "pk"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for ManufacturerPart object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "manufacturer": {
+            "type": "integer"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "title": "描述",
+            "description": "Manufacturer part description",
+            "maxLength": 250
+          },
+          "MPN": {
+            "type": "string",
+            "nullable": true,
+            "description": "Manufacturer Part Number",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external manufacturer part link",
+            "maxLength": 2000
+          },
+          "barcode_hash": {
+            "type": "string",
+            "description": "Unique hash of barcode data",
+            "maxLength": 128
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "manufacturer",
+          "part",
+          "pk"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11082,
+      "method": "DELETE",
+      "path": "/api/company/part/manufacturer/",
+      "summary": "Perform a DELETE operation against this list endpoint.\n\nNote that the typical DRF list endpoint does not support DELETE,\nso this method is provided as a custom implementation.",
+      "description": "Perform a DELETE operation against this list endpoint.\n\nNote that the typical DRF list endpoint does not support DELETE,\nso this method is provided as a custom implementation.",
+      "request_schema": {
+        "type": "object",
+        "description": "Parameters for selecting items for bulk operations.",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "title": "A list of primary key values"
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": {},
+            "title": "A dictionary of filter values"
+          }
+        }
+      },
+      "response_schema": null,
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11083,
+      "method": "GET",
+      "path": "/api/company/part/manufacturer/{id}/",
+      "summary": "API endpoint for detail view of ManufacturerPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "description": "API endpoint for detail view of ManufacturerPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for ManufacturerPart object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "manufacturer": {
+            "type": "integer"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "title": "描述",
+            "description": "Manufacturer part description",
+            "maxLength": 250
+          },
+          "MPN": {
+            "type": "string",
+            "nullable": true,
+            "description": "Manufacturer Part Number",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external manufacturer part link",
+            "maxLength": 2000
+          },
+          "barcode_hash": {
+            "type": "string",
+            "description": "Unique hash of barcode data",
+            "maxLength": 128
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "manufacturer",
+          "part",
+          "pk"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11084,
+      "method": "PUT",
+      "path": "/api/company/part/manufacturer/{id}/",
+      "summary": "API endpoint for detail view of ManufacturerPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "description": "API endpoint for detail view of ManufacturerPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for ManufacturerPart object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "manufacturer": {
+            "type": "integer"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "title": "描述",
+            "description": "Manufacturer part description",
+            "maxLength": 250
+          },
+          "MPN": {
+            "type": "string",
+            "nullable": true,
+            "description": "Manufacturer Part Number",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external manufacturer part link",
+            "maxLength": 2000
+          },
+          "barcode_hash": {
+            "type": "string",
+            "description": "Unique hash of barcode data",
+            "maxLength": 128
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "manufacturer",
+          "part",
+          "pk"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for ManufacturerPart object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "manufacturer": {
+            "type": "integer"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "title": "描述",
+            "description": "Manufacturer part description",
+            "maxLength": 250
+          },
+          "MPN": {
+            "type": "string",
+            "nullable": true,
+            "description": "Manufacturer Part Number",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external manufacturer part link",
+            "maxLength": 2000
+          },
+          "barcode_hash": {
+            "type": "string",
+            "description": "Unique hash of barcode data",
+            "maxLength": 128
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "manufacturer",
+          "part",
+          "pk"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11085,
+      "method": "DELETE",
+      "path": "/api/company/part/manufacturer/{id}/",
+      "summary": "API endpoint for detail view of ManufacturerPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "description": "API endpoint for detail view of ManufacturerPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "request_schema": null,
+      "response_schema": null,
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11086,
+      "method": "PATCH",
+      "path": "/api/company/part/manufacturer/{id}/",
+      "summary": "API endpoint for detail view of ManufacturerPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "description": "API endpoint for detail view of ManufacturerPart object.\n\n- GET: Retrieve detail view\n- PATCH: Update object\n- DELETE: Delete object",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for ManufacturerPart object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "part_detail": {
+            "allOf": [
+              {
+                "type": "object",
+                "description": "Serializer for Part (brief detail).",
+                "properties": {
+                  "pk": {
+                    "type": "integer",
+                    "readOnly": true,
+                    "title": "ID"
+                  },
+                  "IPN": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Internal Part Number",
+                    "maxLength": 100
+                  },
+                  "barcode_hash": {
+                    "type": "string",
+                    "readOnly": true,
+                    "description": "Unique hash of barcode data"
+                  },
+                  "category_default_location": {
+                    "type": "integer",
+                    "readOnly": true,
+                    "nullable": true
+                  },
+                  "default_location": {
+                    "type": "integer",
+                    "nullable": true,
+                    "description": "Where is this item normally stored?"
+                  },
+                  "default_expiry": {
+                    "type": "integer",
+                    "maximum": 2147483647,
+                    "minimum": 0,
+                    "description": "Expiry time (in days) for stock items of this part"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Part name",
+                    "maxLength": 100
+                  },
+                  "revision": {
+                    "type": "string",
+                    "nullable": true,
+                    "default": "",
+                    "maxLength": 100
+                  },
+                  "full_name": {
+                    "type": "string",
+                    "description": "Format a 'full name' for this Part based on the format PART_NAME_FORMAT defined in InvenTree settings.",
+                    "readOnly": true
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "描述",
+                    "description": "Part description (optional)",
+                    "maxLength": 250
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "uri",
+                    "readOnly": true,
+                    "nullable": true
+                  },
+                  "thumbnail": {
+                    "type": "string",
+                    "readOnly": true
+                  },
+                  "active": {
+                    "type": "boolean",
+                    "description": "Is this part active?"
+                  },
+                  "locked": {
+                    "type": "boolean",
+                    "description": "Locked parts cannot be edited"
+                  },
+                  "assembly": {
+                    "type": "boolean",
+                    "description": "Can this part be built from other parts?"
+                  },
+                  "component": {
+                    "type": "boolean",
+                    "description": "Can this part be used to build other parts?"
+                  },
+                  "minimum_stock": {
+                    "type": "string",
+                    "format": "decimal",
+                    "pattern": "^-?\\d{0,13}(?:\\.\\d{0,6})?$",
+                    "description": "Minimum allowed stock level"
+                  },
+                  "is_template": {
+                    "type": "boolean",
+                    "description": "Is this part a template part?"
+                  },
+                  "purchaseable": {
+                    "type": "boolean",
+                    "description": "Can this part be purchased from external suppliers?"
+                  },
+                  "salable": {
+                    "type": "boolean",
+                    "description": "Can this part be sold to customers?"
+                  },
+                  "testable": {
+                    "type": "boolean",
+                    "description": "Can this part have test results recorded against it?"
+                  },
+                  "trackable": {
+                    "type": "boolean",
+                    "description": "Does this part have tracking for unique items?"
+                  },
+                  "virtual": {
+                    "type": "boolean",
+                    "description": "Is this a virtual part, such as a software product or license?"
+                  },
+                  "units": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Units of measure for this part",
+                    "maxLength": 20
+                  },
+                  "pricing_max": {
+                    "type": "string",
+                    "format": "decimal",
+                    "pattern": "^-?\\d{0,13}(?:\\.\\d{0,6})?$",
+                    "readOnly": true,
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "barcode_hash",
+                  "full_name",
+                  "name",
+                  "pk",
+                  "thumbnail"
+                ]
+              }
+            ],
+            "readOnly": true,
+            "nullable": true
+          },
+          "manufacturer": {
+            "type": "integer"
+          },
+          "manufacturer_detail": {
+            "allOf": [
+              {
+                "type": "object",
+                "description": "Serializer for Company object (limited detail).",
+                "properties": {
+                  "pk": {
+                    "type": "integer",
+                    "readOnly": true,
+                    "title": "ID"
+                  },
+                  "active": {
+                    "type": "boolean",
+                    "description": "Is this company active?"
+                  },
+                  "name": {
+                    "type": "string",
+                    "title": "Company name",
+                    "description": "Company name",
+                    "maxLength": 100
+                  },
+                  "description": {
+                    "type": "string",
+                    "title": "Company description",
+                    "description": "Description of the company",
+                    "maxLength": 500
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "uri",
+                    "readOnly": true
+                  },
+                  "thumbnail": {
+                    "type": "string",
+                    "readOnly": true
+                  },
+                  "currency": {
+                    "type": "string",
+                    "readOnly": true,
+                    "description": "Default currency used for this company"
+                  },
+                  "tax_id": {
+                    "type": "string",
+                    "description": "Company Tax ID",
+                    "maxLength": 50
+                  }
+                },
+                "required": [
+                  "currency",
+                  "image",
+                  "name",
+                  "pk",
+                  "thumbnail"
+                ]
+              }
+            ],
+            "readOnly": true,
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "title": "描述",
+            "description": "Manufacturer part description",
+            "maxLength": 250
+          },
+          "MPN": {
+            "type": "string",
+            "nullable": true,
+            "description": "Manufacturer Part Number",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external manufacturer part link",
+            "maxLength": 2000
+          },
+          "barcode_hash": {
+            "type": "string",
+            "description": "Unique hash of barcode data",
+            "maxLength": 128
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for ManufacturerPart object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer",
+            "title": "Base Part",
+            "description": "Select part"
+          },
+          "manufacturer": {
+            "type": "integer"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "title": "描述",
+            "description": "Manufacturer part description",
+            "maxLength": 250
+          },
+          "MPN": {
+            "type": "string",
+            "nullable": true,
+            "description": "Manufacturer Part Number",
+            "maxLength": 100
+          },
+          "link": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true,
+            "description": "URL for external manufacturer part link",
+            "maxLength": 2000
+          },
+          "barcode_hash": {
+            "type": "string",
+            "description": "Unique hash of barcode data",
+            "maxLength": 128
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "Markdown notes (optional)",
+            "maxLength": 50000
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "manufacturer",
+          "part",
+          "pk"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11087,
+      "method": "GET",
+      "path": "/api/company/part/manufacturer/{id}/metadata/",
+      "summary": "Generic API endpoint for reading and editing metadata for a model.",
+      "description": "Generic API endpoint for reading and editing metadata for a model.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11088,
+      "method": "PUT",
+      "path": "/api/company/part/manufacturer/{id}/metadata/",
+      "summary": "Generic API endpoint for reading and editing metadata for a model.",
+      "description": "Generic API endpoint for reading and editing metadata for a model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11089,
+      "method": "PATCH",
+      "path": "/api/company/part/manufacturer/{id}/metadata/",
+      "summary": "Generic API endpoint for reading and editing metadata for a model.",
+      "description": "Generic API endpoint for reading and editing metadata for a model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        }
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer class for model metadata API access.",
+        "properties": {
+          "metadata": {}
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11090,
+      "method": "GET",
+      "path": "/api/company/part/manufacturer/parameter/",
+      "summary": "API endpoint for list view of ManufacturerPartParamater model.",
+      "description": "API endpoint for list view of ManufacturerPartParamater model.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "count",
+          "results"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "example": 123
+          },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=400&limit=100"
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=200&limit=100"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Serializer for the ManufacturerPartParameter model.",
+              "properties": {
+                "pk": {
+                  "type": "integer",
+                  "readOnly": true,
+                  "title": "ID"
+                },
+                "manufacturer_part": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Parameter name",
+                  "maxLength": 500
+                },
+                "value": {
+                  "type": "string",
+                  "description": "Parameter value",
+                  "maxLength": 500
+                },
+                "units": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Parameter units",
+                  "maxLength": 64
+                }
+              },
+              "required": [
+                "manufacturer_part",
+                "name",
+                "pk",
+                "value"
+              ]
+            }
+          }
+        }
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11091,
+      "method": "POST",
+      "path": "/api/company/part/manufacturer/parameter/",
+      "summary": "API endpoint for list view of ManufacturerPartParamater model.",
+      "description": "API endpoint for list view of ManufacturerPartParamater model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for the ManufacturerPartParameter model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "manufacturer_part": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "description": "Parameter name",
+            "maxLength": 500
+          },
+          "value": {
+            "type": "string",
+            "description": "Parameter value",
+            "maxLength": 500
+          },
+          "units": {
+            "type": "string",
+            "nullable": true,
+            "description": "Parameter units",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "manufacturer_part",
+          "name",
+          "pk",
+          "value"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for the ManufacturerPartParameter model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "manufacturer_part": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "description": "Parameter name",
+            "maxLength": 500
+          },
+          "value": {
+            "type": "string",
+            "description": "Parameter value",
+            "maxLength": 500
+          },
+          "units": {
+            "type": "string",
+            "nullable": true,
+            "description": "Parameter units",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "manufacturer_part",
+          "name",
+          "pk",
+          "value"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11092,
+      "method": "DELETE",
+      "path": "/api/company/part/manufacturer/parameter/",
+      "summary": "Perform a DELETE operation against this list endpoint.\n\nNote that the typical DRF list endpoint does not support DELETE,\nso this method is provided as a custom implementation.",
+      "description": "Perform a DELETE operation against this list endpoint.\n\nNote that the typical DRF list endpoint does not support DELETE,\nso this method is provided as a custom implementation.",
+      "request_schema": {
+        "type": "object",
+        "description": "Parameters for selecting items for bulk operations.",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "title": "A list of primary key values"
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": {},
+            "title": "A dictionary of filter values"
+          }
+        }
+      },
+      "response_schema": null,
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11093,
+      "method": "GET",
+      "path": "/api/company/part/manufacturer/parameter/{id}/",
+      "summary": "API endpoint for detail view of ManufacturerPartParameter model.",
+      "description": "API endpoint for detail view of ManufacturerPartParameter model.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for the ManufacturerPartParameter model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "manufacturer_part": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "description": "Parameter name",
+            "maxLength": 500
+          },
+          "value": {
+            "type": "string",
+            "description": "Parameter value",
+            "maxLength": 500
+          },
+          "units": {
+            "type": "string",
+            "nullable": true,
+            "description": "Parameter units",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "manufacturer_part",
+          "name",
+          "pk",
+          "value"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11094,
+      "method": "PUT",
+      "path": "/api/company/part/manufacturer/parameter/{id}/",
+      "summary": "API endpoint for detail view of ManufacturerPartParameter model.",
+      "description": "API endpoint for detail view of ManufacturerPartParameter model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for the ManufacturerPartParameter model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "manufacturer_part": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "description": "Parameter name",
+            "maxLength": 500
+          },
+          "value": {
+            "type": "string",
+            "description": "Parameter value",
+            "maxLength": 500
+          },
+          "units": {
+            "type": "string",
+            "nullable": true,
+            "description": "Parameter units",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "manufacturer_part",
+          "name",
+          "pk",
+          "value"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for the ManufacturerPartParameter model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "manufacturer_part": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "description": "Parameter name",
+            "maxLength": 500
+          },
+          "value": {
+            "type": "string",
+            "description": "Parameter value",
+            "maxLength": 500
+          },
+          "units": {
+            "type": "string",
+            "nullable": true,
+            "description": "Parameter units",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "manufacturer_part",
+          "name",
+          "pk",
+          "value"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11095,
+      "method": "DELETE",
+      "path": "/api/company/part/manufacturer/parameter/{id}/",
+      "summary": "API endpoint for detail view of ManufacturerPartParameter model.",
+      "description": "API endpoint for detail view of ManufacturerPartParameter model.",
+      "request_schema": null,
+      "response_schema": null,
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11096,
+      "method": "PATCH",
+      "path": "/api/company/part/manufacturer/parameter/{id}/",
+      "summary": "API endpoint for detail view of ManufacturerPartParameter model.",
+      "description": "API endpoint for detail view of ManufacturerPartParameter model.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for the ManufacturerPartParameter model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "manufacturer_part": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "description": "Parameter name",
+            "maxLength": 500
+          },
+          "value": {
+            "type": "string",
+            "description": "Parameter value",
+            "maxLength": 500
+          },
+          "units": {
+            "type": "string",
+            "nullable": true,
+            "description": "Parameter units",
+            "maxLength": 64
+          }
+        }
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for the ManufacturerPartParameter model.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "manufacturer_part": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "description": "Parameter name",
+            "maxLength": 500
+          },
+          "value": {
+            "type": "string",
+            "description": "Parameter value",
+            "maxLength": 500
+          },
+          "units": {
+            "type": "string",
+            "nullable": true,
+            "description": "Parameter units",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "manufacturer_part",
+          "name",
+          "pk",
+          "value"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11097,
+      "method": "GET",
+      "path": "/api/company/price-break/",
+      "summary": "API endpoint for list view of SupplierPriceBreak object.\n\n- GET: Retrieve list of SupplierPriceBreak objects\n- POST: Create a new SupplierPriceBreak object",
+      "description": "API endpoint for list view of SupplierPriceBreak object.\n\n- GET: Retrieve list of SupplierPriceBreak objects\n- POST: Create a new SupplierPriceBreak object",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "required": [
+          "count",
+          "results"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "example": 123
+          },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=400&limit=100"
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "http://api.example.org/accounts/?offset=200&limit=100"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "Serializer for SupplierPriceBreak object.",
+              "properties": {
+                "pk": {
+                  "type": "integer",
+                  "readOnly": true,
+                  "title": "ID"
+                },
+                "part": {
+                  "type": "integer"
+                },
+                "quantity": {
+                  "type": "number",
+                  "format": "double"
+                },
+                "price": {
+                  "type": "string",
+                  "format": "decimal",
+                  "pattern": "^-?\\d{0,13}(?:\\.\\d{0,6})?$",
+                  "nullable": true
+                },
+                "price_currency": {
+                  "type": "string",
+                  "title": "Currency",
+                  "description": "Select currency from available options"
+                },
+                "supplier": {
+                  "type": "integer",
+                  "readOnly": true
+                },
+                "updated": {
+                  "type": "string",
+                  "format": "date-time",
+                  "readOnly": true,
+                  "nullable": true,
+                  "description": "Timestamp of last update"
+                }
+              },
+              "required": [
+                "part",
+                "pk",
+                "price",
+                "quantity",
+                "supplier"
+              ]
+            }
+          }
+        }
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11098,
+      "method": "POST",
+      "path": "/api/company/price-break/",
+      "summary": "API endpoint for list view of SupplierPriceBreak object.\n\n- GET: Retrieve list of SupplierPriceBreak objects\n- POST: Create a new SupplierPriceBreak object",
+      "description": "API endpoint for list view of SupplierPriceBreak object.\n\n- GET: Retrieve list of SupplierPriceBreak objects\n- POST: Create a new SupplierPriceBreak object",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPriceBreak object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "price": {
+            "type": "string",
+            "format": "decimal",
+            "pattern": "^-?\\d{0,13}(?:\\.\\d{0,6})?$",
+            "nullable": true
+          },
+          "price_currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Select currency from available options"
+          },
+          "supplier": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true,
+            "description": "Timestamp of last update"
+          }
+        },
+        "required": [
+          "part",
+          "pk",
+          "price",
+          "quantity",
+          "supplier"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPriceBreak object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "price": {
+            "type": "string",
+            "format": "decimal",
+            "pattern": "^-?\\d{0,13}(?:\\.\\d{0,6})?$",
+            "nullable": true
+          },
+          "price_currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Select currency from available options"
+          },
+          "supplier": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true,
+            "description": "Timestamp of last update"
+          }
+        },
+        "required": [
+          "part",
+          "pk",
+          "price",
+          "quantity",
+          "supplier"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11099,
+      "method": "GET",
+      "path": "/api/company/price-break/{id}/",
+      "summary": "Detail endpoint for SupplierPriceBreak object.",
+      "description": "Detail endpoint for SupplierPriceBreak object.",
+      "request_schema": null,
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPriceBreak object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "price": {
+            "type": "string",
+            "format": "decimal",
+            "pattern": "^-?\\d{0,13}(?:\\.\\d{0,6})?$",
+            "nullable": true
+          },
+          "price_currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Select currency from available options"
+          },
+          "supplier": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true,
+            "description": "Timestamp of last update"
+          }
+        },
+        "required": [
+          "part",
+          "pk",
+          "price",
+          "quantity",
+          "supplier"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11100,
+      "method": "PUT",
+      "path": "/api/company/price-break/{id}/",
+      "summary": "Detail endpoint for SupplierPriceBreak object.",
+      "description": "Detail endpoint for SupplierPriceBreak object.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPriceBreak object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "price": {
+            "type": "string",
+            "format": "decimal",
+            "pattern": "^-?\\d{0,13}(?:\\.\\d{0,6})?$",
+            "nullable": true
+          },
+          "price_currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Select currency from available options"
+          },
+          "supplier": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true,
+            "description": "Timestamp of last update"
+          }
+        },
+        "required": [
+          "part",
+          "pk",
+          "price",
+          "quantity",
+          "supplier"
+        ]
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPriceBreak object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "price": {
+            "type": "string",
+            "format": "decimal",
+            "pattern": "^-?\\d{0,13}(?:\\.\\d{0,6})?$",
+            "nullable": true
+          },
+          "price_currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Select currency from available options"
+          },
+          "supplier": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true,
+            "description": "Timestamp of last update"
+          }
+        },
+        "required": [
+          "part",
+          "pk",
+          "price",
+          "quantity",
+          "supplier"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11101,
+      "method": "DELETE",
+      "path": "/api/company/price-break/{id}/",
+      "summary": "Detail endpoint for SupplierPriceBreak object.",
+      "description": "Detail endpoint for SupplierPriceBreak object.",
+      "request_schema": null,
+      "response_schema": null,
+      "tags": [
+        "company"
+      ]
+    },
+    {
+      "id": 11102,
+      "method": "PATCH",
+      "path": "/api/company/price-break/{id}/",
+      "summary": "Detail endpoint for SupplierPriceBreak object.",
+      "description": "Detail endpoint for SupplierPriceBreak object.",
+      "request_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPriceBreak object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "price": {
+            "type": "string",
+            "format": "decimal",
+            "pattern": "^-?\\d{0,13}(?:\\.\\d{0,6})?$",
+            "nullable": true
+          },
+          "price_currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Select currency from available options"
+          },
+          "supplier": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true,
+            "description": "Timestamp of last update"
+          }
+        }
+      },
+      "response_schema": {
+        "type": "object",
+        "description": "Serializer for SupplierPriceBreak object.",
+        "properties": {
+          "pk": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "ID"
+          },
+          "part": {
+            "type": "integer"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "price": {
+            "type": "string",
+            "format": "decimal",
+            "pattern": "^-?\\d{0,13}(?:\\.\\d{0,6})?$",
+            "nullable": true
+          },
+          "price_currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Select currency from available options"
+          },
+          "supplier": {
+            "type": "integer",
+            "readOnly": true
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "nullable": true,
+            "description": "Timestamp of last update"
+          }
+        },
+        "required": [
+          "part",
+          "pk",
+          "price",
+          "quantity",
+          "supplier"
+        ]
+      },
+      "tags": [
+        "company"
+      ]
+    }
+  ]
+}
