@@ -6579,3 +6579,30 @@ fastapi.exceptions.HTTPException: 500: 更新项目模板失败: 'str' object ha
 2026-02-06 17:15:41 | ERROR | [128a6fb1d35446ef8e0a3996ee292ef3] | app.core.auth_service | [128a6fb1d35446ef8e0a3996ee292ef3] 登录请求失败: error=Request URL is missing an 'http://' or 'https://' protocol.
 2026-02-06 17:30:47 | ERROR | [bb9527567b3040458d4af37eeab8e5e8] | app.api.v1.auth_config_append | [bb9527567b3040458d4af37eeab8e5e8] 获取 Token 异常: 'headers'
 2026-02-06 17:31:15 | ERROR | [9f5c4b17e6b54cf98ec9a46d9e034b4c] | app.api.v1.auth_config_append | [9f5c4b17e6b54cf98ec9a46d9e034b4c] 获取 Token 异常: 'headers'
+2026-02-06 17:43:47 | ERROR | [3421b8ea3d6a41faa4a808fb77100f7b] | app.api.v1.projects | [3421b8ea3d6a41faa4a808fb77100f7b] 获取项目列表失败: type object 'Environment' has no attribute 'is_deleted'
+2026-02-06 17:43:47 | ERROR | [3421b8ea3d6a41faa4a808fb77100f7b] | app.dependencies | 数据库会话异常: 500: 获取项目列表失败
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 213, in get_projects
+    items = [ProjectResponse.from_orm(p, db=db).model_dump() for p in projects]
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 213, in <listcomp>
+    items = [ProjectResponse.from_orm(p, db=db).model_dump() for p in projects]
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 105, in from_orm
+    environments = db.query(Environment).filter(Environment.project_id == obj.id, Environment.is_deleted == False).all()
+AttributeError: type object 'Environment' has no attribute 'is_deleted'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 228, in get_projects
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: 获取项目列表失败

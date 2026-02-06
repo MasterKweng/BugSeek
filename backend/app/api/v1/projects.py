@@ -98,8 +98,12 @@ class ProjectResponse(BaseModel):
         from_attributes = True
 
     @classmethod
-    def from_orm(cls, obj, environments: Optional[List[Environment]] = None):
+    def from_orm(cls, obj, environments: Optional[List[Environment]] = None, db: Optional[Session] = None):
         """转换 datetime 为 ISO 8601 字符串，并包含环境列表"""
+        # 如果没有传入 environments，则查询数据库
+        if environments is None and db is not None:
+            environments = db.query(Environment).filter(Environment.project_id == obj.id).all()
+        
         data = {
             "id": obj.id,
             "name": obj.name,
@@ -206,7 +210,7 @@ async def get_projects(
         projects = query.order_by(Project.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
         # 转换为响应模型
-        items = [ProjectResponse.from_orm(p).model_dump() for p in projects]
+        items = [ProjectResponse.from_orm(p, db=db).model_dump() for p in projects]
 
         logger.info(f"[{trace_id}] 获取项目列表成功: total={total}")
 

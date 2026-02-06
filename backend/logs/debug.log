@@ -10000,3 +10000,168 @@ fastapi.exceptions.HTTPException: 500: 更新项目模板失败: 'str' object ha
 2026-02-06 17:35:28 | INFO | [9f64257d541d47c39db9998c417b88f2] | app.main | 启动异步任务工作线程...
 2026-02-06 17:35:28 | INFO | [9f64257d541d47c39db9998c417b88f2] | app.main | 异步任务工作线程已启动
 2026-02-06 17:35:28 | INFO | [9f64257d541d47c39db9998c417b88f2] | app.core.async_task.manager | [9f64257d541d47c39db9998c417b88f2] 启动异步任务工作线程
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.api.v1.auth_config_append | [b90178cff71e4970839aaf9bb8235c5f] 智能注入鉴权信息: project_id=1, environment_id=3
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.api.v1.auth_config_append | [b90178cff71e4970839aaf9bb8235c5f] 环境无配置，查询环境级鉴权配置
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.api.v1.auth_config_append | [b90178cff71e4970839aaf9bb8235c5f] 环境无鉴权配置，使用项目模板
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f] 获取登录凭证: project_id=1
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f] 动态模式: project_id=1
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f] 获取登录接口定义: api_id=2800, method=GET, url=/api/user/token/
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f] 构建登录请求: login_auth_type=basic
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f] Basic 认证已构建: Authorization header
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f] 执行登录请求: project_id=1
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f]   请求URL: GET http://localhost:1337/api/user/token/
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f]   请求头: {'Content-Type': 'application/json', 'Authorization': 'Basic YWRtaW46YWRtaW4='}
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f]   请求体: {}
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | httpx | HTTP Request: GET http://localhost:1337/api/user/token/ "HTTP/1.1 200 OK"
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f] 登录请求完成: status=200
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f]   响应头: {'server': 'gunicorn', 'date': 'Fri, 06 Feb 2026 09:35:36 GMT', 'connection': 'keep-alive', 'content-type': 'application/json', 'vary': 'Accept, Cookie, Authorization, origin, Accept-Language', 'allow': 'GET, HEAD, OPTIONS', 'x-frame-options': 'DENY', 'content-length': '97', 'content-language': 'en', 'x-content-type-options': 'nosniff', 'referrer-policy': 'same-origin', 'cross-origin-opener-policy': 'same-origin', 'set-cookie': 'csrftoken=STokBX155l3plCXTEj9h9USAXg5dW6Xt; expires=Fri, 05 Feb 2027 09:35:36 GMT; Max-Age=31449600; Path=/, sessionid=vb6c945ew1esr18g2ebddkcrjl28myvf; expires=Fri, 20 Feb 2026 09:35:36 GMT; HttpOnly; Max-Age=1209600; Path=/'}
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f]   响应体: {"token":"inv-c6ff8b8a5bac62f33013701cf82ae4c0fe5e8e2b-20260205","name":"","expiry":"2027-02-05"}
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f] 提取凭证: project_id=1
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f] 提取成功: TOKEN=inv-c6ff8b8a5bac62f33013701cf82ae4c0fe5e8e2b-20260205
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.core.auth_service | [b90178cff71e4970839aaf9bb8235c5f] 构建注入 headers: target=header, key=Authorization
+2026-02-06 17:35:39 | INFO | [b90178cff71e4970839aaf9bb8235c5f] | app.api.v1.auth_config_append | [b90178cff71e4970839aaf9bb8235c5f] 成功注入鉴权信息: source=project_template, headers_count=1
+2026-02-06 17:35:41 | INFO | [f533ac757bb84681ba7ce1de4f83b707] | app.api.v1.api_definitions | [f533ac757bb84681ba7ce1de4f83b707] 在线调试: definition_id=3181, user=admin
+2026-02-06 17:35:41 | INFO | [f533ac757bb84681ba7ce1de4f83b707] | httpx | HTTP Request: GET http://localhost:1337/api/order/so-extra-line/?limit=&offset=&order=&order_detail=&ordering=&search= "HTTP/1.1 200 OK"
+2026-02-06 17:35:41 | INFO | [f533ac757bb84681ba7ce1de4f83b707] | app.api.v1.api_definitions | [f533ac757bb84681ba7ce1de4f83b707] 调试成功: status=200, time=230ms
+2026-02-06 17:37:20 | INFO | [dbac450952254d438381bc89cbf1d224] | app.api.v1.projects | [dbac450952254d438381bc89cbf1d224] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:37:20 | INFO | [dbac450952254d438381bc89cbf1d224] | app.api.v1.projects | [dbac450952254d438381bc89cbf1d224] 获取项目列表成功: total=2
+2026-02-06 17:37:20 | INFO | [1cc51a686d0e4888b74ff9e90d4a913c] | app.api.v1.projects | [1cc51a686d0e4888b74ff9e90d4a913c] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:37:20 | INFO | [1cc51a686d0e4888b74ff9e90d4a913c] | app.api.v1.projects | [1cc51a686d0e4888b74ff9e90d4a913c] 获取项目列表成功: total=2
+2026-02-06 17:37:30 | INFO | [3896fff52d68490d9aede2be3c168d84] | app.api.v1.projects | [3896fff52d68490d9aede2be3c168d84] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:37:30 | INFO | [3896fff52d68490d9aede2be3c168d84] | app.api.v1.projects | [3896fff52d68490d9aede2be3c168d84] 获取项目列表成功: total=2
+2026-02-06 17:38:32 | INFO | [3627b3f89c2a425bb847aa02daaf3661] | app.api.v1.projects | [3627b3f89c2a425bb847aa02daaf3661] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:32 | INFO | [3627b3f89c2a425bb847aa02daaf3661] | app.api.v1.projects | [3627b3f89c2a425bb847aa02daaf3661] 获取项目列表成功: total=2
+2026-02-06 17:38:33 | INFO | [210fa8c8cce845b98dd6763fa1786cc8] | app.api.v1.projects | [210fa8c8cce845b98dd6763fa1786cc8] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:33 | INFO | [210fa8c8cce845b98dd6763fa1786cc8] | app.api.v1.projects | [210fa8c8cce845b98dd6763fa1786cc8] 获取项目列表成功: total=2
+2026-02-06 17:38:33 | INFO | [5414e8f5948e47309902d87776225308] | app.api.v1.projects | [5414e8f5948e47309902d87776225308] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:33 | INFO | [5414e8f5948e47309902d87776225308] | app.api.v1.projects | [5414e8f5948e47309902d87776225308] 获取项目列表成功: total=2
+2026-02-06 17:38:33 | INFO | [815f71243c6e45d29c0dd3aa7eafdfe4] | app.api.v1.projects | [815f71243c6e45d29c0dd3aa7eafdfe4] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:33 | INFO | [815f71243c6e45d29c0dd3aa7eafdfe4] | app.api.v1.projects | [815f71243c6e45d29c0dd3aa7eafdfe4] 获取项目列表成功: total=2
+2026-02-06 17:38:34 | INFO | [defef5261dea463e9a6f88e9dbaf99e4] | app.api.v1.projects | [defef5261dea463e9a6f88e9dbaf99e4] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:34 | INFO | [defef5261dea463e9a6f88e9dbaf99e4] | app.api.v1.projects | [defef5261dea463e9a6f88e9dbaf99e4] 获取项目列表成功: total=2
+2026-02-06 17:38:34 | INFO | [00355064f58b46d99e22c7eb49cfad0f] | app.api.v1.projects | [00355064f58b46d99e22c7eb49cfad0f] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:34 | INFO | [00355064f58b46d99e22c7eb49cfad0f] | app.api.v1.projects | [00355064f58b46d99e22c7eb49cfad0f] 获取项目列表成功: total=2
+2026-02-06 17:38:34 | INFO | [196983f7d9174e3c8f18d6e86620b45a] | app.api.v1.projects | [196983f7d9174e3c8f18d6e86620b45a] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:34 | INFO | [196983f7d9174e3c8f18d6e86620b45a] | app.api.v1.projects | [196983f7d9174e3c8f18d6e86620b45a] 获取项目列表成功: total=2
+2026-02-06 17:38:34 | INFO | [0d92ec9e1a66461c9d5793ca019e6273] | app.api.v1.projects | [0d92ec9e1a66461c9d5793ca019e6273] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:34 | INFO | [0d92ec9e1a66461c9d5793ca019e6273] | app.api.v1.projects | [0d92ec9e1a66461c9d5793ca019e6273] 获取项目列表成功: total=2
+2026-02-06 17:38:35 | INFO | [2ca224c93aad4879840d48027fd66a4e] | app.api.v1.projects | [2ca224c93aad4879840d48027fd66a4e] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:35 | INFO | [2ca224c93aad4879840d48027fd66a4e] | app.api.v1.projects | [2ca224c93aad4879840d48027fd66a4e] 获取项目列表成功: total=2
+2026-02-06 17:38:35 | INFO | [dfb534280cfa4572bf439d6cccffea2f] | app.api.v1.projects | [dfb534280cfa4572bf439d6cccffea2f] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:35 | INFO | [dfb534280cfa4572bf439d6cccffea2f] | app.api.v1.projects | [dfb534280cfa4572bf439d6cccffea2f] 获取项目列表成功: total=2
+2026-02-06 17:38:35 | INFO | [d2a7f57669b641c6bda52873fe540df2] | app.api.v1.projects | [d2a7f57669b641c6bda52873fe540df2] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:35 | INFO | [d2a7f57669b641c6bda52873fe540df2] | app.api.v1.projects | [d2a7f57669b641c6bda52873fe540df2] 获取项目列表成功: total=2
+2026-02-06 17:38:35 | INFO | [e42d0f0f23104f2785c0563404b1b90f] | app.api.v1.projects | [e42d0f0f23104f2785c0563404b1b90f] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:35 | INFO | [e42d0f0f23104f2785c0563404b1b90f] | app.api.v1.projects | [e42d0f0f23104f2785c0563404b1b90f] 获取项目列表成功: total=2
+2026-02-06 17:38:35 | INFO | [4e81ae60b5e74ca78007b95d9b253be4] | app.api.v1.projects | [4e81ae60b5e74ca78007b95d9b253be4] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:35 | INFO | [4e81ae60b5e74ca78007b95d9b253be4] | app.api.v1.projects | [4e81ae60b5e74ca78007b95d9b253be4] 获取项目列表成功: total=2
+2026-02-06 17:38:35 | INFO | [ef7f30d763d7440e9ff760eb50163c71] | app.api.v1.projects | [ef7f30d763d7440e9ff760eb50163c71] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:35 | INFO | [ef7f30d763d7440e9ff760eb50163c71] | app.api.v1.projects | [ef7f30d763d7440e9ff760eb50163c71] 获取项目列表成功: total=2
+2026-02-06 17:38:36 | INFO | [f81b40dd61c34c49996e268a0ee66432] | app.api.v1.projects | [f81b40dd61c34c49996e268a0ee66432] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:36 | INFO | [f81b40dd61c34c49996e268a0ee66432] | app.api.v1.projects | [f81b40dd61c34c49996e268a0ee66432] 获取项目列表成功: total=2
+2026-02-06 17:38:36 | INFO | [ebdfee6602334c8cabee76af3396adc9] | app.api.v1.projects | [ebdfee6602334c8cabee76af3396adc9] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:36 | INFO | [ebdfee6602334c8cabee76af3396adc9] | app.api.v1.projects | [ebdfee6602334c8cabee76af3396adc9] 获取项目列表成功: total=2
+2026-02-06 17:38:36 | INFO | [08d31211f11a4da58f1f00b166c73c4c] | app.api.v1.projects | [08d31211f11a4da58f1f00b166c73c4c] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:36 | INFO | [08d31211f11a4da58f1f00b166c73c4c] | app.api.v1.projects | [08d31211f11a4da58f1f00b166c73c4c] 获取项目列表成功: total=2
+2026-02-06 17:38:36 | INFO | [e52d12f684aa448cbd426c2a8ed75df1] | app.api.v1.projects | [e52d12f684aa448cbd426c2a8ed75df1] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:36 | INFO | [e52d12f684aa448cbd426c2a8ed75df1] | app.api.v1.projects | [e52d12f684aa448cbd426c2a8ed75df1] 获取项目列表成功: total=2
+2026-02-06 17:38:36 | INFO | [372e816fa56d4571a2c89853b121f192] | app.api.v1.projects | [372e816fa56d4571a2c89853b121f192] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:36 | INFO | [372e816fa56d4571a2c89853b121f192] | app.api.v1.projects | [372e816fa56d4571a2c89853b121f192] 获取项目列表成功: total=2
+2026-02-06 17:38:37 | INFO | [05557c6e6ad84f9990d6558f5759cc26] | app.api.v1.projects | [05557c6e6ad84f9990d6558f5759cc26] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:38:37 | INFO | [05557c6e6ad84f9990d6558f5759cc26] | app.api.v1.projects | [05557c6e6ad84f9990d6558f5759cc26] 获取项目列表成功: total=2
+2026-02-06 17:39:10 | INFO | [7a882d88bb82470ebfde118d8b154a17] | app.api.v1.projects | [7a882d88bb82470ebfde118d8b154a17] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:39:10 | INFO | [7a882d88bb82470ebfde118d8b154a17] | app.api.v1.projects | [7a882d88bb82470ebfde118d8b154a17] 获取项目列表成功: total=2
+2026-02-06 17:39:32 | INFO | [007fbd83f3bb417abe2bc0f2ca1a3786] | app.api.v1.environments | [007fbd83f3bb417abe2bc0f2ca1a3786] 用户 admin 获取环境列表: project_id=2, page=1, page_size=100
+2026-02-06 17:39:32 | INFO | [007fbd83f3bb417abe2bc0f2ca1a3786] | app.api.v1.environments | [007fbd83f3bb417abe2bc0f2ca1a3786] 用户 admin 查看环境 项目 TEST (id=2) 的环境
+2026-02-06 17:39:32 | INFO | [007fbd83f3bb417abe2bc0f2ca1a3786] | app.api.v1.environments | [007fbd83f3bb417abe2bc0f2ca1a3786] 获取环境列表成功: total=1
+2026-02-06 17:39:36 | INFO | [5e8f82d74ad94cc7859a60216136e50a] | app.api.v1.environments | [5e8f82d74ad94cc7859a60216136e50a] 用户 admin 获取环境列表: project_id=1, page=1, page_size=100
+2026-02-06 17:39:36 | INFO | [5e8f82d74ad94cc7859a60216136e50a] | app.api.v1.environments | [5e8f82d74ad94cc7859a60216136e50a] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 17:39:36 | INFO | [5e8f82d74ad94cc7859a60216136e50a] | app.api.v1.environments | [5e8f82d74ad94cc7859a60216136e50a] 获取环境列表成功: total=2
+2026-02-06 17:40:12 | INFO | [ceeaf5d4830d406cbdc814d514f8faad] | app.api.v1.projects | [ceeaf5d4830d406cbdc814d514f8faad] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:40:12 | INFO | [ceeaf5d4830d406cbdc814d514f8faad] | app.api.v1.projects | [ceeaf5d4830d406cbdc814d514f8faad] 获取项目列表成功: total=2
+2026-02-06 17:40:15 | INFO | [129b84613a424722b689cfcc565aad1f] | app.api.v1.projects | [129b84613a424722b689cfcc565aad1f] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 17:40:15 | INFO | [129b84613a424722b689cfcc565aad1f] | app.api.v1.projects | [129b84613a424722b689cfcc565aad1f] 获取项目列表成功: total=2
+2026-02-06 17:40:15 | INFO | [e7fe5a78b83a453f8375bdae446254a5] | app.api.v1.versions | [e7fe5a78b83a453f8375bdae446254a5] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-06 17:40:15 | INFO | [763acfdad77a485089d4365327c5c03f] | app.api.v1.projects | [763acfdad77a485089d4365327c5c03f] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:40:15 | INFO | [763acfdad77a485089d4365327c5c03f] | app.api.v1.projects | [763acfdad77a485089d4365327c5c03f] 获取项目列表成功: total=2
+2026-02-06 17:40:15 | INFO | [945c875e908440eb876a5bdc3cfdfdc6] | app.api.v1.projects | [945c875e908440eb876a5bdc3cfdfdc6] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 17:40:15 | INFO | [945c875e908440eb876a5bdc3cfdfdc6] | app.api.v1.projects | [945c875e908440eb876a5bdc3cfdfdc6] 获取项目列表成功: total=2
+2026-02-06 17:40:15 | INFO | [c4a18bc9b36f4733b334c81b7c039164] | app.api.v1.projects | [c4a18bc9b36f4733b334c81b7c039164] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:40:15 | INFO | [c4a18bc9b36f4733b334c81b7c039164] | app.api.v1.projects | [c4a18bc9b36f4733b334c81b7c039164] 获取项目列表成功: total=2
+2026-02-06 17:40:15 | INFO | [a9b4830675f941aca17d74c57926b99e] | app.api.v1.versions | [a9b4830675f941aca17d74c57926b99e] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-06 17:40:15 | INFO | [67a0704bfafe4568a86cfe00dbf9f8b6] | app.api.v1.projects | [67a0704bfafe4568a86cfe00dbf9f8b6] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 17:40:15 | INFO | [67a0704bfafe4568a86cfe00dbf9f8b6] | app.api.v1.projects | [67a0704bfafe4568a86cfe00dbf9f8b6] 获取项目列表成功: total=2
+2026-02-06 17:40:15 | INFO | [77189e65865647009d61478169c380d1] | app.api.v1.projects | [77189e65865647009d61478169c380d1] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 17:40:15 | INFO | [77189e65865647009d61478169c380d1] | app.api.v1.projects | [77189e65865647009d61478169c380d1] 获取项目列表成功: total=2
+2026-02-06 17:40:18 | INFO | [9424bbc05f7c435abe99c80f51bb5878] | app.api.v1.environments | [9424bbc05f7c435abe99c80f51bb5878] 用户 admin 获取环境列表: project_id=1, page=1, page_size=100
+2026-02-06 17:40:18 | INFO | [9424bbc05f7c435abe99c80f51bb5878] | app.api.v1.environments | [9424bbc05f7c435abe99c80f51bb5878] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 17:40:18 | INFO | [9424bbc05f7c435abe99c80f51bb5878] | app.api.v1.environments | [9424bbc05f7c435abe99c80f51bb5878] 获取环境列表成功: total=2
+2026-02-06 17:41:09 | INFO | [8e4bd5d6cc28441eabc89f272592646e] | app.api.v1.environments | [8e4bd5d6cc28441eabc89f272592646e] 用户 admin 获取环境列表: project_id=1, page=1, page_size=100
+2026-02-06 17:41:09 | INFO | [8e4bd5d6cc28441eabc89f272592646e] | app.api.v1.environments | [8e4bd5d6cc28441eabc89f272592646e] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 17:41:09 | INFO | [8e4bd5d6cc28441eabc89f272592646e] | app.api.v1.environments | [8e4bd5d6cc28441eabc89f272592646e] 获取环境列表成功: total=2
+2026-02-06 17:41:09 | INFO | [8ebfdadf835648a58bfe00e287e31d15] | app.api.v1.auth_config_append | [8ebfdadf835648a58bfe00e287e31d15] 获取项目模板: project_id=1, user=admin
+2026-02-06 17:41:09 | INFO | [8ebfdadf835648a58bfe00e287e31d15] | app.api.v1.auth_config_append | [8ebfdadf835648a58bfe00e287e31d15] 获取项目模板成功: project_id=1
+2026-02-06 17:41:12 | INFO | [df84e62ee3c8469ea7947d46521eb8da] | app.api.v1.auth_config_append | [df84e62ee3c8469ea7947d46521eb8da] 获取环境鉴权配置: project_id=1, environment_id=4
+2026-02-06 17:41:12 | INFO | [df84e62ee3c8469ea7947d46521eb8da] | app.api.v1.auth_config_append | [df84e62ee3c8469ea7947d46521eb8da] 环境鉴权配置不存在: project_id=1, environment_id=4
+2026-02-06 17:41:12 | INFO | [a962dd5c54954d8da372540b5d7c1a18] | app.api.v1.auth_config_append | [a962dd5c54954d8da372540b5d7c1a18] 获取环境鉴权配置: project_id=1, environment_id=3
+2026-02-06 17:41:12 | INFO | [a962dd5c54954d8da372540b5d7c1a18] | app.api.v1.auth_config_append | [a962dd5c54954d8da372540b5d7c1a18] 环境鉴权配置不存在: project_id=1, environment_id=3
+2026-02-06 17:41:17 | INFO | [3d23360355a048acb927d74feb1df191] | app.api.v1.projects | [3d23360355a048acb927d74feb1df191] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:41:17 | INFO | [3d23360355a048acb927d74feb1df191] | app.api.v1.projects | [3d23360355a048acb927d74feb1df191] 获取项目列表成功: total=2
+2026-02-06 17:41:17 | INFO | [fa29afb5dde1422e8b3ab57264ebf183] | app.api.v1.projects | [fa29afb5dde1422e8b3ab57264ebf183] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:41:17 | INFO | [fa29afb5dde1422e8b3ab57264ebf183] | app.api.v1.projects | [fa29afb5dde1422e8b3ab57264ebf183] 获取项目列表成功: total=2
+2026-02-06 17:43:10 | INFO | [a7ff39d61342492fa140a3743f2351f5] | app.api.v1.projects | [a7ff39d61342492fa140a3743f2351f5] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:43:10 | INFO | [a7ff39d61342492fa140a3743f2351f5] | app.api.v1.projects | [a7ff39d61342492fa140a3743f2351f5] 获取项目列表成功: total=2
+2026-02-06 17:43:10 | INFO | [12897d06abf64d7fa7e09c944bd7e243] | app.api.v1.projects | [12897d06abf64d7fa7e09c944bd7e243] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:43:10 | INFO | [12897d06abf64d7fa7e09c944bd7e243] | app.api.v1.projects | [12897d06abf64d7fa7e09c944bd7e243] 获取项目列表成功: total=2
+2026-02-06 17:43:11 | INFO | [4dc90057fbfe4a178f6a335ed5178275] | app.api.v1.projects | [4dc90057fbfe4a178f6a335ed5178275] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:43:11 | INFO | [4dc90057fbfe4a178f6a335ed5178275] | app.api.v1.projects | [4dc90057fbfe4a178f6a335ed5178275] 获取项目列表成功: total=2
+2026-02-06 17:43:11 | INFO | [72783107596c4b16a023483bf5bb6696] | app.api.v1.projects | [72783107596c4b16a023483bf5bb6696] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:43:11 | INFO | [72783107596c4b16a023483bf5bb6696] | app.api.v1.projects | [72783107596c4b16a023483bf5bb6696] 获取项目列表成功: total=2
+2026-02-06 17:43:11 | INFO | [72b1848fb5124672acd8b605f2086db8] | app.api.v1.projects | [72b1848fb5124672acd8b605f2086db8] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:43:11 | INFO | [72b1848fb5124672acd8b605f2086db8] | app.api.v1.projects | [72b1848fb5124672acd8b605f2086db8] 获取项目列表成功: total=2
+2026-02-06 17:43:11 | INFO | [afad14df0e4c4dc7994a2ac121d2a068] | app.api.v1.projects | [afad14df0e4c4dc7994a2ac121d2a068] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:43:11 | INFO | [afad14df0e4c4dc7994a2ac121d2a068] | app.api.v1.projects | [afad14df0e4c4dc7994a2ac121d2a068] 获取项目列表成功: total=2
+2026-02-06 17:43:11 | INFO | [524b72f5bfd5452bbf1874d94bee6c5c] | app.api.v1.projects | [524b72f5bfd5452bbf1874d94bee6c5c] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:43:11 | INFO | [524b72f5bfd5452bbf1874d94bee6c5c] | app.api.v1.projects | [524b72f5bfd5452bbf1874d94bee6c5c] 获取项目列表成功: total=2
+2026-02-06 17:43:11 | INFO | [53412ae61b6043dd9c5723464dd4b6d3] | app.api.v1.projects | [53412ae61b6043dd9c5723464dd4b6d3] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:43:11 | INFO | [53412ae61b6043dd9c5723464dd4b6d3] | app.api.v1.projects | [53412ae61b6043dd9c5723464dd4b6d3] 获取项目列表成功: total=2
+2026-02-06 17:43:16 | INFO | [6fc0b6116fac4248a80ffa3c9605c7ae] | root | 日志系统初始化完成
+2026-02-06 17:43:16 | INFO | [6fc0b6116fac4248a80ffa3c9605c7ae] | app.main | 启动异步任务工作线程...
+2026-02-06 17:43:16 | INFO | [6fc0b6116fac4248a80ffa3c9605c7ae] | app.main | 异步任务工作线程已启动
+2026-02-06 17:43:16 | INFO | [6fc0b6116fac4248a80ffa3c9605c7ae] | app.core.async_task.manager | [6fc0b6116fac4248a80ffa3c9605c7ae] 启动异步任务工作线程
+2026-02-06 17:43:35 | INFO | [436895cf86194cbf90bb384245e6c93c] | root | 日志系统初始化完成
+2026-02-06 17:43:35 | INFO | [436895cf86194cbf90bb384245e6c93c] | app.main | 启动异步任务工作线程...
+2026-02-06 17:43:35 | INFO | [436895cf86194cbf90bb384245e6c93c] | app.main | 异步任务工作线程已启动
+2026-02-06 17:43:35 | INFO | [436895cf86194cbf90bb384245e6c93c] | app.core.async_task.manager | [436895cf86194cbf90bb384245e6c93c] 启动异步任务工作线程
+2026-02-06 17:43:47 | INFO | [3421b8ea3d6a41faa4a808fb77100f7b] | app.api.v1.projects | [3421b8ea3d6a41faa4a808fb77100f7b] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:43:47 | ERROR | [3421b8ea3d6a41faa4a808fb77100f7b] | app.api.v1.projects | [3421b8ea3d6a41faa4a808fb77100f7b] 获取项目列表失败: type object 'Environment' has no attribute 'is_deleted'
+2026-02-06 17:43:47 | ERROR | [3421b8ea3d6a41faa4a808fb77100f7b] | app.dependencies | 数据库会话异常: 500: 获取项目列表失败
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 213, in get_projects
+    items = [ProjectResponse.from_orm(p, db=db).model_dump() for p in projects]
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 213, in <listcomp>
+    items = [ProjectResponse.from_orm(p, db=db).model_dump() for p in projects]
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 105, in from_orm
+    environments = db.query(Environment).filter(Environment.project_id == obj.id, Environment.is_deleted == False).all()
+AttributeError: type object 'Environment' has no attribute 'is_deleted'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\projects.py", line 228, in get_projects
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: 获取项目列表失败
+2026-02-06 17:44:40 | INFO | [147b912ef32d4d1dabfd174b3c981cfa] | root | 日志系统初始化完成
+2026-02-06 17:44:40 | INFO | [147b912ef32d4d1dabfd174b3c981cfa] | app.main | 启动异步任务工作线程...
+2026-02-06 17:44:40 | INFO | [147b912ef32d4d1dabfd174b3c981cfa] | app.main | 异步任务工作线程已启动
+2026-02-06 17:44:40 | INFO | [147b912ef32d4d1dabfd174b3c981cfa] | app.core.async_task.manager | [147b912ef32d4d1dabfd174b3c981cfa] 启动异步任务工作线程
