@@ -41,6 +41,11 @@ class ChangeDetector:
         """
         logger.info(f"[{self.trace_id}] 开始检测接口变更")
         
+        # 调试：检查 new_definitions 的结构
+        if new_definitions:
+            logger.info(f"[{self.trace_id}] new_definitions[0] keys: {list(new_definitions[0].keys())}")
+            logger.info(f"[{self.trace_id}] new_definitions[0] data: {new_definitions[0]}")
+        
         # 构建旧接口映射
         old_map = {(d['method'], d['path']): d for d in old_definitions}
         new_map = {(d['method'], d['path']): d for d in new_definitions}
@@ -69,6 +74,13 @@ class ChangeDetector:
                 "method": method,
                 "path": path,
                 "summary": definition.get("summary", ""),
+                "description": definition.get("description", ""),
+                "tags": definition.get("tags", []),
+                "request_schema": definition.get("request_schema", {}),
+                "response_schema": definition.get("response_schema", {}),
+                "parameters": definition.get("parameters", []),
+                "responses": definition.get("responses", {}),
+                "security": definition.get("security", []),
                 "change_type": DiffType.ADDED
             })
             logger.debug(f"[{self.trace_id}] 新增接口: {method} {path}")
@@ -105,6 +117,13 @@ class ChangeDetector:
                     "method": method,
                     "path": path,
                     "summary": new_def.get("summary", ""),
+                    "description": new_def.get("description", ""),
+                    "tags": new_def.get("tags", []),
+                    "request_schema": new_def.get("request_schema", {}),
+                    "response_schema": new_def.get("response_schema", {}),
+                    "parameters": new_def.get("parameters", []),
+                    "responses": new_def.get("responses", {}),
+                    "security": new_def.get("security", []),
                     "change_type": DiffType.CHANGED,
                     "diff": schema_diff
                 })

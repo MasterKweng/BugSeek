@@ -136,6 +136,9 @@ export interface Environment {
   id: number
   name: string
   base_url: string
+  headers?: Record<string, string>
+  variables?: Record<string, string>
+  is_default?: boolean
   created_at: string
 }
 

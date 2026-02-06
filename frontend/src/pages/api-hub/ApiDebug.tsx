@@ -21,6 +21,8 @@ import {
   Space,
   Typography,
   Divider,
+  Dropdown,
+  Menu,
 } from 'antd';
 import {
   PlayCircleOutlined,
@@ -28,17 +30,22 @@ import {
   CopyOutlined,
   ReloadOutlined,
   CheckOutlined,
+  ThunderboltOutlined,
+  KeyOutlined,
 } from '@ant-design/icons';
 import type { TabsProps } from 'antd';
 import api from '../../services/api';
 
 const { TextArea } = Input;
+
 const { Text, Paragraph } = Typography;
 
 interface Environment {
   id: number;
   name: string;
   base_url: string;
+  headers?: Record<string, string>;
+  variables?: Record<string, any>;
 }
 
 interface ApiDefinition {
@@ -78,11 +85,29 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
   const [environments, setEnvironments] = useState<Environment[]>([]);
   const [debugResult, setDebugResult] = useState<DebugResponse | null>(null);
   const [activeTab, setActiveTab] = useState('request');
+  const [pathParams, setPathParams] = useState<Record<string, any>>({});
+  const [queryParams, setQueryParams] = useState<Record<string, any>>({});
+  const [requestBody, setRequestBody] = useState<Record<string, any>>({});
+
+  // 辅助函数：从定义中获取参数（优先从 schema_snapshot 获取）
+  const getParameters = (): any[] => {
+    if (definition?.schema_snapshot?.parameters) {
+      return definition.schema_snapshot.parameters;
+    } else if (definition?.request_schema?.parameters) {
+      // 兼容旧数据（parameters 可能被错误地放在 request_schema 中）
+      return definition.request_schema.parameters;
+    } else if (Array.isArray(definition?.request_schema)) {
+      // 兼容另一种格式
+      return definition.request_schema;
+    }
+    return [];
+  };
 
   // 获取环境列表
   const fetchEnvironments = async () => {
     try {
       const response = await api.get('/environments');
+      console.log('环境列表响应:', response);
       if (response.code === 0) {
         setEnvironments(response.data.environments || []);
       }
@@ -91,9 +116,283 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
     }
   };
 
+  // 注入环境鉴权
+  const injectAuth = async () => {
+    const selectedEnvId = form.getFieldValue('environment_id');
+    const environment = environments.find(e => e.id === selectedEnvId);
+    
+    console.log('选中的环境:', environment);
+    
+    if (!environment) {
+      message.warning('请先选择环境');
+      return;
+    }
+
+    // 检查环境是否配置了 headers 或 variables
+    const headers = environment.headers || {};
+    const variables = environment.variables || {};
+    
+    console.log('环境 headers:', headers);
+    console.log('环境 variables:', variables);
+    
+    const hasHeaders = Object.keys(headers).length > 0;
+    const hasVariables = Object.keys(variables).length > 0;
+    
+    if (!hasHeaders && !hasVariables) {
+      message.warning('请在环境中配置鉴权信息（headers 或 variables）');
+      return;
+    }
+
+    // 构建请求头，包含环境配置的 headers
+    let resultHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // 添加环境配置的 headers
+    if (hasHeaders) {
+      resultHeaders = { ...resultHeaders, ...headers };
+    }
+
+    // 添加环境配置的 variables（作为 headers）
+    if (hasVariables) {
+      Object.keys(variables).forEach(key => {
+        resultHeaders[key] = variables[key];
+      });
+    }
+
+    form.setFieldsValue({
+      headers: JSON.stringify(resultHeaders, null, 2),
+    });
+
+    message.success(`已注入环境 "${environment.name}" 的鉴权信息`);
+  };
+
+  // 自动获取并注入 Token
+  const injectAuthToken = async () => {
+    const selectedEnvId = form.getFieldValue('environment_id');
+    const environment = environments.find(e => e.id === selectedEnvId);
+    
+    if (!environment) {
+      message.warning('请先选择环境');
+      return;
+    }
+
+    try {
+      // 从环境获取项目 ID（需要环境包含 project_id）
+      const projectId = environment.project_id;
+      if (!projectId) {
+        message.warning('无法获取项目 ID');
+        return;
+      }
+
+      // 调用后端获取有效的 Token
+      const response = await api.get(`/projects/${projectId}/auth-config/token`);
+      
+      if (response.code === 0 && response.data && response.data.headers) {
+        // 合并环境 headers 和 Token headers
+        let headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+
+        // 添加环境配置的 headers
+        if (environment.headers) {
+          headers = { ...headers, ...environment.headers };
+        }
+
+        // 添加环境配置的 variables（作为 headers）
+        if (environment.variables) {
+          Object.keys(environment.variables).forEach(key => {
+            headers[key] = environment.variables[key];
+          });
+        }
+
+        // 添加 Token headers（覆盖同名的环境 headers）
+        headers = { ...headers, ...response.data.headers };
+
+        form.setFieldsValue({
+          headers: JSON.stringify(headers, null, 2),
+        });
+
+        const status = response.data.status;
+        if (status === 'success') {
+          message.success(`已自动注入 Token（${response.data.expire_time ? '有效期至 ' + new Date(response.data.expire_time).toLocaleTimeString() : ''}）`);
+        } else {
+          message.warning(`Token 获取失败: ${response.data.error || '未知错误'}`);
+        }
+      } else {
+        message.warning(response.message || '获取 Token 失败');
+      }
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        message.warning('该项目未配置鉴权，请在项目管理中配置');
+      } else {
+        message.error(error.message || '获取 Token 失败');
+      }
+    }
+  };
+
+  // 初始化表单默认值
+  const getInitialValues = () => {
+    const pathParams: Record<string, any> = {};
+    const queryParams: Record<string, any> = {};
+    const requestBody: Record<string, any> = {};
+
+    const parameters = getParameters();
+    
+    // 处理 parameters 数组中的参数（path、query、header、body）
+    if (parameters.length > 0) {
+      parameters.forEach((param: any) => {
+        const name = param.name;
+        const paramIn = param.in; // path, query, body, header
+
+        if (paramIn === 'path') {
+          // 路径参数 - 使用默认值或占位符
+          pathParams[name] = param.schema?.default || `{${name}}`;
+        } else if (paramIn === 'query') {
+          // 查询参数
+          queryParams[name] = param.schema?.default || '';
+        } else if (paramIn === 'body') {
+          // 请求体参数
+          if (param.schema?.type === 'object') {
+            requestBody[name] = param.schema?.default || {};
+          } else {
+            requestBody[name] = param.schema?.default || '';
+          }
+        }
+      });
+    }
+    
+    // 如果没有 parameters，尝试从 request_schema.properties 中提取请求体
+    // 适用于 POST/PUT 等有请求体的接口
+    // 显示所有字段（不管是否是必填，只排除 readOnly 字段）
+    if (Object.keys(requestBody).length === 0 && definition?.request_schema?.properties) {
+      const properties = definition.request_schema.properties;
+      Object.keys(properties).forEach(key => {
+        const prop = properties[key];
+        // 只排除 readOnly 字段（系统自动维护的字段）
+        // 不排除必填字段，让用户填写所有可编辑字段
+        if (!prop.readOnly) {
+          // 根据字段类型设置默认值
+          if (prop.type === 'string') {
+            requestBody[key] = prop.default !== undefined ? prop.default : '';
+          } else if (prop.type === 'number') {
+            requestBody[key] = prop.default !== undefined ? prop.default : 0;
+          } else if (prop.type === 'boolean') {
+            requestBody[key] = prop.default !== undefined ? prop.default : false;
+          } else if (prop.type === 'integer') {
+            requestBody[key] = prop.default !== undefined ? prop.default : 0;
+          } else if (prop.type === 'array') {
+            requestBody[key] = prop.default !== undefined ? prop.default : [];
+          } else if (prop.type === 'object') {
+            requestBody[key] = prop.default !== undefined ? prop.default : {};
+          } else if (prop.nullable === true) {
+            requestBody[key] = null;
+          } else {
+            requestBody[key] = prop.default !== undefined ? prop.default : '';
+          }
+        }
+      });
+    }
+
+    // 返回序列化后的字符串，因为 TextArea 组件需要字符串
+    return {
+      path_params: JSON.stringify(pathParams, null, 2),
+      query_params: JSON.stringify(queryParams, null, 2),
+      body: JSON.stringify(requestBody, null, 2),
+      headers: JSON.stringify({
+        'Content-Type': 'application/json',
+      }, null, 2),
+    };
+  };
+
   useEffect(() => {
     fetchEnvironments();
-  }, []);
+  }, []); // 只在组件挂载时获取环境列表
+
+  // 监听definition变化并设置表单值
+  useEffect(() => {
+    if (!definition) {
+      return;
+    }
+    
+    const parameters = getParameters();
+    const newRequestBody: Record<string, any> = {};
+    
+    // 处理 parameters 数组中的参数
+    if (parameters.length > 0) {
+      const newPathParams: Record<string, any> = {};
+      const newQueryParams: Record<string, any> = {};
+
+      parameters.forEach((param: any) => {
+        const name = param.name;
+        const paramIn = param.in;
+
+        if (paramIn === 'path') {
+          newPathParams[name] = param.schema?.default || `{${name}}`;
+        } else if (paramIn === 'query') {
+          newQueryParams[name] = param.schema?.default || '';
+        } else if (paramIn === 'body') {
+          if (param.schema?.type === 'object') {
+            newRequestBody[name] = param.schema?.default || {};
+          } else {
+            newRequestBody[name] = param.schema?.default || '';
+          }
+        }
+      });
+
+      setPathParams(newPathParams);
+      setQueryParams(newQueryParams);
+    }
+    
+    // 如果没有 parameters 中的 body 参数，尝试从 request_schema.properties 中提取
+    // 显示所有字段（不管是否是必填，只排除 readOnly 字段）
+    if (Object.keys(newRequestBody).length === 0 && definition?.request_schema?.properties) {
+      const properties = definition.request_schema.properties;
+      Object.keys(properties).forEach(key => {
+        const prop = properties[key];
+        // 只排除 readOnly 字段（系统自动维护的字段）
+        if (!prop.readOnly) {
+          // 根据字段类型设置默认值
+          if (prop.type === 'string') {
+            newRequestBody[key] = prop.default !== undefined ? prop.default : '';
+          } else if (prop.type === 'number') {
+            newRequestBody[key] = prop.default !== undefined ? prop.default : 0;
+          } else if (prop.type === 'boolean') {
+            newRequestBody[key] = prop.default !== undefined ? prop.default : false;
+          } else if (prop.type === 'integer') {
+            newRequestBody[key] = prop.default !== undefined ? prop.default : 0;
+          } else if (prop.type === 'array') {
+            newRequestBody[key] = prop.default !== undefined ? prop.default : [];
+          } else if (prop.type === 'object') {
+            newRequestBody[key] = prop.default !== undefined ? prop.default : {};
+          } else if (prop.nullable === true) {
+            newRequestBody[key] = null;
+          } else {
+            newRequestBody[key] = prop.default !== undefined ? prop.default : '';
+          }
+        }
+      });
+      setRequestBody(newRequestBody);
+    } else if (Object.keys(newRequestBody).length > 0) {
+      setRequestBody(newRequestBody);
+    }
+    
+    // 同时更新表单值（使用getInitialValues确保序列化）
+    const initialValues = getInitialValues();
+    if (Object.keys(initialValues).length > 0) {
+      form.setFieldsValue(initialValues);
+    } else {
+      // 如果没有参数，设置默认的空值
+      form.setFieldsValue({
+        path_params: '{}',
+        query_params: '{}',
+        body: '{}',
+        headers: JSON.stringify({
+          'Content-Type': 'application/json',
+        }, null, 2),
+      });
+    }
+  }, [definition, form]);
 
   // 发送调试请求
   const handleSendRequest = async (values: DebugRequest) => {
@@ -101,13 +400,16 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
     setDebugResult(null);
 
     try {
-      const response = await api.post(`/api-definitions/${definition.id}/debug`, {
+      // 将 JSON 字符串解析为对象
+      const requestPayload = {
         environment_id: values.environment_id,
-        path_params: values.path_params,
-        query_params: values.query_params,
-        headers: values.headers,
-        body: values.body,
-      });
+        path_params: typeof values.path_params === 'string' ? JSON.parse(values.path_params) : values.path_params,
+        query_params: typeof values.query_params === 'string' ? JSON.parse(values.query_params) : values.query_params,
+        headers: typeof values.headers === 'string' ? JSON.parse(values.headers) : values.headers,
+        body: typeof values.body === 'string' ? JSON.parse(values.body) : values.body,
+      };
+
+      const response = await api.post(`/api-definitions/${definition.id}/debug`, requestPayload);
 
       if (response.code === 0) {
         setDebugResult(response.data);
@@ -239,11 +541,7 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
           form={form}
           layout="vertical"
           onFinish={handleSendRequest}
-          initialValues={{
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }}
+          initialValues={getInitialValues()}
         >
           <Form.Item
             name="environment_id"
@@ -259,7 +557,38 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
             </Select>
           </Form.Item>
 
-          <Form.Item name="path_params" label="路径参数">
+          <Form.Item 
+            name="path_params" 
+            label={
+              <Space>
+                <span>路径参数</span>
+                {getParameters().filter((p: any) => p.in === 'path').length > 0 && (
+                  <Tag color="blue">
+                    {getParameters().filter((p: any) => p.in === 'path').length} 个参数
+                  </Tag>
+                )}
+              </Space>
+            }
+            extra={
+              getParameters().filter((p: any) => p.in === 'path').length > 0 ? (
+                <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+                  <Text>参数说明：</Text>
+                  {getParameters()
+                    .filter((p: any) => p.in === 'path')
+                    .map((param: any, idx: number) => (
+                      <Tag key={idx} style={{ marginTop: 4 }}>
+                        {param.name}: {param.description || param.schema?.type || 'unknown'}
+                        {param.required && <Text type="danger"> *</Text>}
+                      </Tag>
+                    ))}
+                </div>
+              ) : (
+                <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                  此接口没有路径参数
+                </div>
+              )
+            }
+          >
             <TextArea
               rows={3}
               placeholder='{"id": "123"}'
@@ -267,7 +596,38 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
             />
           </Form.Item>
 
-          <Form.Item name="query_params" label="查询参数">
+          <Form.Item 
+            name="query_params" 
+            label={
+              <Space>
+                <span>查询参数</span>
+                {getParameters().filter((p: any) => p.in === 'query').length > 0 && (
+                  <Tag color="green">
+                    {getParameters().filter((p: any) => p.in === 'query').length} 个参数
+                  </Tag>
+                )}
+              </Space>
+            }
+            extra={
+              getParameters().filter((p: any) => p.in === 'query').length > 0 ? (
+                <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+                  <Text>参数说明：</Text>
+                  {getParameters()
+                    .filter((p: any) => p.in === 'query')
+                    .map((param: any, idx: number) => (
+                      <Tag key={idx} style={{ marginTop: 4 }}>
+                        {param.name}: {param.description || param.schema?.type || 'unknown'}
+                        {param.required && <Text type="danger"> *</Text>}
+                      </Tag>
+                    ))}
+                </div>
+              ) : (
+                <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                  此接口没有查询参数
+                </div>
+              )
+            }
+          >
             <TextArea
               rows={3}
               placeholder='{"page": 1, "size": 10}'
@@ -275,7 +635,36 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
             />
           </Form.Item>
 
-          <Form.Item name="headers" label="请求头">
+          <Form.Item 
+            name="headers" 
+            label={
+              <Space>
+                <span>请求头</span>
+                <Button 
+                  type="link" 
+                  size="small" 
+                  icon={<ThunderboltOutlined />}
+                  onClick={injectAuth}
+                >
+                  注入环境
+                </Button>
+                <Button 
+                  type="link" 
+                  size="small" 
+                  icon={<KeyOutlined />}
+                  onClick={injectAuthToken}
+                >
+                  自动获取 Token
+                </Button>
+              </Space>
+            }
+            extra={
+              <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                "注入环境"：注入环境配置的 headers 和 variables<br/>
+                "自动获取 Token"：调用项目鉴权配置自动获取最新 Token
+              </div>
+            }
+          >
             <TextArea
               rows={3}
               placeholder='{"Authorization": "Bearer token"}'
@@ -283,7 +672,38 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
             />
           </Form.Item>
 
-          <Form.Item name="body" label="请求体">
+          <Form.Item 
+            name="body" 
+            label={
+              <Space>
+                <span>请求体</span>
+                {getParameters().filter((p: any) => p.in === 'body').length > 0 && (
+                  <Tag color="orange">
+                    {getParameters().filter((p: any) => p.in === 'body').length} 个参数
+                  </Tag>
+                )}
+              </Space>
+            }
+            extra={
+              getParameters().filter((p: any) => p.in === 'body').length > 0 ? (
+                <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+                  <Text>参数说明：</Text>
+                  {getParameters()
+                    .filter((p: any) => p.in === 'body')
+                    .map((param: any, idx: number) => (
+                      <Tag key={idx} style={{ marginTop: 4 }}>
+                        {param.name}: {param.description || param.schema?.type || 'unknown'}
+                        {param.required && <Text type="danger"> *</Text>}
+                      </Tag>
+                    ))}
+                </div>
+              ) : (
+                <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                  此接口没有请求体参数
+                </div>
+              )
+            }
+          >
             <TextArea
               rows={8}
               placeholder='{"username": "test", "password": "123456"}'

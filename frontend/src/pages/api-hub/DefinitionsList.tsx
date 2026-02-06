@@ -27,6 +27,7 @@ import {
   Checkbox,
   Tabs,
   Alert,
+  Divider,
 } from 'antd';
 import {
   PlusOutlined,
@@ -169,7 +170,7 @@ const DefinitionsList: React.FC = () => {
   }, [id]);
 
   // 获取单个定义详情
-  const fetchDefinitionDetail = async (definitionId: number) => {
+  const fetchDefinitionDetail = async (definitionId: number, mode: 'detail' | 'edit' = 'detail') => {
     try {
       const response = await fetch(`/api/v1/api-definitions/${definitionId}`, {
         headers: {
@@ -181,7 +182,25 @@ const DefinitionsList: React.FC = () => {
 
       if (result.code === 0) {
         setCurrentRecord(result.data);
-        setDetailDrawerVisible(true);
+        
+        if (mode === 'detail') {
+          setDetailDrawerVisible(true);
+        } else if (mode === 'edit') {
+          // 设置编辑表单的值
+          form.setFieldsValue({
+            method: result.data.method,
+            path: result.data.path,
+            summary: result.data.summary,
+            description: result.data.description,
+            tags: result.data.tags,
+            group_id: result.data.group_id,
+            status: result.data.status,
+            request_schema: result.data.request_schema,
+            response_schema: result.data.response_schema,
+            mock_data: result.data.mock_data,
+          });
+          setEditModalVisible(true);
+        }
       } else {
         message.error(result.message || '获取详情失败');
       }
@@ -224,13 +243,21 @@ const DefinitionsList: React.FC = () => {
     if (!currentRecord) return;
 
     try {
+      // 解析 JSON 字段
+      const updateData = {
+        ...values,
+        request_schema: values.request_schema ? JSON.parse(values.request_schema) : null,
+        response_schema: values.response_schema ? JSON.parse(values.response_schema) : null,
+        mock_data: values.mock_data ? JSON.parse(values.mock_data) : null,
+      };
+
       const response = await fetch(`/api/v1/api-definitions/${currentRecord.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify(updateData),
       });
 
       const result: ApiResponse = await response.json();
@@ -240,12 +267,20 @@ const DefinitionsList: React.FC = () => {
         setEditModalVisible(false);
         form.resetFields();
         fetchDefinitions();
+        // 如果详情抽屉打开，重新获取详情
+        if (detailDrawerVisible) {
+          fetchDefinitionDetail(currentRecord.id, 'detail');
+        }
       } else {
         message.error(result.message || '更新失败');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('更新失败:', error);
-      message.error('更新失败，请稍后重试');
+      if (error.message && error.message.includes('JSON')) {
+        message.error('JSON 格式错误，请检查输入');
+      } else {
+        message.error('更新失败，请稍后重试');
+      }
     }
   };
 
@@ -284,6 +319,9 @@ const DefinitionsList: React.FC = () => {
       tags: record.tags,
       group_id: record.group_id,
       status: record.status,
+      request_schema: record.request_schema ? JSON.stringify(record.request_schema, null, 2) : '',
+      response_schema: record.response_schema ? JSON.stringify(record.response_schema, null, 2) : '',
+      mock_data: record.mock_data ? JSON.stringify(record.mock_data, null, 2) : '',
     });
     setEditModalVisible(true);
   };
@@ -472,10 +510,7 @@ const DefinitionsList: React.FC = () => {
               type="link"
               size="small"
               icon={<EyeOutlined />}
-              onClick={() => {
-                setCurrentRecord(record);
-                setDetailDrawerVisible(true);
-              }}
+              onClick={() => fetchDefinitionDetail(record.id, 'detail')}
             />
           </Tooltip>
           <Tooltip title="编辑">
@@ -483,7 +518,7 @@ const DefinitionsList: React.FC = () => {
               type="link"
               size="small"
               icon={<EditOutlined />}
-              onClick={() => openEditModal(record)}
+              onClick={() => fetchDefinitionDetail(record.id, 'edit')}
             />
           </Tooltip>
           <Popconfirm
@@ -678,6 +713,7 @@ const DefinitionsList: React.FC = () => {
         title="编辑接口"
         open={editModalVisible}
         onCancel={() => setEditModalVisible(false)}
+        width={800}
         footer={[
           <Button key="cancel" onClick={() => setEditModalVisible(false)}>
             取消
@@ -697,32 +733,53 @@ const DefinitionsList: React.FC = () => {
           layout="vertical"
           onFinish={handleUpdate}
         >
-          <Form.Item
-            name="method"
-            label="请求方法"
-            rules={[{ required: true, message: '请选择请求方法' }]}
-          >
-            <Select placeholder="请选择请求方法">
-              <Select.Option value="GET">GET</Select.Option>
-              <Select.Option value="POST">POST</Select.Option>
-              <Select.Option value="PUT">PUT</Select.Option>
-              <Select.Option value="DELETE">DELETE</Select.Option>
-              <Select.Option value="PATCH">PATCH</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            name="path"
-            label="接口路径"
-            rules={[{ required: true, message: '请输入接口路径' }]}
-          >
-            <Input placeholder="例如: /api/users" />
-          </Form.Item>
-          <Form.Item
-            name="summary"
-            label="接口摘要"
-          >
-            <Input placeholder="例如: 获取用户列表" />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col span={6}>
+              <Form.Item
+                name="method"
+                label="请求方法"
+                rules={[{ required: true, message: '请选择请求方法' }]}
+              >
+                <Select placeholder="请选择请求方法">
+                  <Select.Option value="GET">GET</Select.Option>
+                  <Select.Option value="POST">POST</Select.Option>
+                  <Select.Option value="PUT">PUT</Select.Option>
+                  <Select.Option value="DELETE">DELETE</Select.Option>
+                  <Select.Option value="PATCH">PATCH</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={18}>
+              <Form.Item
+                name="path"
+                label="接口路径"
+                rules={[{ required: true, message: '请输入接口路径' }]}
+              >
+                <Input placeholder="例如: /api/users" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="summary"
+                label="接口摘要"
+              >
+                <Input placeholder="例如: 获取用户列表" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="status"
+                label="状态"
+              >
+                <Select placeholder="请选择状态">
+                  <Select.Option value="active">活跃</Select.Option>
+                  <Select.Option value="archived">已归档</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
           <Form.Item
             name="description"
             label="接口描述"
@@ -735,21 +792,63 @@ const DefinitionsList: React.FC = () => {
           >
             <Select mode="tags" placeholder="输入标签后回车" />
           </Form.Item>
+          
+          <Divider orientation="left">Schema 配置</Divider>
+          
           <Form.Item
-            name="status"
-            label="状态"
+            name="request_schema"
+            label="请求参数 Schema (JSON)"
+            extra="请求参数的 JSON Schema 定义"
           >
-            <Select placeholder="请选择状态">
-              <Select.Option value="active">活跃</Select.Option>
-              <Select.Option value="archived">已归档</Select.Option>
-            </Select>
+            <Input.TextArea 
+              rows={8} 
+              placeholder='{"type": "object", "properties": {...}}'
+              style={{ fontFamily: 'monospace' }}
+            />
+          </Form.Item>
+          
+          <Form.Item
+            name="response_schema"
+            label="响应参数 Schema (JSON)"
+            extra="响应参数的 JSON Schema 定义"
+          >
+            <Input.TextArea 
+              rows={8} 
+              placeholder='{"type": "object", "properties": {...}}'
+              style={{ fontFamily: 'monospace' }}
+            />
+          </Form.Item>
+          
+          <Divider orientation="left">Mock 配置</Divider>
+          
+          <Form.Item
+            name="mock_data"
+            label="Mock 数据 (JSON)"
+            extra="用于接口测试的模拟响应数据"
+          >
+            <Input.TextArea 
+              rows={6} 
+              placeholder='{"code": 0, "data": {...}}'
+              style={{ fontFamily: 'monospace' }}
+            />
           </Form.Item>
         </Form>
       </Modal>
 
 {/* 详情抽屉 */}
       <Drawer
-        title="接口详情"
+        title={
+          <Space>
+            <span>接口详情</span>
+            <Button 
+              size="small" 
+              icon={<EditOutlined />} 
+              onClick={() => openEditModal(currentRecord!)}
+            >
+              编辑
+            </Button>
+          </Space>
+        }
         placement="right"
         width={900}
         open={detailDrawerVisible}
@@ -820,6 +919,75 @@ const DefinitionsList: React.FC = () => {
                       </Space>
                     </Col>
                   </Row>
+                </div>
+              ),
+            },
+            {
+              key: 'schema',
+              label: 'Schema 配置',
+              children: (
+                <div>
+                  <Alert
+                    message="Schema 配置"
+                    description="查看和编辑接口的请求参数和响应参数定义"
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                  />
+                  <Tabs
+                    items={[
+                      {
+                        key: 'request',
+                        label: '请求参数 Schema',
+                        children: (
+                          <div>
+                            <pre style={{ 
+                              background: '#f5f5f5', 
+                              padding: 16, 
+                              borderRadius: 4,
+                              maxHeight: 400,
+                              overflow: 'auto'
+                            }}>
+                              {JSON.stringify(currentRecord.request_schema || {}, null, 2)}
+                            </pre>
+                            <Button 
+                              type="primary" 
+                              icon={<EditOutlined />}
+                              onClick={() => openEditModal(currentRecord)}
+                              style={{ marginTop: 16 }}
+                            >
+                              编辑 Schema
+                            </Button>
+                          </div>
+                        ),
+                      },
+                      {
+                        key: 'response',
+                        label: '响应参数 Schema',
+                        children: (
+                          <div>
+                            <pre style={{ 
+                              background: '#f5f5f5', 
+                              padding: 16, 
+                              borderRadius: 4,
+                              maxHeight: 400,
+                              overflow: 'auto'
+                            }}>
+                              {JSON.stringify(currentRecord.response_schema || {}, null, 2)}
+                            </pre>
+                            <Button 
+                              type="primary" 
+                              icon={<EditOutlined />}
+                              onClick={() => openEditModal(currentRecord)}
+                              style={{ marginTop: 16 }}
+                            >
+                              编辑 Schema
+                            </Button>
+                          </div>
+                        ),
+                      },
+                    ]}
+                  />
                 </div>
               ),
             },

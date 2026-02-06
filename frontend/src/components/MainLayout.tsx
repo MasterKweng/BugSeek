@@ -86,45 +86,6 @@ const MainLayout: React.FC = () => {
       ],
     },
     {
-      key: 'api-integration',
-      icon: <ApiOutlined />,
-      label: '接口集成',
-      children: [
-        {
-          key: '/api/documents',
-          label: '文档管理',
-        },
-        {
-          key: '/api/endpoints',
-          label: '接口定义',
-        },
-        {
-          key: '/api/scripts',
-          label: '测试脚本',
-        },
-        {
-          key: '/api/scenarios',
-          label: '场景组装',
-        },
-        {
-          key: '/api/mock',
-          label: 'Mock 服务',
-        },
-        {
-          key: '/api/suites',
-          label: '测试套件',
-        },
-        {
-          key: '/api/executions',
-          label: '执行记录',
-        },
-        {
-          key: '/api/reports',
-          label: '测试报告',
-        },
-      ],
-    },
-    {
       key: 'ui-automation',
       icon: <RobotOutlined />,
       label: 'UI 自动化',

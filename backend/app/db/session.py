@@ -2,7 +2,7 @@ from app.dependencies import get_db, SessionLocal, engine
 from app.db.base import Base
 
 # 导出所有模型，确保 Alembic 能识别
-from app.db.base import User, ApiDocument, ApiEndpoint
+from app.db.base import User, ApiDocument, ApiDefinition, ApiCase, SyncTask, VersionSnapshot
 
 
 def init_db():

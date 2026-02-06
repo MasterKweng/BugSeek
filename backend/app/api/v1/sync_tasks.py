@@ -525,7 +525,7 @@ def _apply_changes_impl(
     Returns:
         ApplyChangesResponse: 应用结果
     """
-    from app.db.base import ApiDefinition
+    from app.db.base import ApiDefinition, ApiEndpointGroup
 
     result = ApplyChangesResponse(
         applied_count=0,
@@ -542,6 +542,45 @@ def _apply_changes_impl(
     added_map = {(item['method'], item['path']): item for item in diff_data.get('added', [])}
     changed_map = {(item['method'], item['path']): item for item in diff_data.get('changed', [])}
     removed_map = {(item['method'], item['path']): item for item in diff_data.get('removed', [])}
+
+    # 自动创建分组（参考接口集成的逻辑）
+    groups_map = {}  # group_name -> group_id
+    all_groups = set()
+    
+    # 收集所有需要创建的分组
+    for endpoint_data in diff_data.get('added', []):
+        group_name = endpoint_data.get('group_name')
+        if group_name:
+            all_groups.add(group_name)
+    
+    for endpoint_data in diff_data.get('changed', []):
+        group_name = endpoint_data.get('group_name')
+        if group_name:
+            all_groups.add(group_name)
+
+    # 创建或查找分组
+    for group_name in all_groups:
+        # 检查分组是否已存在
+        existing_group = db.query(ApiEndpointGroup).filter(
+            ApiEndpointGroup.project_id == sync_task.project_id,
+            ApiEndpointGroup.name == group_name
+        ).first()
+
+        if existing_group:
+            groups_map[group_name] = existing_group.id
+            logger.info(f"[{trace_id}] 使用已存在的分组: {group_name} (id={existing_group.id})")
+        else:
+            # 创建新分组
+            new_group = ApiEndpointGroup(
+                project_id=sync_task.project_id,
+                name=group_name,
+                description=f"{group_name}分组",
+                sort_order=len(groups_map)  # 按顺序排序
+            )
+            db.add(new_group)
+            db.flush()  # 获取 group.id
+            groups_map[group_name] = new_group.id
+            logger.info(f"[{trace_id}] 创建新分组: {group_name} (id={new_group.id})")
 
     try:
         for op in operations:
@@ -567,26 +606,36 @@ def _apply_changes_impl(
                     result.errors.append(f"接口已存在: {op.method} {op.path}")
                     continue
 
+                # 获取分组 ID
+                group_name = endpoint_data.get('group_name')
+                group_id = groups_map.get(group_name) if group_name else None
+
+                # 保存原始的 schema 结构（不要合并 parameters）
+                request_schema = endpoint_data.get('request_schema', {})
+                response_schema = endpoint_data.get('response_schema', {})
+
                 # 创建新的接口定义
                 new_endpoint = ApiDefinition(
                     project_id=sync_task.project_id,
                     method=op.method.upper(),
                     path=op.path,
+                    group_id=group_id,
                     summary=endpoint_data.get('summary', '')[:200],  # 限制长度
                     description=endpoint_data.get('summary', '')[:200],  # 限制长度
-                    request_schema=endpoint_data.get('request_schema', {}),
-                    response_schema=endpoint_data.get('response_schema', {}),
-                    tags=endpoint_data.get('tags', []),
-                    source_type=sync_task.source_type,
-                    source_url=sync_task.source_url,
-                    status="active"
-                )
-
+                    request_schema=request_schema,
+                                    response_schema=response_schema,
+                                    tags=endpoint_data.get('tags', []),
+                                    source_type=sync_task.source_type,
+                                    source_url=sync_task.source_url,
+                                    source_version=sync_task.source_version,
+                                    status="active",
+                                    schema_snapshot=endpoint_data  # 保存完整的接口定义快照
+                                )
                 db.add(new_endpoint)
                 db.flush()  # 刷新以获取 ID
                 result.added_count += 1
                 result.applied_count += 1
-                logger.info(f"[{trace_id}] 新增接口: {op.method} {op.path}")
+                logger.info(f"[{trace_id}] 新增接口: {op.method} {op.path}, group={group_name}")
 
                 # 自动创建版本快照（在新增后）
                 try:
@@ -624,20 +673,38 @@ def _apply_changes_impl(
                     result.errors.append(f"接口不存在，无法更新: {op.method} {op.path}")
                     continue
 
-                # 更新接口定义
-                strategy = op.strategy or 'overwrite'
+# 获取分组 ID
+                group_name = endpoint_data.get('group_name')
+                group_id = groups_map.get(group_name) if group_name else None
+
+                # 保存原始的 schema 结构（不要合并 parameters）
+                request_schema = endpoint_data.get('request_schema', {})
+                response_schema = endpoint_data.get('response_schema', {})
 
                 if strategy == 'overwrite':
                     # 覆盖模式：完全替换 Schema
-                    existing_endpoint.request_schema = endpoint_data.get('request_schema', {})
-                    existing_endpoint.response_schema = endpoint_data.get('response_schema', {})
+                    existing_endpoint.request_schema = request_schema
+                    existing_endpoint.response_schema = response_schema
                     existing_endpoint.summary = endpoint_data.get('summary', existing_endpoint.summary)[:200]  # 限制长度
                     existing_endpoint.description = endpoint_data.get('summary', existing_endpoint.description)[:200]  # 限制长度
+                    existing_endpoint.schema_snapshot = endpoint_data  # 更新快照
+                    
+                    # 更新分组
+                    group_name = endpoint_data.get('group_name')
+                    if group_name and group_name in groups_map:
+                        existing_endpoint.group_id = groups_map[group_name]
+                        
                 elif strategy == 'merge':
                     # 合并模式：合并 Schema（保留现有配置）
                     # TODO: 实现更智能的合并逻辑
-                    existing_endpoint.request_schema = endpoint_data.get('request_schema', {})
-                    existing_endpoint.response_schema = endpoint_data.get('response_schema', {})
+                    existing_endpoint.request_schema = request_schema
+                    existing_endpoint.response_schema = response_schema
+                    existing_endpoint.schema_snapshot = endpoint_data  # 更新快照
+                    
+                    # 更新分组
+                    group_name = endpoint_data.get('group_name')
+                    if group_name and group_name in groups_map:
+                        existing_endpoint.group_id = groups_map[group_name]
 
                 existing_endpoint.updated_at = datetime.utcnow()
                 result.updated_count += 1
@@ -692,7 +759,7 @@ def _apply_changes_impl(
         # 提交事务
         db.commit()
 
-        logger.info(f"[{trace_id}] 变更应用完成: {result.applied_count} 个变更已应用")
+        logger.info(f"[{trace_id}] 变更应用完成: {result.applied_count} 个变更已应用, 创建了 {len(groups_map)} 个分组")
 
         return result
 

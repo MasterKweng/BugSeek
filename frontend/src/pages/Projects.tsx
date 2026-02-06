@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin, Tabs, Empty, Switch } from 'antd'
+import { useNavigate } from 'react-router-dom'
+import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin, Tabs, Empty, Switch, Alert } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined, MinusCircleOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import * as projectService from '../services/project'
@@ -10,6 +11,7 @@ const { TextArea } = Input
 const { Option } = Select
 
 const Projects: React.FC = () => {
+  const navigate = useNavigate()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
@@ -38,10 +40,7 @@ const Projects: React.FC = () => {
   const [editEnvLoading, setEditEnvLoading] = useState(false)
 
   // 鉴权配置相关状态（V2.0）
-  const [authConfig, setAuthConfig] = useState<any>(null)
-  const [authConfigLoading, setAuthConfigLoading] = useState(false)
-  const [authConfigForm] = Form.useForm()
-  const [authConfigSaving, setAuthConfigSaving] = useState(false)
+  
 
   const businessDomains = ['电商', '金融', 'SaaS', '社交']
 
@@ -123,7 +122,6 @@ const Projects: React.FC = () => {
     setCurrentProject(project)
     editForm.setFieldsValue(project)
     fetchEnvironments(project.id)
-    fetchAuthConfig(project.id)
     setEditModalVisible(true)
   }
   
@@ -276,61 +274,6 @@ const Projects: React.FC = () => {
       editEnvForm.setFieldsValue(formData)
       setEditEnvModalVisible(true)
     }
-
-  // 鉴权配置相关函数（V2.0）
-  const fetchAuthConfig = async (projectId: number) => {
-    setAuthConfigLoading(true)
-    try {
-      const response = await get(`/projects/${projectId}/auth-config`)
-      // 检查 response 是否存在且 data 不为 null
-      if (response && response.data) {
-        setAuthConfig(response.data)
-        authConfigForm.setFieldsValue(response.data)
-      } else {
-        setAuthConfig(null)
-        authConfigForm.resetFields()
-      }
-    } catch (error: any) {
-      if (error.response?.status !== 404) {
-        message.error(error.message || '获取鉴权配置失败')
-      }
-      setAuthConfig(null)
-      authConfigForm.resetFields()
-    } finally {
-      setAuthConfigLoading(false)
-    }
-  }
-
-  const handleSaveAuthConfig = async () => {
-    if (!currentProject) return
-    try {
-      const values = await authConfigForm.validateFields()
-      setAuthConfigSaving(true)
-      await post(`/projects/${currentProject.id}/auth-config`, values)
-      message.success('鉴权配置保存成功')
-      fetchAuthConfig(currentProject.id)
-    } catch (error: any) {
-      if (error.errorFields) {
-        message.warning('请填写完整信息')
-      } else {
-        message.error(error.message || '鉴权配置保存失败')
-      }
-    } finally {
-      setAuthConfigSaving(false)
-    }
-  }
-
-  const handleDeleteAuthConfig = async () => {
-    if (!currentProject) return
-    try {
-      await del(`/projects/${currentProject.id}/auth-config`)
-      message.success('鉴权配置删除成功')
-      setAuthConfig(null)
-      authConfigForm.resetFields()
-    } catch (error: any) {
-      message.error(error.message || '鉴权配置删除失败')
-    }
-  }
 
   const columns: ColumnsType<Project> = [
     {
@@ -668,103 +611,20 @@ const Projects: React.FC = () => {
                 <div style={{ marginBottom: 16 }}>
                   <span style={{ color: '#666' }}>配置项目级别的自动鉴权策略，用例执行时会自动登录并注入 Token</span>
                 </div>
-                <Spin spinning={authConfigLoading}>
-                  <Form
-                    form={authConfigForm}
-                    layout="vertical"
-                    autoComplete="off"
-                  >
-                    <Form.Item
-                      name="enabled"
-                      label="启用鉴权"
-                      valuePropName="checked"
-                    >
-                      <Switch />
-                    </Form.Item>
-                    <Form.Item
-                      name="auth_type"
-                      label="鉴权类型"
-                      rules={[{ required: true }]}
-                    >
-                      <Select>
-                        <Option value="bearer">Bearer Token</Option>
-                        <Option value="api_key">API Key</Option>
-                        <Option value="custom">自定义</Option>
-                      </Select>
-                    </Form.Item>
-                    <Form.Item
-                      name="login_url"
-                      label="登录接口 URL"
-                      rules={[{ required: true }]}
-                    >
-                      <Input placeholder="例如: https://api.example.com/login" />
-                    </Form.Item>
-                    <Form.Item
-                      name="login_method"
-                      label="登录请求方法"
-                      rules={[{ required: true }]}
-                    >
-                      <Select>
-                        <Option value="POST">POST</Option>
-                        <Option value="GET">GET</Option>
-                      </Select>
-                    </Form.Item>
-                    <Form.Item
-                      name="login_body_template"
-                      label="登录请求体模板（支持变量）"
-                      tooltip="使用 {{变量名}} 引用环境变量，例如: {{auth_user}}, {{auth_password}}"
-                    >
-                      <Input.TextArea rows={4} placeholder='{"username": "{{auth_user}}", "password": "{{auth_password}}"}' />
-                    </Form.Item>
-                    <Form.Item
-                      name="token_extract_expression"
-                      label="Token 提取表达式"
-                      tooltip="使用 JSONPath 提取 Token，例如: $.data.token"
-                      rules={[{ required: true }]}
-                    >
-                      <Input placeholder="例如: $.data.token" />
-                    </Form.Item>
-                    <Form.Item
-                      name="token_inject_header"
-                      label="Token 注入 Header 名称"
-                      rules={[{ required: true }]}
-                    >
-                      <Input placeholder="例如: Authorization" />
-                    </Form.Item>
-                    <Form.Item
-                      name="token_inject_template"
-                      label="Token 注入模板"
-                      tooltip="使用 {token} 作为占位符"
-                      rules={[{ required: true }]}
-                    >
-                      <Input placeholder="例如: Bearer {token}" />
-                    </Form.Item>
-                    <div style={{ textAlign: 'right', marginTop: 16 }}>
-                      {authConfig && (
-                        <Popconfirm
-                          title="确认删除"
-                          description="确定要删除鉴权配置吗？"
-                          onConfirm={handleDeleteAuthConfig}
-                          okText="确定"
-                          cancelText="取消"
-                          okButtonProps={{ danger: true }}
-                        >
-                          <Button danger style={{ marginRight: 8 }}>
-                            删除配置
-                          </Button>
-                        </Popconfirm>
-                      )}
-                      <Button onClick={() => setEditModalVisible(false)}>关闭</Button>
-                      <Button 
-                        type="primary" 
-                        onClick={handleSaveAuthConfig} 
-                        loading={authConfigSaving}
-                      >
-                        保存配置
-                      </Button>
-                    </div>
-                  </Form>
-                </Spin>
+                <Button
+                  type="primary"
+                  onClick={() => currentProject && navigate(`/projects/${currentProject.id}/auth-config`)}
+                  disabled={!currentProject}
+                >
+                  前往鉴权配置页面
+                </Button>
+                {!currentProject && (
+                  <Alert
+                    type="warning"
+                    message="请先选择一个项目"
+                    style={{ marginTop: 16 }}
+                  />
+                )}
               </div>
             )
           }
