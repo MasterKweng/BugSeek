@@ -579,7 +579,7 @@ async def ai_generate_base_case(
 
         # 调用 AI 服务生成基准用例
         ai_service = AIService()
-        result = ai_service.generate_base_case(
+        result = await ai_service.generate_base_case(
             method=definition.method,
             path=definition.path,
             summary=definition.summary,

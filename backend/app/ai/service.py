@@ -101,7 +101,7 @@ class AIService:
         adapter = self._get_adapter()
         return await adapter.get_usage_stats()
 
-    def generate_base_case(
+    async def generate_base_case(
         self,
         method: str,
         path: str,
@@ -125,8 +125,6 @@ class AIService:
             Dict: 生成的用例数据
         """
         try:
-            import asyncio
-
             # 构建输入数据
             input_data = {
                 "method": method,
@@ -137,15 +135,32 @@ class AIService:
                 "response_schema": response_schema or {}
             }
 
-            # 同步执行 AI 任务
-            result = asyncio.run(self.execute(
+            # 异步执行 AI 任务
+            result = await self.execute(
                 task_type="api_case_generation",
                 project_id=None,
                 input_data=input_data
-            ))
+            )
 
             if result.get("success"):
-                return result["result"]
+                # 解析结果，移除 markdown 代码块标记
+                result_str = result["result"]
+                if isinstance(result_str, str):
+                    # 移除 ```json 和 ``` 标记
+                    result_str = result_str.strip()
+                    if result_str.startswith('```json'):
+                        result_str = result_str[7:]  # 移除 ```json
+                    elif result_str.startswith('```'):
+                        result_str = result_str[3:]  # 移除 ```
+                    if result_str.endswith('```'):
+                        result_str = result_str[:-3]  # 移除结尾的 ```
+                    result_str = result_str.strip()
+                
+                # 尝试解析为 JSON
+                import json
+                if isinstance(result_str, str):
+                    return json.loads(result_str)
+                return result_str
             else:
                 raise Exception(result.get("error", "AI 生成失败"))
 

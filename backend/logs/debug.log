@@ -10172,3 +10172,278 @@ fastapi.exceptions.HTTPException: 500: 获取项目列表失败
 2026-02-06 17:47:10 | INFO | [c9037b4e4dfd493db5df345271b06d74] | app.api.v1.environments | [c9037b4e4dfd493db5df345271b06d74] 获取环境列表成功: total=2
 2026-02-06 17:47:10 | INFO | [bfa7915a41e4403a9efcdd9ea33c5be8] | app.api.v1.auth_config_append | [bfa7915a41e4403a9efcdd9ea33c5be8] 获取项目模板: project_id=1, user=admin
 2026-02-06 17:47:10 | INFO | [bfa7915a41e4403a9efcdd9ea33c5be8] | app.api.v1.auth_config_append | [bfa7915a41e4403a9efcdd9ea33c5be8] 获取项目模板成功: project_id=1
+2026-02-06 17:54:37 | INFO | [f21c8e97e86b4e1687fc93b52bab3e6d] | app.api.v1.environments | [f21c8e97e86b4e1687fc93b52bab3e6d] 用户 admin 获取环境列表: project_id=1, page=1, page_size=100
+2026-02-06 17:54:37 | INFO | [f21c8e97e86b4e1687fc93b52bab3e6d] | app.api.v1.environments | [f21c8e97e86b4e1687fc93b52bab3e6d] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 17:54:37 | INFO | [f21c8e97e86b4e1687fc93b52bab3e6d] | app.api.v1.environments | [f21c8e97e86b4e1687fc93b52bab3e6d] 获取环境列表成功: total=2
+2026-02-06 17:54:37 | INFO | [80908f663723455ba6f66f7cb8492714] | app.api.v1.auth_config_append | [80908f663723455ba6f66f7cb8492714] 获取项目模板: project_id=1, user=admin
+2026-02-06 17:54:37 | INFO | [80908f663723455ba6f66f7cb8492714] | app.api.v1.auth_config_append | [80908f663723455ba6f66f7cb8492714] 获取项目模板成功: project_id=1
+2026-02-06 17:54:37 | INFO | [bf37a6c831344e3796442067ef16f0b3] | app.api.v1.projects | [bf37a6c831344e3796442067ef16f0b3] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 17:54:37 | INFO | [bf37a6c831344e3796442067ef16f0b3] | app.api.v1.projects | [bf37a6c831344e3796442067ef16f0b3] 获取项目列表成功: total=2
+2026-02-06 17:54:37 | INFO | [1bfc00cec598443abf8f8a754c52ab7b] | app.api.v1.projects | [1bfc00cec598443abf8f8a754c52ab7b] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 17:54:37 | INFO | [1bfc00cec598443abf8f8a754c52ab7b] | app.api.v1.projects | [1bfc00cec598443abf8f8a754c52ab7b] 获取项目列表成功: total=2
+2026-02-06 17:54:37 | INFO | [21532f5e3c8f4f7eb34c0f0ae5bef335] | app.api.v1.versions | [21532f5e3c8f4f7eb34c0f0ae5bef335] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-06 17:54:37 | INFO | [a3ee7441cdb6473c88684eff93715f8c] | app.api.v1.projects | [a3ee7441cdb6473c88684eff93715f8c] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 17:54:37 | INFO | [a3ee7441cdb6473c88684eff93715f8c] | app.api.v1.projects | [a3ee7441cdb6473c88684eff93715f8c] 获取项目列表成功: total=2
+2026-02-06 17:54:37 | INFO | [e835562022ad4b33a619cb4452ed146b] | app.api.v1.versions | [e835562022ad4b33a619cb4452ed146b] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-06 17:54:37 | INFO | [319dbb8ee1d24dd89293437ae53e1696] | app.api.v1.projects | [319dbb8ee1d24dd89293437ae53e1696] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 17:54:37 | INFO | [319dbb8ee1d24dd89293437ae53e1696] | app.api.v1.projects | [319dbb8ee1d24dd89293437ae53e1696] 获取项目列表成功: total=2
+2026-02-06 17:55:36 | INFO | [22afc70827e04b48b2b312fc61939d5b] | app.api.v1.environments | [22afc70827e04b48b2b312fc61939d5b] 用户 admin 获取环境列表: project_id=1, page=1, page_size=100
+2026-02-06 17:55:36 | INFO | [22afc70827e04b48b2b312fc61939d5b] | app.api.v1.environments | [22afc70827e04b48b2b312fc61939d5b] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 17:55:36 | INFO | [22afc70827e04b48b2b312fc61939d5b] | app.api.v1.environments | [22afc70827e04b48b2b312fc61939d5b] 获取环境列表成功: total=2
+2026-02-06 17:55:36 | INFO | [55ad45960ce34bb98c4649800470c71e] | app.api.v1.auth_config_append | [55ad45960ce34bb98c4649800470c71e] 获取项目模板: project_id=1, user=admin
+2026-02-06 17:55:36 | INFO | [55ad45960ce34bb98c4649800470c71e] | app.api.v1.auth_config_append | [55ad45960ce34bb98c4649800470c71e] 获取项目模板成功: project_id=1
+2026-02-06 17:55:36 | INFO | [03eabfee44464ea6ae21a3cd38479b70] | app.api.v1.projects | [03eabfee44464ea6ae21a3cd38479b70] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 17:55:36 | INFO | [03eabfee44464ea6ae21a3cd38479b70] | app.api.v1.projects | [03eabfee44464ea6ae21a3cd38479b70] 获取项目列表成功: total=2
+2026-02-06 17:55:36 | INFO | [0d76714af00a4bfa81dbc3f3fc8aefbb] | app.api.v1.projects | [0d76714af00a4bfa81dbc3f3fc8aefbb] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 17:55:36 | INFO | [0d76714af00a4bfa81dbc3f3fc8aefbb] | app.api.v1.projects | [0d76714af00a4bfa81dbc3f3fc8aefbb] 获取项目列表成功: total=2
+2026-02-06 17:55:36 | INFO | [018b29e8358f4c1e82d99ff110902abb] | app.api.v1.versions | [018b29e8358f4c1e82d99ff110902abb] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-06 17:55:36 | INFO | [125c0285bf6f47cd955c1c75d4c24118] | app.api.v1.projects | [125c0285bf6f47cd955c1c75d4c24118] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 17:55:36 | INFO | [125c0285bf6f47cd955c1c75d4c24118] | app.api.v1.projects | [125c0285bf6f47cd955c1c75d4c24118] 获取项目列表成功: total=2
+2026-02-06 17:55:36 | INFO | [63ace5a13c584417b305dad932695a0b] | app.api.v1.projects | [63ace5a13c584417b305dad932695a0b] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 17:55:36 | INFO | [63ace5a13c584417b305dad932695a0b] | app.api.v1.projects | [63ace5a13c584417b305dad932695a0b] 获取项目列表成功: total=2
+2026-02-06 17:55:36 | INFO | [1678a8d5ac0749b68f4176bd9004448b] | app.api.v1.versions | [1678a8d5ac0749b68f4176bd9004448b] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-06 17:57:43 | INFO | [8318154f71c14fcd98e03e87bd71e4d0] | app.api.v1.api_definitions | [8318154f71c14fcd98e03e87bd71e4d0] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 17:57:43 | INFO | [ccb123ffd08543ab8433ee1e42cc73ad] | app.api.v1.api_definitions | [ccb123ffd08543ab8433ee1e42cc73ad] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 17:57:43 | INFO | [9e5c641ea9444742be582397a519f8b8] | app.api.v1.api_definitions | [9e5c641ea9444742be582397a519f8b8] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 17:57:45 | INFO | [e921647ba8db4f88a7f219863162daae] | app.api.v1.api_cases | [e921647ba8db4f88a7f219863162daae] 查询 API 用例列表: skip=0, limit=20, user=admin, project_id=1
+2026-02-06 17:57:45 | INFO | [0e4902a7cd094eb982931f884c81fa77] | app.api.v1.api_cases | [0e4902a7cd094eb982931f884c81fa77] 查询 API 用例列表: skip=0, limit=20, user=admin, project_id=1
+2026-02-06 17:57:45 | INFO | [7b0a3a503e814e8091a47aa416c54547] | app.api.v1.api_definitions | [7b0a3a503e814e8091a47aa416c54547] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-06 17:57:45 | INFO | [6b1566b14e424375bb9d56b6cce030fa] | app.api.v1.api_definitions | [6b1566b14e424375bb9d56b6cce030fa] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-06 17:57:46 | INFO | [f2fe40f0a13f4b3cb4a0642ab21fa3f7] | app.api.v1.environments | [f2fe40f0a13f4b3cb4a0642ab21fa3f7] 用户 admin 获取环境列表: project_id=1
+2026-02-06 17:57:46 | INFO | [f2fe40f0a13f4b3cb4a0642ab21fa3f7] | app.api.v1.environments | [f2fe40f0a13f4b3cb4a0642ab21fa3f7] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 17:57:46 | INFO | [f2fe40f0a13f4b3cb4a0642ab21fa3f7] | app.api.v1.environments | [f2fe40f0a13f4b3cb4a0642ab21fa3f7] 获取环境列表成功: total=2
+2026-02-06 17:57:46 | INFO | [1700b6f3ced74f9dbe485846493bfe5a] | app.api.v1.environments | [1700b6f3ced74f9dbe485846493bfe5a] 用户 admin 获取环境列表: project_id=1
+2026-02-06 17:57:46 | INFO | [1700b6f3ced74f9dbe485846493bfe5a] | app.api.v1.environments | [1700b6f3ced74f9dbe485846493bfe5a] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 17:57:46 | INFO | [1700b6f3ced74f9dbe485846493bfe5a] | app.api.v1.environments | [1700b6f3ced74f9dbe485846493bfe5a] 获取环境列表成功: total=2
+2026-02-06 18:05:57 | INFO | [13064a7a928749b58025f4fff78dcc0a] | app.api.v1.api_definitions | [13064a7a928749b58025f4fff78dcc0a] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 18:05:58 | INFO | [3ad90efdec4a49ebaf05c6f860916c2b] | app.api.v1.api_definitions | [3ad90efdec4a49ebaf05c6f860916c2b] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 18:05:58 | INFO | [308672d5f68e455ba4507d6755e038d4] | app.api.v1.api_definitions | [308672d5f68e455ba4507d6755e038d4] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 18:06:03 | INFO | [c233cefefae246e7a721bc0719832c6f] | app.api.v1.api_cases | [c233cefefae246e7a721bc0719832c6f] 查询 API 用例列表: skip=0, limit=20, user=admin, project_id=1
+2026-02-06 18:06:03 | INFO | [0e30d770e9164a9694b05f93da838b55] | app.api.v1.api_definitions | [0e30d770e9164a9694b05f93da838b55] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-06 18:06:04 | INFO | [06e8934ca5d64aaaa98297fa067fbdb4] | app.api.v1.environments | [06e8934ca5d64aaaa98297fa067fbdb4] 用户 admin 获取环境列表: project_id=1
+2026-02-06 18:06:04 | INFO | [06e8934ca5d64aaaa98297fa067fbdb4] | app.api.v1.environments | [06e8934ca5d64aaaa98297fa067fbdb4] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 18:06:04 | INFO | [06e8934ca5d64aaaa98297fa067fbdb4] | app.api.v1.environments | [06e8934ca5d64aaaa98297fa067fbdb4] 获取环境列表成功: total=2
+2026-02-06 18:06:04 | INFO | [85abbebd80a94e0e97936f66b04b1a4f] | app.api.v1.api_definitions | [85abbebd80a94e0e97936f66b04b1a4f] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-06 18:06:04 | INFO | [02a18511f61d439ea79f93b597f8ff00] | app.api.v1.environments | [02a18511f61d439ea79f93b597f8ff00] 用户 admin 获取环境列表: project_id=1
+2026-02-06 18:06:04 | INFO | [02a18511f61d439ea79f93b597f8ff00] | app.api.v1.environments | [02a18511f61d439ea79f93b597f8ff00] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 18:06:04 | INFO | [02a18511f61d439ea79f93b597f8ff00] | app.api.v1.environments | [02a18511f61d439ea79f93b597f8ff00] 获取环境列表成功: total=2
+2026-02-06 18:06:04 | INFO | [cfe1585eeafe403e894548eba62e22f6] | app.api.v1.api_cases | [cfe1585eeafe403e894548eba62e22f6] 查询 API 用例列表: skip=0, limit=20, user=admin, project_id=1
+2026-02-06 18:06:11 | INFO | [7d943a8d2c2b4295b7ae0ddd2dc37d5e] | app.api.v1.api_definitions | [7d943a8d2c2b4295b7ae0ddd2dc37d5e] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 18:06:11 | INFO | [f77cd7ec51264d60a9bdd251d330c49c] | app.api.v1.api_definitions | [f77cd7ec51264d60a9bdd251d330c49c] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 18:06:11 | INFO | [5e4f009f6d97481785ab91950951a4b0] | app.api.v1.api_definitions | [5e4f009f6d97481785ab91950951a4b0] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 18:06:16 | INFO | [a55cd9419f81425588be6f9c2f8f10c4] | app.api.v1.api_definitions | [a55cd9419f81425588be6f9c2f8f10c4] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 18:06:18 | INFO | [aa792227adf8400e8b8d3b60994e3782] | app.api.v1.api_definitions | [aa792227adf8400e8b8d3b60994e3782] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 18:06:20 | INFO | [a4c936e7c9554c84b9cb7341f3af1e68] | app.api.v1.api_definitions | [a4c936e7c9554c84b9cb7341f3af1e68] 查询 API 定义详情: id=3181, user=admin
+2026-02-06 18:06:23 | INFO | [d2502643560346aa8ac93b38f5daae1e] | app.api.v1.api_cases | [d2502643560346aa8ac93b38f5daae1e] 查询 API 用例列表: skip=0, limit=20, user=admin, project_id=1
+2026-02-06 18:06:23 | INFO | [4a6411bd19a04b9bbb0fe21282de77d5] | app.api.v1.api_definitions | [4a6411bd19a04b9bbb0fe21282de77d5] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-06 18:06:24 | INFO | [fa4a6f70c18148c6a83d8a51c8f1d02e] | app.api.v1.api_definitions | [fa4a6f70c18148c6a83d8a51c8f1d02e] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-06 18:06:24 | INFO | [902aec9add7f4ab1bbb98f29305c4bf7] | app.api.v1.environments | [902aec9add7f4ab1bbb98f29305c4bf7] 用户 admin 获取环境列表: project_id=1
+2026-02-06 18:06:24 | INFO | [902aec9add7f4ab1bbb98f29305c4bf7] | app.api.v1.environments | [902aec9add7f4ab1bbb98f29305c4bf7] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 18:06:24 | INFO | [902aec9add7f4ab1bbb98f29305c4bf7] | app.api.v1.environments | [902aec9add7f4ab1bbb98f29305c4bf7] 获取环境列表成功: total=2
+2026-02-06 18:06:24 | INFO | [bf5b9d42812d47e6a6f02d32a9a15599] | app.api.v1.environments | [bf5b9d42812d47e6a6f02d32a9a15599] 用户 admin 获取环境列表: project_id=1
+2026-02-06 18:06:24 | INFO | [bf5b9d42812d47e6a6f02d32a9a15599] | app.api.v1.environments | [bf5b9d42812d47e6a6f02d32a9a15599] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 18:06:24 | INFO | [bf5b9d42812d47e6a6f02d32a9a15599] | app.api.v1.environments | [bf5b9d42812d47e6a6f02d32a9a15599] 获取环境列表成功: total=2
+2026-02-06 18:06:24 | INFO | [c0215d90ea694a7a961d0d332ce6ffeb] | app.api.v1.api_cases | [c0215d90ea694a7a961d0d332ce6ffeb] 查询 API 用例列表: skip=0, limit=20, user=admin, project_id=1
+2026-02-06 18:06:25 | INFO | [c5fa9c4962f243d9aaae330323c2abe6] | app.api.v1.api_cases | [c5fa9c4962f243d9aaae330323c2abe6] AI 生成基准用例: definition_id=3181, user=admin
+2026-02-06 18:06:25 | ERROR | [c5fa9c4962f243d9aaae330323c2abe6] | app.ai.service | AI 生成基准用例失败: asyncio.run() cannot be called from a running event loop
+2026-02-06 18:06:25 | ERROR | [c5fa9c4962f243d9aaae330323c2abe6] | app.api.v1.api_cases | [c5fa9c4962f243d9aaae330323c2abe6] AI 生成基准用例失败: asyncio.run() cannot be called from a running event loop
+2026-02-06 18:06:25 | ERROR | [c5fa9c4962f243d9aaae330323c2abe6] | app.dependencies | 数据库会话异常: 500: AI 生成失败：asyncio.run() cannot be called from a running event loop
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 582, in ai_generate_base_case
+    result = ai_service.generate_base_case(
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 141, in generate_base_case
+    result = asyncio.run(self.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\asyncio\runners.py", line 33, in run
+    raise RuntimeError(
+RuntimeError: asyncio.run() cannot be called from a running event loop
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 601, in ai_generate_base_case
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 生成失败：asyncio.run() cannot be called from a running event loop
+2026-02-06 18:07:44 | INFO | [705f829d2fd240cf8ea4dc9a0ff68bca] | root | 日志系统初始化完成
+2026-02-06 18:07:44 | INFO | [705f829d2fd240cf8ea4dc9a0ff68bca] | app.main | 启动异步任务工作线程...
+2026-02-06 18:07:44 | INFO | [705f829d2fd240cf8ea4dc9a0ff68bca] | app.main | 异步任务工作线程已启动
+2026-02-06 18:07:44 | INFO | [705f829d2fd240cf8ea4dc9a0ff68bca] | app.core.async_task.manager | [705f829d2fd240cf8ea4dc9a0ff68bca] 启动异步任务工作线程
+2026-02-06 18:07:53 | INFO | [57530b3e19af41e1ba272dbac77895c5] | root | 日志系统初始化完成
+2026-02-06 18:07:53 | INFO | [57530b3e19af41e1ba272dbac77895c5] | app.main | 启动异步任务工作线程...
+2026-02-06 18:07:53 | INFO | [57530b3e19af41e1ba272dbac77895c5] | app.main | 异步任务工作线程已启动
+2026-02-06 18:07:53 | INFO | [57530b3e19af41e1ba272dbac77895c5] | app.core.async_task.manager | [57530b3e19af41e1ba272dbac77895c5] 启动异步任务工作线程
+2026-02-06 18:09:09 | INFO | [06cf7eacc8d44daa8681fa62d436411b] | app.api.v1.api_cases | [06cf7eacc8d44daa8681fa62d436411b] AI 生成基准用例: definition_id=3181, user=admin
+2026-02-06 18:09:09 | INFO | [06cf7eacc8d44daa8681fa62d436411b] | app.ai.service | AI 执行开始: task_type=api_case_generation, project_id=None
+2026-02-06 18:09:10 | INFO | [06cf7eacc8d44daa8681fa62d436411b] | app.ai.adapters.factory | 创建模型适配器: provider=openai
+2026-02-06 18:09:10 | INFO | [06cf7eacc8d44daa8681fa62d436411b] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-06 18:09:34 | INFO | [06cf7eacc8d44daa8681fa62d436411b] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-06 18:09:34 | INFO | [06cf7eacc8d44daa8681fa62d436411b] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=2757
+2026-02-06 18:09:34 | INFO | [06cf7eacc8d44daa8681fa62d436411b] | app.ai.service | AI 调用成功: task_type=api_case_generation, project_id=None, tokens_used=2757
+2026-02-06 18:09:34 | INFO | [06cf7eacc8d44daa8681fa62d436411b] | app.api.v1.api_cases | [06cf7eacc8d44daa8681fa62d436411b] AI 生成基准用例成功: result= ```json
+{
+  "name": "基准用例 - /api/order/so-extra-line/",
+  "description": "该接口的基准测试用例",
+  "priority": "P0",
+  "request_data": {
+    "limit": "{random_int(10, 20)}",
+    "offset": "{random_int(0, 100)}",
+    "order": "{random_int(1, 100)}",
+    "order_detail": false,
+    "ordering": "quantity",
+    "search": "test_{random_string(6)}"
+  },
+  "assertion_rules": [
+    {
+      "source": "status",
+      "property": null,
+      "operator": "in",
+      "value": [200, 201, 204],
+      "description": "状态码应为 2xx"
+    },
+    {
+      "source": "body",
+      "property": "$.code",
+      "operator": "==",
+      "value": 0,
+      "description": "响应码应为 0"
+    },
+    {
+      "source": "body",
+      "property": "$.results",
+      "operator": "!=",
+      "value": null,
+      "description": "results 字段非空"
+    },
+    {
+      "source": "body",
+      "property": "$.count",
+      "operator": ">=",
+      "value": 0,
+      "description": "count 字段非负"
+    },
+    {
+      "source": "body",
+      "property": "$.results[0].pk",
+      "operator": "!=",
+      "value": null,
+      "description": "results 中的第一个元素的 pk 字段非空"
+    },
+    {
+      "source": "body",
+      "property": "$.results[0].order",
+      "operator": "!=",
+      "value": null,
+      "description": "results 中的第一个元素的 order 字段非空"
+    },
+    {
+      "source": "body",
+      "property": "$.results[0].quantity",
+      "operator": "!=",
+      "value": null,
+      "description": "results 中的第一个元素的 quantity 字段非空"
+    }
+  ],
+  "extraction_rules": [
+    {
+      "variable_name": "total_count",
+      "source": "body",
+      "json_path": "$.count",
+      "description": "提取总记录数"
+    },
+    {
+      "variable_name": "first_order_id",
+      "source": "body",
+      "json_path": "$.results[0].pk",
+      "description": "提取第一个订单的 ID"
+    },
+    {
+      "variable_name": "first_order_quantity",
+      "source": "body",
+      "json_path": "$.results[0].quantity",
+      "description": "提取第一个订单的数量"
+    }
+  ],
+  "ai_confidence": 0.9
+}
+```
+2026-02-06 18:11:16 | INFO | [d46769d3fec04490b61e2c60633a27ab] | root | 日志系统初始化完成
+2026-02-06 18:11:16 | INFO | [d46769d3fec04490b61e2c60633a27ab] | app.main | 启动异步任务工作线程...
+2026-02-06 18:11:16 | INFO | [d46769d3fec04490b61e2c60633a27ab] | app.main | 异步任务工作线程已启动
+2026-02-06 18:11:16 | INFO | [d46769d3fec04490b61e2c60633a27ab] | app.core.async_task.manager | [d46769d3fec04490b61e2c60633a27ab] 启动异步任务工作线程
+2026-02-06 18:18:54 | INFO | [6e9ebe85e7d04ab09355761e7f857684] | app.api.v1.api_definitions | [6e9ebe85e7d04ab09355761e7f857684] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 18:18:54 | INFO | [a45522bfaafb4859991a6e628c7cac15] | app.api.v1.projects | [a45522bfaafb4859991a6e628c7cac15] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 18:18:54 | INFO | [a45522bfaafb4859991a6e628c7cac15] | app.api.v1.projects | [a45522bfaafb4859991a6e628c7cac15] 获取项目列表成功: total=2
+2026-02-06 18:18:54 | INFO | [290eaffc3ea14fbba933cc04d100e3d4] | app.api.v1.projects | [290eaffc3ea14fbba933cc04d100e3d4] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 18:18:54 | INFO | [290eaffc3ea14fbba933cc04d100e3d4] | app.api.v1.projects | [290eaffc3ea14fbba933cc04d100e3d4] 获取项目列表成功: total=2
+2026-02-06 18:18:54 | INFO | [b57e7d31142e46faa53c063d2d1079de] | app.api.v1.projects | [b57e7d31142e46faa53c063d2d1079de] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 18:18:54 | INFO | [b57e7d31142e46faa53c063d2d1079de] | app.api.v1.projects | [b57e7d31142e46faa53c063d2d1079de] 获取项目列表成功: total=2
+2026-02-06 18:18:54 | INFO | [174fe0c467744b2683653b259ce1666e] | app.api.v1.versions | [174fe0c467744b2683653b259ce1666e] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-06 18:18:54 | INFO | [6b1b60c6ee3c4b5880505afd933d3c3c] | app.api.v1.api_definitions | [6b1b60c6ee3c4b5880505afd933d3c3c] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 18:18:54 | INFO | [db1261f063c94d17ba8161bdc89ec328] | app.api.v1.versions | [db1261f063c94d17ba8161bdc89ec328] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-06 18:18:54 | INFO | [e6e0418548a341ca8ae1e01a7660ad0f] | app.api.v1.projects | [e6e0418548a341ca8ae1e01a7660ad0f] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 18:18:54 | INFO | [e6e0418548a341ca8ae1e01a7660ad0f] | app.api.v1.projects | [e6e0418548a341ca8ae1e01a7660ad0f] 获取项目列表成功: total=2
+2026-02-06 18:18:54 | INFO | [d8ecc7760f91435e95b13a27ce122f1f] | app.api.v1.api_definitions | [d8ecc7760f91435e95b13a27ce122f1f] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-02-06 18:19:08 | INFO | [93eee5780dd24dc0a9ceae95a2b01611] | app.api.v1.projects | [93eee5780dd24dc0a9ceae95a2b01611] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 18:19:08 | INFO | [93eee5780dd24dc0a9ceae95a2b01611] | app.api.v1.projects | [93eee5780dd24dc0a9ceae95a2b01611] 获取项目列表成功: total=2
+2026-02-06 18:19:08 | INFO | [492bff01a63442188d18674804a1302d] | app.api.v1.api_cases | [492bff01a63442188d18674804a1302d] 查询 API 用例列表: skip=0, limit=20, user=admin, project_id=1
+2026-02-06 18:19:08 | INFO | [6ef1ab56ba84467999e65bfeffdd6ecd] | app.api.v1.api_definitions | [6ef1ab56ba84467999e65bfeffdd6ecd] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-06 18:19:08 | INFO | [78a62d3862ba41e2bd6e5f006e2f2c21] | app.api.v1.environments | [78a62d3862ba41e2bd6e5f006e2f2c21] 用户 admin 获取环境列表: project_id=1
+2026-02-06 18:19:08 | INFO | [78a62d3862ba41e2bd6e5f006e2f2c21] | app.api.v1.environments | [78a62d3862ba41e2bd6e5f006e2f2c21] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 18:19:08 | INFO | [78a62d3862ba41e2bd6e5f006e2f2c21] | app.api.v1.environments | [78a62d3862ba41e2bd6e5f006e2f2c21] 获取环境列表成功: total=2
+2026-02-06 18:19:08 | INFO | [17bf58424d734a939e03282a610b7462] | app.api.v1.projects | [17bf58424d734a939e03282a610b7462] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 18:19:08 | INFO | [17bf58424d734a939e03282a610b7462] | app.api.v1.projects | [17bf58424d734a939e03282a610b7462] 获取项目列表成功: total=2
+2026-02-06 18:19:08 | INFO | [28380d7dc45d4909bca627cbc8b5247b] | app.api.v1.versions | [28380d7dc45d4909bca627cbc8b5247b] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-06 18:19:08 | INFO | [a1f88533d8a64c118f802829e52af05a] | app.api.v1.projects | [a1f88533d8a64c118f802829e52af05a] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 18:19:08 | INFO | [a1f88533d8a64c118f802829e52af05a] | app.api.v1.projects | [a1f88533d8a64c118f802829e52af05a] 获取项目列表成功: total=2
+2026-02-06 18:19:08 | INFO | [4efee2631e2f47a08bc0939d90c8297e] | app.api.v1.api_cases | [4efee2631e2f47a08bc0939d90c8297e] 查询 API 用例列表: skip=0, limit=20, user=admin, project_id=1
+2026-02-06 18:19:08 | INFO | [c900dd9af4f24c9faa474912b73743af] | app.api.v1.api_definitions | [c900dd9af4f24c9faa474912b73743af] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-06 18:19:08 | INFO | [cf05a2a1d9a441b99864d163b86a9f9e] | app.api.v1.versions | [cf05a2a1d9a441b99864d163b86a9f9e] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-06 18:19:08 | INFO | [0a364fde58684d94bd94c45fd4e6d25b] | app.api.v1.environments | [0a364fde58684d94bd94c45fd4e6d25b] 用户 admin 获取环境列表: project_id=1
+2026-02-06 18:19:08 | INFO | [0a364fde58684d94bd94c45fd4e6d25b] | app.api.v1.environments | [0a364fde58684d94bd94c45fd4e6d25b] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 18:19:08 | INFO | [0a364fde58684d94bd94c45fd4e6d25b] | app.api.v1.environments | [0a364fde58684d94bd94c45fd4e6d25b] 获取环境列表成功: total=2
+2026-02-06 18:19:08 | INFO | [61c989195d5145a488c9e986d7c648bd] | app.api.v1.projects | [61c989195d5145a488c9e986d7c648bd] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-06 18:19:08 | INFO | [61c989195d5145a488c9e986d7c648bd] | app.api.v1.projects | [61c989195d5145a488c9e986d7c648bd] 获取项目列表成功: total=2
+2026-02-06 18:19:14 | INFO | [f88d6f0833c74456bedd9ed1c1c90dff] | app.api.v1.api_cases | [f88d6f0833c74456bedd9ed1c1c90dff] AI 生成基准用例: definition_id=3181, user=admin
+2026-02-06 18:19:14 | INFO | [f88d6f0833c74456bedd9ed1c1c90dff] | app.ai.service | AI 执行开始: task_type=api_case_generation, project_id=None
+2026-02-06 18:19:15 | INFO | [f88d6f0833c74456bedd9ed1c1c90dff] | app.ai.adapters.factory | 创建模型适配器: provider=openai
+2026-02-06 18:19:15 | INFO | [f88d6f0833c74456bedd9ed1c1c90dff] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-06 18:19:37 | INFO | [f88d6f0833c74456bedd9ed1c1c90dff] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-06 18:19:37 | INFO | [f88d6f0833c74456bedd9ed1c1c90dff] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=2691
+2026-02-06 18:19:37 | INFO | [f88d6f0833c74456bedd9ed1c1c90dff] | app.ai.service | AI 调用成功: task_type=api_case_generation, project_id=None, tokens_used=2691
+2026-02-06 18:19:37 | INFO | [f88d6f0833c74456bedd9ed1c1c90dff] | app.api.v1.api_cases | [f88d6f0833c74456bedd9ed1c1c90dff] AI 生成基准用例成功: result={'name': '基准用例 - /api/order/so-extra-line/', 'description': '该接口的基准测试用例', 'priority': 'P0', 'request_data': {'limit': '{random_int(10, 20)}', 'offset': '{random_int(0, 50)}', 'order': '{random_int(1, 100)}', 'order_detail': True, 'ordering': '{random_choice(["quantity", "-quantity", "notes", "-notes", "reference", "-reference"])}', 'search': '{random_string(10)}'}, 'assertion_rules': [{'source': 'status', 'property': None, 'operator': 'in', 'value': [200, 201, 204], 'description': '状态码应为 2xx'}, {'source': 'body', 'property': '$.code', 'operator': '==', 'value': 0, 'description': '响应码应为 0'}, {'source': 'body', 'property': '$.count', 'operator': '>=', 'value': 0, 'description': 'count 字段应为非负数'}, {'source': 'body', 'property': '$.results', 'operator': 'in', 'value': ['array', 'object'], 'description': 'results 字段应为数组或对象'}, {'source': 'body', 'property': '$.results[*].pk', 'operator': '>', 'value': 0, 'description': 'results 中每个元素的 pk 字段应为正整数'}], 'extraction_rules': [{'variable_name': 'count', 'source': 'body', 'json_path': '$.count', 'description': '提取 count 字段'}, {'variable_name': 'first_order_id', 'source': 'body', 'json_path': '$.results[0].pk', 'description': '提取第一个订单的 pk 字段'}, {'variable_name': 'first_order_detail', 'source': 'body', 'json_path': '$.results[0].order_detail', 'description': '提取第一个订单的 detail 字段'}], 'ai_confidence': 0.9}
+2026-02-06 18:19:46 | INFO | [a817381d4d0c4ec4b41d99b6d7da4006] | app.api.v1.api_cases | [a817381d4d0c4ec4b41d99b6d7da4006] 创建 API 用例: definition_id=3181, name=基准用例 - /api/order/so-extra-line/, user=admin
+2026-02-06 18:19:46 | INFO | [a817381d4d0c4ec4b41d99b6d7da4006] | app.api.v1.api_cases | [a817381d4d0c4ec4b41d99b6d7da4006] API 用例创建成功: id=3
+2026-02-06 18:19:47 | INFO | [505fccf33d62478cbd6448705a4fc834] | app.api.v1.api_cases | [505fccf33d62478cbd6448705a4fc834] 查询 API 用例列表: skip=0, limit=20, user=admin, project_id=1
+2026-02-06 18:19:55 | INFO | [b4b1535c8e604ad09a9dc977b2d3f571] | app.api.v1.api_cases | [b4b1535c8e604ad09a9dc977b2d3f571] 批量执行用例: count=1, user=admin
+2026-02-06 18:19:55 | ERROR | [b4b1535c8e604ad09a9dc977b2d3f571] | app.api.v1.api_cases | [b4b1535c8e604ad09a9dc977b2d3f571] 批量执行失败: No module named 'app.core.test_execution'
+2026-02-06 18:19:55 | ERROR | [b4b1535c8e604ad09a9dc977b2d3f571] | app.dependencies | 数据库会话异常: 500: 批量执行失败：No module named 'app.core.test_execution'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 810, in batch_execute_cases
+    from app.core.test_execution import CaseExecutor
+ModuleNotFoundError: No module named 'app.core.test_execution'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 838, in batch_execute_cases
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: 批量执行失败：No module named 'app.core.test_execution'
