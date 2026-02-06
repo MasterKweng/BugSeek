@@ -10165,3 +10165,10 @@ fastapi.exceptions.HTTPException: 500: 获取项目列表失败
 2026-02-06 17:44:40 | INFO | [147b912ef32d4d1dabfd174b3c981cfa] | app.main | 启动异步任务工作线程...
 2026-02-06 17:44:40 | INFO | [147b912ef32d4d1dabfd174b3c981cfa] | app.main | 异步任务工作线程已启动
 2026-02-06 17:44:40 | INFO | [147b912ef32d4d1dabfd174b3c981cfa] | app.core.async_task.manager | [147b912ef32d4d1dabfd174b3c981cfa] 启动异步任务工作线程
+2026-02-06 17:44:53 | INFO | [109cb000e1be4d0bbc236eeef1f13f83] | app.api.v1.projects | [109cb000e1be4d0bbc236eeef1f13f83] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-06 17:44:53 | INFO | [109cb000e1be4d0bbc236eeef1f13f83] | app.api.v1.projects | [109cb000e1be4d0bbc236eeef1f13f83] 获取项目列表成功: total=2
+2026-02-06 17:47:10 | INFO | [c9037b4e4dfd493db5df345271b06d74] | app.api.v1.environments | [c9037b4e4dfd493db5df345271b06d74] 用户 admin 获取环境列表: project_id=1, page=1, page_size=100
+2026-02-06 17:47:10 | INFO | [c9037b4e4dfd493db5df345271b06d74] | app.api.v1.environments | [c9037b4e4dfd493db5df345271b06d74] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-02-06 17:47:10 | INFO | [c9037b4e4dfd493db5df345271b06d74] | app.api.v1.environments | [c9037b4e4dfd493db5df345271b06d74] 获取环境列表成功: total=2
+2026-02-06 17:47:10 | INFO | [bfa7915a41e4403a9efcdd9ea33c5be8] | app.api.v1.auth_config_append | [bfa7915a41e4403a9efcdd9ea33c5be8] 获取项目模板: project_id=1, user=admin
+2026-02-06 17:47:10 | INFO | [bfa7915a41e4403a9efcdd9ea33c5be8] | app.api.v1.auth_config_append | [bfa7915a41e4403a9efcdd9ea33c5be8] 获取项目模板成功: project_id=1

@@ -75,6 +75,56 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
   }, [initialValues, form]);
   
   /**
+   * 处理鉴权类型变化
+   * 当选择 BASIC/BEARER/API_KEY/SESSION 时，自动设置注入配置并切换到静态模式
+   */
+  const handleAuthTypeChange = (value: AuthTypeEnum) => {
+    switch (value) {
+      case AuthTypeEnum.BASIC:
+        form.setFieldsValue({
+          source_mode: SourceModeEnum.STATIC,
+          injection_target: InjectionTargetEnum.HEADER,
+          injection_key: 'Authorization',
+          injection_template: 'Basic {static_value}'
+        });
+        break;
+        
+      case AuthTypeEnum.BEARER:
+        form.setFieldsValue({
+          source_mode: SourceModeEnum.STATIC,
+          injection_target: InjectionTargetEnum.HEADER,
+          injection_key: 'Authorization',
+          injection_template: 'Bearer {static_value}'
+        });
+        break;
+        
+      case AuthTypeEnum.API_KEY:
+        form.setFieldsValue({
+          source_mode: SourceModeEnum.STATIC,
+          injection_target: InjectionTargetEnum.HEADER,
+          injection_key: '',
+          injection_template: '{static_value}'
+        });
+        break;
+        
+      case AuthTypeEnum.SESSION:
+        form.setFieldsValue({
+          source_mode: SourceModeEnum.STATIC,
+          injection_target: InjectionTargetEnum.HEADER,
+          injection_key: 'Cookie',
+          injection_template: '{static_value}'
+        });
+        break;
+        
+      case AuthTypeEnum.NONE:
+      case AuthTypeEnum.CUSTOM:
+      default:
+        // 不自动设置，保持用户选择
+        break;
+    }
+  };
+  
+  /**
    * 处理来源模式变化
    */
   const handleSourceModeChange = (value: SourceModeEnum) => {
@@ -135,6 +185,48 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
         }
       }
       
+      // 处理静态模式下的简化输入
+      let processedStaticValue = values.static_value;
+      
+      if (values.source_mode === SourceModeEnum.STATIC) {
+        switch (values.auth_type) {
+          case AuthTypeEnum.BASIC:
+            // BASIC 类型：将 username:password 转换为 base64
+            const username = values.basic_username || '';
+            const password = values.basic_password || '';
+            if (username && password) {
+              const credentials = btoa(`${username}:${password}`);
+              processedStaticValue = credentials;
+            } else {
+              processedStaticValue = values.static_value || '';
+            }
+            break;
+            
+          case AuthTypeEnum.BEARER:
+            // BEARER 类型：直接使用 token
+            processedStaticValue = values.bearer_token || '';
+            break;
+            
+          case AuthTypeEnum.API_KEY:
+            // API KEY 类型：直接使用值
+            processedStaticValue = values.api_key_value || '';
+            // 需要更新注入键名为用户输入的 Key 名称
+            form.setFieldValue('injection_key', values.api_key_key || '');
+            break;
+            
+          case AuthTypeEnum.SESSION:
+            // SESSION 类型：直接使用 session_id
+            processedStaticValue = values.session_id || '';
+            break;
+            
+          case AuthTypeEnum.NONE:
+          case AuthTypeEnum.CUSTOM:
+          default:
+            processedStaticValue = values.static_value || '';
+            break;
+        }
+      }
+      
       const data: AuthConfigCreate = {
         enabled: values.enabled || false,
         auth_type: values.auth_type,
@@ -144,7 +236,7 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
           value_template: values.injection_template || ''
         },
         source_mode: values.source_mode,
-        static_value: values.static_value,
+        static_value: processedStaticValue,
         login_api_id: values.login_api_id,
         login_auth_type: values.login_auth_type,
         input_mappings: processedInputMappings,
@@ -197,7 +289,7 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
           name="auth_type"
           rules={[{ required: true, message: '请选择鉴权类型' }]}
         >
-          <Select>
+          <Select onChange={handleAuthTypeChange}>
             {Object.entries(AuthTypeLabels).map(([value, label]) => (
               <Option key={value} value={value}>{label}</Option>
             ))}
@@ -233,6 +325,116 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
             rows={2} 
             placeholder="如 Bearer {{ACCESS_TOKEN}} 或 {{API_KEY}}"
           />
+        </Form.Item>
+        
+        {/* 简化配置界面：当选择标准鉴权类型时显示 */}
+        <Form.Item noStyle shouldUpdate={(prev, curr) => prev.auth_type !== curr.auth_type}>
+          {({ getFieldValue }) => {
+            const authType = getFieldValue('auth_type') as AuthTypeEnum;
+            
+            // 非标准鉴权类型，不显示简化配置
+            if (![AuthTypeEnum.BASIC, AuthTypeEnum.BEARER, AuthTypeEnum.API_KEY, AuthTypeEnum.SESSION].includes(authType)) {
+              return null;
+            }
+            
+            return (
+              <div style={{ marginTop: 16, padding: 16, background: '#f5f5f5', borderRadius: 4 }}>
+                <Divider orientation="left" style={{ margin: '0 0 12px 0' }}>简化配置</Divider>
+                
+                {authType === AuthTypeEnum.BASIC && (
+                  <div>
+                    <p style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>
+                      Basic 认证：输入用户名和密码，系统将自动拼接为 base64(username:password)
+                    </p>
+                    <Form.Item
+                      label="Username"
+                      name="basic_username"
+                      rules={[{ required: true, message: '请输入用户名' }]}
+                    >
+                      <Input placeholder="请输入用户名" />
+                    </Form.Item>
+                    <Form.Item
+                      label="Password"
+                      name="basic_password"
+                      rules={[{ required: true, message: '请输入密码' }]}
+                    >
+                      <Input.Password placeholder="请输入密码" />
+                    </Form.Item>
+                  </div>
+                )}
+                
+                {authType === AuthTypeEnum.BEARER && (
+                  <div>
+                    <p style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>
+                      Bearer 认证：输入 Token
+                    </p>
+                    <Form.Item
+                      label="Token"
+                      name="bearer_token"
+                      rules={[{ required: true, message: '请输入 Token' }]}
+                    >
+                      <Input placeholder="请输入 Token" />
+                    </Form.Item>
+                  </div>
+                )}
+                
+                {authType === AuthTypeEnum.API_KEY && (
+                  <div>
+                    <p style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>
+                      API Key 认证：配置 API Key 名称、值和添加位置
+                    </p>
+                    <Form.Item
+                      label="Key 名称"
+                      name="api_key_key"
+                      rules={[{ required: true, message: '请输入 Key 名称' }]}
+                    >
+                      <Input placeholder="如 X-API-Key" />
+                    </Form.Item>
+                    <Form.Item
+                      label="Key 值"
+                      name="api_key_value"
+                      rules={[{ required: true, message: '请输入 Key 值' }]}
+                    >
+                      <Input placeholder="请输入 Key 值" />
+                    </Form.Item>
+                    <Form.Item
+                      label="添加位置"
+                      name="api_key_add_to"
+                      rules={[{ required: true, message: '请选择添加位置' }]}
+                    >
+                      <Select placeholder="请选择添加位置">
+                        <Option value="header">Header</Option>
+                        <Option value="query">Query Params</Option>
+                      </Select>
+                    </Form.Item>
+                  </div>
+                )}
+                
+                {authType === AuthTypeEnum.SESSION && (
+                  <div>
+                    <p style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>
+                      Session 认证：输入 Session ID 和 Cookie 名称
+                    </p>
+                    <Form.Item
+                      label="Session ID"
+                      name="session_id"
+                      rules={[{ required: true, message: '请输入 Session ID' }]}
+                    >
+                      <Input placeholder="请输入 Session ID" />
+                    </Form.Item>
+                    <Form.Item
+                      label="Cookie 名称"
+                      name="session_cookie"
+                      initialValue="sessionid"
+                      rules={[{ required: true, message: '请输入 Cookie 名称' }]}
+                    >
+                      <Input placeholder="如 sessionid" />
+                    </Form.Item>
+                  </div>
+                )}
+              </div>
+            );
+          }}
         </Form.Item>
       </Card>
       
