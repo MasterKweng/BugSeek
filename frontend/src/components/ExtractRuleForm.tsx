@@ -1,120 +1,80 @@
 /**
- * 提取规则表单组件
+ * 提取规则编辑器组件
  * 符合前端代码规范
  */
 
-import React, { useCallback } from 'react';
-import { Button, Input, Select, Space, Table } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
-
-import { ExtractRule, ExtractSourceEnum, ExtractSourceLabels } from '../types/auth';
+import React from 'react';
+import { Form, Select, Input, Button, Space, Card } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
+import { ExtractSourceEnum, ExtractSourceLabels } from '../types/auth';
 
 const { Option } = Select;
 
 interface ExtractRuleFormProps {
-  value?: ExtractRule[];
-  onChange?: (value: ExtractRule[]) => void;
+  field: any;
+  index: number;
+  onRemove: () => void;
 }
 
-const ExtractRuleForm: React.FC<ExtractRuleFormProps> = React.memo(({ value = [], onChange }) => {
-  const handleAdd = useCallback(() => {
-    const newItem: ExtractRule = {
-      name: '',
-      source: ExtractSourceEnum.BODY,
-      expression: ''
-    };
-    onChange?.([...value, newItem]);
-  }, [value, onChange]);
-
-  const handleRemove = useCallback((index: number) => {
-    const newValue = [...value];
-    newValue.splice(index, 1);
-    onChange?.(newValue);
-  }, [value, onChange]);
-
-  const handleUpdate = useCallback((index: number, field: keyof ExtractRule, fieldValue: any) => {
-    const newValue = [...value];
-    newValue[index] = { ...newValue[index], [field]: fieldValue };
-    onChange?.(newValue);
-  }, [value, onChange]);
-
-  const columns = [
-    {
-      title: '变量名',
-      dataIndex: 'name',
-      width: 150,
-      render: (name: string, record: ExtractRule, index: number) => (
-        <Input
-          value={name}
-          onChange={(e) => handleUpdate(index, 'name', e.target.value)}
-          placeholder="例如: ACCESS_TOKEN"
-        />
-      )
-    },
-    {
-      title: '提取来源',
-      dataIndex: 'source',
-      width: 120,
-      render: (source: ExtractSourceEnum, record: ExtractRule, index: number) => (
-        <Select
-          value={source}
-          onChange={(val) => handleUpdate(index, 'source', val)}
-          style={{ width: '100%' }}
+/**
+ * 提取规则编辑器
+ * 用于配置从登录响应中提取变量的规则
+ */
+const ExtractRuleForm: React.FC<ExtractRuleFormProps> = ({ field, index, onRemove }) => {
+  return (
+    <Card 
+      key={field.key}
+      size="small" 
+      style={{ marginBottom: 8 }}
+      extra={
+        <Button 
+          type="text" 
+          danger 
+          icon={<DeleteOutlined />} 
+          onClick={onRemove}
         >
+          删除
+        </Button>
+      }
+    >
+      <Form.Item
+        {...field}
+        name={[field.name, 'name']}
+        label={`变量名 ${index + 1}`}
+        rules={[
+          { required: true, message: '请输入变量名' },
+          { pattern: /^[A-Z_][A-Z0-9_]*$/, message: '变量名必须是有效的标识符' }
+        ]}
+      >
+        <Input placeholder="如 ACCESS_TOKEN、CSRF_TOKEN" />
+      </Form.Item>
+      
+      <Form.Item
+        {...field}
+        name={[field.name, 'source']}
+        label="提取来源"
+        rules={[{ required: true, message: '请选择提取来源' }]}
+      >
+        <Select placeholder="请选择提取来源">
           {Object.entries(ExtractSourceLabels).map(([value, label]) => (
             <Option key={value} value={value}>{label}</Option>
           ))}
         </Select>
-      )
-    },
-    {
-      title: '提取表达式',
-      dataIndex: 'expression',
-      render: (expression: string, record: ExtractRule, index: number) => (
-        <Input
-          value={expression}
-          onChange={(e) => handleUpdate(index, 'expression', e.target.value)}
-          placeholder="例如: $.data.token"
+      </Form.Item>
+      
+      <Form.Item
+        {...field}
+        name={[field.name, 'expression']}
+        label="提取表达式"
+        rules={[{ required: true, message: '请输入提取表达式' }]}
+      >
+        <Input.TextArea 
+          rows={2} 
+          placeholder="如 $.data.token（JSONPath）或 Set-Cookie（Header 名）"
         />
-      )
-    },
-    {
-      title: '操作',
-      width: 80,
-      render: (_: any, record: ExtractRule, index: number) => (
-        <Button
-          type="link"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => handleRemove(index)}
-        />
-      )
-    }
-  ];
-
-  return (
-    <div>
-      <div style={{ marginBottom: '8px' }}>
-        <Button
-          type="dashed"
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-          block
-        >
-          添加提取规则
-        </Button>
-      </div>
-      <Table
-        columns={columns}
-        dataSource={value}
-        rowKey={(record, index) => `rule-${index}`}
-        pagination={false}
-        size="small"
-      />
-    </div>
+      </Form.Item>
+    </Card>
   );
-});
-
-ExtractRuleForm.displayName = 'ExtractRuleForm';
+};
 
 export default ExtractRuleForm;

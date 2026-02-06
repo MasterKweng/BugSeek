@@ -453,9 +453,9 @@ class AsyncTask(Base, TimestampMixin):
 
 # ==================== 鉴权配置相关表 ====================
 
-class AuthConfig(Base, TimestampMixin):
-    """鉴权配置主表"""
-    __tablename__ = "auth_configs"
+class ProjectAuthTemplate(Base, TimestampMixin):
+    """项目级鉴权模板表"""
+    __tablename__ = "project_auth_templates"
 
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, unique=True)
@@ -477,13 +477,102 @@ class AuthConfig(Base, TimestampMixin):
     
     # 动态模式数据
     login_api_id = Column(Integer, ForeignKey("api_definitions.id", ondelete="SET NULL"), nullable=True)  # 引用 API 资产库中的接口
+    login_auth_type = Column(String(50), nullable=False, default='none')  # 登录接口的鉴权类型（none/basic/bearer/api_key/session/custom）
+    
+    # 关系定义
+    template_mappings = relationship("ProjectAuthTemplateMapping", back_populates="template", cascade="all, delete-orphan")
+    template_rules = relationship("ProjectAuthTemplateRule", back_populates="template", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        Index('ix_project_auth_templates_project_id', 'project_id'),
+        Index('ix_project_auth_templates_auth_type', 'auth_type'),
+        Index('ix_project_auth_templates_source_mode', 'source_mode'),
+    )
+
+
+class ProjectAuthTemplateMapping(Base, TimestampMixin):
+    """项目模板参数映射（使用环境变量）"""
+    __tablename__ = "project_auth_template_mappings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    template_id = Column(Integer, ForeignKey("project_auth_templates.id", ondelete="CASCADE"), nullable=False)
+    
+    param_location = Column(String(20), nullable=False)  # body/query/header
+    param_key = Column(String(100), nullable=False)  # 参数名
+    param_value = Column(Text, nullable=False)  # 支持环境变量占位符，如 {{auth_username}}
+    
+    # 关系定义
+    template = relationship("ProjectAuthTemplate", back_populates="template_mappings")
+
+    __table_args__ = (
+        Index('ix_project_auth_template_mappings_template_id', 'template_id'),
+        Index('ix_project_auth_template_mappings_param_location', 'param_location'),
+    )
+
+
+class ProjectAuthTemplateRule(Base, TimestampMixin):
+    """项目模板提取规则"""
+    __tablename__ = "project_auth_template_rules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    template_id = Column(Integer, ForeignKey("project_auth_templates.id", ondelete="CASCADE"), nullable=False)
+    
+    rule_name = Column(String(50), nullable=False)  # 变量名，如 ACCESS_TOKEN
+    extract_source = Column(String(20), nullable=False)  # body/header/cookie
+    extract_expression = Column(Text, nullable=False)  # JSONPath 或正则表达式
+    
+    # 关系定义
+    template = relationship("ProjectAuthTemplate", back_populates="template_rules")
+
+    __table_args__ = (
+        Index('ix_project_auth_template_rules_template_id', 'template_id'),
+        Index('ix_project_auth_template_rules_rule_name', 'rule_name'),
+        Index('ix_project_auth_template_rules_extract_source', 'extract_source'),
+    )
+
+
+class AuthConfig(Base, TimestampMixin):
+    """鉴权配置主表 - 改为环境级"""
+    __tablename__ = "auth_configs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # 关键改动：从 project_id 改为 environment_id
+    environment_id = Column(Integer, ForeignKey("environments.id", ondelete="CASCADE"), nullable=False, unique=True)
+    
+    # 保留 project_id 作为冗余索引（方便查询）
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    
+    # 新增：继承标记
+    inherit_from_project = Column(Boolean, default=False)  # 是否继承项目级模板
+    
+    # 通用配置
+    enabled = Column(Boolean, nullable=False, default=False)
+    auth_type = Column(String(50), nullable=False)  # none/basic/bearer/api_key/session/custom
+    
+    # 注入逻辑（Consumer 层）
+    injection_target = Column(String(20), nullable=False)  # header/query/cookie
+    injection_key = Column(String(100), nullable=True)  # 如 Authorization、X-API-Key
+    injection_template = Column(Text, nullable=True)  # 如 "Bearer {{ACCESS_TOKEN}}"
+    
+    # 来源模式
+    source_mode = Column(String(20), nullable=False)  # static/dynamic
+    
+    # 静态模式数据
+    static_value = Column(Text, nullable=True)  # 直接填写的凭证值（加密存储）
+    
+    # 动态模式数据
+    login_api_id = Column(Integer, ForeignKey("api_definitions.id", ondelete="SET NULL"), nullable=True)  # 引用 API 资产库中的接口
+    login_auth_type = Column(String(50), nullable=False, default='none')  # 登录接口的鉴权类型（none/basic/bearer/api_key/session/custom）
     
     # 关系定义
     input_mappings = relationship("AuthInputMapping", back_populates="auth_config", cascade="all, delete-orphan")
     extract_rules = relationship("AuthExtractRule", back_populates="auth_config", cascade="all, delete-orphan")
 
     __table_args__ = (
+        Index('ix_auth_configs_environment_id', 'environment_id'),
         Index('ix_auth_configs_project_id', 'project_id'),
+        Index('ix_auth_configs_inherit_from_project', 'inherit_from_project'),
         Index('ix_auth_configs_auth_type', 'auth_type'),
         Index('ix_auth_configs_login_api_id', 'login_api_id'),
         Index('ix_auth_configs_source_mode', 'source_mode'),

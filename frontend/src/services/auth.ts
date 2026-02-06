@@ -3,69 +3,129 @@
  * 符合前端代码规范
  */
 
-import request from '../services/request';
+import * as request from '../services/request';
 import {
   AuthConfig,
   AuthConfigCreate,
   AuthConfigUpdate,
+  ProjectAuthTemplate,
+  ProjectAuthTemplateCreate,
+  ProjectAuthTemplateUpdate,
   TestAcquisitionRequest,
   TestAcquisitionResponse,
   ApiResponse
 } from '../types/auth';
 
-const BASE_URL = '/api/v1';
+// ==================== 项目模板相关 ====================
 
 /**
- * 获取项目鉴权配置
+ * 获取项目鉴权模板
+ * @param projectId 项目 ID
  */
-export const getAuthConfig = (projectId: number): Promise<ApiResponse<AuthConfig>> => {
-  return request.get(`${BASE_URL}/projects/${projectId}/auth-config`);
+export const getProjectAuthTemplate = (
+  projectId: number
+): Promise<ApiResponse<ProjectAuthTemplate>> => {
+  return request.get(`/projects/${projectId}/auth-template`);
 };
 
 /**
- * 创建项目鉴权配置
+ * 创建项目级鉴权模板
  */
-export const createAuthConfig = (
+export const createProjectAuthTemplate = (
   projectId: number,
-  data: AuthConfigCreate
+  data: ProjectAuthTemplateCreate
+): Promise<ApiResponse<ProjectAuthTemplate>> => {
+  return request.post(`/projects/${projectId}/auth-template`, data);
+};
+
+/**
+ * 更新项目级鉴权模板
+ */
+export const updateProjectAuthTemplate = (
+  projectId: number,
+  data: ProjectAuthTemplateUpdate
+): Promise<ApiResponse<ProjectAuthTemplate>> => {
+  return request.put(`/projects/${projectId}/auth-template`, data);
+};
+
+/**
+ * 删除项目级鉴权模板
+ */
+export const deleteProjectAuthTemplate = (projectId: number): Promise<ApiResponse<null>> => {
+  return request.del(`/projects/${projectId}/auth-template`);
+};
+
+// ==================== 环境级配置相关 ====================
+
+/**
+ * 获取环境鉴权配置
+ * @param projectId 项目 ID
+ * @param environmentId 环境 ID
+ */
+export const getEnvironmentAuthConfig = (
+  projectId: number,
+  environmentId: number
 ): Promise<ApiResponse<AuthConfig>> => {
-  return request.post(`${BASE_URL}/projects/${projectId}/auth-config`, data);
+  return request.get(`/projects/${projectId}/environments/${environmentId}/auth-config`);
 };
 
 /**
- * 更新项目鉴权配置
+ * 创建环境级鉴权配置
+ * @param projectId 项目 ID
+ * @param environmentId 环境 ID
+ * @param data 配置数据
+ * @param inheritFromProject 是否继承项目模板
  */
-export const updateAuthConfig = (
+export const createEnvironmentAuthConfig = (
   projectId: number,
+  environmentId: number,
+  data: AuthConfigCreate,
+  inheritFromProject: boolean = false
+): Promise<ApiResponse<AuthConfig>> => {
+  const params = inheritFromProject ? { inherit_from_project: true } : {};
+  return request.post(
+    `/projects/${projectId}/environments/${environmentId}/auth-config`,
+    data,
+    params
+  );
+};
+
+/**
+ * 更新环境级鉴权配置
+ */
+export const updateEnvironmentAuthConfig = (
+  projectId: number,
+  environmentId: number,
   data: AuthConfigUpdate
 ): Promise<ApiResponse<AuthConfig>> => {
-  return request.put(`${BASE_URL}/projects/${projectId}/auth-config`, data);
+  return request.put(
+    `/projects/${projectId}/environments/${environmentId}/auth-config`,
+    data
+  );
 };
 
 /**
- * 删除项目鉴权配置
+ * 删除环境级鉴权配置
  */
-export const deleteAuthConfig = (projectId: number): Promise<ApiResponse<null>> => {
-  return request.delete(`${BASE_URL}/projects/${projectId}/auth-config`);
-};
-
-/**
- * 测试登录和提取规则
- */
-export const testAcquisition = (
+export const deleteEnvironmentAuthConfig = (
   projectId: number,
-  data: TestAcquisitionRequest
-): Promise<ApiResponse<TestAcquisitionResponse>> => {
-  return request.post(`${BASE_URL}/projects/${projectId}/auth-config/test-acquisition`, data);
+  environmentId: number
+): Promise<ApiResponse<null>> => {
+  return request.del(
+    `/projects/${projectId}/environments/${environmentId}/auth-config`
+  );
 };
 
 /**
  * 默认导出
  */
 export default {
-  getAuthConfig,
-  createAuthConfig,
-  updateAuthConfig,
-  deleteAuthConfig,
-  testAcquisition
+  getProjectAuthTemplate,
+  createProjectAuthTemplate,
+  updateProjectAuthTemplate,
+  deleteProjectAuthTemplate,
+  getEnvironmentAuthConfig,
+  createEnvironmentAuthConfig,
+  updateEnvironmentAuthConfig,
+  deleteEnvironmentAuthConfig
 };

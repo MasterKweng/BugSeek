@@ -110,6 +110,7 @@ class AuthConfigCreate(BaseModel):
     source_mode: SourceModeEnum = Field(default=SourceModeEnum.STATIC, description="来源模式")
     static_value: Optional[str] = Field(None, description="静态凭证值（加密存储）")
     login_api_id: Optional[int] = Field(None, description="登录接口 ID（动态模式）")
+    login_auth_type: AuthTypeEnum = Field(default=AuthTypeEnum.NONE, description="登录接口的鉴权类型")
     input_mappings: Optional[List[InputMapping]] = Field(default_factory=list, description="参数映射列表")
     extract_rules: Optional[List[ExtractRule]] = Field(default_factory=list, description="提取规则列表")
 
@@ -122,12 +123,34 @@ class AuthConfigUpdate(BaseModel):
     source_mode: Optional[SourceModeEnum] = Field(None, description="来源模式")
     static_value: Optional[str] = Field(None, description="静态凭证值")
     login_api_id: Optional[int] = Field(None, description="登录接口 ID")
+    login_auth_type: Optional[AuthTypeEnum] = Field(None, description="登录接口的鉴权类型")
     input_mappings: Optional[List[InputMapping]] = Field(None, description="参数映射列表")
     extract_rules: Optional[List[ExtractRule]] = Field(None, description="提取规则列表")
 
 
 class AuthConfigResponse(BaseModel):
     """鉴权配置响应"""
+    id: int
+    environment_id: int
+    project_id: int
+    enabled: bool
+    auth_type: str
+    injection: Dict[str, Any]
+    source_mode: str
+    static_value: Optional[str]
+    login_api_id: Optional[int]
+    login_auth_type: str = Field(default="none", description="登录接口的鉴权类型")
+    inherit_from_project: bool = Field(default=False, description="是否继承项目模板")
+    input_mappings: List[InputMapping]
+    extract_rules: List[ExtractRule]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+
+
+# ==================== 项目模板相关 ====================
+
+class ProjectAuthTemplateResponse(BaseModel):
+    """项目级鉴权模板响应"""
     id: int
     project_id: int
     enabled: bool
@@ -140,6 +163,32 @@ class AuthConfigResponse(BaseModel):
     extract_rules: List[ExtractRule]
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
+
+
+class ProjectAuthTemplateCreate(BaseModel):
+    """创建项目模板请求"""
+    enabled: bool = Field(default=False, description="是否启用鉴权")
+    auth_type: AuthTypeEnum = Field(..., description="鉴权类型")
+    injection: InjectionConfig = Field(..., description="注入配置")
+    source_mode: SourceModeEnum = Field(default=SourceModeEnum.STATIC, description="来源模式")
+    static_value: Optional[str] = Field(None, description="静态凭证值（加密存储）")
+    login_api_id: Optional[int] = Field(None, description="登录接口 ID（动态模式）")
+    login_auth_type: AuthTypeEnum = Field(default=AuthTypeEnum.NONE, description="登录接口的鉴权类型")
+    input_mappings: Optional[List[InputMapping]] = Field(default_factory=list, description="参数映射列表")
+    extract_rules: Optional[List[ExtractRule]] = Field(default_factory=list, description="提取规则列表")
+
+
+class ProjectAuthTemplateUpdate(BaseModel):
+    """更新项目模板请求"""
+    enabled: Optional[bool] = Field(None, description="是否启用鉴权")
+    auth_type: Optional[AuthTypeEnum] = Field(None, description="鉴权类型")
+    injection: Optional[InjectionConfig] = Field(None, description="注入配置")
+    source_mode: Optional[SourceModeEnum] = Field(None, description="来源模式")
+    static_value: Optional[str] = Field(None, description="静态凭证值")
+    login_api_id: Optional[int] = Field(None, description="登录接口 ID")
+    login_auth_type: Optional[AuthTypeEnum] = Field(None, description="登录接口的鉴权类型")
+    input_mappings: Optional[List[InputMapping]] = Field(None, description="参数映射列表")
+    extract_rules: Optional[List[ExtractRule]] = Field(None, description="提取规则列表")
 
 
 # ==================== 测试登录请求 ====================

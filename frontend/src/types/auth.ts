@@ -9,10 +9,12 @@
  * 鉴权类型
  */
 export enum AuthTypeEnum {
-  BEARER_TOKEN = 'bearer_token',
+  NONE = 'none',
+  BASIC = 'basic',
+  BEARER = 'bearer',
   API_KEY = 'api_key',
-  BASIC_AUTH = 'basic_auth',
-  COOKIE = 'cookie'
+  SESSION = 'session',
+  CUSTOM = 'custom'
 }
 
 /**
@@ -80,9 +82,34 @@ export interface ExtractRule {
 }
 
 /**
- * 鉴权配置
+ * 环境级鉴权配置
  */
 export interface AuthConfig {
+  id?: number;
+  environment_id: number;
+  project_id: number;
+  enabled: boolean;
+  auth_type: AuthTypeEnum;
+  injection: InjectionConfig;
+  source_mode: SourceModeEnum;
+  static_value?: string;
+  login_api_id?: number;
+  login_auth_type: AuthTypeEnum;
+  inherit_from_project: boolean;
+  input_mappings: InputMapping[];
+  extract_rules: ExtractRule[];
+  created_at?: string;
+  updated_at?: string;
+  _meta?: {
+    inherited_from?: string;
+    can_override?: boolean;
+  };
+}
+
+/**
+ * 项目级鉴权模板
+ */
+export interface ProjectAuthTemplate {
   id?: number;
   project_id: number;
   enabled: boolean;
@@ -91,6 +118,7 @@ export interface AuthConfig {
   source_mode: SourceModeEnum;
   static_value?: string;
   login_api_id?: number;
+  login_auth_type: AuthTypeEnum;
   input_mappings: InputMapping[];
   extract_rules: ExtractRule[];
   created_at?: string;
@@ -107,6 +135,7 @@ export interface AuthConfigCreate {
   source_mode: SourceModeEnum;
   static_value?: string;
   login_api_id?: number;
+  login_auth_type: AuthTypeEnum;
   input_mappings?: InputMapping[];
   extract_rules?: ExtractRule[];
 }
@@ -121,6 +150,37 @@ export interface AuthConfigUpdate {
   source_mode?: SourceModeEnum;
   static_value?: string;
   login_api_id?: number;
+  login_auth_type?: AuthTypeEnum;
+  input_mappings?: InputMapping[];
+  extract_rules?: ExtractRule[];
+}
+
+/**
+ * 创建项目模板请求
+ */
+export interface ProjectAuthTemplateCreate {
+  enabled: boolean;
+  auth_type: AuthTypeEnum;
+  injection: InjectionConfig;
+  source_mode: SourceModeEnum;
+  static_value?: string;
+  login_api_id?: number;
+  login_auth_type: AuthTypeEnum;
+  input_mappings?: InputMapping[];
+  extract_rules?: ExtractRule[];
+}
+
+/**
+ * 更新项目模板请求
+ */
+export interface ProjectAuthTemplateUpdate {
+  enabled?: boolean;
+  auth_type?: AuthTypeEnum;
+  injection?: InjectionConfig;
+  source_mode?: SourceModeEnum;
+  static_value?: string;
+  login_api_id?: number;
+  login_auth_type?: AuthTypeEnum;
   input_mappings?: InputMapping[];
   extract_rules?: ExtractRule[];
 }
@@ -158,10 +218,12 @@ export interface ApiResponse<T = any> {
  * 鉴权类型显示名称
  */
 export const AuthTypeLabels: Record<AuthTypeEnum, string> = {
-  [AuthTypeEnum.BEARER_TOKEN]: 'Bearer Token',
+  [AuthTypeEnum.NONE]: '无鉴权',
+  [AuthTypeEnum.BASIC]: 'Basic Auth',
+  [AuthTypeEnum.BEARER]: 'Bearer Token',
   [AuthTypeEnum.API_KEY]: 'API Key',
-  [AuthTypeEnum.BASIC_AUTH]: 'Basic Auth',
-  [AuthTypeEnum.COOKIE]: 'Cookie'
+  [AuthTypeEnum.SESSION]: 'Session',
+  [AuthTypeEnum.CUSTOM]: '自定义'
 };
 
 /**

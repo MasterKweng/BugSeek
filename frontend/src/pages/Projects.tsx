@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin, Tabs, Empty, Switch, Alert } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined, MinusCircleOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined, MinusCircleOutlined, SafetyOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import * as projectService from '../services/project'
 import type { Project, ProjectCreate, ProjectUpdate } from '../types'
@@ -332,6 +332,14 @@ const Projects: React.FC = () => {
           >
             编辑
           </Button>
+          <Button
+            type="link"
+            size="small"
+            icon={<SafetyOutlined />}
+            onClick={() => navigate(`/projects/${record.id}/auth-config`)}
+          >
+            鉴权配置
+          </Button>
           <Popconfirm
             title="确认删除"
             description="确定要删除该项目吗？此操作不可恢复。"
@@ -563,7 +571,7 @@ const Projects: React.FC = () => {
                     {
                       title: '操作',
                       key: 'action',
-                      width: 150,
+                      width: 200,
                       render: (_, record) => (
                         <Space size="small">
                           <Button
@@ -572,6 +580,14 @@ const Projects: React.FC = () => {
                             onClick={() => handleEditEnvClick(record)}
                           >
                             编辑
+                          </Button>
+                          <Button
+                            type="link"
+                            size="small"
+                            icon={<SafetyOutlined />}
+                            onClick={() => currentProject && navigate(`/projects/${currentProject.id}/auth-config?env=${record.id}`)}
+                          >
+                            鉴权配置
                           </Button>
                           <Popconfirm
                             title="确认删除"
@@ -600,31 +616,6 @@ const Projects: React.FC = () => {
                 <div style={{ textAlign: 'right', marginTop: 16 }}>
                   <Button onClick={() => setEditModalVisible(false)}>关闭</Button>
                 </div>
-              </div>
-            )
-          },
-          {
-            key: 'auth',
-            label: '鉴权配置',
-            children: (
-              <div>
-                <div style={{ marginBottom: 16 }}>
-                  <span style={{ color: '#666' }}>配置项目级别的自动鉴权策略，用例执行时会自动登录并注入 Token</span>
-                </div>
-                <Button
-                  type="primary"
-                  onClick={() => currentProject && navigate(`/projects/${currentProject.id}/auth-config`)}
-                  disabled={!currentProject}
-                >
-                  前往鉴权配置页面
-                </Button>
-                {!currentProject && (
-                  <Alert
-                    type="warning"
-                    message="请先选择一个项目"
-                    style={{ marginTop: 16 }}
-                  />
-                )}
               </div>
             )
           }

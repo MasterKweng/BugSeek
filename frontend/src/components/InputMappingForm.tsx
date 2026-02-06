@@ -1,120 +1,73 @@
 /**
- * 参数映射表单组件
+ * 参数映射编辑器组件
  * 符合前端代码规范
  */
 
-import React, { useCallback } from 'react';
-import { Button, Input, Select, Space, Table } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
-
-import { InputMapping, MappingLocationEnum, MappingLocationLabels } from '../types/auth';
+import React from 'react';
+import { Form, Select, Input, Button, Space, Card } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
+import { MappingLocationEnum, MappingLocationLabels } from '../types/auth';
 
 const { Option } = Select;
 
 interface InputMappingFormProps {
-  value?: InputMapping[];
-  onChange?: (value: InputMapping[]) => void;
+  field: any;
+  index: number;
+  onRemove: () => void;
 }
 
-const InputMappingForm: React.FC<InputMappingFormProps> = React.memo(({ value = [], onChange }) => {
-  const handleAdd = useCallback(() => {
-    const newItem: InputMapping = {
-      location: MappingLocationEnum.BODY,
-      key: '',
-      value: ''
-    };
-    onChange?.([...value, newItem]);
-  }, [value, onChange]);
-
-  const handleRemove = useCallback((index: number) => {
-    const newValue = [...value];
-    newValue.splice(index, 1);
-    onChange?.(newValue);
-  }, [value, onChange]);
-
-  const handleUpdate = useCallback((index: number, field: keyof InputMapping, fieldValue: any) => {
-    const newValue = [...value];
-    newValue[index] = { ...newValue[index], [field]: fieldValue };
-    onChange?.(newValue);
-  }, [value, onChange]);
-
-  const columns = [
-    {
-      title: '参数位置',
-      dataIndex: 'location',
-      width: 150,
-      render: (location: MappingLocationEnum, record: InputMapping, index: number) => (
-        <Select
-          value={location}
-          onChange={(val) => handleUpdate(index, 'location', val)}
-          style={{ width: '100%' }}
+/**
+ * 参数映射编辑器
+ * 用于配置登录接口的参数映射
+ */
+const InputMappingForm: React.FC<InputMappingFormProps> = ({ field, index, onRemove }) => {
+  return (
+    <Card 
+      size="small" 
+      style={{ marginBottom: 8 }}
+      extra={
+        <Button 
+          type="text" 
+          danger 
+          icon={<DeleteOutlined />} 
+          onClick={onRemove}
         >
+          删除
+        </Button>
+      }
+    >
+      <Form.Item
+        {...field}
+        name={[field.name, 'location']}
+        label={`参数位置 ${index + 1}`}
+        rules={[{ required: true, message: '请选择参数位置' }]}
+      >
+        <Select placeholder="请选择参数位置">
           {Object.entries(MappingLocationLabels).map(([value, label]) => (
             <Option key={value} value={value}>{label}</Option>
           ))}
         </Select>
-      )
-    },
-    {
-      title: '参数名',
-      dataIndex: 'key',
-      width: 200,
-      render: (key: string, record: InputMapping, index: number) => (
-        <Input
-          value={key}
-          onChange={(e) => handleUpdate(index, 'key', e.target.value)}
-          placeholder="参数名"
-        />
-      )
-    },
-    {
-      title: '参数值',
-      dataIndex: 'value',
-      render: (val: string, record: InputMapping, index: number) => (
-        <Input
-          value={val}
-          onChange={(e) => handleUpdate(index, 'value', e.target.value)}
-          placeholder="参数值"
-        />
-      )
-    },
-    {
-      title: '操作',
-      width: 80,
-      render: (_: any, record: InputMapping, index: number) => (
-        <Button
-          type="link"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => handleRemove(index)}
-        />
-      )
-    }
-  ];
-
-  return (
-    <div>
-      <div style={{ marginBottom: '8px' }}>
-        <Button
-          type="dashed"
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-          block
-        >
-          添加参数映射
-        </Button>
-      </div>
-      <Table
-        columns={columns}
-        dataSource={value}
-        rowKey={(record, index) => `mapping-${index}`}
-        pagination={false}
-        size="small"
-      />
-    </div>
+      </Form.Item>
+      
+      <Form.Item
+        {...field}
+        name={[field.name, 'key']}
+        label="参数名"
+        rules={[{ required: true, message: '请输入参数名' }]}
+      >
+        <Input placeholder="如 username、password" />
+      </Form.Item>
+      
+      <Form.Item
+        {...field}
+        name={[field.name, 'value']}
+        label="参数值"
+        rules={[{ required: true, message: '请输入参数值' }]}
+      >
+        <Input placeholder="支持环境变量，如 {{auth_username}}" />
+      </Form.Item>
+    </Card>
   );
-});
-
-InputMappingForm.displayName = 'InputMappingForm';
+};
 
 export default InputMappingForm;

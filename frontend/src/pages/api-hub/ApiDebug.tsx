@@ -231,6 +231,56 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
     }
   };
 
+  // 智能注入鉴权信息（自动选择注入方式）
+  const handleInjectAuth = async () => {
+    const selectedEnvId = form.getFieldValue('environment_id');
+    const environment = environments.find(e => e.id === selectedEnvId);
+
+    if (!environment) {
+      message.warning('请先选择环境');
+      return;
+    }
+
+    try {
+      const projectId = environment.project_id;
+      if (!projectId) {
+        message.warning('无法获取项目 ID');
+        return;
+      }
+
+      // 调用后端智能注入接口
+      const response = await api.get(`/projects/${projectId}/environments/${environment.id}/auth-config/inject`);
+
+      if (response.code === 0 && response.data) {
+        const headers = response.data.headers || {};
+        const source = response.data.source || 'unknown';
+
+        // 合并 Content-Type
+        const resultHeaders: Record<string, string> = {
+          'Content-Type': 'application/json',
+          ...headers
+        };
+
+        form.setFieldsValue({
+          headers: JSON.stringify(resultHeaders, null, 2),
+        });
+
+        // 根据来源显示不同的提示消息
+        if (source === 'environment') {
+          message.success('已注入环境配置的鉴权信息');
+        } else if (source === 'project_auth') {
+          message.success('已自动获取并注入 Token');
+        } else {
+          message.success('鉴权信息注入成功');
+        }
+      } else {
+        message.warning(response.message || '注入鉴权信息失败');
+      }
+    } catch (error: any) {
+      message.error(error.message || '注入鉴权信息失败');
+    }
+  };
+
   // 初始化表单默认值
   const getInitialValues = () => {
     const pathParams: Record<string, any> = {};
@@ -635,33 +685,24 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
             />
           </Form.Item>
 
-          <Form.Item 
-            name="headers" 
+          <Form.Item
+            name="headers"
             label={
               <Space>
                 <span>请求头</span>
-                <Button 
-                  type="link" 
-                  size="small" 
+                <Button
+                  type="link"
+                  size="small"
                   icon={<ThunderboltOutlined />}
-                  onClick={injectAuth}
+                  onClick={handleInjectAuth}
                 >
-                  注入环境
-                </Button>
-                <Button 
-                  type="link" 
-                  size="small" 
-                  icon={<KeyOutlined />}
-                  onClick={injectAuthToken}
-                >
-                  自动获取 Token
+                  注入鉴权信息
                 </Button>
               </Space>
             }
             extra={
               <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
-                "注入环境"：注入环境配置的 headers 和 variables<br/>
-                "自动获取 Token"：调用项目鉴权配置自动获取最新 Token
+                自动根据环境配置注入鉴权信息（环境 headers/variables 或项目鉴权配置）
               </div>
             }
           >
