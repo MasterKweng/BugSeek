@@ -301,6 +301,8 @@ const CasesList: React.FC = () => {
     try {
       const response = await api.post(`/api-definitions/${filters.definition_id}/cases`, {
         ...aiGeneratedCase,
+        ai_generated: true,
+        ai_confidence: aiGeneratedCase.ai_confidence,
         case_type: 'base',
         priority: 'P0'
       });
@@ -830,7 +832,7 @@ const CasesList: React.FC = () => {
                   <div style={{ background: '#f5f5f5', padding: 12, borderRadius: 4 }}>
                     {aiGeneratedCase.extraction_rules.map((rule: any, index: number) => (
                       <div key={index}>
-                        <span>{rule.variable_name} = {rule.json_path}</span>
+                        <span>{rule.var_name || rule.variable_name} = {rule.field || rule.json_path}</span>
                       </div>
                     ))}
                   </div>
@@ -995,6 +997,45 @@ const CasesList: React.FC = () => {
                 <div style={{ color: '#999', marginBottom: 4 }}>用例描述</div>
                 <div>{currentRecord.description || '-'}</div>
               </Col>
+              {currentRecord.request_data && (
+                <Col span={24}>
+                  <div style={{ color: '#999', marginBottom: 4 }}>请求数据</div>
+                  <div style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                    {currentRecord.request_data.path_params && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>路径参数 (Path Parameters)</div>
+                        <pre style={{ margin: 0, fontSize: '12px', background: '#fff', padding: '8px', borderRadius: '4px' }}>
+                          {JSON.stringify(currentRecord.request_data.path_params, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                    {currentRecord.request_data.headers && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>请求头 (Headers)</div>
+                        <pre style={{ margin: 0, fontSize: '12px', background: '#fff', padding: '8px', borderRadius: '4px' }}>
+                          {JSON.stringify(currentRecord.request_data.headers, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                    {currentRecord.request_data.body && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>请求体 (Body)</div>
+                        <pre style={{ margin: 0, fontSize: '12px', background: '#fff', padding: '8px', borderRadius: '4px' }}>
+                          {JSON.stringify(currentRecord.request_data.body, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                    {!currentRecord.request_data.path_params && !currentRecord.request_data.headers && !currentRecord.request_data.body && (
+                      <div>
+                        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>查询参数 (Query Parameters)</div>
+                        <pre style={{ margin: 0, fontSize: '12px', background: '#fff', padding: '8px', borderRadius: '4px' }}>
+                          {JSON.stringify(currentRecord.request_data, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                </Col>
+              )}
               <Col span={12}>
                 <div style={{ color: '#999', marginBottom: 4 }}>所属接口</div>
                 <div>

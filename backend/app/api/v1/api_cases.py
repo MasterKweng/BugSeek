@@ -77,6 +77,8 @@ class ApiCaseCreate(BaseModel):
     extraction_rules: Optional[List[Dict[str, Any]]] = Field(None, description="变量提取规则")
     pre_sql: Optional[str] = Field(None, description="前置SQL")
     post_sql: Optional[str] = Field(None, description="后置SQL")
+    ai_generated: Optional[bool] = Field(None, description="是否AI生成")
+    ai_confidence: Optional[float] = Field(None, description="AI置信度")
 
 
 class ApiCaseUpdate(BaseModel):
@@ -93,6 +95,8 @@ class ApiCaseUpdate(BaseModel):
     post_sql: Optional[str] = Field(None, description="后置SQL")
     status: Optional[str] = Field(None, description="状态：active/archived")
     fix_status: Optional[str] = Field(None, description="修复状态：normal/fix_required/fixed")
+    ai_generated: Optional[bool] = Field(None, description="是否AI生成")
+    ai_confidence: Optional[float] = Field(None, description="AI置信度")
 
 
 class ApiCaseResponse(BaseModel):
@@ -173,6 +177,8 @@ async def create_api_case(
         extraction_rules=request.extraction_rules,
         pre_sql=request.pre_sql,
         post_sql=request.post_sql,
+        ai_generated=request.ai_generated if request.ai_generated is not None else False,
+        ai_confidence=request.ai_confidence,
         created_by=current_user.id,
         updated_by=current_user.id
     )

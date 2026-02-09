@@ -1,64 +1,43 @@
-  您希望基本配置中的"鉴权类型"在选择 BASIC、BEARER、API_KEY、SESSION 这四种类型时，能够提供与登录接口鉴权类型一致的简化配置体验。
+• 已修复并补齐你提到的全部问题，覆盖后端/前端/AI 模板与执行器一致性。核心改动如下：
 
-  当前情况分析
+  已修复问题与对应改动
+  1. 用例提取规则字段不匹配
+      - 影响文件：backend/app/ai/prompts.py、backend/app/core/test_execution.py、frontend/src/pages/api-hub/CasesList.tsx
+      - 执行器兼容 query_params 并合并到 query。
+      - Prompt 改为“查询参数顶层”。
+      - 影响文件：backend/app/core/test_execution.py、backend/app/ai/prompts.py
+  3. 时间占位符不一致
+      - Prompt 统一为 {{timestamp()}}，执行器兼容 {{timestamp}}。
+      - 影响文件：backend/app/ai/prompts.py、backend/app/core/test_execution.py
+  4. AI 断言 operator/source 不兼容
+      - 执行器扩展：equals/not_equals/greater_than/...、header/time 等均可执行；增加 regex/length/empty/type。
+      - 响应耗时 elapsed_ms 已加入响应结构用于 time 断言。
+      - 影响文件：backend/app/core/test_execution.py
+  5. AI 用例保存未标记 ai_generated/ai_confidence
+      - API 支持写入 ai_generated/ai_confidence；前端保存时写入。
+      - 影响文件：backend/app/api/v1/api_cases.py、frontend/src/pages/api-hub/CasesList.tsx
+  6. AIAssistedExecutor.generate_test_cases 未实现
+      - 直接调用 AIService.generate_base_case 实现。
+      - 影响文件：backend/app/core/test_execution.py
 
-  登录接口鉴权类型：
-   - 选择 BASIC/BEARER/API_KEY/SESSION 时，显示简化的参数映射界面
-   - 这些参数用于调用登录接口获取 token
+  ———
 
-  基本配置中的鉴权类型：
-   - 选择鉴权类型后，需要配置"注入目标"和"注入方式"
-   - 这些配置用于将鉴权信息注入到目标接口
+  具体修改文件
 
-  改动方案
+  - backend/app/ai/prompts.py
+      - 修正 timestamp()、GET/DELETE 查询参数结构、extraction_rules 字段名、断言 operator 列表。
+  - backend/app/core/test_execution.py
+      - 支持 query_params、timestamp 兼容、提取规则字段兼容、断言扩展、elapsed_ms。
+      - 实现 AIAssistedExecutor.generate_test_cases。
+  - backend/app/api/v1/api_cases.py
+      - ApiCaseCreate/Update 增加 ai_generated/ai_confidence，创建时写入。
+  - frontend/src/pages/api-hub/CasesList.tsx
+      - 保存 AI 用例时写入 ai_generated/ai_confidence。
+      - 预览兼容旧字段名。
 
-  方案思路
-  当用户在基本配置中选择 BASIC、BEARER、API_KEY、SESSION 这四种鉴权类型时：
+  ———
 
-   1. 自动设置注入方式：
-      - BASIC：自动设置注入目标为 HEADER，注入 key 为 Authorization，注入模板为 Basic {static_value}
-      - BEARER：自动设置注入目标为 HEADER，注入 key 为 Authorization，注入模板为 Bearer {static_value}
-      - API_KEY：显示配置界面，让用户选择添加到 Header 还是 Query，并输入 key 名称
-      - SESSION：自动设置注入目标为 HEADER，注入 key 为 Cookie，注入模板为 {static_value}
+  建议下一步
 
-   2. 来源模式处理：
-      - 这四种类型应该自动切换为"静态模式"
-      - 隐藏"动态模式"相关配置（登录接口 ID、参数映射、提取规则）
-      - 只显示静态值输入框
-
-   3. 界面展示：
-      - 鉴权类型选择后，在"基本配置"卡片内显示对应的简化输入界面
-      - BASIC：用户名 + 密码（自动拼接为 base64(username:password)）
-      - Bearer：Token 输入框
-      - API Key：Key 名称 + Value + 添加位置（Header/Query）
-      - Session：Session ID + Cookie 名称
-
-   4. 数据保存：
-      - 前端将简化输入转换为标准的注入配置格式
-      - BASIC 类型：static_value = base64(username:password)
-      - 其他类型：直接使用用户输入的值
-
-  具体改动点
-
-  前端（AuthConfigForm.tsx）：
-   1. 监听 auth_type 的变化
-   2. 当选择 BASIC/BEARER/API_KEY/SESSION 时：
-      - 自动设置 source_mode 为 STATIC
-      - 自动设置注入目标的默认值
-      - 显示对应的简化配置界面
-   3. 修改 handleSubmit 函数，处理简化输入的转换
-
-  后端：
-   - 基本配置的注入逻辑已经支持这些类型，应该不需要修改
-   - 前端传递的 injection 配置格式已经标准化
-
-  特殊类型处理说明
-
-   - NONE：不显示简化配置，保持原有的完整配置界面（静态/动态模式）
-   - CUSTOM：不显示简化配置，保持原有的完整配置界面（静态/动态模式）
-
-  这样的改动能让用户在配置基本鉴权时，与配置登录接口鉴权类型有类似的简化体验，降低配置复杂度。
-
-本次修改不要修改其他内容，只修改基本鉴权
-
-
+  1. 你可以跑一遍用例生成 + 执行，确认断言/提取是否正确落库。
+  2. 如果要我补上测试或增加断言模板适配规则，可继续指示。

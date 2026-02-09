@@ -618,3 +618,90 @@ class AuthExtractRule(Base, TimestampMixin):
         Index('ix_auth_extract_rules_rule_name', 'rule_name'),
         Index('ix_auth_extract_rules_extract_source', 'extract_source'),
     )
+
+
+class TestExecution(Base, TimestampMixin):
+    """统一测试执行记录表（支持单接口、场景、套件）V2.0 层级一"""
+    __tablename__ = "test_executions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+
+    # 执行类型：single | scenario | suite
+    execution_type = Column(String(20), nullable=False, index=True)
+
+    # 关联ID（根据类型不同，指向不同的表）
+    target_id = Column(Integer, nullable=False, index=True)  # script_id | scenario_id | suite_id
+
+    # 执行环境
+    environment_id = Column(Integer, ForeignKey("environments.id"), nullable=True)
+
+    # 执行配置
+    execution_mode = Column(String(20))  # sequential | parallel
+    triggered_by = Column(String(50), index=True)  # manual | jenkins | schedule
+
+    # 执行状态
+    status = Column(String(20), default="pending", index=True)  # pending | running | completed | failed
+    started_at = Column(DateTime)
+    finished_at = Column(DateTime)
+    duration = Column(Integer)
+
+    # 执行统计
+    total = Column(Integer)
+    passed = Column(Integer)
+    failed = Column(Integer)
+    skipped = Column(Integer)
+
+    # Jenkins 相关（仅套件执行需要）
+    jenkins_job_name = Column(String(100))
+    jenkins_build_number = Column(Integer)
+    jenkins_build_url = Column(String(255))
+
+    # CI/CD 回调
+    webhook_url = Column(String(255))
+    callback_status = Column(String(20))
+
+    # 关系定义
+    environment = relationship("Environment", foreign_keys=[environment_id])
+
+    __table_args__ = (
+        Index('ix_test_executions_project_id', 'project_id'),
+        Index('ix_test_executions_execution_type', 'execution_type'),
+        Index('ix_test_executions_target_id', 'target_id'),
+        Index('ix_test_executions_status', 'status'),
+        Index('ix_test_executions_triggered_by', 'triggered_by'),
+    )
+
+
+class TestExecutionResult(Base, TimestampMixin):
+    """测试执行结果明细表 V2.0 层级一"""
+    __tablename__ = "test_execution_results"
+
+    id = Column(Integer, primary_key=True, index=True)
+    execution_id = Column(Integer, ForeignKey("test_executions.id"), nullable=False, index=True)
+
+    # 原始数据
+    target_type = Column(String(20), index=True)  # script | endpoint
+    target_id = Column(Integer, index=True)
+
+    # 执行结果
+    status = Column(String(20), index=True)
+    response_time = Column(Integer)
+    response_code = Column(Integer)
+    response_body = Column(JSON)
+    request_body = Column(JSON)
+
+    # 断言结果
+    assertion_results = Column(JSON)
+    extracted_variables = Column(JSON)  # 提取的变量字典
+    error_message = Column(Text)
+
+    # 关系定义
+    execution = relationship("TestExecution", foreign_keys=[execution_id])
+
+    __table_args__ = (
+        Index('ix_test_execution_results_execution_id', 'execution_id'),
+        Index('ix_test_execution_results_target_type', 'target_type'),
+        Index('ix_test_execution_results_target_id', 'target_id'),
+        Index('ix_test_execution_results_status', 'status'),
+    )

@@ -45,6 +45,7 @@ class AIService:
         try:
             # 记录输入数据（不包含敏感信息）
             logger.info(f"AI 执行开始: task_type={task_type}, project_id={project_id}")
+            logger.info(f"AI 输入数据: method={input_data.get('method')}, path={input_data.get('path')}, summary={input_data.get('summary')}")
             logger.debug(f"AI 输入数据: path={input_data.get('path')}, method={input_data.get('method')}, test_types={list(input_data.get('test_types_config', {}).keys())}")
 
             # 1. 获取 Prompt 模板
@@ -57,6 +58,9 @@ class AIService:
 
             # 3. 构建 Prompt
             rendered = self.prompt_manager.render(template, context, input_data)
+
+            # 记录渲染后的用户 Prompt（截取前500字符）
+            logger.info(f"渲染后的用户 Prompt（前500字符）: {rendered['user'][:500]}")
 
             # 4. 调用模型
             adapter = self._get_adapter()
@@ -156,10 +160,29 @@ class AIService:
                         result_str = result_str[:-3]  # 移除结尾的 ```
                     result_str = result_str.strip()
                 
+                # 记录原始返回内容（用于调试）
+                logger.info(f"AI 返回的原始内容: {result_str[:500]}...")
+                
                 # 尝试解析为 JSON
                 import json
                 if isinstance(result_str, str):
-                    return json.loads(result_str)
+                    try:
+                        parsed_result = json.loads(result_str)
+                        logger.info(f"JSON 解析成功")
+                        return parsed_result
+                    except json.JSONDecodeError as e:
+                        logger.error(f"JSON 解析失败: {str(e)}")
+                        logger.error(f"JSON 内容: {result_str}")
+                        # 尝试修复常见的 JSON 格式问题
+                        try:
+                            # 尝试将单引号替换为双引号
+                            fixed_str = result_str.replace("'", '"')
+                            parsed_result = json.loads(fixed_str)
+                            logger.info(f"JSON 修复后解析成功")
+                            return parsed_result
+                        except Exception as e2:
+                            logger.error(f"JSON 修复失败: {str(e2)}")
+                            raise Exception(f"AI 返回的 JSON 格式错误: {str(e)}")
                 return result_str
             else:
                 raise Exception(result.get("error", "AI 生成失败"))

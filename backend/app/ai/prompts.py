@@ -21,6 +21,8 @@ class PromptManager:
 - 摘要：{summary}
 - 描述：{description}
 
+重要：用例名称必须使用接口的实际路径，格式为 "基准用例 - {path}"，不要使用示例中的路径。
+
 请求参数 Schema：
 {request_schema}
 
@@ -28,34 +30,66 @@ class PromptManager:
 {response_schema}
 
 请生成一个基准测试用例，要求：
+
 1. 入参生成：
    - 必填字段生成合理的测试值（使用动态随机函数）
+   - 动态函数格式：使用双大括号 {{...}}
    - 字符串类型：使用 {{random_string(8)}} 或 {{random_string(16)}}
-   - 整数类型：使用 {{random_int(1000, 9999)}}
+   - 整数类型：使用 {{random_int(1000, 9999)}} 或 {{random_int(1, 100)}}
    - 布尔类型：使用 true 或 false
-   - 时间类型：使用 {{timestamp}} 或特定时间
+   - 时间类型：使用 {{timestamp()}} 或特定时间
    - UUID 类型：使用 {{uuid()}}
    - 邮箱类型：使用格式如 test_{{random_string(6)}}@example.com
 
-2. 断言生成：
+2. request_data 结构规范（根据 HTTP 方法）：
+   
+   GET/DELETE 请求：
+   {{
+     "path_params": {{
+       // 路径参数，如 URL 中的 {id}
+       "id": "{{random_int(1, 100)}}"
+     }},
+     // 查询参数请直接放在 request_data 顶层
+     "limit": "{{random_int(10, 20)}}",
+     "offset": "{{random_int(0, 50)}}"
+   }}
+   
+   POST/PUT/PATCH 请求：
+   {{
+     "path_params": {{
+       // 路径参数（如果 URL 中有 {id} 等）
+       "id": "{{random_int(1, 100)}}"
+     }},
+     "headers": {{
+       "Content-Type": "application/json"
+     }},
+     "body": {{
+       // 请求体数据，包含所有必填字段
+       "name": "测试名称{{random_string(6)}}",
+       "quantity": {{random_int(1, 100)}}
+     }}
+   }}
+
+3. 断言生成：
    - 状态码断言：断言返回 2xx 状态码（推荐 200）
    - code 字段断言：如果有 code 字段，断言其等于 0 或成功码
    - 关键字段非空断言：识别响应中的关键字段（如 id, token, data 等）并添加非空断言
    - 字段类型断言：验证关键字段的类型是否正确
 
-3. 变量提取：
+4. 变量提取：
    - 提取响应中的关键字段作为变量
    - 如提取 token, userId, orderId 等
    - 使用 JSONPath 表达式（如 $.data.token）
 
 返回格式（JSON）：
 {{
-  "name": "基准用例 - {path}",
+  "name": "基准用例 - " + "{path}",
   "description": "该接口的基准测试用例",
   "priority": "P0",
   "request_data": {{
-    // 入参，必须包含所有必填字段
-    // 使用动态随机函数避免脏数据问题
+    // 根据请求方法选择正确的结构
+    // GET/DELETE: path_params + query_params
+    // POST/PUT/PATCH: path_params + headers + body
   }},
   "assertion_rules": [
     {{
@@ -76,9 +110,8 @@ class PromptManager:
   ],
   "extraction_rules": [
     {{
-      "variable_name": "变量名",
-      "source": "body",
-      "json_path": "$.data.field",
+      "var_name": "变量名",
+      "field": "$.data.field",
       "description": "描述"
     }}
   ],
@@ -127,7 +160,7 @@ class PromptManager:
     {{
       "source": "status|body|header|time",
       "property": "字段路径（如 $.data.id）",
-      "operator": "equals|not_equals|in|not_in|contains|not_contains|greater_than|less_than|greater_equal|less_equal|type|not_null|is_null|is_true|is_false|regex|length|empty",
+      "operator": "==|!=|in|not_in|contains|not_contains|greater_than|less_than|greater_equal|less_equal|type|not_null|is_null|is_true|is_false|regex|length|empty|equals|not_equals",
       "value": "期望值",
       "description": "断言描述"
     }}
@@ -391,8 +424,10 @@ class PromptManager:
             input_data: 输入数据
             
         Returns:
-            Dict: 渲染后的 system 和 user 提示词
+            Dict: 渲染后的 system 和 user �示词
         """
+        from string import Template
+        
         # 合并上下文和输入数据
         all_vars = {**context, **input_data}
         
@@ -403,8 +438,23 @@ class PromptManager:
         
         # 渲染提示词
         system_prompt = template.get("system", "")
-        user_prompt = template.get("user", "").format(**all_vars)
-        
+        user_prompt = template.get("user", "")
+
+        # 定义真正的占位符列表（这些需要被替换）
+        real_placeholders = ['method', 'path', 'summary', 'description', 'request_schema', 'response_schema',
+                            'response_sample', 'project_name', 'tech_stack', 'database', 'test_types_config',
+                            'old_definition', 'new_definition', 'diff_data', 'affected_cases', 'git_diff',
+                            'test_cases', 'error_message', 'logs', 'code', 'language', 'framework', 'input']
+
+        # 使用简单的字符串替换来替换真正的占位符
+        # 只替换已定义的占位符，避免替换示例代码中的 {}
+        for placeholder in real_placeholders:
+            if placeholder in all_vars:
+                # 使用正则表达式替换，只替换独立的 {placeholder}，不替换 {{placeholder}}
+                import re
+                pattern = r'\{' + re.escape(placeholder) + r'\}'
+                user_prompt = re.sub(pattern, str(all_vars[placeholder]), user_prompt)
+
         return {
             "system": system_prompt,
             "user": user_prompt
