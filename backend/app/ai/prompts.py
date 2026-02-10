@@ -33,6 +33,7 @@ class PromptManager:
 
 1. 入参生成：
    - 必填字段生成合理的测试值（使用动态随机函数）
+   - **ID/外键字段（id, *_id, *Id）不要用随机数**，应使用变量占位，如 {{user_id}} / {{order_id}}，并在 required_variables 中声明来源（数据库查询或前置业务创建）
    - 动态函数格式：使用双大括号 {{...}}
    - 字符串类型：使用 {{random_string(8)}} 或 {{random_string(16)}}
    - 整数类型：使用 {{random_int(1000, 9999)}} 或 {{random_int(1, 100)}}
@@ -47,7 +48,7 @@ class PromptManager:
    {{
      "path_params": {{
        // 路径参数，如 URL 中的 {id}
-       "id": "{{random_int(1, 100)}}"
+       "id": "{{id}}"
      }},
      // 查询参数请直接放在 request_data 顶层
      "limit": "{{random_int(10, 20)}}",
@@ -58,7 +59,7 @@ class PromptManager:
    {{
      "path_params": {{
        // 路径参数（如果 URL 中有 {id} 等）
-       "id": "{{random_int(1, 100)}}"
+       "id": "{{id}}"
      }},
      "headers": {{
        "Content-Type": "application/json"
@@ -91,6 +92,14 @@ class PromptManager:
     // GET/DELETE: path_params + query_params
     // POST/PUT/PATCH: path_params + headers + body
   }},
+  "required_variables": [
+    "id",
+    "user_id"
+  ],
+  "data_prep": [
+    "id: 需从数据库查询或通过前置业务创建",
+    "user_id: 需从数据库查询或通过前置业务创建"
+  ],
   "assertion_rules": [
     {{
       "source": "status",

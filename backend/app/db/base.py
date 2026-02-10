@@ -101,6 +101,32 @@ class Version(Base, TimestampMixin):
     )
 
 
+class DbSchemaVersion(Base, TimestampMixin):
+    """数据库结构版本（绑定项目与版本）"""
+    __tablename__ = "db_schema_versions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    version_id = Column(Integer, ForeignKey("versions.id"), nullable=False)
+    name = Column(String(100), nullable=False)
+    source_type = Column(String(20), default="upload")  # upload/db
+    source_version = Column(String(50), nullable=True)
+    schema_snapshot = Column(JSON, nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    updated_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    project = relationship("Project", backref="db_schema_versions")
+    version = relationship("Version", backref="db_schema_versions")
+    creator = relationship("User", foreign_keys=[created_by])
+    updater = relationship("User", foreign_keys=[updated_by])
+
+    __table_args__ = (
+        Index('ix_db_schema_versions_project_id', 'project_id'),
+        Index('ix_db_schema_versions_version_id', 'version_id'),
+        Index('ix_db_schema_versions_source_type', 'source_type'),
+    )
+
+
 class Environment(Base, TimestampMixin):
     """环境表"""
     __tablename__ = "environments"
@@ -426,6 +452,42 @@ class VersionApiDefinition(Base, TimestampMixin):
         Index('ix_version_api_definitions_version_id', 'version_id'),
         Index('ix_version_api_definitions_definition_id', 'definition_id'),
         UniqueConstraint('version_id', 'definition_id', name='uq_version_definition'),
+    )
+
+
+class ApiFieldMapping(Base, TimestampMixin):
+    """API 字段与数据库字段映射（绑定版本）"""
+    __tablename__ = "api_field_mappings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    version_id = Column(Integer, ForeignKey("versions.id"), nullable=False)
+    definition_id = Column(Integer, ForeignKey("api_definitions.id"), nullable=False)
+    api_field_path = Column(String(255), nullable=False)  # e.g. body.order_id / path.id
+    db_table = Column(String(100), nullable=False)
+    db_column = Column(String(100), nullable=False)
+    relation_type = Column(String(20), default="direct")  # direct/fk/derived
+    confidence = Column(Float, nullable=True)
+    source = Column(String(20), default="manual")  # manual/ai
+    status = Column(String(20), default="confirmed")  # proposed/confirmed/rejected
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    updated_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    definition = relationship("ApiDefinition", foreign_keys=[definition_id])
+    project = relationship("Project", foreign_keys=[project_id])
+    version = relationship("Version", foreign_keys=[version_id])
+    creator = relationship("User", foreign_keys=[created_by])
+    updater = relationship("User", foreign_keys=[updated_by])
+
+    __table_args__ = (
+        Index('ix_api_field_mappings_project_id', 'project_id'),
+        Index('ix_api_field_mappings_version_id', 'version_id'),
+        Index('ix_api_field_mappings_definition_id', 'definition_id'),
+        Index('ix_api_field_mappings_status', 'status'),  # 添加状态索引
+        UniqueConstraint(
+            'project_id', 'version_id', 'definition_id', 'api_field_path', 'db_table', 'db_column',
+            name='uq_field_mapping'
+        ),
     )
 
 

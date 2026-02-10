@@ -138,3 +138,49 @@ export interface ApiResponse<T = any> {
   message: string
   data: T
 }
+
+// 数据库结构相关类型
+export interface DbSchemaSummary {
+  id: number
+  project_id: number
+  version_id: number
+  name: string
+  source_type: string
+  source_version: string | null
+  table_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface DbSchemaListResponse {
+  total: number
+  items: DbSchemaSummary[]
+}
+
+export interface DbSchemaDetail extends DbSchemaSummary {
+  schema_snapshot: Record<string, any>
+}
+
+// 字段映射相关类型
+export interface FieldMapping {
+  id: number
+  project_id: number
+  version_id: number
+  definition_id: number
+  definition_method?: string
+  definition_path?: string
+  api_field_path: string
+  db_table: string
+  db_column: string
+  relation_type?: string
+  confidence?: number | null
+  source?: string | null
+  status?: string  // 新增：映射状态 (proposed/confirmed/rejected)
+  created_at: string
+  updated_at: string
+}
+
+export interface FieldMappingListResponse {
+  total: number
+  items: FieldMapping[]
+}

@@ -164,14 +164,16 @@ async def list_versions(
             "test_scope": version.test_scope,
             "notification_url": version.notification_url,
             "created_at": version.created_at.isoformat() if version.created_at else "",
-            "updated_at": version.updated_at.isoformat() if version.updated_at else ""
+            "updated_at": version.updated_at.isoformat() if version.updated_at else "",
+            "endpoints_count": getattr(version, 'endpoints_count', 0),  # 保持兼容性
+            "test_cases_count": getattr(version, 'test_cases_count', 0)  # 保持兼容性
         })
 
     return {
         "code": 0,
         "message": "查询成功",
         "data": {
-            "versions": data,
+            "items": data,  # 修复：改为 items 以匹配前端期望
             "total": total,
             "page": page,
             "page_size": page_size

@@ -1,4 +1,4 @@
-2026-02-10 13:41:32 | ERROR | [8026c920a990443da0633ee4e11146be] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+2026-02-09 11:49:07 | ERROR | [d2b2e52be03f4c5b9a0f5f5c10af2059] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 36, in get_current_user
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -26,7 +26,7 @@ Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 41, in get_current_user
     raise credentials_exception
 fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-10 13:41:32 | ERROR | [973a63f17d03400f9bd45d002e9f4702] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+2026-02-09 11:49:07 | ERROR | [2a8e3b4493ac46dfaedaf28fa143c35c] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 36, in get_current_user
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -54,7 +54,7 @@ Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 41, in get_current_user
     raise credentials_exception
 fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-10 13:41:32 | ERROR | [448e9023c04e4459824494d2feea8b5e] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+2026-02-09 11:49:07 | ERROR | [7c4d9fa88c2944b3ac0f1b84b42ec54d] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 36, in get_current_user
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -82,7 +82,7 @@ Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 41, in get_current_user
     raise credentials_exception
 fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-10 13:41:32 | ERROR | [964998f106a04882b744434873a13375] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+2026-02-09 11:49:07 | ERROR | [aaf0b97ed1ff40979c7005636b59078e] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 36, in get_current_user
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -110,7 +110,7 @@ Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 41, in get_current_user
     raise credentials_exception
 fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-10 13:41:32 | ERROR | [812c120f8e7d4f9792f871a9e13544e6] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+2026-02-09 11:49:07 | ERROR | [60368ed62b3d4829af7581750a1c93fc] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 36, in get_current_user
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -138,7 +138,7 @@ Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 41, in get_current_user
     raise credentials_exception
 fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-10 13:41:32 | ERROR | [fafc4da3e4d24799b77964b3af6ccbb4] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+2026-02-09 11:49:07 | ERROR | [8e145bca01ed4cb1ac02bfdd38c2f811] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 36, in get_current_user
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -166,138 +166,12 @@ Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 41, in get_current_user
     raise credentials_exception
 fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-10 16:06:49 | ERROR | [337d22c5ddde487883079044ce1ca6ab] | app.ai.service | JSON 解析失败: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
-2026-02-10 16:06:49 | ERROR | [337d22c5ddde487883079044ce1ca6ab] | app.ai.service | JSON 内容: {
-  "name": "基准用例 - /api/order/so-line/{id}/metadata/",
-  "description": "该接口的基准测试用例",
-  "priority": "P0",
-  "request_data": {
-    "path_params": {
-      "id": "{{order_id}}"
-    },
-    "headers": {
-      "Content-Type": "application/json"
-    },
-    "body": {
-      "metadata": {
-        "key1": "{{random_string(16)}}",
-        "key2": {{random_int(1, 100)}},
-        "key3": true,
-        "key4": "{{timestamp()}}",
-        "key5": "{{uuid()}}",
-        "key6": "test_{{random_string(6)}}@example.com"
-      }
-    }
-  },
-  "required_variables": [
-    "order_id"
-  ],
-  "data_prep": [
-    "order_id: 需从数据库查询或通过前置业务创建"
-  ],
-  "assertion_rules": [
-    {
-      "source": "status",
-      "property": null,
-      "operator": "in",
-      "value": [200, 201, 204],
-      "description": "状态码应为 2xx"
-    },
-    {
-      "source": "body",
-      "property": "$.metadata",
-      "operator": "not_null",
-      "value": null,
-      "description": "metadata 字段应非空"
-    },
-    {
-      "source": "body",
-      "property": "$.metadata.key1",
-      "operator": "not_null",
-      "value": null,
-      "description": "metadata.key1 字段应非空"
-    },
-    {
-      "source": "body",
-      "property": "$.metadata.key2",
-      "operator": "type",
-      "value": "number",
-      "description": "metadata.key2 字段应为数字类型"
-    },
-    {
-      "source": "body",
-      "property": "$.metadata.key3",
-      "operator": "type",
-      "value": "boolean",
-      "description": "metadata.key3 字段应为布尔类型"
-    },
-    {
-      "source": "body",
-      "property": "$.metadata.key4",
-      "operator": "type",
-      "value": "string",
-      "description": "metadata.key4 字段应为字符串类型"
-    },
-    {
-      "source": "body",
-      "property": "$.metadata.key5",
-      "operator": "type",
-      "value": "string",
-      "description": "metadata.key5 字段应为字符串类型"
-    },
-    {
-      "source": "body",
-      "property": "$.metadata.key6",
-      "operator": "type",
-      "value": "string",
-      "description": "metadata.key6 字段应为字符串类型"
-    }
-  ],
-  "extraction_rules": [
-    {
-      "var_name": "updated_metadata",
-      "field": "$.metadata",
-      "description": "提取更新后的 metadata 字段"
-    }
-  ],
-  "ai_confidence": 0.9
-}
-2026-02-10 16:06:49 | ERROR | [337d22c5ddde487883079044ce1ca6ab] | app.ai.service | JSON 修复失败: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
-2026-02-10 16:06:49 | ERROR | [337d22c5ddde487883079044ce1ca6ab] | app.ai.service | AI 生成基准用例失败: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
-2026-02-10 16:06:49 | ERROR | [337d22c5ddde487883079044ce1ca6ab] | app.api.v1.api_cases | [337d22c5ddde487883079044ce1ca6ab] AI 生成基准用例失败: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
-2026-02-10 16:06:49 | ERROR | [337d22c5ddde487883079044ce1ca6ab] | app.dependencies | 数据库会话异常: 500: AI 生成失败：AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
+2026-02-09 11:49:35 | ERROR | [56b12f2521594c969a96dc119659b215] | app.api.v1.api_cases | [56b12f2521594c969a96dc119659b215] 批量执行失败: No module named 'app.core.test_execution'
+2026-02-09 11:49:35 | ERROR | [56b12f2521594c969a96dc119659b215] | app.dependencies | 数据库会话异常: 500: 批量执行失败：No module named 'app.core.test_execution'
 Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\ai\service.py", line 170, in generate_base_case
-    parsed_result = json.loads(result_str)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
-    return _default_decoder.decode(s)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
-    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 353, in raw_decode
-    obj, end = self.scan_once(s, idx)
-json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\ai\service.py", line 180, in generate_base_case
-    parsed_result = json.loads(fixed_str)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
-    return _default_decoder.decode(s)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
-    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 353, in raw_decode
-    obj, end = self.scan_once(s, idx)
-json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 646, in ai_generate_base_case
-    result = await ai_service.generate_base_case(
-  File "D:\code\BugSeek\backend\app\ai\service.py", line 185, in generate_base_case
-    raise Exception(f"AI 返回的 JSON 格式错误: {str(e)}")
-Exception: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 810, in batch_execute_cases
+    from app.core.test_execution import CaseExecutor
+ModuleNotFoundError: No module named 'app.core.test_execution'
 
 During handling of the above exception, another exception occurred:
 
@@ -312,38 +186,106 @@ Traceback (most recent call last):
     raw_response = await run_endpoint_function(
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
     return await dependant.call(**values)
-  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 688, in ai_generate_base_case
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 838, in batch_execute_cases
     raise HTTPException(
-fastapi.exceptions.HTTPException: 500: AI 生成失败：AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
-2026-02-10 16:08:44 | ERROR | [25f0950194b04d01a5b4d080d0533205] | app.ai.service | JSON 解析失败: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
-2026-02-10 16:08:44 | ERROR | [25f0950194b04d01a5b4d080d0533205] | app.ai.service | JSON 内容: {
-  "name": "基准用例 - /api/order/so-line/{id}/metadata/",
+fastapi.exceptions.HTTPException: 500: 批量执行失败：No module named 'app.core.test_execution'
+2026-02-09 15:45:26 | ERROR | [92ab7d5d4d89479d84b5707c870c2af2] | app.api.v1.api_cases | [92ab7d5d4d89479d84b5707c870c2af2] 批量执行失败: f-string: unmatched '[' (test_execution.py, line 682)
+2026-02-09 15:45:26 | ERROR | [92ab7d5d4d89479d84b5707c870c2af2] | app.dependencies | 数据库会话异常: 500: 批量执行失败：f-string: unmatched '[' (test_execution.py, line 682)
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 810, in batch_execute_cases
+    from app.core.test_execution import CaseExecutor
+  File "D:\code\BugSeek\backend\app\core\test_execution.py", line 682
+    logger.info(f"[{trace_id}] 断言验证完成: {passed_assertions}/{total_assertions} 通过, 总体结果: {'✓通过' if results["passed"] else '✗失败'}")
+                                                                                                                                 ^^^^^^
+SyntaxError: f-string: unmatched '['
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 838, in batch_execute_cases
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: 批量执行失败：f-string: unmatched '[' (test_execution.py, line 682)
+2026-02-09 17:22:11 | ERROR | [76edb161b8df45b9bd6b5a1e00e3d1e5] | app.ai.service | AI 服务执行失败: task_type=api_case_generation, error='id'
+2026-02-09 17:22:11 | ERROR | [76edb161b8df45b9bd6b5a1e00e3d1e5] | app.ai.service | AI 生成基准用例失败: 'id'
+2026-02-09 17:22:11 | ERROR | [76edb161b8df45b9bd6b5a1e00e3d1e5] | app.api.v1.api_cases | [76edb161b8df45b9bd6b5a1e00e3d1e5] AI 生成基准用例失败: 'id'
+2026-02-09 17:22:11 | ERROR | [76edb161b8df45b9bd6b5a1e00e3d1e5] | app.dependencies | 数据库会话异常: 500: AI 生成失败：'id'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 582, in ai_generate_base_case
+    result = await ai_service.generate_base_case(
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 165, in generate_base_case
+    raise Exception(result.get("error", "AI 生成失败"))
+Exception: 'id'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 601, in ai_generate_base_case
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 生成失败：'id'
+2026-02-09 17:22:18 | ERROR | [2e6797d1c7d54c2e9dd0c9ffb90276f8] | app.ai.service | AI 服务执行失败: task_type=api_case_generation, error='id'
+2026-02-09 17:22:18 | ERROR | [2e6797d1c7d54c2e9dd0c9ffb90276f8] | app.ai.service | AI 生成基准用例失败: 'id'
+2026-02-09 17:22:18 | ERROR | [2e6797d1c7d54c2e9dd0c9ffb90276f8] | app.api.v1.api_cases | [2e6797d1c7d54c2e9dd0c9ffb90276f8] AI 生成基准用例失败: 'id'
+2026-02-09 17:22:18 | ERROR | [2e6797d1c7d54c2e9dd0c9ffb90276f8] | app.dependencies | 数据库会话异常: 500: AI 生成失败：'id'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 582, in ai_generate_base_case
+    result = await ai_service.generate_base_case(
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 165, in generate_base_case
+    raise Exception(result.get("error", "AI 生成失败"))
+Exception: 'id'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 601, in ai_generate_base_case
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 生成失败：'id'
+2026-02-09 17:27:07 | ERROR | [0337e17014c845dfa16504f0bb155569] | app.ai.service | JSON 解析失败: Expecting property name enclosed in double quotes: line 14 column 20 (char 305)
+2026-02-09 17:27:07 | ERROR | [0337e17014c845dfa16504f0bb155569] | app.ai.service | JSON 内容: {
+  "name": "基准用例 - {path}",
   "description": "该接口的基准测试用例",
   "priority": "P0",
   "request_data": {
     "path_params": {
-      "id": "{{order_id}}"
+      "id": "{{random_int(1, 100)}}"
     },
     "headers": {
       "Content-Type": "application/json"
     },
     "body": {
-      "metadata": {
-        "key1": "{{random_string(8)}}",
-        "key2": {{random_int(1000, 9999)}},
-        "key3": true,
-        "key4": {{timestamp()}},
-        "key5": "{{uuid()}}",
-        "key6": "test_{{random_string(6)}}@example.com"
-      }
+      "name": "测试名称{{random_string(6)}}",
+      "quantity": {{random_int(1, 100)}}
     }
   },
-  "required_variables": [
-    "order_id"
-  ],
-  "data_prep": [
-    "order_id: 需从数据库查询或通过前置业务创建"
-  ],
   "assertion_rules": [
     {
       "source": "status",
@@ -354,57 +296,165 @@ fastapi.exceptions.HTTPException: 500: AI 生成失败：AI 返回的 JSON 格�
     },
     {
       "source": "body",
-      "property": "$.metadata.key1",
+      "property": "$.code",
+      "operator": "==",
+      "value": 0,
+      "description": "响应码应为 0"
+    }
+  ],
+  "extraction_rules": [
+    {
+      "variable_name": "orderId",
+      "source": "body",
+      "json_path": "$.data.id",
+      "description": "提取订单 ID"
+    }
+  ],
+  "ai_confidence": 0.9
+}
+2026-02-09 17:27:07 | ERROR | [0337e17014c845dfa16504f0bb155569] | app.ai.service | JSON 修复失败: Expecting property name enclosed in double quotes: line 14 column 20 (char 305)
+2026-02-09 17:27:07 | ERROR | [0337e17014c845dfa16504f0bb155569] | app.ai.service | AI 生成基准用例失败: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 14 column 20 (char 305)
+2026-02-09 17:27:07 | ERROR | [0337e17014c845dfa16504f0bb155569] | app.api.v1.api_cases | [0337e17014c845dfa16504f0bb155569] AI 生成基准用例失败: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 14 column 20 (char 305)
+2026-02-09 17:27:07 | ERROR | [0337e17014c845dfa16504f0bb155569] | app.dependencies | 数据库会话异常: 500: AI 生成失败：AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 14 column 20 (char 305)
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 166, in generate_base_case
+    parsed_result = json.loads(result_str)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 14 column 20 (char 305)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 176, in generate_base_case
+    parsed_result = json.loads(fixed_str)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 14 column 20 (char 305)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 582, in ai_generate_base_case
+    result = await ai_service.generate_base_case(
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 181, in generate_base_case
+    raise Exception(f"AI 返回的 JSON 格式错误: {str(e)}")
+Exception: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 14 column 20 (char 305)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 601, in ai_generate_base_case
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 生成失败：AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 14 column 20 (char 305)
+2026-02-09 17:36:02 | ERROR | [84b53e10eecc4809bde4b5035d53df8f] | app.ai.service | JSON 解析失败: Expecting property name enclosed in double quotes: line 15 column 15 (char 360)
+2026-02-09 17:36:02 | ERROR | [84b53e10eecc4809bde4b5035d53df8f] | app.ai.service | JSON 内容: {
+  "name": "基准用例 - /api/users",
+  "description": "该接口的基准测试用例",
+  "priority": "P0",
+  "request_data": {
+    "path_params": {
+      "id": "{{random_int(1, 100)}}"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "name": "测试名称{{random_string(6)}}",
+      "email": "test_{{random_string(6)}}@example.com",
+      "age": {{random_int(18, 60)}}
+    }
+  },
+  "assertion_rules": [
+    {
+      "source": "status",
+      "property": null,
+      "operator": "in",
+      "value": [200, 201, 204],
+      "description": "状态码应为 2xx"
+    },
+    {
+      "source": "body",
+      "property": "$.code",
+      "operator": "==",
+      "value": 0,
+      "description": "响应码应为 0"
+    },
+    {
+      "source": "body",
+      "property": "$.data.id",
       "operator": "!=",
       "value": null,
-      "description": "metadata.key1 应非空"
+      "description": "id 字段应非空"
     },
     {
       "source": "body",
-      "property": "$.metadata.key2",
-      "operator": "number",
-      "description": "metadata.key2 应为数字"
+      "property": "$.data.email",
+      "operator": "!=",
+      "value": null,
+      "description": "email 字段应非空"
     },
     {
       "source": "body",
-      "property": "$.metadata.key3",
-      "operator": "boolean",
-      "description": "metadata.key3 应为布尔值"
+      "property": "$.data.age",
+      "operator": "!=",
+      "value": null,
+      "description": "age 字段应非空"
     },
     {
       "source": "body",
-      "property": "$.metadata.key4",
-      "operator": "timestamp",
-      "description": "metadata.key4 应为时间戳"
-    },
-    {
-      "source": "body",
-      "property": "$.metadata.key5",
-      "operator": "uuid",
-      "description": "metadata.key5 应为 UUID"
-    },
-    {
-      "source": "body",
-      "property": "$.metadata.key6",
-      "operator": "email",
-      "description": "metadata.key6 应为邮箱格式"
+      "property": "$.data.name",
+      "operator": "!=",
+      "value": null,
+      "description": "name 字段应非空"
     }
   ],
   "extraction_rules": [
     {
-      "var_name": "metadata",
-      "field": "$.metadata",
-      "description": "提取 metadata 字段"
+      "variable_name": "userId",
+      "source": "body",
+      "json_path": "$.data.id",
+      "description": "提取用户ID"
+    },
+    {
+      "variable_name": "userEmail",
+      "source": "body",
+      "json_path": "$.data.email",
+      "description": "提取用户邮箱"
+    },
+    {
+      "variable_name": "userName",
+      "source": "body",
+      "json_path": "$.data.name",
+      "description": "提取用户名"
     }
   ],
   "ai_confidence": 0.9
 }
-2026-02-10 16:08:44 | ERROR | [25f0950194b04d01a5b4d080d0533205] | app.ai.service | JSON 修复失败: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
-2026-02-10 16:08:44 | ERROR | [25f0950194b04d01a5b4d080d0533205] | app.ai.service | AI 生成基准用例失败: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
-2026-02-10 16:08:44 | ERROR | [25f0950194b04d01a5b4d080d0533205] | app.api.v1.api_cases | [25f0950194b04d01a5b4d080d0533205] AI 生成基准用例失败: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
-2026-02-10 16:08:44 | ERROR | [25f0950194b04d01a5b4d080d0533205] | app.dependencies | 数据库会话异常: 500: AI 生成失败：AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+2026-02-09 17:36:02 | ERROR | [84b53e10eecc4809bde4b5035d53df8f] | app.ai.service | JSON 修复失败: Expecting property name enclosed in double quotes: line 15 column 15 (char 360)
+2026-02-09 17:36:02 | ERROR | [84b53e10eecc4809bde4b5035d53df8f] | app.ai.service | AI 生成基准用例失败: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 15 (char 360)
+2026-02-09 17:36:02 | ERROR | [84b53e10eecc4809bde4b5035d53df8f] | app.api.v1.api_cases | [84b53e10eecc4809bde4b5035d53df8f] AI 生成基准用例失败: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 15 (char 360)
+2026-02-09 17:36:02 | ERROR | [84b53e10eecc4809bde4b5035d53df8f] | app.dependencies | 数据库会话异常: 500: AI 生成失败：AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 15 (char 360)
 Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\ai\service.py", line 170, in generate_base_case
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 166, in generate_base_case
     parsed_result = json.loads(result_str)
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
     return _default_decoder.decode(s)
@@ -412,12 +462,12 @@ Traceback (most recent call last):
     obj, end = self.raw_decode(s, idx=_w(s, 0).end())
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 353, in raw_decode
     obj, end = self.scan_once(s, idx)
-json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 15 column 15 (char 360)
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\ai\service.py", line 180, in generate_base_case
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 176, in generate_base_case
     parsed_result = json.loads(fixed_str)
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
     return _default_decoder.decode(s)
@@ -425,16 +475,16 @@ Traceback (most recent call last):
     obj, end = self.raw_decode(s, idx=_w(s, 0).end())
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 353, in raw_decode
     obj, end = self.scan_once(s, idx)
-json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 15 column 15 (char 360)
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 646, in ai_generate_base_case
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 582, in ai_generate_base_case
     result = await ai_service.generate_base_case(
-  File "D:\code\BugSeek\backend\app\ai\service.py", line 185, in generate_base_case
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 181, in generate_base_case
     raise Exception(f"AI 返回的 JSON 格式错误: {str(e)}")
-Exception: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+Exception: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 15 (char 360)
 
 During handling of the above exception, another exception occurred:
 
@@ -449,21 +499,6 @@ Traceback (most recent call last):
     raw_response = await run_endpoint_function(
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
     return await dependant.call(**values)
-  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 688, in ai_generate_base_case
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 601, in ai_generate_base_case
     raise HTTPException(
-fastapi.exceptions.HTTPException: 500: AI 生成失败：AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
-2026-02-10 16:22:58 | ERROR | [b4891b6e0af8453bbe29382ff527981a] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 33, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
+fastapi.exceptions.HTTPException: 500: AI 生成失败：AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 15 (char 360)

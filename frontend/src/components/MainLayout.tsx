@@ -56,9 +56,24 @@ const MainLayout: React.FC = () => {
           key: '/projects',
           label: '项目列表',
         },
+      ],
+    },
+    {
+      key: 'version-center',
+      icon: <BranchesOutlined />,
+      label: '版本中心',
+      children: [
         {
           key: 'versions',
           label: '版本管理',
+        },
+        {
+          key: '/version-center/db-schema',
+          label: '数据结构',
+        },
+        {
+          key: '/version-center/field-mapping',
+          label: '字段映射',
         },
       ],
     },
@@ -145,6 +160,12 @@ const MainLayout: React.FC = () => {
     // 如果是版本管理页面，返回 versions 作为选中项
     if (path.startsWith('/projects/') && path.endsWith('/versions')) {
       return ['versions'];
+    }
+    if (path.startsWith('/version-center/db-schema')) {
+      return ['/version-center/db-schema'];
+    }
+    if (path.startsWith('/version-center/field-mapping')) {
+      return ['/version-center/field-mapping'];
     }
     return [path];
   };

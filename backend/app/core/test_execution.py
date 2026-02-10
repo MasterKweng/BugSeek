@@ -135,6 +135,7 @@ class CaseExecutor:
         start_time = time.time()
         case_trace_id = get_trace_id()
 
+        extracted_vars: Dict[str, Any] = {}
         try:
             logger.info(f"[{case_trace_id}] ========== 开始执行用例 ==========")
             logger.info(f"[{case_trace_id}] 用例ID: {case.id}, 用例名称: {case.name}")
@@ -157,23 +158,59 @@ class CaseExecutor:
             logger.error(f"[{case_trace_id}] 用例执行初始化失败: {str(e)}")
             raise
 
-        # 执行前置 SQL
+        # 执行前置 SQL（支持结果写回变量）
         try:
             if case.pre_sql:
                 logger.info(f"[{case_trace_id}] [步骤2] 执行前置SQL...")
                 logger.info(f"[{case_trace_id}] [步骤2] SQL语句: {case.pre_sql}")
-                await self._execute_sql(
+                pre_sql_vars = await self._execute_sql(
                     sql=case.pre_sql,
                     variables=variables,
                     db=db,
                     trace_id=case_trace_id,
                     stage="pre"
                 )
+                if pre_sql_vars:
+                    logger.info(f"[{case_trace_id}] [步骤2] 前置SQL提取变量: {json.dumps(pre_sql_vars, ensure_ascii=False)}")
+                    variables.update(pre_sql_vars)
                 logger.info(f"[{case_trace_id}] [步骤2] 前置SQL执行完成")
             else:
                 logger.info(f"[{case_trace_id}] [步骤2] 无前置SQL，跳过")
         except Exception as e:
             logger.error(f"[{case_trace_id}] [步骤2] 前置SQL执行失败: {str(e)}")
+            import traceback
+            logger.error(f"[{case_trace_id}] 异常堆栈:\n{traceback.format_exc()}")
+            raise
+
+        # 执行前变量校验（避免 {{var}} 未替换直接出站）
+        try:
+            logger.info(f"[{case_trace_id}] [步骤2.5] 校验请求变量占位符...")
+            available_vars: Dict[str, Any] = {}
+            if environment.variables:
+                available_vars.update({k: v for k, v in environment.variables.items() if v is not None})
+            if variables:
+                available_vars.update({k: v for k, v in variables.items() if v is not None})
+
+            missing_vars = self._find_missing_variables(case.request_data, available_vars)
+
+            # 校验路径参数是否齐全
+            required_path_params = re.findall(r'\{([^{}]+)\}', definition.path or "")
+            if required_path_params:
+                path_params = {}
+                if case.request_data and isinstance(case.request_data, dict):
+                    path_params = case.request_data.get("path_params") or {}
+                missing_path_params = [p for p in required_path_params if p not in path_params]
+            else:
+                missing_path_params = []
+
+            if missing_vars or missing_path_params:
+                logger.error(f"[{case_trace_id}] [步骤2.5] 缺失变量: {missing_vars}")
+                logger.error(f"[{case_trace_id}] [步骤2.5] 缺失路径参数: {missing_path_params}")
+                raise ValueError(f"Missing placeholders: vars={missing_vars}, path_params={missing_path_params}")
+
+            logger.info(f"[{case_trace_id}] [步骤2.5] 变量占位符校验通过")
+        except Exception as e:
+            logger.error(f"[{case_trace_id}] [步骤2.5] 变量校验失败: {str(e)}")
             import traceback
             logger.error(f"[{case_trace_id}] 异常堆栈:\n{traceback.format_exc()}")
             raise
@@ -1140,39 +1177,56 @@ class CaseExecutor:
         db: Session,
         trace_id: str,
         stage: str
-    ):
+    ) -> Dict[str, Any]:
         """
-        执行 SQL 语句（前置或后置）
-        
-        Args:
-            sql: SQL 语句
-            variables: 变量字典
-            db: 数据库会话
-            trace_id: 追踪 ID
-            stage: 阶段（pre/post）
+        Execute SQL for pre/post steps and return extracted variables.
         """
+        extracted_vars: Dict[str, Any] = {}
         try:
-            logger.info(f"[{trace_id}] 执行{stage}_sql: {sql[:100]}...")
+            logger.info(f"[{trace_id}] {stage}_sql execute: {sql[:100]}...")
 
-            # 替换 SQL 中的变量
             sql_with_vars = self._replace_variables(sql, variables)
+            logger.info(f"[{trace_id}] {stage}_sql after_replace: {sql_with_vars[:200]}...")
 
-            # 执行 SQL
             result = db.execute(sql_with_vars)
             db.commit()
 
-            # 记录执行结果
             if result.returns_rows:
                 rows = result.fetchall()
-                logger.info(f"[{trace_id}] {stage}_sql 执行成功，返回 {len(rows)} 行")
+                try:
+                    logger.info(f"[{trace_id}] {stage}_sql columns: {list(result.keys())}")
+                except Exception:
+                    logger.info(f"[{trace_id}] {stage}_sql columns: <unavailable>")
+
+                if rows:
+                    first_row = rows[0]
+                    try:
+                        row_mapping = dict(first_row._mapping)
+                    except Exception:
+                        row_mapping = {k: first_row[i] for i, k in enumerate(result.keys())}
+                    extracted_vars.update(row_mapping)
+                    logger.info(f"[{trace_id}] {stage}_sql extracted_vars: {json.dumps(extracted_vars, ensure_ascii=False)}")
+                else:
+                    logger.warning(f"[{trace_id}] {stage}_sql returned 0 rows")
+
+                logger.info(f"[{trace_id}] {stage}_sql success, rows={len(rows)}")
             else:
                 affected_rows = result.rowcount
-                logger.info(f"[{trace_id}] {stage}_sql 执行成功，影响 {affected_rows} 行")
+                logger.info(f"[{trace_id}] {stage}_sql success, affected_rows={affected_rows}")
 
         except Exception as e:
             db.rollback()
-            logger.error(f"[{trace_id}] {stage}_sql 执行失败: {str(e)}")
-            # 不抛出异常，继续执行后续流程
+            logger.error(f"[{trace_id}] {stage}_sql failed: {str(e)}")
+            logger.error(f"[{trace_id}] {stage}_sql original: {sql[:200]}...")
+            try:
+                logger.error(f"[{trace_id}] {stage}_sql replaced: {sql_with_vars[:200]}...")
+            except Exception:
+                pass
+
+        if stage == "pre" and not extracted_vars:
+            logger.warning(f"[{trace_id}] pre_sql extracted no vars; use SELECT ... AS <var_name>")
+
+        return extracted_vars
 
     async def _save_execution_record(
         self,
@@ -1268,6 +1322,36 @@ class CaseExecutor:
         elif isinstance(data, list):
             return [self._replace_variables(item, variables) for item in data]
         return data
+
+    def _find_missing_variables(
+        self,
+        data: Any,
+        available_vars: Dict[str, Any]
+    ) -> List[str]:
+        """
+        查找请求数据中未提供的变量占位符（仅检查 {{var}}，忽略 {{func(...)}}）
+        """
+        missing = set()
+        pattern = re.compile(r'\{\{\s*([a-zA-Z_]\w*)\s*(\([^{}]*\))?\s*\}\}')
+
+        def walk(node: Any):
+            if isinstance(node, str):
+                for m in pattern.finditer(node):
+                    name = m.group(1)
+                    has_call = m.group(2) is not None
+                    if has_call:
+                        continue
+                    if name not in available_vars:
+                        missing.add(name)
+            elif isinstance(node, dict):
+                for v in node.values():
+                    walk(v)
+            elif isinstance(node, list):
+                for v in node:
+                    walk(v)
+
+        walk(data)
+        return sorted(missing)
 
     def _replace_dynamic_functions(self, data: str) -> str:
         """
