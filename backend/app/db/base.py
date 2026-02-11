@@ -505,6 +505,7 @@ class AsyncTask(Base, TimestampMixin):
     progress = Column(Integer, default=0)  # 0-100
     progress_message = Column(String(500), nullable=True)  # 进度消息
     current_stage = Column(String(50), nullable=True)  # 当前处理阶段
+    stage_results = Column(JSON, nullable=True, default={})  # 阶段结果存储 {"stage1": {...}, "stage2": {...}}
     stages = Column(JSON, nullable=True)  # 阶段列表 [{"name": "字段提取", "status": "completed", "progress": 100}]
     statistics = Column(JSON, nullable=True)  # 统计信息 {"total_fields": 1000, "auto_confirmed": 400}
     result = Column(JSON, nullable=True)  # 任务结果

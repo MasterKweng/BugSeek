@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Breadcrumb,
   Button,
-  Card,
   Form,
   Input,
   message,
@@ -458,49 +456,41 @@ const FieldMappingPage: React.FC = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <Breadcrumb style={{ marginBottom: 16 }}>
-        <Breadcrumb.Item>版本中心</Breadcrumb.Item>
-        <Breadcrumb.Item>字段映射</Breadcrumb.Item>
-      </Breadcrumb>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <Space>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 500 }}>字段映射 - {currentProject.name} / {currentVersion.version_number}</h2>
+          {learningStats && (
+            <Tooltip title="学习统计信息">
+              <div style={{ fontSize: '12px', color: '#999' }}>
+                总映射: {learningStats.total_mappings}, 确认: {learningStats.confirmed_mappings}, 
+                AI: {learningStats.ai_mappings}, 平均置信度: {(learningStats.avg_confidence * 100).toFixed(1)}%
+              </div>
+            </Tooltip>
+          )}
+        </Space>
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => setAutoApplyModalOpen(true)}
+          >
+            自动应用高置信度
+          </Button>
+          <Button
+            onClick={() => setCloneModalOpen(true)}
+          >
+            从其他版本继承
+          </Button>
+          <Button
+            type="primary"
+            onClick={() => setCreateOpen(true)}
+            disabled={schemaList.length === 0}
+          >
+            新建映射
+          </Button>
+        </Space>
+      </div>
 
-      <Card
-        title={
-          <Space>
-            <span>字段映射 - {currentProject.name} / {currentVersion.version_number}</span>
-            {learningStats && (
-              <Tooltip title="学习统计信息">
-                <div style={{ fontSize: '12px', color: '#999' }}>
-                  总映射: {learningStats.total_mappings}, 确认: {learningStats.confirmed_mappings}, 
-                  AI: {learningStats.ai_mappings}, 平均置信度: {(learningStats.avg_confidence * 100).toFixed(1)}%
-                </div>
-              </Tooltip>
-            )}
-          </Space>
-        }
-        extra={
-          <Space>
-            <Button
-              type="primary"
-              onClick={() => setAutoApplyModalOpen(true)}
-            >
-              自动应用高置信度
-            </Button>
-            <Button
-              onClick={() => setCloneModalOpen(true)}
-            >
-              从其他版本继承
-            </Button>
-            <Button
-              type="primary"
-              onClick={() => setCreateOpen(true)}
-              disabled={schemaList.length === 0}
-            >
-              新建映射
-            </Button>
-          </Space>
-        }
-      >
-        <Tabs
+      <Tabs
           activeKey={tabKey}
           onChange={setTabKey}
           items={[
@@ -571,7 +561,6 @@ const FieldMappingPage: React.FC = () => {
             }
           ]}
         />
-      </Card>
 
       <Modal
         title="新建字段映射"

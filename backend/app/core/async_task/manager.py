@@ -314,6 +314,38 @@ class AsyncTaskManager:
             return True
 
         return False
+    
+    async def submit_task(self, task_id: int, task_type: str) -> bool:
+        """
+        提交已存在的任务到执行队列（用于继续执行或重试）
+        
+        遵循后端代码规范：
+        - 全链路 TraceID：记录操作日志
+        - 异常处理：记录错误信息
+        
+        Args:
+            task_id: 任务ID
+            task_type: 任务类型
+        
+        Returns:
+            是否提交成功
+        """
+        try:
+            # 检查任务是否存在
+            task = await self.get_task(task_id)
+            if not task:
+                logger.error(f"[{self.trace_id}] 提交任务失败：任务不存在 task_id={task_id}")
+                return False
+            
+            # 将任务加入队列
+            await self._task_queue.put(task_id)
+            
+            logger.info(f"[{self.trace_id}] 任务已提交到队列: task_id={task_id}, type={task_type}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"[{self.trace_id}] 提交任务失败: task_id={task_id}, error={str(e)}", exc_info=True)
+            return False
 
 
 # 全局任务管理器实例

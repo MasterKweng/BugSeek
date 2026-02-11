@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Breadcrumb,
   Button,
-  Card,
   Drawer,
   Form,
   Input,
@@ -358,23 +356,18 @@ const DbSchema: React.FC = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <Breadcrumb style={{ marginBottom: 16 }}>
-        <Breadcrumb.Item>版本中心</Breadcrumb.Item>
-        <Breadcrumb.Item>数据结构</Breadcrumb.Item>
-      </Breadcrumb>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 500 }}>数据结构 - {currentProject.name} / {currentVersion.version_number}</h2>
+        <Button type="primary" onClick={openImport}>导入结构</Button>
+      </div>
 
-      <Card
-        title={`数据结构 - ${currentProject.name} / ${currentVersion.version_number}`}
-        extra={<Button type="primary" onClick={openImport}>导入结构</Button>}
-      >
-        <Table
-          rowKey="id"
-          loading={loading}
-          columns={columns}
-          dataSource={data}
-          pagination={{ pageSize: 10 }}
-        />
-      </Card>
+      <Table
+        rowKey="id"
+        loading={loading}
+        columns={columns}
+        dataSource={data}
+        pagination={{ pageSize: 10 }}
+      />
 
       <Drawer
         title="结构详情"

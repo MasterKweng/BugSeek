@@ -43,9 +43,11 @@ import type {
   FieldMappingCandidate,
   FieldMappingBatchApplyItem,
   AsyncTask,
-  AsyncTaskCreateRequest
+  AsyncTaskCreateRequest,
+  TaskProgress
 } from '../services/fieldMapping';
 import type { FieldMapping } from '../types';
+import { FieldMappingStageProgress } from '../components/FieldMappingStageProgress';
 
 const { TabPane } = Tabs;
 
@@ -65,7 +67,7 @@ const FieldMappingSuggestions: React.FC = () => {
   
   // 异步任务相关状态
   const [taskModalVisible, setTaskModalVisible] = useState(false);
-  const [progressDrawerVisible, setProgressDrawerVisible] = useState(false);
+  const [progressModalVisible, setProgressModalVisible] = useState(false);
   const [currentTask, setCurrentTask] = useState<AsyncTask | null>(null);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
   const [useAi, setUseAi] = useState(true);
@@ -201,7 +203,7 @@ const FieldMappingSuggestions: React.FC = () => {
     }, 3000);
     
     setPollingInterval(interval);
-    setProgressDrawerVisible(true);
+    setProgressModalVisible(true);
   };
 
   // 获取任务进度
@@ -262,7 +264,7 @@ const FieldMappingSuggestions: React.FC = () => {
           clearInterval(pollingInterval);
           setPollingInterval(null);
         }
-        setProgressDrawerVisible(false);
+        setProgressModalVisible(false);
       } else {
         message.error(response.message || '取消任务失败');
       }
@@ -272,13 +274,13 @@ const FieldMappingSuggestions: React.FC = () => {
     }
   };
 
-  // 关闭进度抽屉
-  const handleCloseProgressDrawer = () => {
+  // 关闭进度对话框
+  const handleCloseProgressModal = () => {
     if (pollingInterval) {
       clearInterval(pollingInterval);
       setPollingInterval(null);
     }
-    setProgressDrawerVisible(false);
+    setProgressModalVisible(false);
   };
 
   // 组件卸载时清理轮询
@@ -709,11 +711,12 @@ const FieldMappingSuggestions: React.FC = () => {
         </Form>
       </Modal>
 
-      {/* 进度抽屉 */}
-      <Drawer
+      {/* 进度对话框 */}
+      <Modal
         title="映射建议生成进度"
-        open={progressDrawerVisible}
-        onClose={handleCloseProgressDrawer}
+        open={progressModalVisible}
+        onCancel={handleCloseProgressModal}
+        footer={null}
         width={720}
       >
         {currentTask && (
@@ -756,68 +759,22 @@ const FieldMappingSuggestions: React.FC = () => {
             {/* 阶段进度 */}
             <div>
               <strong style={{ marginBottom: 12, display: 'block' }}>处理阶段</strong>
-              <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span>字段提取</span>
-                    <span style={{ color: '#999' }}>{getStageProgress('字段提取')}%</span>
-                  </div>
-                  <Progress 
-                    percent={getStageProgress('字段提取')} 
-                    status={getStageProgressStatus('字段提取')}
-                    showInfo={false}
-                    size="small"
-                  />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span>规则评分</span>
-                    <span style={{ color: '#999' }}>{getStageProgress('规则评分')}%</span>
-                  </div>
-                  <Progress 
-                    percent={getStageProgress('规则评分')} 
-                    status={getStageProgressStatus('规则评分')}
-                    showInfo={false}
-                    size="small"
-                  />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span>智能筛选</span>
-                    <span style={{ color: '#999' }}>{getStageProgress('智能筛选')}%</span>
-                  </div>
-                  <Progress 
-                    percent={getStageProgress('智能筛选')} 
-                    status={getStageProgressStatus('智能筛选')}
-                    showInfo={false}
-                    size="small"
-                  />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span>AI优化</span>
-                    <span style={{ color: '#999' }}>{getStageProgress('AI优化')}%</span>
-                  </div>
-                  <Progress 
-                    percent={getStageProgress('AI优化')} 
-                    status={getStageProgressStatus('AI优化')}
-                    showInfo={false}
-                    size="small"
-                  />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span>结果合并</span>
-                    <span style={{ color: '#999' }}>{getStageProgress('结果合并')}%</span>
-                  </div>
-                  <Progress 
-                    percent={getStageProgress('结果合并')} 
-                    status={getStageProgressStatus('结果合并')}
-                    showInfo={false}
-                    size="small"
-                  />
-                </div>
-              </Space>
+              <FieldMappingStageProgress
+                taskId={currentTask.id}
+                progress={currentTask as any}
+                onRetry={async (stageNum) => {
+                  // 重试后重新轮询任务进度
+                  await fetchTaskProgress(currentTask.id);
+                }}
+                onResume={async () => {
+                  // 继续执行后重新轮询任务进度
+                  await fetchTaskProgress(currentTask.id);
+                }}
+                onReset={async () => {
+                  // 重置后清空当前任务状态
+                  setCurrentTask(null);
+                }}
+              />
             </div>
 
             {/* 筛选统计 */}
@@ -846,7 +803,7 @@ const FieldMappingSuggestions: React.FC = () => {
             {currentTask.status === 'completed' && (
               <Space>
                 <Button type="primary" onClick={() => {
-                  handleCloseProgressDrawer();
+                  handleCloseProgressModal();
                 }}>
                   查看结果
                 </Button>
@@ -869,7 +826,7 @@ const FieldMappingSuggestions: React.FC = () => {
             )}
           </Space>
         )}
-      </Drawer>
+      </Modal>
 
       {/* 批量确认模态框 */}
       <Modal

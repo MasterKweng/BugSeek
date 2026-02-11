@@ -186605,3 +186605,2037 @@ sqlalchemy.exc.TimeoutError: QueuePool limit of size 5 overflow 10 reached, conn
 2026-02-11 16:36:21 | INFO | [e8a5966e04f0401dba828e3bae7ffd9a] | app.main | 启动异步任务工作线程...
 2026-02-11 16:36:21 | INFO | [e8a5966e04f0401dba828e3bae7ffd9a] | app.main | 异步任务工作线程已启动
 2026-02-11 16:36:21 | INFO | [e8a5966e04f0401dba828e3bae7ffd9a] | app.core.async_task.manager | [e8a5966e04f0401dba828e3bae7ffd9a] 启动异步任务工作线程
+2026-02-11 17:16:41 | INFO | [6b826cb3ff5b406eb2fe1cfd770cef7b] | app.api.v1.versions | [6b826cb3ff5b406eb2fe1cfd770cef7b] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 17:16:41 | INFO | [63396d07abb342f3977e8f800ba6ae26] | app.api.v1.field_mappings | [63396d07abb342f3977e8f800ba6ae26] 查询学习统计: project_id=1
+2026-02-11 17:16:42 | INFO | [646b6db30997468db288d7bf49c291c3] | app.api.v1.db_schemas | [646b6db30997468db288d7bf49c291c3] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:16:42 | INFO | [387efb2ebffd4fce8facc34f2ed753e3] | app.api.v1.field_mappings | [387efb2ebffd4fce8facc34f2ed753e3] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 17:16:42 | INFO | [e74e26f5b28547ceaa275da797b996c8] | app.api.v1.projects | [e74e26f5b28547ceaa275da797b996c8] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-11 17:16:42 | INFO | [e74e26f5b28547ceaa275da797b996c8] | app.api.v1.projects | [e74e26f5b28547ceaa275da797b996c8] 获取项目列表成功: total=2
+2026-02-11 17:16:42 | INFO | [b901bc49abdc45b6ba6aecc894cc105b] | app.api.v1.api_definitions | [b901bc49abdc45b6ba6aecc894cc105b] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 17:16:42 | INFO | [ee8aa4343f6946f697823bad37b4f495] | app.api.v1.field_mappings | [ee8aa4343f6946f697823bad37b4f495] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 17:16:42 | INFO | [badac06517df4fa1b64b6f7d6a472539] | app.api.v1.versions | [badac06517df4fa1b64b6f7d6a472539] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 17:16:42 | INFO | [602ee26a678445c581865235c36956be] | app.api.v1.projects | [602ee26a678445c581865235c36956be] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-11 17:16:42 | INFO | [602ee26a678445c581865235c36956be] | app.api.v1.projects | [602ee26a678445c581865235c36956be] 获取项目列表成功: total=2
+2026-02-11 17:16:42 | INFO | [82f5a4c76b7a475597f3d016702fcb8d] | app.api.v1.versions | [82f5a4c76b7a475597f3d016702fcb8d] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 17:16:42 | INFO | [b25e31bcbdb248b7829cd532dc05f949] | app.api.v1.projects | [b25e31bcbdb248b7829cd532dc05f949] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-11 17:16:42 | INFO | [b25e31bcbdb248b7829cd532dc05f949] | app.api.v1.projects | [b25e31bcbdb248b7829cd532dc05f949] 获取项目列表成功: total=2
+2026-02-11 17:16:42 | INFO | [6e75d01ec5684050880f69051ac3e6cd] | app.api.v1.field_mappings | [6e75d01ec5684050880f69051ac3e6cd] 查询学习统计: project_id=1
+2026-02-11 17:16:42 | INFO | [fa60f5f4536145d1a742fe354d7a701c] | app.api.v1.db_schemas | [fa60f5f4536145d1a742fe354d7a701c] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:16:42 | INFO | [bcfe67aa17d44f029fdaa19b29472196] | app.api.v1.api_definitions | [bcfe67aa17d44f029fdaa19b29472196] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 17:16:42 | INFO | [75fa9dd9832f4534af3d237c4ba6d53d] | app.api.v1.field_mappings | [75fa9dd9832f4534af3d237c4ba6d53d] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 17:16:42 | INFO | [106cf239bdd349edb6eac82ef3b7f50e] | app.api.v1.versions | [106cf239bdd349edb6eac82ef3b7f50e] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 17:16:42 | INFO | [a4d24ab1571242c1a90b4ff59d7811e3] | app.api.v1.field_mappings | [a4d24ab1571242c1a90b4ff59d7811e3] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 17:16:42 | INFO | [7fc5343a08a244d7ab6920654b709090] | app.api.v1.projects | [7fc5343a08a244d7ab6920654b709090] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-11 17:16:42 | INFO | [7fc5343a08a244d7ab6920654b709090] | app.api.v1.projects | [7fc5343a08a244d7ab6920654b709090] 获取项目列表成功: total=2
+2026-02-11 17:16:42 | INFO | [dec19becfba749f685cac46c3118ba99] | app.api.v1.db_schemas | [dec19becfba749f685cac46c3118ba99] 获取数据库结构详情: id=4
+2026-02-11 17:22:34 | INFO | [87c829c93eac4b5788f714a94eaa1a23] | app.api.v1.db_schemas | [87c829c93eac4b5788f714a94eaa1a23] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:22:34 | INFO | [ff11c74cb88b41b2abadc594a83d3f14] | app.api.v1.db_schemas | [ff11c74cb88b41b2abadc594a83d3f14] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:28:09 | INFO | [4472321ce2684f2c809decf985f9e461] | root | 日志系统初始化完成
+2026-02-11 17:28:09 | INFO | [4472321ce2684f2c809decf985f9e461] | app.main | 启动异步任务工作线程...
+2026-02-11 17:28:09 | INFO | [4472321ce2684f2c809decf985f9e461] | app.main | 异步任务工作线程已启动
+2026-02-11 17:28:09 | INFO | [4472321ce2684f2c809decf985f9e461] | app.core.async_task.manager | [4472321ce2684f2c809decf985f9e461] 启动异步任务工作线程
+2026-02-11 17:28:23 | INFO | [440bbd205cb74162b14bbc661ceb84ce] | root | 日志系统初始化完成
+2026-02-11 17:28:24 | INFO | [440bbd205cb74162b14bbc661ceb84ce] | app.main | 启动异步任务工作线程...
+2026-02-11 17:28:24 | INFO | [440bbd205cb74162b14bbc661ceb84ce] | app.main | 异步任务工作线程已启动
+2026-02-11 17:28:24 | INFO | [440bbd205cb74162b14bbc661ceb84ce] | app.core.async_task.manager | [440bbd205cb74162b14bbc661ceb84ce] 启动异步任务工作线程
+2026-02-11 17:29:06 | INFO | [c9fbb166f48a4c7783b58023555e009e] | root | 日志系统初始化完成
+2026-02-11 17:29:06 | INFO | [c9fbb166f48a4c7783b58023555e009e] | app.main | 启动异步任务工作线程...
+2026-02-11 17:29:06 | INFO | [c9fbb166f48a4c7783b58023555e009e] | app.main | 异步任务工作线程已启动
+2026-02-11 17:29:06 | INFO | [c9fbb166f48a4c7783b58023555e009e] | app.core.async_task.manager | [c9fbb166f48a4c7783b58023555e009e] 启动异步任务工作线程
+2026-02-11 17:31:32 | INFO | [88da48f193af4b7dab4cb0438ee991ae] | root | 日志系统初始化完成
+2026-02-11 17:31:32 | INFO | [88da48f193af4b7dab4cb0438ee991ae] | app.main | 启动异步任务工作线程...
+2026-02-11 17:31:32 | INFO | [88da48f193af4b7dab4cb0438ee991ae] | app.main | 异步任务工作线程已启动
+2026-02-11 17:31:32 | INFO | [88da48f193af4b7dab4cb0438ee991ae] | app.core.async_task.manager | [88da48f193af4b7dab4cb0438ee991ae] 启动异步任务工作线程
+2026-02-11 17:31:54 | INFO | [772e7520f86d4b10a195bec79760b69e] | root | 日志系统初始化完成
+2026-02-11 17:31:54 | INFO | [772e7520f86d4b10a195bec79760b69e] | app.main | 启动异步任务工作线程...
+2026-02-11 17:31:54 | INFO | [772e7520f86d4b10a195bec79760b69e] | app.main | 异步任务工作线程已启动
+2026-02-11 17:31:54 | INFO | [772e7520f86d4b10a195bec79760b69e] | app.core.async_task.manager | [772e7520f86d4b10a195bec79760b69e] 启动异步任务工作线程
+2026-02-11 17:32:33 | INFO | [ed50e9a7478341f1a510eb209a68eff1] | root | 日志系统初始化完成
+2026-02-11 17:32:33 | INFO | [ed50e9a7478341f1a510eb209a68eff1] | app.main | 启动异步任务工作线程...
+2026-02-11 17:32:33 | INFO | [ed50e9a7478341f1a510eb209a68eff1] | app.main | 异步任务工作线程已启动
+2026-02-11 17:32:33 | INFO | [ed50e9a7478341f1a510eb209a68eff1] | app.core.async_task.manager | [ed50e9a7478341f1a510eb209a68eff1] 启动异步任务工作线程
+2026-02-11 17:33:45 | INFO | [620eabc0de624cff95983634abc34eba] | root | 日志系统初始化完成
+2026-02-11 17:33:45 | INFO | [620eabc0de624cff95983634abc34eba] | app.main | 启动异步任务工作线程...
+2026-02-11 17:33:45 | INFO | [620eabc0de624cff95983634abc34eba] | app.main | 异步任务工作线程已启动
+2026-02-11 17:33:45 | INFO | [620eabc0de624cff95983634abc34eba] | app.core.async_task.manager | [620eabc0de624cff95983634abc34eba] 启动异步任务工作线程
+2026-02-11 17:34:05 | INFO | [0cc2742d89074fd7b1b32e38a209105e] | root | 日志系统初始化完成
+2026-02-11 17:34:05 | INFO | [0cc2742d89074fd7b1b32e38a209105e] | app.main | 启动异步任务工作线程...
+2026-02-11 17:34:05 | INFO | [0cc2742d89074fd7b1b32e38a209105e] | app.main | 异步任务工作线程已启动
+2026-02-11 17:34:05 | INFO | [0cc2742d89074fd7b1b32e38a209105e] | app.core.async_task.manager | [0cc2742d89074fd7b1b32e38a209105e] 启动异步任务工作线程
+2026-02-11 17:38:22 | INFO | [5d9eedf62b5947dfa3470bfde879a862] | root | 日志系统初始化完成
+2026-02-11 17:38:22 | INFO | [5d9eedf62b5947dfa3470bfde879a862] | app.main | 启动异步任务工作线程...
+2026-02-11 17:38:22 | INFO | [5d9eedf62b5947dfa3470bfde879a862] | app.main | 异步任务工作线程已启动
+2026-02-11 17:38:22 | INFO | [5d9eedf62b5947dfa3470bfde879a862] | app.core.async_task.manager | [5d9eedf62b5947dfa3470bfde879a862] 启动异步任务工作线程
+2026-02-11 17:38:36 | INFO | [3348270cc0524d51a7c6faa623f97891] | root | 日志系统初始化完成
+2026-02-11 17:38:36 | INFO | [3348270cc0524d51a7c6faa623f97891] | app.main | 启动异步任务工作线程...
+2026-02-11 17:38:36 | INFO | [3348270cc0524d51a7c6faa623f97891] | app.main | 异步任务工作线程已启动
+2026-02-11 17:38:36 | INFO | [3348270cc0524d51a7c6faa623f97891] | app.core.async_task.manager | [3348270cc0524d51a7c6faa623f97891] 启动异步任务工作线程
+2026-02-11 17:39:14 | INFO | [0b322b1710e74cc38ceea10ae6392fc2] | root | 日志系统初始化完成
+2026-02-11 17:39:15 | INFO | [0b322b1710e74cc38ceea10ae6392fc2] | app.main | 启动异步任务工作线程...
+2026-02-11 17:39:15 | INFO | [0b322b1710e74cc38ceea10ae6392fc2] | app.main | 异步任务工作线程已启动
+2026-02-11 17:39:15 | INFO | [0b322b1710e74cc38ceea10ae6392fc2] | app.core.async_task.manager | [0b322b1710e74cc38ceea10ae6392fc2] 启动异步任务工作线程
+2026-02-11 17:40:42 | INFO | [bf12bb46767f4734a2ded73494864d8a] | app.api.v1.db_schemas | [bf12bb46767f4734a2ded73494864d8a] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:40:42 | INFO | [0a05fcdb7242411297b4b3292465700a] | app.api.v1.versions | [0a05fcdb7242411297b4b3292465700a] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 17:40:42 | INFO | [f74b3d90320b4d6abcd0e38908df3fa6] | app.api.v1.field_mappings | [f74b3d90320b4d6abcd0e38908df3fa6] 查询学习统计: project_id=1
+2026-02-11 17:40:42 | INFO | [8f28bd50bbfc433e8431bfc93538df32] | app.api.v1.api_definitions | [8f28bd50bbfc433e8431bfc93538df32] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 17:40:42 | INFO | [ed094bdb4abc44afbc6297bad1b5c77d] | app.api.v1.db_schemas | [ed094bdb4abc44afbc6297bad1b5c77d] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:40:42 | INFO | [31e66e966f124899992fccbe1037d987] | app.api.v1.db_schemas | [31e66e966f124899992fccbe1037d987] 获取数据库结构详情: id=4
+2026-02-11 17:40:42 | INFO | [da940adef2554f688c1457152b987342] | app.api.v1.field_mappings | [da940adef2554f688c1457152b987342] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 17:40:42 | INFO | [c6c3cd186af944c8b836f7dd7ba873d9] | app.api.v1.field_mappings | [c6c3cd186af944c8b836f7dd7ba873d9] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 17:42:36 | INFO | [25ad7e651a0c4d51bcdd5beb6a5dfff9] | app.api.v1.db_schemas | [25ad7e651a0c4d51bcdd5beb6a5dfff9] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:42:36 | INFO | [d5db857d54644a28ab45a3e437484df4] | app.api.v1.db_schemas | [d5db857d54644a28ab45a3e437484df4] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:42:38 | INFO | [32ad8525eb7e45b19728e6d633b8dcb4] | app.api.v1.projects | [32ad8525eb7e45b19728e6d633b8dcb4] 用户 admin 获取项目详情: project_id=1
+2026-02-11 17:42:38 | INFO | [32ad8525eb7e45b19728e6d633b8dcb4] | app.api.v1.projects | [32ad8525eb7e45b19728e6d633b8dcb4] 用户 admin 查看 项目 InvenTree (id=1)
+2026-02-11 17:42:38 | INFO | [32ad8525eb7e45b19728e6d633b8dcb4] | app.api.v1.projects | [32ad8525eb7e45b19728e6d633b8dcb4] 获取项目详情成功: project_id=1, environments_count=2
+2026-02-11 17:42:38 | INFO | [989a5e8c93cd4b4fa76ac44e69a49794] | app.api.v1.versions | [989a5e8c93cd4b4fa76ac44e69a49794] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-02-11 17:42:38 | INFO | [82d6bf34604e4f13b56fa02c997d1ef3] | app.api.v1.versions | [82d6bf34604e4f13b56fa02c997d1ef3] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-02-11 17:42:38 | INFO | [b6bfda97afc544a9a2b148980ce98010] | app.api.v1.projects | [b6bfda97afc544a9a2b148980ce98010] 用户 admin 获取项目详情: project_id=1
+2026-02-11 17:42:38 | INFO | [b6bfda97afc544a9a2b148980ce98010] | app.api.v1.projects | [b6bfda97afc544a9a2b148980ce98010] 用户 admin 查看 项目 InvenTree (id=1)
+2026-02-11 17:42:38 | INFO | [b6bfda97afc544a9a2b148980ce98010] | app.api.v1.projects | [b6bfda97afc544a9a2b148980ce98010] 获取项目详情成功: project_id=1, environments_count=2
+2026-02-11 17:42:41 | INFO | [8c7c90cb49c44232a07ac13d6ff18a43] | app.api.v1.projects | [8c7c90cb49c44232a07ac13d6ff18a43] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-11 17:42:41 | INFO | [8c7c90cb49c44232a07ac13d6ff18a43] | app.api.v1.projects | [8c7c90cb49c44232a07ac13d6ff18a43] 获取项目列表成功: total=2
+2026-02-11 17:42:41 | INFO | [90fd675ef2cc48c5bba543518dfbe064] | app.api.v1.projects | [90fd675ef2cc48c5bba543518dfbe064] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-11 17:42:41 | INFO | [90fd675ef2cc48c5bba543518dfbe064] | app.api.v1.projects | [90fd675ef2cc48c5bba543518dfbe064] 获取项目列表成功: total=2
+2026-02-11 17:42:43 | INFO | [c0206c939dc848279a20ee13840ced02] | app.api.v1.projects | [c0206c939dc848279a20ee13840ced02] 用户 admin 获取项目详情: project_id=1
+2026-02-11 17:42:43 | INFO | [c0206c939dc848279a20ee13840ced02] | app.api.v1.projects | [c0206c939dc848279a20ee13840ced02] 用户 admin 查看 项目 InvenTree (id=1)
+2026-02-11 17:42:43 | INFO | [c0206c939dc848279a20ee13840ced02] | app.api.v1.projects | [c0206c939dc848279a20ee13840ced02] 获取项目详情成功: project_id=1, environments_count=2
+2026-02-11 17:42:43 | INFO | [7bc68bd0519c414cbd0cd75add133a15] | app.api.v1.versions | [7bc68bd0519c414cbd0cd75add133a15] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-02-11 17:42:43 | INFO | [4948d8566f484415808fcfbf5ca75464] | app.api.v1.projects | [4948d8566f484415808fcfbf5ca75464] 用户 admin 获取项目详情: project_id=1
+2026-02-11 17:42:43 | INFO | [4948d8566f484415808fcfbf5ca75464] | app.api.v1.projects | [4948d8566f484415808fcfbf5ca75464] 用户 admin 查看 项目 InvenTree (id=1)
+2026-02-11 17:42:43 | INFO | [4948d8566f484415808fcfbf5ca75464] | app.api.v1.projects | [4948d8566f484415808fcfbf5ca75464] 获取项目详情成功: project_id=1, environments_count=2
+2026-02-11 17:42:43 | INFO | [2ec50b3873574a8fa50f21a6d2735356] | app.api.v1.versions | [2ec50b3873574a8fa50f21a6d2735356] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-02-11 17:47:13 | INFO | [a2df944a22d043c9bfbbd13cc9fa1ab0] | root | 日志系统初始化完成
+2026-02-11 17:47:14 | INFO | [a2df944a22d043c9bfbbd13cc9fa1ab0] | app.main | 启动异步任务工作线程...
+2026-02-11 17:47:14 | INFO | [a2df944a22d043c9bfbbd13cc9fa1ab0] | app.main | 异步任务工作线程已启动
+2026-02-11 17:47:14 | INFO | [a2df944a22d043c9bfbbd13cc9fa1ab0] | app.core.async_task.manager | [a2df944a22d043c9bfbbd13cc9fa1ab0] 启动异步任务工作线程
+2026-02-11 17:47:20 | INFO | [beec1a4b988748b3a1f4a3b504e92a7c] | root | 日志系统初始化完成
+2026-02-11 17:47:20 | INFO | [beec1a4b988748b3a1f4a3b504e92a7c] | app.main | 启动异步任务工作线程...
+2026-02-11 17:47:20 | INFO | [beec1a4b988748b3a1f4a3b504e92a7c] | app.main | 异步任务工作线程已启动
+2026-02-11 17:47:20 | INFO | [beec1a4b988748b3a1f4a3b504e92a7c] | app.core.async_task.manager | [beec1a4b988748b3a1f4a3b504e92a7c] 启动异步任务工作线程
+2026-02-11 17:47:42 | INFO | [a5e5df4537fc46cb999eb7f6094bef0d] | root | 日志系统初始化完成
+2026-02-11 17:47:43 | INFO | [a5e5df4537fc46cb999eb7f6094bef0d] | app.main | 启动异步任务工作线程...
+2026-02-11 17:47:43 | INFO | [a5e5df4537fc46cb999eb7f6094bef0d] | app.main | 异步任务工作线程已启动
+2026-02-11 17:47:43 | INFO | [a5e5df4537fc46cb999eb7f6094bef0d] | app.core.async_task.manager | [a5e5df4537fc46cb999eb7f6094bef0d] 启动异步任务工作线程
+2026-02-11 17:47:46 | INFO | [c601f36f10a84c3ebf43c5709f9bcbaf] | root | 日志系统初始化完成
+2026-02-11 17:47:46 | INFO | [c601f36f10a84c3ebf43c5709f9bcbaf] | app.main | 启动异步任务工作线程...
+2026-02-11 17:47:46 | INFO | [c601f36f10a84c3ebf43c5709f9bcbaf] | app.main | 异步任务工作线程已启动
+2026-02-11 17:47:46 | INFO | [c601f36f10a84c3ebf43c5709f9bcbaf] | app.core.async_task.manager | [c601f36f10a84c3ebf43c5709f9bcbaf] 启动异步任务工作线程
+2026-02-11 17:49:42 | INFO | [d3bfba3e5ee5459b91219db324c83137] | root | 日志系统初始化完成
+2026-02-11 17:49:42 | INFO | [d3bfba3e5ee5459b91219db324c83137] | app.main | 启动异步任务工作线程...
+2026-02-11 17:49:42 | INFO | [d3bfba3e5ee5459b91219db324c83137] | app.main | 异步任务工作线程已启动
+2026-02-11 17:49:42 | INFO | [d3bfba3e5ee5459b91219db324c83137] | app.core.async_task.manager | [d3bfba3e5ee5459b91219db324c83137] 启动异步任务工作线程
+2026-02-11 17:49:47 | INFO | [c7378e9ef96d437da63226d88b029a38] | root | 日志系统初始化完成
+2026-02-11 17:49:47 | INFO | [c7378e9ef96d437da63226d88b029a38] | httpx | HTTP Request: GET http://testserver/openapi.json "HTTP/1.1 404 Not Found"
+2026-02-11 17:50:01 | INFO | [2b4a2067d9074a17b22d02098e46876f] | root | 日志系统初始化完成
+2026-02-11 17:50:01 | INFO | [2b4a2067d9074a17b22d02098e46876f] | app.main | 启动异步任务工作线程...
+2026-02-11 17:50:01 | INFO | [2b4a2067d9074a17b22d02098e46876f] | app.main | 异步任务工作线程已启动
+2026-02-11 17:50:01 | INFO | [2b4a2067d9074a17b22d02098e46876f] | app.core.async_task.manager | [2b4a2067d9074a17b22d02098e46876f] 启动异步任务工作线程
+2026-02-11 17:50:16 | INFO | [fc62599ac2d145ea81136420c9961dd2] | root | 日志系统初始化完成
+2026-02-11 17:50:16 | INFO | [fc62599ac2d145ea81136420c9961dd2] | httpx | HTTP Request: GET http://testserver/openapi.json "HTTP/1.1 404 Not Found"
+2026-02-11 17:50:36 | INFO | [2f72de098fc042838c4e770e45901f97] | root | 日志系统初始化完成
+2026-02-11 17:50:36 | INFO | [2f72de098fc042838c4e770e45901f97] | app.main | 启动异步任务工作线程...
+2026-02-11 17:50:36 | INFO | [2f72de098fc042838c4e770e45901f97] | app.main | 异步任务工作线程已启动
+2026-02-11 17:50:36 | INFO | [2f72de098fc042838c4e770e45901f97] | app.core.async_task.manager | [2f72de098fc042838c4e770e45901f97] 启动异步任务工作线程
+2026-02-11 17:51:12 | INFO | [3a6982684a4f42f48c1ef982cd265e2f] | root | 日志系统初始化完成
+2026-02-11 17:51:12 | INFO | [3a6982684a4f42f48c1ef982cd265e2f] | app.main | 启动异步任务工作线程...
+2026-02-11 17:51:12 | INFO | [3a6982684a4f42f48c1ef982cd265e2f] | app.main | 异步任务工作线程已启动
+2026-02-11 17:51:12 | INFO | [3a6982684a4f42f48c1ef982cd265e2f] | app.core.async_task.manager | [3a6982684a4f42f48c1ef982cd265e2f] 启动异步任务工作线程
+2026-02-11 17:51:23 | INFO | [f249a1f022014a0abf968add6441c9ed] | root | 日志系统初始化完成
+2026-02-11 17:51:23 | INFO | [f249a1f022014a0abf968add6441c9ed] | app.main | 启动异步任务工作线程...
+2026-02-11 17:51:23 | INFO | [f249a1f022014a0abf968add6441c9ed] | app.main | 异步任务工作线程已启动
+2026-02-11 17:51:23 | INFO | [f249a1f022014a0abf968add6441c9ed] | app.core.async_task.manager | [f249a1f022014a0abf968add6441c9ed] 启动异步任务工作线程
+2026-02-11 17:51:53 | INFO | [bd874f85236c4955b10e80eec1d9ac7c] | app.api.v1.versions | [bd874f85236c4955b10e80eec1d9ac7c] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 17:51:53 | INFO | [49bb05aa3d524fef8d35566fb1ad3170] | app.api.v1.db_schemas | [49bb05aa3d524fef8d35566fb1ad3170] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:51:53 | INFO | [bcdd0e3592824655b0f9b5da14ea27a8] | app.api.v1.api_definitions | [bcdd0e3592824655b0f9b5da14ea27a8] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 17:51:54 | INFO | [a11d79bf1a424a44b93c5b76640077f4] | app.api.v1.field_mappings | [a11d79bf1a424a44b93c5b76640077f4] 查询学习统计: project_id=1
+2026-02-11 17:51:54 | INFO | [5564851b5b9f4889a1471210e973002a] | app.api.v1.field_mappings | [5564851b5b9f4889a1471210e973002a] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 17:51:54 | INFO | [942a174a893f4b86b7fcf449729e0597] | app.api.v1.field_mappings | [942a174a893f4b86b7fcf449729e0597] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 17:51:54 | INFO | [7ceb857db749493c8dc73ed5dbace364] | app.api.v1.versions | [7ceb857db749493c8dc73ed5dbace364] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 17:51:54 | INFO | [0c0ce782d8844714a036b9179d027346] | app.api.v1.field_mappings | [0c0ce782d8844714a036b9179d027346] 查询学习统计: project_id=1
+2026-02-11 17:51:54 | INFO | [086d4c7f1e3441c095dece4ec5db5db0] | app.api.v1.field_mappings | [086d4c7f1e3441c095dece4ec5db5db0] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 17:51:54 | INFO | [1a70eec6bc894d559ae4982458c93d55] | app.api.v1.db_schemas | [1a70eec6bc894d559ae4982458c93d55] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:51:54 | INFO | [52bfa41651f84a018f8439a9a79e984b] | app.api.v1.api_definitions | [52bfa41651f84a018f8439a9a79e984b] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 17:51:54 | INFO | [c05608d28cbc4921b4e5d8725ac3c965] | app.api.v1.field_mappings | [c05608d28cbc4921b4e5d8725ac3c965] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 17:51:54 | INFO | [7625b9c624bb4f7f8bc1750330cdfe44] | app.api.v1.db_schemas | [7625b9c624bb4f7f8bc1750330cdfe44] 获取数据库结构详情: id=4
+2026-02-11 17:51:57 | INFO | [cd3f87d6a944445ea14feed65e1f3013] | app.api.v1.db_schemas | [cd3f87d6a944445ea14feed65e1f3013] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:51:57 | INFO | [79b3d3aa12224776893e1611ecc5017b] | app.api.v1.db_schemas | [79b3d3aa12224776893e1611ecc5017b] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:51:59 | INFO | [b9914a76201e436488305d2c3ebf93c0] | app.api.v1.projects | [b9914a76201e436488305d2c3ebf93c0] 用户 admin 获取项目详情: project_id=1
+2026-02-11 17:51:59 | INFO | [b9914a76201e436488305d2c3ebf93c0] | app.api.v1.projects | [b9914a76201e436488305d2c3ebf93c0] 用户 admin 查看 项目 InvenTree (id=1)
+2026-02-11 17:51:59 | INFO | [b9914a76201e436488305d2c3ebf93c0] | app.api.v1.projects | [b9914a76201e436488305d2c3ebf93c0] 获取项目详情成功: project_id=1, environments_count=2
+2026-02-11 17:51:59 | INFO | [1d232d50bc5f499da26c22d3578b5608] | app.api.v1.versions | [1d232d50bc5f499da26c22d3578b5608] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-02-11 17:51:59 | INFO | [27abbf1acc2a41f4ba617e2f6a4465c0] | app.api.v1.projects | [27abbf1acc2a41f4ba617e2f6a4465c0] 用户 admin 获取项目详情: project_id=1
+2026-02-11 17:51:59 | INFO | [27abbf1acc2a41f4ba617e2f6a4465c0] | app.api.v1.projects | [27abbf1acc2a41f4ba617e2f6a4465c0] 用户 admin 查看 项目 InvenTree (id=1)
+2026-02-11 17:51:59 | INFO | [27abbf1acc2a41f4ba617e2f6a4465c0] | app.api.v1.projects | [27abbf1acc2a41f4ba617e2f6a4465c0] 获取项目详情成功: project_id=1, environments_count=2
+2026-02-11 17:51:59 | INFO | [e011eebe5a4c41d9a45e0f5776f13faa] | app.api.v1.versions | [e011eebe5a4c41d9a45e0f5776f13faa] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-02-11 17:52:01 | INFO | [7607c7a3c7a34d97b71bba9d8a03b3f1] | app.api.v1.versions | [7607c7a3c7a34d97b71bba9d8a03b3f1] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 17:52:01 | INFO | [d99457e0af2d48ed83367fe45e08fdd8] | app.api.v1.field_mappings | [d99457e0af2d48ed83367fe45e08fdd8] 查询学习统计: project_id=1
+2026-02-11 17:52:01 | INFO | [0308ad6d342a4cb98d0c2d1246c4a875] | app.api.v1.db_schemas | [0308ad6d342a4cb98d0c2d1246c4a875] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:52:01 | INFO | [d1c3b620b53d4514ad6cb4d47e9cfb16] | app.api.v1.versions | [d1c3b620b53d4514ad6cb4d47e9cfb16] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 17:52:01 | INFO | [735bca1f87364e2dbf98edfd7d078340] | app.api.v1.field_mappings | [735bca1f87364e2dbf98edfd7d078340] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 17:52:01 | INFO | [d59f5d8a751942679d70fc6cef6e2b3b] | app.api.v1.api_definitions | [d59f5d8a751942679d70fc6cef6e2b3b] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 17:52:02 | INFO | [3f9b86df28334a6486cacaeda911c2b1] | app.api.v1.field_mappings | [3f9b86df28334a6486cacaeda911c2b1] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 17:52:02 | INFO | [1aa0c8357ee64974bc43a07759d15e13] | app.api.v1.field_mappings | [1aa0c8357ee64974bc43a07759d15e13] 查询学习统计: project_id=1
+2026-02-11 17:52:02 | INFO | [2f2a4d09fe20401584a1ea6dff42c58d] | app.api.v1.field_mappings | [2f2a4d09fe20401584a1ea6dff42c58d] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 17:52:02 | INFO | [30848150b6c742ee85442b8cbd4d16cd] | app.api.v1.api_definitions | [30848150b6c742ee85442b8cbd4d16cd] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 17:52:02 | INFO | [444368c9f18346af8b21ee9e7e33f618] | app.api.v1.db_schemas | [444368c9f18346af8b21ee9e7e33f618] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:52:02 | INFO | [0bd83d983e4445a6be1a13fbaae7c577] | app.api.v1.field_mappings | [0bd83d983e4445a6be1a13fbaae7c577] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 17:52:02 | INFO | [1e89b441e4674b1bbecb4aa385d42914] | app.api.v1.db_schemas | [1e89b441e4674b1bbecb4aa385d42914] 获取数据库结构详情: id=4
+2026-02-11 17:52:03 | INFO | [8df0e9fd8c6741c9b4540a7f6c6e8992] | app.api.v1.db_schemas | [8df0e9fd8c6741c9b4540a7f6c6e8992] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:52:03 | INFO | [feaf9eff782c4a51aa076faba74258d1] | app.api.v1.db_schemas | [feaf9eff782c4a51aa076faba74258d1] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 17:59:53 | INFO | [5a389121d2d7405182a1a99211524fac] | app.api.v1.projects | [5a389121d2d7405182a1a99211524fac] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-11 17:59:53 | INFO | [5a389121d2d7405182a1a99211524fac] | app.api.v1.projects | [5a389121d2d7405182a1a99211524fac] 获取项目列表成功: total=2
+2026-02-11 17:59:53 | INFO | [e2f7a1c8ab0e41828365291c888c7c61] | app.api.v1.projects | [e2f7a1c8ab0e41828365291c888c7c61] 用户 admin 获取项目列表: page=1, page_size=10
+2026-02-11 17:59:53 | INFO | [e2f7a1c8ab0e41828365291c888c7c61] | app.api.v1.projects | [e2f7a1c8ab0e41828365291c888c7c61] 获取项目列表成功: total=2
+2026-02-11 17:59:55 | INFO | [72f33436294245df92b4a26cc75015a4] | app.api.v1.projects | [72f33436294245df92b4a26cc75015a4] 用户 admin 获取项目详情: project_id=1
+2026-02-11 17:59:55 | INFO | [72f33436294245df92b4a26cc75015a4] | app.api.v1.projects | [72f33436294245df92b4a26cc75015a4] 用户 admin 查看 项目 InvenTree (id=1)
+2026-02-11 17:59:55 | INFO | [72f33436294245df92b4a26cc75015a4] | app.api.v1.projects | [72f33436294245df92b4a26cc75015a4] 获取项目详情成功: project_id=1, environments_count=2
+2026-02-11 17:59:55 | INFO | [059046365d51475a9fd2343dacc82ad1] | app.api.v1.projects | [059046365d51475a9fd2343dacc82ad1] 用户 admin 获取项目详情: project_id=1
+2026-02-11 17:59:55 | INFO | [059046365d51475a9fd2343dacc82ad1] | app.api.v1.projects | [059046365d51475a9fd2343dacc82ad1] 用户 admin 查看 项目 InvenTree (id=1)
+2026-02-11 17:59:55 | INFO | [059046365d51475a9fd2343dacc82ad1] | app.api.v1.projects | [059046365d51475a9fd2343dacc82ad1] 获取项目详情成功: project_id=1, environments_count=2
+2026-02-11 17:59:55 | INFO | [e9db5091f88140c89bbf1451903ddd6d] | app.api.v1.versions | [e9db5091f88140c89bbf1451903ddd6d] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-02-11 17:59:55 | INFO | [3321224707cb4cd28458d37b4ba95ece] | app.api.v1.versions | [3321224707cb4cd28458d37b4ba95ece] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-02-11 18:01:17 | INFO | [503788567890418eb8dac2ab8b24bd98] | app.api.v1.projects | [503788567890418eb8dac2ab8b24bd98] 用户 admin 获取项目详情: project_id=1
+2026-02-11 18:01:17 | INFO | [503788567890418eb8dac2ab8b24bd98] | app.api.v1.projects | [503788567890418eb8dac2ab8b24bd98] 用户 admin 查看 项目 InvenTree (id=1)
+2026-02-11 18:01:17 | INFO | [503788567890418eb8dac2ab8b24bd98] | app.api.v1.projects | [503788567890418eb8dac2ab8b24bd98] 获取项目详情成功: project_id=1, environments_count=2
+2026-02-11 18:01:17 | INFO | [d3e9c9d5937c4483b8e900a6f9889923] | app.api.v1.versions | [d3e9c9d5937c4483b8e900a6f9889923] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-02-11 18:01:51 | INFO | [3d36993ab8014deeae226bfb849020c5] | app.api.v1.projects | [3d36993ab8014deeae226bfb849020c5] 用户 admin 获取项目详情: project_id=1
+2026-02-11 18:01:51 | INFO | [3d36993ab8014deeae226bfb849020c5] | app.api.v1.projects | [3d36993ab8014deeae226bfb849020c5] 用户 admin 查看 项目 InvenTree (id=1)
+2026-02-11 18:01:51 | INFO | [3d36993ab8014deeae226bfb849020c5] | app.api.v1.projects | [3d36993ab8014deeae226bfb849020c5] 获取项目详情成功: project_id=1, environments_count=2
+2026-02-11 18:01:51 | INFO | [082c0a21421d40de93b326396f5d5480] | app.api.v1.versions | [082c0a21421d40de93b326396f5d5480] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-02-11 18:04:54 | INFO | [45c173a6e24e44f68758adc313dfc6ff] | app.api.v1.db_schemas | [45c173a6e24e44f68758adc313dfc6ff] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:04:54 | INFO | [63ac4c0c5740441daa8e81500abbca68] | app.api.v1.db_schemas | [63ac4c0c5740441daa8e81500abbca68] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:04:56 | INFO | [46bb2fd1d27b41b9b6edffd692704b03] | app.api.v1.versions | [46bb2fd1d27b41b9b6edffd692704b03] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 18:04:56 | INFO | [3a6f5fe11aee43edbd88c1e5316c0f75] | app.api.v1.field_mappings | [3a6f5fe11aee43edbd88c1e5316c0f75] 查询学习统计: project_id=1
+2026-02-11 18:04:56 | INFO | [ad60a808dab1444eb18751ef4e88ea30] | app.api.v1.field_mappings | [ad60a808dab1444eb18751ef4e88ea30] 查询学习统计: project_id=1
+2026-02-11 18:04:56 | INFO | [b333fccb72444dfab9f93858a11b7465] | app.api.v1.versions | [b333fccb72444dfab9f93858a11b7465] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 18:04:56 | INFO | [3b070ea29b2f47ce9e0b2cfed8e992b7] | app.api.v1.api_definitions | [3b070ea29b2f47ce9e0b2cfed8e992b7] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 18:04:56 | INFO | [eb84517ce0784e8cbff8745306b06f0a] | app.api.v1.db_schemas | [eb84517ce0784e8cbff8745306b06f0a] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:04:56 | INFO | [53133db9a1f0450ca26da22a6136494c] | app.api.v1.field_mappings | [53133db9a1f0450ca26da22a6136494c] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 18:04:56 | INFO | [02735f54d6af49a09d9e0a11ae830647] | app.api.v1.field_mappings | [02735f54d6af49a09d9e0a11ae830647] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 18:04:56 | INFO | [3e3844f2af08478cb08506f6853178f5] | app.api.v1.field_mappings | [3e3844f2af08478cb08506f6853178f5] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 18:04:57 | INFO | [b6a318bdcda346a0886baae6ddcb768e] | app.api.v1.api_definitions | [b6a318bdcda346a0886baae6ddcb768e] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 18:04:57 | INFO | [07bfde1524f04a999beebfa48674f936] | app.api.v1.field_mappings | [07bfde1524f04a999beebfa48674f936] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 18:04:57 | INFO | [a839a3a6d2bd42b59298d74a236f3932] | app.api.v1.db_schemas | [a839a3a6d2bd42b59298d74a236f3932] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:04:57 | INFO | [c8f271538b9c4b2180a7aa91f535ae43] | app.api.v1.db_schemas | [c8f271538b9c4b2180a7aa91f535ae43] 获取数据库结构详情: id=4
+2026-02-11 18:04:58 | INFO | [45c6a8dd0a17496687715ed2acffea1f] | app.api.v1.db_schemas | [45c6a8dd0a17496687715ed2acffea1f] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:04:58 | INFO | [3eff6c72fd9641b685f62f2afe46fa1b] | app.api.v1.db_schemas | [3eff6c72fd9641b685f62f2afe46fa1b] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:06:06 | INFO | [e83c2938bd554b5b811f136821dbd7f8] | app.api.v1.field_mappings_async | [e83c2938bd554b5b811f136821dbd7f8] 创建字段映射建议任务: project_id=1, version_id=1, use_ai=True
+2026-02-11 18:06:06 | INFO | [e83c2938bd554b5b811f136821dbd7f8] | app.core.async_task.manager | [f249a1f022014a0abf968add6441c9ed] 创建异步任务: project_id=1, user_id=1, type=field_mapping_suggest
+2026-02-11 18:06:06 | INFO | [e83c2938bd554b5b811f136821dbd7f8] | app.core.async_task.manager | [f249a1f022014a0abf968add6441c9ed] 异步任务已加入队列: task_id=449
+2026-02-11 18:06:06 | INFO | [f249a1f022014a0abf968add6441c9ed] | app.core.async_task.executor | [f249a1f022014a0abf968add6441c9ed] 执行任务: task_id=449, type=field_mapping_suggest
+2026-02-11 18:06:06 | INFO | [f249a1f022014a0abf968add6441c9ed] | app.core.async_task.executor | [f249a1f022014a0abf968add6441c9ed] 开始执行字段映射任务: task_id=449
+2026-02-11 18:06:06 | INFO | [f249a1f022014a0abf968add6441c9ed] | app.field_mapping.processor | [f249a1f022014a0abf968add6441c9ed] 开始处理字段映射任务: project_id=1, version_id=1, current_stage=0
+2026-02-11 18:06:06 | INFO | [f249a1f022014a0abf968add6441c9ed] | app.field_mapping.processor | [f249a1f022014a0abf968add6441c9ed] 开始提取字段: project_id=1, version_id=1
+2026-02-11 18:06:06 | INFO | [f249a1f022014a0abf968add6441c9ed] | app.field_mapping.processor | [f249a1f022014a0abf968add6441c9ed] 找到 644 个API定义
+2026-02-11 18:06:06 | INFO | [f249a1f022014a0abf968add6441c9ed] | app.field_mapping.processor | [f249a1f022014a0abf968add6441c9ed] 字段提取完成: 原始4320个, 去重后595个唯一字段
+2026-02-11 18:06:06 | ERROR | [f249a1f022014a0abf968add6441c9ed] | app.field_mapping.processor | [f249a1f022014a0abf968add6441c9ed] 保存阶段1结果失败: 'AsyncTask' object has no attribute 'stage_results'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\field_mapping\processor.py", line 158, in _save_stage_result
+    if not self.task.stage_results:
+AttributeError: 'AsyncTask' object has no attribute 'stage_results'
+2026-02-11 18:06:06 | ERROR | [f249a1f022014a0abf968add6441c9ed] | app.field_mapping.processor | [f249a1f022014a0abf968add6441c9ed] 字段映射任务处理失败: 'AsyncTask' object has no attribute 'stage_results'
+2026-02-11 18:06:06 | ERROR | [f249a1f022014a0abf968add6441c9ed] | app.core.async_task.executor | [f249a1f022014a0abf968add6441c9ed] 任务执行异常: task_id=449, error='AsyncTask' object has no attribute 'stage_results'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\core\async_task\executor.py", line 64, in execute_task
+    result = await self._execute_field_mapping_task(task)
+  File "D:\code\BugSeek\backend\app\core\async_task\executor.py", line 119, in _execute_field_mapping_task
+    result = await processor.process()
+  File "D:\code\BugSeek\backend\app\field_mapping\processor.py", line 339, in process
+    self._save_stage_result(
+  File "D:\code\BugSeek\backend\app\field_mapping\processor.py", line 158, in _save_stage_result
+    if not self.task.stage_results:
+AttributeError: 'AsyncTask' object has no attribute 'stage_results'
+2026-02-11 18:06:06 | INFO | [56e8ca87afe34cd6a2894e27dd2e9555] | app.api.v1.field_mappings_async | [56e8ca87afe34cd6a2894e27dd2e9555] 获取异步任务进度: task_id=449
+2026-02-11 18:06:09 | INFO | [899be88ed7de44d69984f191347bdc37] | app.api.v1.field_mappings_async | [899be88ed7de44d69984f191347bdc37] 获取异步任务进度: task_id=449
+2026-02-11 18:06:12 | INFO | [8a03880f578741779e388450339f7854] | app.api.v1.field_mappings_async | [8a03880f578741779e388450339f7854] 获取异步任务进度: task_id=449
+2026-02-11 18:06:15 | INFO | [94c9a8b0fde546bf8a16081f4aed3cf0] | app.api.v1.field_mappings_async | [94c9a8b0fde546bf8a16081f4aed3cf0] 获取异步任务进度: task_id=449
+2026-02-11 18:06:18 | INFO | [74a183e354754762a55e38c63c9c576f] | app.api.v1.field_mappings_async | [74a183e354754762a55e38c63c9c576f] 获取异步任务进度: task_id=449
+2026-02-11 18:06:21 | INFO | [b28b7c285a3b414c9cd96715e107052f] | app.api.v1.field_mappings_async | [b28b7c285a3b414c9cd96715e107052f] 获取异步任务进度: task_id=449
+2026-02-11 18:06:24 | INFO | [0f3f216af9af4763b99a6729fdb2cffb] | app.api.v1.field_mappings_async | [0f3f216af9af4763b99a6729fdb2cffb] 获取异步任务进度: task_id=449
+2026-02-11 18:06:27 | INFO | [f8be3e07f7e44c24bc1e71f22a5567c4] | app.api.v1.field_mappings_async | [f8be3e07f7e44c24bc1e71f22a5567c4] 获取异步任务进度: task_id=449
+2026-02-11 18:06:30 | INFO | [80273bbfd4ed43879007bab332364bb8] | app.api.v1.field_mappings_async | [80273bbfd4ed43879007bab332364bb8] 获取异步任务进度: task_id=449
+2026-02-11 18:06:33 | INFO | [e40a8e1be3964d1b9815051f87f4d9ae] | app.api.v1.field_mappings_async | [e40a8e1be3964d1b9815051f87f4d9ae] 获取异步任务进度: task_id=449
+2026-02-11 18:06:36 | INFO | [445da0a12d7b4a12a13f1019348dc025] | app.api.v1.field_mappings_async | [445da0a12d7b4a12a13f1019348dc025] 获取异步任务进度: task_id=449
+2026-02-11 18:06:39 | INFO | [89bbf6774d104f4fb93c812ee59503e7] | app.api.v1.field_mappings_async | [89bbf6774d104f4fb93c812ee59503e7] 获取异步任务进度: task_id=449
+2026-02-11 18:06:42 | INFO | [fb5781a863ff4ec3b2918e6db17aefa2] | app.api.v1.field_mappings_async | [fb5781a863ff4ec3b2918e6db17aefa2] 获取异步任务进度: task_id=449
+2026-02-11 18:06:45 | INFO | [8b636b14330442d1aca25e2935999bbd] | app.api.v1.field_mappings_async | [8b636b14330442d1aca25e2935999bbd] 获取异步任务进度: task_id=449
+2026-02-11 18:06:48 | INFO | [a598c6abbc5e460b9d21a69c0efd2d36] | app.api.v1.field_mappings_async | [a598c6abbc5e460b9d21a69c0efd2d36] 获取异步任务进度: task_id=449
+2026-02-11 18:06:51 | INFO | [8386e74b76cc4235b2aca269e82e6379] | app.api.v1.field_mappings_async | [8386e74b76cc4235b2aca269e82e6379] 获取异步任务进度: task_id=449
+2026-02-11 18:06:54 | INFO | [b97d207b3d144593856cc3c04aefa934] | app.api.v1.field_mappings_async | [b97d207b3d144593856cc3c04aefa934] 获取异步任务进度: task_id=449
+2026-02-11 18:06:57 | INFO | [705cf48ab8484e3cac4c5766adce872a] | app.api.v1.field_mappings_async | [705cf48ab8484e3cac4c5766adce872a] 获取异步任务进度: task_id=449
+2026-02-11 18:07:01 | INFO | [39a5231e90454d5b94448023965167ab] | root | 日志系统初始化完成
+2026-02-11 18:07:01 | INFO | [39a5231e90454d5b94448023965167ab] | app.main | 启动异步任务工作线程...
+2026-02-11 18:07:01 | INFO | [39a5231e90454d5b94448023965167ab] | app.main | 异步任务工作线程已启动
+2026-02-11 18:07:01 | INFO | [39a5231e90454d5b94448023965167ab] | app.core.async_task.manager | [39a5231e90454d5b94448023965167ab] 启动异步任务工作线程
+2026-02-11 18:07:02 | INFO | [c400011ba8754d539286334cd653e06d] | app.api.v1.field_mappings_async | [c400011ba8754d539286334cd653e06d] 获取异步任务进度: task_id=449
+2026-02-11 18:07:03 | INFO | [42c9305537b7473dbc8699fc1c699fa2] | app.api.v1.field_mappings_async | [42c9305537b7473dbc8699fc1c699fa2] 获取异步任务进度: task_id=449
+2026-02-11 18:07:06 | INFO | [aed3dbaf033c4208a90d7862174ced07] | app.api.v1.field_mappings_async | [aed3dbaf033c4208a90d7862174ced07] 获取异步任务进度: task_id=449
+2026-02-11 18:07:09 | INFO | [85d9bbb1e8a748c5bb608454dde951c8] | app.api.v1.field_mappings_async | [85d9bbb1e8a748c5bb608454dde951c8] 获取异步任务进度: task_id=449
+2026-02-11 18:07:12 | INFO | [b43397b3a7bf47cbbcf065ccdfc3c587] | app.api.v1.field_mappings_async | [b43397b3a7bf47cbbcf065ccdfc3c587] 获取异步任务进度: task_id=449
+2026-02-11 18:07:15 | INFO | [432ee36951b442aa8e202fcdad7c063d] | app.api.v1.field_mappings_async | [432ee36951b442aa8e202fcdad7c063d] 获取异步任务进度: task_id=449
+2026-02-11 18:07:18 | INFO | [77482b6d65c84553a0f4b39a36935116] | app.api.v1.field_mappings_async | [77482b6d65c84553a0f4b39a36935116] 获取异步任务进度: task_id=449
+2026-02-11 18:07:21 | INFO | [21c9f3a8452643e79e8c3e7bb4d894f6] | app.api.v1.field_mappings_async | [21c9f3a8452643e79e8c3e7bb4d894f6] 获取异步任务进度: task_id=449
+2026-02-11 18:07:24 | INFO | [1456580b98af4b0f844455a3b542a8e2] | app.api.v1.field_mappings_async | [1456580b98af4b0f844455a3b542a8e2] 获取异步任务进度: task_id=449
+2026-02-11 18:07:27 | INFO | [d41461f069314519a203066492e4b9ea] | app.api.v1.field_mappings_async | [d41461f069314519a203066492e4b9ea] 获取异步任务进度: task_id=449
+2026-02-11 18:07:30 | INFO | [ac0bdf281bb34cc99a67e12e6a28fc39] | app.api.v1.field_mappings_async | [ac0bdf281bb34cc99a67e12e6a28fc39] 获取异步任务进度: task_id=449
+2026-02-11 18:07:33 | INFO | [21e3a9fa9b1d489dbd71664c278167ee] | app.api.v1.field_mappings_async | [21e3a9fa9b1d489dbd71664c278167ee] 获取异步任务进度: task_id=449
+2026-02-11 18:07:36 | INFO | [0092041e427e4f50841cae5909ef0043] | app.api.v1.field_mappings_async | [0092041e427e4f50841cae5909ef0043] 获取异步任务进度: task_id=449
+2026-02-11 18:08:25 | INFO | [1990cbfc18824f43bf17b36f36b68a8e] | app.api.v1.projects | [1990cbfc18824f43bf17b36f36b68a8e] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-11 18:08:25 | INFO | [1990cbfc18824f43bf17b36f36b68a8e] | app.api.v1.projects | [1990cbfc18824f43bf17b36f36b68a8e] 获取项目列表成功: total=2
+2026-02-11 18:08:25 | INFO | [da327adb12744d7eacdf7bda7ad5a2c2] | app.api.v1.versions | [da327adb12744d7eacdf7bda7ad5a2c2] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 18:08:25 | INFO | [3954835ced2646159502912427c2f2db] | app.api.v1.field_mappings | [3954835ced2646159502912427c2f2db] 查询学习统计: project_id=1
+2026-02-11 18:08:25 | INFO | [b809798c46f5463a9c0c9f85a2353ddd] | app.api.v1.api_definitions | [b809798c46f5463a9c0c9f85a2353ddd] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 18:08:26 | INFO | [20637af1a6e84f05b0ae1f7d07561f91] | app.api.v1.field_mappings | [20637af1a6e84f05b0ae1f7d07561f91] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 18:08:26 | INFO | [4b88e3c32d974c749cbd74596446cde8] | app.api.v1.db_schemas | [4b88e3c32d974c749cbd74596446cde8] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:08:26 | INFO | [ee06f26d49444711ad9ede0ef258fb82] | app.api.v1.projects | [ee06f26d49444711ad9ede0ef258fb82] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-11 18:08:26 | INFO | [ee06f26d49444711ad9ede0ef258fb82] | app.api.v1.projects | [ee06f26d49444711ad9ede0ef258fb82] 获取项目列表成功: total=2
+2026-02-11 18:08:26 | INFO | [fe8d131beaba4eff9fb38fe53f24237c] | app.api.v1.field_mappings | [fe8d131beaba4eff9fb38fe53f24237c] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 18:08:26 | INFO | [a10b8175a7bd4ebe8c165802bba46cec] | app.api.v1.versions | [a10b8175a7bd4ebe8c165802bba46cec] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 18:08:26 | INFO | [57bd17f0a627426ebc99cb080714015d] | app.api.v1.versions | [57bd17f0a627426ebc99cb080714015d] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 18:08:26 | INFO | [fc8da71517c846a0aceb12ab117083b1] | app.api.v1.field_mappings | [fc8da71517c846a0aceb12ab117083b1] 查询学习统计: project_id=1
+2026-02-11 18:08:26 | INFO | [2d55d85ce9de48cd82fd49fb1e33dff7] | app.api.v1.projects | [2d55d85ce9de48cd82fd49fb1e33dff7] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-11 18:08:26 | INFO | [2d55d85ce9de48cd82fd49fb1e33dff7] | app.api.v1.projects | [2d55d85ce9de48cd82fd49fb1e33dff7] 获取项目列表成功: total=2
+2026-02-11 18:08:26 | INFO | [0c50010fd6df4926889988a4a039cd08] | app.api.v1.api_definitions | [0c50010fd6df4926889988a4a039cd08] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 18:08:26 | INFO | [e68497ecc17040f4b4726159c0236c3a] | app.api.v1.db_schemas | [e68497ecc17040f4b4726159c0236c3a] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:08:26 | INFO | [4c027431b94c47c9873f947c81cc3e9c] | app.api.v1.field_mappings | [4c027431b94c47c9873f947c81cc3e9c] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 18:08:26 | INFO | [27e10170a063424b97149a6c2f53e1d8] | app.api.v1.field_mappings | [27e10170a063424b97149a6c2f53e1d8] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 18:08:26 | INFO | [09aee8de1b0e48d6a93a3329afaaa2c9] | app.api.v1.projects | [09aee8de1b0e48d6a93a3329afaaa2c9] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-11 18:08:26 | INFO | [09aee8de1b0e48d6a93a3329afaaa2c9] | app.api.v1.projects | [09aee8de1b0e48d6a93a3329afaaa2c9] 获取项目列表成功: total=2
+2026-02-11 18:08:26 | INFO | [4c63c86dab864a4a9e905b5518ae1777] | app.api.v1.versions | [4c63c86dab864a4a9e905b5518ae1777] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 18:08:26 | INFO | [573c1f273fa74aa5b04ae5771d679765] | app.api.v1.db_schemas | [573c1f273fa74aa5b04ae5771d679765] 获取数据库结构详情: id=4
+2026-02-11 18:08:27 | INFO | [520940fa75f548cca04b3408adad3b5f] | app.api.v1.db_schemas | [520940fa75f548cca04b3408adad3b5f] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:08:27 | INFO | [4b6c744716704ef0bce5d98349beb3aa] | app.api.v1.db_schemas | [4b6c744716704ef0bce5d98349beb3aa] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:08:33 | INFO | [e174e424a4344556a90fd64cccd06caf] | app.api.v1.field_mappings_async | [e174e424a4344556a90fd64cccd06caf] 创建字段映射建议任务: project_id=1, version_id=1, use_ai=True
+2026-02-11 18:08:33 | INFO | [e174e424a4344556a90fd64cccd06caf] | app.core.async_task.manager | [39a5231e90454d5b94448023965167ab] 创建异步任务: project_id=1, user_id=1, type=field_mapping_suggest
+2026-02-11 18:08:33 | INFO | [e174e424a4344556a90fd64cccd06caf] | app.core.async_task.manager | [39a5231e90454d5b94448023965167ab] 异步任务已加入队列: task_id=450
+2026-02-11 18:08:33 | INFO | [39a5231e90454d5b94448023965167ab] | app.core.async_task.executor | [39a5231e90454d5b94448023965167ab] 执行任务: task_id=450, type=field_mapping_suggest
+2026-02-11 18:08:33 | INFO | [39a5231e90454d5b94448023965167ab] | app.core.async_task.executor | [39a5231e90454d5b94448023965167ab] 开始执行字段映射任务: task_id=450
+2026-02-11 18:08:33 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 开始处理字段映射任务: project_id=1, version_id=1, current_stage=0
+2026-02-11 18:08:33 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 开始提取字段: project_id=1, version_id=1
+2026-02-11 18:08:34 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 找到 644 个API定义
+2026-02-11 18:08:34 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 字段提取完成: 原始4320个, 去重后595个唯一字段
+2026-02-11 18:08:34 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 阶段1结果已保存: status=completed, data_keys=['total_fields', 'unique_fields', 'field_count_by_type']
+2026-02-11 18:08:34 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 获取数据库结构成功: 3个表
+2026-02-11 18:08:34 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 开始批量规则评分: 595个字段
+2026-02-11 18:08:34 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 开始处理批次0: 100个字段
+2026-02-11 18:08:37 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 批次0处理完成: 100个字段有结果
+2026-02-11 18:08:37 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 开始处理批次1: 100个字段
+2026-02-11 18:08:38 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 批次1处理完成: 100个字段有结果
+2026-02-11 18:08:38 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 开始处理批次2: 100个字段
+2026-02-11 18:08:40 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 批次2处理完成: 100个字段有结果
+2026-02-11 18:08:40 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 开始处理批次3: 100个字段
+2026-02-11 18:08:42 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 批次3处理完成: 100个字段有结果
+2026-02-11 18:08:42 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 开始处理批次4: 100个字段
+2026-02-11 18:08:44 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 批次4处理完成: 100个字段有结果
+2026-02-11 18:08:44 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 开始处理批次5: 95个字段
+2026-02-11 18:08:45 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 批次5处理完成: 95个字段有结果
+2026-02-11 18:08:45 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 批量规则评分完成
+2026-02-11 18:08:45 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 阶段2结果已保存: status=completed, data_keys=['processed_fields', 'success_fields', 'failed_fields', 'avg_score']
+2026-02-11 18:08:45 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 开始智能筛选
+2026-02-11 18:08:45 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 智能筛选完成: 自动确认=0, 高优先级AI=595, 中优先级AI=0, 低优先级AI=0
+2026-02-11 18:08:45 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 阶段3结果已保存: status=completed, data_keys=['auto_confirm', 'ai_high', 'ai_medium', 'ai_low']
+2026-02-11 18:08:45 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] 开始优先级AI调用
+2026-02-11 18:08:45 | INFO | [633e107c5dbe402087f9674bad97b307] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:08:45 | INFO | [633e107c5dbe402087f9674bad97b307] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:08:45 | INFO | [633e107c5dbe402087f9674bad97b307] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:08:45 | INFO | [633e107c5dbe402087f9674bad97b307] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "path.id",
+    "method": "PUT",
+    "path": "/api/stock/location-type/{id}/",
+    "field_name": "id",
+    "rule_candidates": [
+      {
+        "db_table": "account_emailaddress",
+        "db_column": "id",
+        "score": 0.42000000000000004,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      },
+      {
+        "db_table": "account_emailconfirmation",
+    
+2026-02-11 18:08:46 | INFO | [633e107c5dbe402087f9674bad97b307] | app.ai.adapters.factory | 创建模型适配器: provider=openai
+2026-02-11 18:08:46 | INFO | [633e107c5dbe402087f9674bad97b307] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:08:54 | INFO | [633e107c5dbe402087f9674bad97b307] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:08:54 | INFO | [633e107c5dbe402087f9674bad97b307] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=2080
+2026-02-11 18:08:54 | INFO | [633e107c5dbe402087f9674bad97b307] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=2080
+2026-02-11 18:08:54 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:08:54 | INFO | [bf17379ab15a42a28e05190a063ae18a] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:08:54 | INFO | [bf17379ab15a42a28e05190a063ae18a] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:08:54 | INFO | [bf17379ab15a42a28e05190a063ae18a] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:08:54 | INFO | [bf17379ab15a42a28e05190a063ae18a] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.location_count",
+    "method": "PUT",
+    "path": "/api/stock/location-type/{id}/",
+    "field_name": "location_count",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.MPN",
+    "method": "PATCH",
+    "path": "/api/company/part/manufacturer/{id}/",
+    "field_name": "MPN",
+    "rule_candidates": [
+      {
+        "db_table": "company_manufacturerpart",
+     
+2026-02-11 18:08:54 | INFO | [bf17379ab15a42a28e05190a063ae18a] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:08:54 | INFO | [bf17379ab15a42a28e05190a063ae18a] | openai._base_client | Retrying request to /chat/completions in 0.456690 seconds
+2026-02-11 18:08:59 | INFO | [bf17379ab15a42a28e05190a063ae18a] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:08:59 | INFO | [bf17379ab15a42a28e05190a063ae18a] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1515
+2026-02-11 18:08:59 | INFO | [bf17379ab15a42a28e05190a063ae18a] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1515
+2026-02-11 18:08:59 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:08:59 | INFO | [44fb33ca099a4aa39a123aa94d68d205] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:08:59 | INFO | [44fb33ca099a4aa39a123aa94d68d205] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:08:59 | INFO | [44fb33ca099a4aa39a123aa94d68d205] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:08:59 | INFO | [44fb33ca099a4aa39a123aa94d68d205] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.notes",
+    "method": "PATCH",
+    "path": "/api/company/part/manufacturer/{id}/",
+    "field_name": "notes",
+    "rule_candidates": [
+      {
+        "db_table": "stock_stockitemtracking",
+        "db_column": "notes",
+        "score": 0.44999999999999996,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      }
+    ]
+  },
+  {
+    "api_field_path": "body
+2026-02-11 18:08:59 | INFO | [44fb33ca099a4aa39a123aa94d68d205] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:08:59 | INFO | [44fb33ca099a4aa39a123aa94d68d205] | openai._base_client | Retrying request to /chat/completions in 0.394148 seconds
+2026-02-11 18:09:06 | INFO | [44fb33ca099a4aa39a123aa94d68d205] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:09:06 | INFO | [44fb33ca099a4aa39a123aa94d68d205] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1664
+2026-02-11 18:09:06 | INFO | [44fb33ca099a4aa39a123aa94d68d205] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1664
+2026-02-11 18:09:06 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:09:06 | INFO | [c2d50cf2c78c406a871909f96a685a9c] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:09:06 | INFO | [c2d50cf2c78c406a871909f96a685a9c] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:09:06 | INFO | [c2d50cf2c78c406a871909f96a685a9c] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:09:06 | INFO | [c2d50cf2c78c406a871909f96a685a9c] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "query.limit",
+    "method": "GET",
+    "path": "/api/background-task/pending/",
+    "field_name": "limit",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "query.offset",
+    "method": "GET",
+    "path": "/api/background-task/pending/",
+    "field_name": "offset",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.code",
+    "method": "PATCH",
+    "path": "
+2026-02-11 18:09:06 | INFO | [c2d50cf2c78c406a871909f96a685a9c] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:09:06 | INFO | [c2d50cf2c78c406a871909f96a685a9c] | openai._base_client | Retrying request to /chat/completions in 0.460938 seconds
+2026-02-11 18:09:13 | INFO | [c2d50cf2c78c406a871909f96a685a9c] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:09:13 | INFO | [c2d50cf2c78c406a871909f96a685a9c] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1480
+2026-02-11 18:09:13 | INFO | [c2d50cf2c78c406a871909f96a685a9c] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1480
+2026-02-11 18:09:13 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:09:13 | INFO | [6975cb13d144467ea6bb752ed0afadf4] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:09:13 | INFO | [6975cb13d144467ea6bb752ed0afadf4] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:09:13 | INFO | [6975cb13d144467ea6bb752ed0afadf4] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:09:13 | INFO | [6975cb13d144467ea6bb752ed0afadf4] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.metadata",
+    "method": "PATCH",
+    "path": "/api/order/so-line/{id}/metadata/",
+    "field_name": "metadata",
+    "rule_candidates": [
+      {
+        "db_table": "common_emailthread",
+        "db_column": "metadata",
+        "score": 0.44999999999999996,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      },
+      {
+        "db_table": "common_sele
+2026-02-11 18:09:13 | INFO | [6975cb13d144467ea6bb752ed0afadf4] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:09:13 | INFO | [6975cb13d144467ea6bb752ed0afadf4] | openai._base_client | Retrying request to /chat/completions in 0.420498 seconds
+2026-02-11 18:09:19 | INFO | [6975cb13d144467ea6bb752ed0afadf4] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:09:19 | INFO | [6975cb13d144467ea6bb752ed0afadf4] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1897
+2026-02-11 18:09:19 | INFO | [6975cb13d144467ea6bb752ed0afadf4] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1897
+2026-02-11 18:09:19 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:09:19 | INFO | [627d8bd15fb0444499ad6e1f543c53bb] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:09:19 | INFO | [627d8bd15fb0444499ad6e1f543c53bb] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:09:19 | INFO | [627d8bd15fb0444499ad6e1f543c53bb] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:09:19 | INFO | [627d8bd15fb0444499ad6e1f543c53bb] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "path.config_type",
+    "method": "GET",
+    "path": "/api/machine/{id}/settings/{config_type}/{key}/",
+    "field_name": "config_type",
+    "rule_candidates": [
+      {
+        "db_table": "mfa_authenticator",
+        "db_column": "type",
+        "score": 0.30300000000000005,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      }
+    ]
+  },
+  {
+    "api_fiel
+2026-02-11 18:09:19 | INFO | [627d8bd15fb0444499ad6e1f543c53bb] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:09:19 | INFO | [627d8bd15fb0444499ad6e1f543c53bb] | openai._base_client | Retrying request to /chat/completions in 0.419464 seconds
+2026-02-11 18:09:25 | INFO | [627d8bd15fb0444499ad6e1f543c53bb] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:09:25 | INFO | [627d8bd15fb0444499ad6e1f543c53bb] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1654
+2026-02-11 18:09:25 | INFO | [627d8bd15fb0444499ad6e1f543c53bb] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1654
+2026-02-11 18:09:25 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:09:25 | INFO | [bb04b246122445adab0af4aa3f9eba1a] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:09:25 | INFO | [bb04b246122445adab0af4aa3f9eba1a] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:09:25 | INFO | [bb04b246122445adab0af4aa3f9eba1a] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:09:25 | INFO | [bb04b246122445adab0af4aa3f9eba1a] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.enabled",
+    "method": "PATCH",
+    "path": "/api/report/template/{id}/",
+    "field_name": "enabled",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.filters",
+    "method": "PATCH",
+    "path": "/api/report/template/{id}/",
+    "field_name": "filters",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.revision",
+    "method": "PATCH",
+    "pa
+2026-02-11 18:09:25 | INFO | [bb04b246122445adab0af4aa3f9eba1a] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:09:25 | INFO | [bb04b246122445adab0af4aa3f9eba1a] | openai._base_client | Retrying request to /chat/completions in 0.415131 seconds
+2026-02-11 18:09:32 | INFO | [bb04b246122445adab0af4aa3f9eba1a] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:09:32 | INFO | [bb04b246122445adab0af4aa3f9eba1a] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1398
+2026-02-11 18:09:32 | INFO | [bb04b246122445adab0af4aa3f9eba1a] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1398
+2026-02-11 18:09:32 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:09:32 | INFO | [ef75dafd9de847f88d60a2ebf09b1196] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:09:32 | INFO | [ef75dafd9de847f88d60a2ebf09b1196] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:09:32 | INFO | [ef75dafd9de847f88d60a2ebf09b1196] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:09:32 | INFO | [ef75dafd9de847f88d60a2ebf09b1196] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.page_size",
+    "method": "PATCH",
+    "path": "/api/report/template/{id}/",
+    "field_name": "page_size",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.model_type",
+    "method": "PATCH",
+    "path": "/api/report/template/{id}/",
+    "field_name": "model_type",
+    "rule_candidates": [
+      {
+        "db_table": "mfa_authenticator",
+        "db_column":
+2026-02-11 18:09:32 | INFO | [ef75dafd9de847f88d60a2ebf09b1196] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:09:32 | INFO | [ef75dafd9de847f88d60a2ebf09b1196] | openai._base_client | Retrying request to /chat/completions in 0.488172 seconds
+2026-02-11 18:09:37 | INFO | [ef75dafd9de847f88d60a2ebf09b1196] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:09:37 | INFO | [ef75dafd9de847f88d60a2ebf09b1196] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1308
+2026-02-11 18:09:37 | INFO | [ef75dafd9de847f88d60a2ebf09b1196] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1308
+2026-02-11 18:09:37 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:09:37 | INFO | [920e2ce381e54218a1321abc8b05d7e9] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:09:37 | INFO | [920e2ce381e54218a1321abc8b05d7e9] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:09:37 | INFO | [920e2ce381e54218a1321abc8b05d7e9] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:09:37 | INFO | [920e2ce381e54218a1321abc8b05d7e9] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "query.user_detail",
+    "method": "GET",
+    "path": "/api/stock/test/{id}/",
+    "field_name": "user_detail",
+    "rule_candidates": [
+      {
+        "db_table": "auth_user_groups",
+        "db_column": "user_id",
+        "score": 0.3425,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      },
+      {
+        "db_table": "auth_user_user_permissions",
+     
+2026-02-11 18:09:37 | INFO | [920e2ce381e54218a1321abc8b05d7e9] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:09:37 | INFO | [920e2ce381e54218a1321abc8b05d7e9] | openai._base_client | Retrying request to /chat/completions in 0.442871 seconds
+2026-02-11 18:09:45 | INFO | [920e2ce381e54218a1321abc8b05d7e9] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:09:45 | INFO | [920e2ce381e54218a1321abc8b05d7e9] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1571
+2026-02-11 18:09:45 | INFO | [920e2ce381e54218a1321abc8b05d7e9] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1571
+2026-02-11 18:09:45 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:09:45 | INFO | [a57d943dc4f341ab8835618426e20851] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:09:45 | INFO | [a57d943dc4f341ab8835618426e20851] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:09:45 | INFO | [a57d943dc4f341ab8835618426e20851] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:09:45 | INFO | [a57d943dc4f341ab8835618426e20851] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.units",
+    "method": "PUT",
+    "path": "/api/machine/{id}/settings/{config_type}/{key}/",
+    "field_name": "units",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.value",
+    "method": "PUT",
+    "path": "/api/machine/{id}/settings/{config_type}/{key}/",
+    "field_name": "value",
+    "rule_candidates": [
+      {
+        "db_table": "common_inventreeuser
+2026-02-11 18:09:45 | INFO | [a57d943dc4f341ab8835618426e20851] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:09:45 | INFO | [a57d943dc4f341ab8835618426e20851] | openai._base_client | Retrying request to /chat/completions in 0.499599 seconds
+2026-02-11 18:09:51 | INFO | [a57d943dc4f341ab8835618426e20851] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:09:51 | INFO | [a57d943dc4f341ab8835618426e20851] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1596
+2026-02-11 18:09:51 | INFO | [a57d943dc4f341ab8835618426e20851] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1596
+2026-02-11 18:09:51 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:09:51 | INFO | [4fa73cb6dee947169273aae23d2dd0f6] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:09:51 | INFO | [4fa73cb6dee947169273aae23d2dd0f6] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:09:51 | INFO | [4fa73cb6dee947169273aae23d2dd0f6] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:09:51 | INFO | [4fa73cb6dee947169273aae23d2dd0f6] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.model_name",
+    "method": "PUT",
+    "path": "/api/machine/{id}/settings/{config_type}/{key}/",
+    "field_name": "model_name",
+    "rule_candidates": [
+      {
+        "db_table": "auth_group",
+        "db_column": "name",
+        "score": 0.3064285714285714,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      },
+      {
+        "db_table": "auth_per
+2026-02-11 18:09:51 | INFO | [4fa73cb6dee947169273aae23d2dd0f6] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:09:51 | INFO | [4fa73cb6dee947169273aae23d2dd0f6] | openai._base_client | Retrying request to /chat/completions in 0.435369 seconds
+2026-02-11 18:10:10 | INFO | [4fa73cb6dee947169273aae23d2dd0f6] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:10:10 | INFO | [4fa73cb6dee947169273aae23d2dd0f6] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=2081
+2026-02-11 18:10:10 | INFO | [4fa73cb6dee947169273aae23d2dd0f6] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=2081
+2026-02-11 18:10:10 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:10:10 | INFO | [e2351d32f8aa4783aac1da22cc9583b6] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:10:10 | INFO | [e2351d32f8aa4783aac1da22cc9583b6] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:10:10 | INFO | [e2351d32f8aa4783aac1da22cc9583b6] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:10:10 | INFO | [e2351d32f8aa4783aac1da22cc9583b6] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.attachment",
+    "method": "PUT",
+    "path": "/api/stock/test/{id}/",
+    "field_name": "attachment",
+    "rule_candidates": [
+      {
+        "db_table": "common_attachment",
+        "db_column": "attachment",
+        "score": 0.575,
+        "reasons": [
+          "字段名匹配",
+          "表名匹配",
+          "类型匹配"
+        ]
+      }
+    ]
+  },
+  {
+    "api_field_path": "body.sto
+2026-02-11 18:10:10 | INFO | [e2351d32f8aa4783aac1da22cc9583b6] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:10:10 | INFO | [e2351d32f8aa4783aac1da22cc9583b6] | openai._base_client | Retrying request to /chat/completions in 0.434226 seconds
+2026-02-11 18:10:30 | INFO | [e2351d32f8aa4783aac1da22cc9583b6] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:10:30 | INFO | [e2351d32f8aa4783aac1da22cc9583b6] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1492
+2026-02-11 18:10:30 | INFO | [e2351d32f8aa4783aac1da22cc9583b6] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1492
+2026-02-11 18:10:30 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:10:30 | INFO | [5d69dd98e71b4a4b8f5a7898924d1c41] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:10:30 | INFO | [5d69dd98e71b4a4b8f5a7898924d1c41] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:10:30 | INFO | [5d69dd98e71b4a4b8f5a7898924d1c41] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:10:30 | INFO | [5d69dd98e71b4a4b8f5a7898924d1c41] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "query.is_active",
+    "method": "GET",
+    "path": "/api/user/",
+    "field_name": "is_active",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "query.is_staff",
+    "method": "GET",
+    "path": "/api/user/",
+    "field_name": "is_staff",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "query.is_superuser",
+    "method": "GET",
+    "path": "/api/user/",
+    "f
+2026-02-11 18:10:30 | INFO | [5d69dd98e71b4a4b8f5a7898924d1c41] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:10:30 | INFO | [5d69dd98e71b4a4b8f5a7898924d1c41] | openai._base_client | Retrying request to /chat/completions in 0.384930 seconds
+2026-02-11 18:10:57 | INFO | [5d69dd98e71b4a4b8f5a7898924d1c41] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:10:57 | INFO | [5d69dd98e71b4a4b8f5a7898924d1c41] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1635
+2026-02-11 18:10:57 | INFO | [5d69dd98e71b4a4b8f5a7898924d1c41] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1635
+2026-02-11 18:10:57 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:10:57 | INFO | [a1a3bcecfb1c4ce9be30a08e54e55d9c] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:10:57 | INFO | [a1a3bcecfb1c4ce9be30a08e54e55d9c] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:10:57 | INFO | [a1a3bcecfb1c4ce9be30a08e54e55d9c] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:10:57 | INFO | [a1a3bcecfb1c4ce9be30a08e54e55d9c] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "query.completed_after",
+    "method": "GET",
+    "path": "/api/order/ro/",
+    "field_name": "completed_after",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "query.completed_before",
+    "method": "GET",
+    "path": "/api/order/ro/",
+    "field_name": "completed_before",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "query.created_after",
+    "method": "G
+2026-02-11 18:10:57 | INFO | [a1a3bcecfb1c4ce9be30a08e54e55d9c] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:10:57 | INFO | [a1a3bcecfb1c4ce9be30a08e54e55d9c] | openai._base_client | Retrying request to /chat/completions in 0.399931 seconds
+2026-02-11 18:11:02 | INFO | [a1a3bcecfb1c4ce9be30a08e54e55d9c] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:11:02 | INFO | [a1a3bcecfb1c4ce9be30a08e54e55d9c] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1865
+2026-02-11 18:11:02 | INFO | [a1a3bcecfb1c4ce9be30a08e54e55d9c] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1865
+2026-02-11 18:11:02 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:11:02 | INFO | [065448a1c96441e4ace960dd51202872] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:11:02 | INFO | [065448a1c96441e4ace960dd51202872] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:11:02 | INFO | [065448a1c96441e4ace960dd51202872] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:11:02 | INFO | [065448a1c96441e4ace960dd51202872] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "query.customer",
+    "method": "GET",
+    "path": "/api/order/ro/",
+    "field_name": "customer",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "query.customer_detail",
+    "method": "GET",
+    "path": "/api/order/ro/",
+    "field_name": "customer_detail",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "query.has_project_code",
+    "method": "GET",
+    "pat
+2026-02-11 18:11:02 | INFO | [065448a1c96441e4ace960dd51202872] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:11:02 | INFO | [065448a1c96441e4ace960dd51202872] | openai._base_client | Retrying request to /chat/completions in 0.499798 seconds
+2026-02-11 18:11:17 | INFO | [065448a1c96441e4ace960dd51202872] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:11:17 | INFO | [065448a1c96441e4ace960dd51202872] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1278
+2026-02-11 18:11:17 | INFO | [065448a1c96441e4ace960dd51202872] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1278
+2026-02-11 18:11:17 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:11:17 | INFO | [3ca3e39d7ecc4f4e9452f020c9ed3197] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:11:17 | INFO | [3ca3e39d7ecc4f4e9452f020c9ed3197] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:11:17 | INFO | [3ca3e39d7ecc4f4e9452f020c9ed3197] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:11:17 | INFO | [3ca3e39d7ecc4f4e9452f020c9ed3197] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "query.include_variants",
+    "method": "GET",
+    "path": "/api/order/ro/",
+    "field_name": "include_variants",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "query.max_date",
+    "method": "GET",
+    "path": "/api/order/ro/",
+    "field_name": "max_date",
+    "rule_candidates": [
+      {
+        "db_table": "stock_stockitemtracking",
+        "db_column": "date",
+ 
+2026-02-11 18:11:17 | INFO | [3ca3e39d7ecc4f4e9452f020c9ed3197] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:11:17 | INFO | [3ca3e39d7ecc4f4e9452f020c9ed3197] | openai._base_client | Retrying request to /chat/completions in 0.444792 seconds
+2026-02-11 18:11:23 | INFO | [3ca3e39d7ecc4f4e9452f020c9ed3197] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:11:23 | INFO | [3ca3e39d7ecc4f4e9452f020c9ed3197] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1462
+2026-02-11 18:11:23 | INFO | [3ca3e39d7ecc4f4e9452f020c9ed3197] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1462
+2026-02-11 18:11:23 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:11:23 | INFO | [e6d3a7bff8c24764b8c7e210426e1ea2] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:11:23 | INFO | [e6d3a7bff8c24764b8c7e210426e1ea2] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:11:23 | INFO | [e6d3a7bff8c24764b8c7e210426e1ea2] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:11:23 | INFO | [e6d3a7bff8c24764b8c7e210426e1ea2] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "query.project_code",
+    "method": "GET",
+    "path": "/api/order/ro/",
+    "field_name": "project_code",
+    "rule_candidates": [
+      {
+        "db_table": "common_projectcode",
+        "db_column": "code",
+        "score": 0.30000000000000004,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      },
+      {
+        "db_table": "oauth2_provider_grant",
+   
+2026-02-11 18:11:23 | INFO | [e6d3a7bff8c24764b8c7e210426e1ea2] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:11:23 | INFO | [e6d3a7bff8c24764b8c7e210426e1ea2] | openai._base_client | Retrying request to /chat/completions in 0.390647 seconds
+2026-02-11 18:11:29 | INFO | [e6d3a7bff8c24764b8c7e210426e1ea2] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:11:29 | INFO | [e6d3a7bff8c24764b8c7e210426e1ea2] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1593
+2026-02-11 18:11:29 | INFO | [e6d3a7bff8c24764b8c7e210426e1ea2] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1593
+2026-02-11 18:11:29 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:11:29 | INFO | [2555f8743b06426c9d3ba49274d5162c] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:11:29 | INFO | [2555f8743b06426c9d3ba49274d5162c] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:11:29 | INFO | [2555f8743b06426c9d3ba49274d5162c] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:11:29 | INFO | [2555f8743b06426c9d3ba49274d5162c] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "query.target_date_after",
+    "method": "GET",
+    "path": "/api/order/ro/",
+    "field_name": "target_date_after",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "query.target_date_before",
+    "method": "GET",
+    "path": "/api/order/ro/",
+    "field_name": "target_date_before",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.address",
+    "method": "
+2026-02-11 18:11:29 | INFO | [2555f8743b06426c9d3ba49274d5162c] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:11:29 | INFO | [2555f8743b06426c9d3ba49274d5162c] | openai._base_client | Retrying request to /chat/completions in 0.479793 seconds
+2026-02-11 18:11:34 | INFO | [2555f8743b06426c9d3ba49274d5162c] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:11:34 | INFO | [2555f8743b06426c9d3ba49274d5162c] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1283
+2026-02-11 18:11:34 | INFO | [2555f8743b06426c9d3ba49274d5162c] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1283
+2026-02-11 18:11:34 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:11:34 | INFO | [b9e9a18136614a019ffe03c5277f45a1] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:11:34 | INFO | [b9e9a18136614a019ffe03c5277f45a1] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:11:34 | INFO | [b9e9a18136614a019ffe03c5277f45a1] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:11:34 | INFO | [b9e9a18136614a019ffe03c5277f45a1] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.issue_date",
+    "method": "POST",
+    "path": "/api/order/so/",
+    "field_name": "issue_date",
+    "rule_candidates": [
+      {
+        "db_table": "stock_stockitemtracking",
+        "db_column": "date",
+        "score": 0.3064285714285714,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      }
+    ]
+  },
+  {
+    "api_field_path": "body.line_items",
+ 
+2026-02-11 18:11:34 | INFO | [b9e9a18136614a019ffe03c5277f45a1] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:11:34 | INFO | [b9e9a18136614a019ffe03c5277f45a1] | openai._base_client | Retrying request to /chat/completions in 0.388567 seconds
+2026-02-11 18:11:48 | INFO | [b9e9a18136614a019ffe03c5277f45a1] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:11:48 | INFO | [b9e9a18136614a019ffe03c5277f45a1] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=2286
+2026-02-11 18:11:48 | INFO | [b9e9a18136614a019ffe03c5277f45a1] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=2286
+2026-02-11 18:11:48 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:11:48 | INFO | [91df59086c074cfca8ecb4a7d96fc3c7] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:11:48 | INFO | [91df59086c074cfca8ecb4a7d96fc3c7] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:11:48 | INFO | [91df59086c074cfca8ecb4a7d96fc3c7] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:11:48 | INFO | [91df59086c074cfca8ecb4a7d96fc3c7] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.total_price",
+    "method": "POST",
+    "path": "/api/order/so/",
+    "field_name": "total_price",
+    "rule_candidates": [
+      {
+        "db_table": "common_dataoutput",
+        "db_column": "total",
+        "score": 0.31125,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      }
+    ]
+  },
+  {
+    "api_field_path": "body.creation_date",
+    "method"
+2026-02-11 18:11:48 | INFO | [91df59086c074cfca8ecb4a7d96fc3c7] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:11:48 | INFO | [91df59086c074cfca8ecb4a7d96fc3c7] | openai._base_client | Retrying request to /chat/completions in 0.463872 seconds
+2026-02-11 18:11:54 | INFO | [91df59086c074cfca8ecb4a7d96fc3c7] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:11:54 | INFO | [91df59086c074cfca8ecb4a7d96fc3c7] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1428
+2026-02-11 18:11:54 | INFO | [91df59086c074cfca8ecb4a7d96fc3c7] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1428
+2026-02-11 18:11:54 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:11:54 | INFO | [dbbba93aa5c64e4e8a20a7ab6c7a902d] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:11:54 | INFO | [dbbba93aa5c64e4e8a20a7ab6c7a902d] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:11:54 | INFO | [dbbba93aa5c64e4e8a20a7ab6c7a902d] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:11:54 | INFO | [dbbba93aa5c64e4e8a20a7ab6c7a902d] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.order_currency",
+    "method": "POST",
+    "path": "/api/order/so/",
+    "field_name": "order_currency",
+    "rule_candidates": [
+      {
+        "db_table": "exchange_rate",
+        "db_column": "currency",
+        "score": 0.32045454545454544,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      },
+      {
+        "db_table": "part_partpricing",
+     
+2026-02-11 18:11:54 | INFO | [dbbba93aa5c64e4e8a20a7ab6c7a902d] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:11:54 | INFO | [dbbba93aa5c64e4e8a20a7ab6c7a902d] | openai._base_client | Retrying request to /chat/completions in 0.398763 seconds
+2026-02-11 18:12:00 | INFO | [dbbba93aa5c64e4e8a20a7ab6c7a902d] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:12:00 | INFO | [dbbba93aa5c64e4e8a20a7ab6c7a902d] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1683
+2026-02-11 18:12:00 | INFO | [dbbba93aa5c64e4e8a20a7ab6c7a902d] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1683
+2026-02-11 18:12:00 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:12:00 | INFO | [640bfb5e0c57409286626cf6f89b8903] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:12:00 | INFO | [640bfb5e0c57409286626cf6f89b8903] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:12:00 | INFO | [640bfb5e0c57409286626cf6f89b8903] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:12:00 | INFO | [640bfb5e0c57409286626cf6f89b8903] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.project_code_label",
+    "method": "POST",
+    "path": "/api/order/so/",
+    "field_name": "project_code_label",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.project_code_detail",
+    "method": "POST",
+    "path": "/api/order/so/",
+    "field_name": "project_code_detail",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.completed_shipments_c
+2026-02-11 18:12:00 | INFO | [640bfb5e0c57409286626cf6f89b8903] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:12:00 | INFO | [640bfb5e0c57409286626cf6f89b8903] | openai._base_client | Retrying request to /chat/completions in 0.477717 seconds
+2026-02-11 18:12:06 | INFO | [640bfb5e0c57409286626cf6f89b8903] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:12:06 | INFO | [640bfb5e0c57409286626cf6f89b8903] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1393
+2026-02-11 18:12:06 | INFO | [640bfb5e0c57409286626cf6f89b8903] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1393
+2026-02-11 18:12:06 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:12:06 | INFO | [c566242274024de79e460a1d226eb11e] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:12:06 | INFO | [c566242274024de79e460a1d226eb11e] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:12:06 | INFO | [c566242274024de79e460a1d226eb11e] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:12:06 | INFO | [c566242274024de79e460a1d226eb11e] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "query.category_detail",
+    "method": "GET",
+    "path": "/api/part/{id}/",
+    "field_name": "category_detail",
+    "rule_candidates": [
+      {
+        "db_table": "common_notificationmessage",
+        "db_column": "category",
+        "score": 0.31760869565217387,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      }
+    ]
+  },
+  {
+    "api_field_path": "
+2026-02-11 18:12:06 | INFO | [c566242274024de79e460a1d226eb11e] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:12:06 | INFO | [c566242274024de79e460a1d226eb11e] | openai._base_client | Retrying request to /chat/completions in 0.389136 seconds
+2026-02-11 18:12:13 | INFO | [c566242274024de79e460a1d226eb11e] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:12:13 | INFO | [c566242274024de79e460a1d226eb11e] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1516
+2026-02-11 18:12:13 | INFO | [c566242274024de79e460a1d226eb11e] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1516
+2026-02-11 18:12:13 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:12:13 | INFO | [9a0d680b95124c938763f857e27fa9bd] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:12:13 | INFO | [9a0d680b95124c938763f857e27fa9bd] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:12:13 | INFO | [9a0d680b95124c938763f857e27fa9bd] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:12:13 | INFO | [9a0d680b95124c938763f857e27fa9bd] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "query.manufacturer_active",
+    "method": "GET",
+    "path": "/api/company/part/manufacturer/",
+    "field_name": "manufacturer_active",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "query.part_active",
+    "method": "GET",
+    "path": "/api/company/part/manufacturer/",
+    "field_name": "part_active",
+    "rule_candidates": [
+      {
+        "db_table": "part_bomit
+2026-02-11 18:12:13 | INFO | [9a0d680b95124c938763f857e27fa9bd] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:12:13 | INFO | [9a0d680b95124c938763f857e27fa9bd] | openai._base_client | Retrying request to /chat/completions in 0.441656 seconds
+2026-02-11 18:12:22 | INFO | [9a0d680b95124c938763f857e27fa9bd] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:12:22 | INFO | [9a0d680b95124c938763f857e27fa9bd] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1953
+2026-02-11 18:12:22 | INFO | [9a0d680b95124c938763f857e27fa9bd] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1953
+2026-02-11 18:12:22 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:12:22 | INFO | [142c85f90cd1458b967a9c486218a1a5] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:12:22 | INFO | [142c85f90cd1458b967a9c486218a1a5] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:12:22 | INFO | [142c85f90cd1458b967a9c486218a1a5] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:12:22 | INFO | [142c85f90cd1458b967a9c486218a1a5] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "query.start_version",
+    "method": "GET",
+    "path": "/api/version-text",
+    "field_name": "start_version",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "query.versions",
+    "method": "GET",
+    "path": "/api/version-text",
+    "field_name": "versions",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "path.global_id",
+    "method": "DELETE",
+    "path":
+2026-02-11 18:12:22 | INFO | [142c85f90cd1458b967a9c486218a1a5] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:12:22 | INFO | [142c85f90cd1458b967a9c486218a1a5] | openai._base_client | Retrying request to /chat/completions in 0.484009 seconds
+2026-02-11 18:12:27 | INFO | [142c85f90cd1458b967a9c486218a1a5] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:12:27 | INFO | [142c85f90cd1458b967a9c486218a1a5] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1350
+2026-02-11 18:12:27 | INFO | [142c85f90cd1458b967a9c486218a1a5] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1350
+2026-02-11 18:12:27 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:12:27 | INFO | [f9eed0a8ffd446729e47641737757911] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:12:27 | INFO | [f9eed0a8ffd446729e47641737757911] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:12:27 | INFO | [f9eed0a8ffd446729e47641737757911] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:12:27 | INFO | [f9eed0a8ffd446729e47641737757911] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.parent",
+    "method": "POST",
+    "path": "/api/part/category/",
+    "field_name": "parent",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.starred",
+    "method": "POST",
+    "path": "/api/part/category/",
+    "field_name": "starred",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.part_count",
+    "method": "POST",
+    "path": "/api/part/c
+2026-02-11 18:12:27 | INFO | [f9eed0a8ffd446729e47641737757911] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:12:27 | INFO | [f9eed0a8ffd446729e47641737757911] | openai._base_client | Retrying request to /chat/completions in 0.392772 seconds
+2026-02-11 18:12:33 | INFO | [f9eed0a8ffd446729e47641737757911] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:12:33 | INFO | [f9eed0a8ffd446729e47641737757911] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1528
+2026-02-11 18:12:33 | INFO | [f9eed0a8ffd446729e47641737757911] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1528
+2026-02-11 18:12:33 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:12:33 | INFO | [8b822c9dc4e1446dbe8158326fb7c55e] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:12:33 | INFO | [8b822c9dc4e1446dbe8158326fb7c55e] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:12:33 | INFO | [8b822c9dc4e1446dbe8158326fb7c55e] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:12:33 | INFO | [8b822c9dc4e1446dbe8158326fb7c55e] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.subcategories",
+    "method": "POST",
+    "path": "/api/part/category/",
+    "field_name": "subcategories",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.default_keywords",
+    "method": "POST",
+    "path": "/api/part/category/",
+    "field_name": "default_keywords",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.default_location",
+    "met
+2026-02-11 18:12:33 | INFO | [8b822c9dc4e1446dbe8158326fb7c55e] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:12:33 | INFO | [8b822c9dc4e1446dbe8158326fb7c55e] | openai._base_client | Retrying request to /chat/completions in 0.420331 seconds
+2026-02-11 18:12:39 | INFO | [8b822c9dc4e1446dbe8158326fb7c55e] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:12:39 | INFO | [8b822c9dc4e1446dbe8158326fb7c55e] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1224
+2026-02-11 18:12:39 | INFO | [8b822c9dc4e1446dbe8158326fb7c55e] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1224
+2026-02-11 18:12:39 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:12:39 | INFO | [294a96fac72b4ad9862335d33ff45672] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:12:39 | INFO | [294a96fac72b4ad9862335d33ff45672] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:12:39 | INFO | [294a96fac72b4ad9862335d33ff45672] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:12:39 | INFO | [294a96fac72b4ad9862335d33ff45672] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.line2",
+    "method": "POST",
+    "path": "/api/company/address/",
+    "field_name": "line2",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.title",
+    "method": "POST",
+    "path": "/api/company/address/",
+    "field_name": "title",
+    "rule_candidates": [
+      {
+        "db_table": "build_build",
+        "db_column": "title",
+        "score": 0.4499999
+2026-02-11 18:12:39 | INFO | [294a96fac72b4ad9862335d33ff45672] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:12:39 | INFO | [294a96fac72b4ad9862335d33ff45672] | openai._base_client | Retrying request to /chat/completions in 0.477784 seconds
+2026-02-11 18:12:44 | INFO | [294a96fac72b4ad9862335d33ff45672] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:12:44 | INFO | [294a96fac72b4ad9862335d33ff45672] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1554
+2026-02-11 18:12:44 | INFO | [294a96fac72b4ad9862335d33ff45672] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1554
+2026-02-11 18:12:44 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:12:44 | INFO | [88e0701a004042f397b78e8d1780b430] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:12:44 | INFO | [88e0701a004042f397b78e8d1780b430] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:12:44 | INFO | [88e0701a004042f397b78e8d1780b430] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:12:44 | INFO | [88e0701a004042f397b78e8d1780b430] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.province",
+    "method": "POST",
+    "path": "/api/company/address/",
+    "field_name": "province",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.postal_city",
+    "method": "POST",
+    "path": "/api/company/address/",
+    "field_name": "postal_city",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.postal_code",
+    "method": "POST",
+    "pa
+2026-02-11 18:12:44 | INFO | [88e0701a004042f397b78e8d1780b430] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:12:44 | INFO | [88e0701a004042f397b78e8d1780b430] | openai._base_client | Retrying request to /chat/completions in 0.418788 seconds
+2026-02-11 18:12:52 | INFO | [88e0701a004042f397b78e8d1780b430] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:12:52 | INFO | [88e0701a004042f397b78e8d1780b430] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1670
+2026-02-11 18:12:52 | INFO | [88e0701a004042f397b78e8d1780b430] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1670
+2026-02-11 18:12:52 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:12:52 | INFO | [bdedba68d0324c81bd357b531d493d48] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:12:52 | INFO | [bdedba68d0324c81bd357b531d493d48] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:12:52 | INFO | [bdedba68d0324c81bd357b531d493d48] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:12:52 | INFO | [bdedba68d0324c81bd357b531d493d48] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.SKU",
+    "method": "PATCH",
+    "path": "/api/stock/{id}/",
+    "field_name": "SKU",
+    "rule_candidates": [
+      {
+        "db_table": "part_supplierpart",
+        "db_column": "SKU",
+        "score": 0.44999999999999996,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      }
+    ]
+  },
+  {
+    "api_field_path": "body.batch",
+    "method": "PATCH",
+
+2026-02-11 18:12:52 | INFO | [bdedba68d0324c81bd357b531d493d48] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:12:52 | INFO | [bdedba68d0324c81bd357b531d493d48] | openai._base_client | Retrying request to /chat/completions in 0.467903 seconds
+2026-02-11 18:13:01 | INFO | [bdedba68d0324c81bd357b531d493d48] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:13:01 | INFO | [bdedba68d0324c81bd357b531d493d48] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=2018
+2026-02-11 18:13:01 | INFO | [bdedba68d0324c81bd357b531d493d48] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=2018
+2026-02-11 18:13:01 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:13:01 | INFO | [c9d2cfe8e09043bc84ce06462911a83e] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:13:01 | INFO | [c9d2cfe8e09043bc84ce06462911a83e] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:13:01 | INFO | [c9d2cfe8e09043bc84ce06462911a83e] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:13:01 | INFO | [c9d2cfe8e09043bc84ce06462911a83e] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.serial",
+    "method": "PATCH",
+    "path": "/api/stock/{id}/",
+    "field_name": "serial",
+    "rule_candidates": [
+      {
+        "db_table": "stock_stockitem",
+        "db_column": "serial",
+        "score": 0.44999999999999996,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      }
+    ]
+  },
+  {
+    "api_field_path": "body.expired",
+    "method": 
+2026-02-11 18:13:01 | INFO | [c9d2cfe8e09043bc84ce06462911a83e] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:13:01 | INFO | [c9d2cfe8e09043bc84ce06462911a83e] | openai._base_client | Retrying request to /chat/completions in 0.484860 seconds
+2026-02-11 18:13:06 | INFO | [c9d2cfe8e09043bc84ce06462911a83e] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:13:06 | INFO | [c9d2cfe8e09043bc84ce06462911a83e] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1301
+2026-02-11 18:13:06 | INFO | [c9d2cfe8e09043bc84ce06462911a83e] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1301
+2026-02-11 18:13:06 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:13:06 | INFO | [570942fb3f494aa494b3a3c269b2fd3f] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:13:06 | INFO | [570942fb3f494aa494b3a3c269b2fd3f] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:13:06 | INFO | [570942fb3f494aa494b3a3c269b2fd3f] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:13:06 | INFO | [570942fb3f494aa494b3a3c269b2fd3f] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.packaging",
+    "method": "PATCH",
+    "path": "/api/stock/{id}/",
+    "field_name": "packaging",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.belongs_to",
+    "method": "PATCH",
+    "path": "/api/stock/{id}/",
+    "field_name": "belongs_to",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.child_items",
+    "method": "PATCH",
+    "path": "/
+2026-02-11 18:13:06 | INFO | [570942fb3f494aa494b3a3c269b2fd3f] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:13:06 | INFO | [570942fb3f494aa494b3a3c269b2fd3f] | openai._base_client | Retrying request to /chat/completions in 0.485701 seconds
+2026-02-11 18:13:11 | INFO | [570942fb3f494aa494b3a3c269b2fd3f] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:13:11 | INFO | [570942fb3f494aa494b3a3c269b2fd3f] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1353
+2026-02-11 18:13:11 | INFO | [570942fb3f494aa494b3a3c269b2fd3f] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1353
+2026-02-11 18:13:11 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:13:12 | INFO | [407a746de1e74a6b842b97cc9f648e4d] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:13:12 | INFO | [407a746de1e74a6b842b97cc9f648e4d] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:13:12 | INFO | [407a746de1e74a6b842b97cc9f648e4d] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:13:12 | INFO | [407a746de1e74a6b842b97cc9f648e4d] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.is_building",
+    "method": "PATCH",
+    "path": "/api/stock/{id}/",
+    "field_name": "is_building",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.sales_order",
+    "method": "PATCH",
+    "path": "/api/stock/{id}/",
+    "field_name": "sales_order",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.supplier_part",
+    "method": "PATCH",
+    "p
+2026-02-11 18:13:12 | INFO | [407a746de1e74a6b842b97cc9f648e4d] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:13:12 | INFO | [407a746de1e74a6b842b97cc9f648e4d] | openai._base_client | Retrying request to /chat/completions in 0.455651 seconds
+2026-02-11 18:13:18 | INFO | [407a746de1e74a6b842b97cc9f648e4d] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:13:18 | INFO | [407a746de1e74a6b842b97cc9f648e4d] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1554
+2026-02-11 18:13:18 | INFO | [407a746de1e74a6b842b97cc9f648e4d] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1554
+2026-02-11 18:13:18 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:13:18 | INFO | [dbf31c57a8e64c959cfecaca3689169a] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:13:18 | INFO | [dbf31c57a8e64c959cfecaca3689169a] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:13:18 | INFO | [dbf31c57a8e64c959cfecaca3689169a] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:13:18 | INFO | [dbf31c57a8e64c959cfecaca3689169a] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.purchase_price",
+    "method": "PATCH",
+    "path": "/api/stock/{id}/",
+    "field_name": "purchase_price",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.serial_numbers",
+    "method": "PATCH",
+    "path": "/api/stock/{id}/",
+    "field_name": "serial_numbers",
+    "rule_candidates": [
+      {
+        "db_table": "stock_stockitem",
+        "db_column": "se
+2026-02-11 18:13:18 | INFO | [dbf31c57a8e64c959cfecaca3689169a] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:13:18 | INFO | [dbf31c57a8e64c959cfecaca3689169a] | openai._base_client | Retrying request to /chat/completions in 0.419711 seconds
+2026-02-11 18:13:28 | INFO | [dbf31c57a8e64c959cfecaca3689169a] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:13:28 | INFO | [dbf31c57a8e64c959cfecaca3689169a] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1760
+2026-02-11 18:13:28 | INFO | [dbf31c57a8e64c959cfecaca3689169a] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1760
+2026-02-11 18:13:28 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:13:28 | INFO | [7fe56768247f4a11877803d2f3dc63b4] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:13:28 | INFO | [7fe56768247f4a11877803d2f3dc63b4] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:13:28 | INFO | [7fe56768247f4a11877803d2f3dc63b4] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:13:28 | INFO | [7fe56768247f4a11877803d2f3dc63b4] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.delete_on_deplete",
+    "method": "PATCH",
+    "path": "/api/stock/{id}/",
+    "field_name": "delete_on_deplete",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.sales_order_reference",
+    "method": "PATCH",
+    "path": "/api/stock/{id}/",
+    "field_name": "sales_order_reference",
+    "rule_candidates": [
+      {
+        "db_table": "order_purchaseorder",
+
+2026-02-11 18:13:28 | INFO | [7fe56768247f4a11877803d2f3dc63b4] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:13:28 | INFO | [7fe56768247f4a11877803d2f3dc63b4] | openai._base_client | Retrying request to /chat/completions in 0.486288 seconds
+2026-02-11 18:13:51 | INFO | [7fe56768247f4a11877803d2f3dc63b4] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:13:51 | INFO | [7fe56768247f4a11877803d2f3dc63b4] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=2028
+2026-02-11 18:13:51 | INFO | [7fe56768247f4a11877803d2f3dc63b4] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=2028
+2026-02-11 18:13:51 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:13:51 | INFO | [b23efb851aaa42498bbdd8f51237c6a4] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:13:51 | INFO | [b23efb851aaa42498bbdd8f51237c6a4] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:13:51 | INFO | [b23efb851aaa42498bbdd8f51237c6a4] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:13:51 | INFO | [b23efb851aaa42498bbdd8f51237c6a4] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.on_order",
+    "method": "POST",
+    "path": "/api/build/line/",
+    "field_name": "on_order",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.optional",
+    "method": "POST",
+    "path": "/api/build/line/",
+    "field_name": "optional",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.testable",
+    "method": "POST",
+    "path": "/api/build/li
+2026-02-11 18:13:51 | INFO | [b23efb851aaa42498bbdd8f51237c6a4] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:13:51 | INFO | [b23efb851aaa42498bbdd8f51237c6a4] | openai._base_client | Retrying request to /chat/completions in 0.482484 seconds
+2026-02-11 18:14:07 | INFO | [b23efb851aaa42498bbdd8f51237c6a4] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:14:07 | INFO | [b23efb851aaa42498bbdd8f51237c6a4] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1229
+2026-02-11 18:14:07 | INFO | [b23efb851aaa42498bbdd8f51237c6a4] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1229
+2026-02-11 18:14:07 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:14:07 | INFO | [46555c45cd22416ab3fc48a429f7dd3c] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:14:07 | INFO | [46555c45cd22416ab3fc48a429f7dd3c] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:14:07 | INFO | [46555c45cd22416ab3fc48a429f7dd3c] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:14:07 | INFO | [46555c45cd22416ab3fc48a429f7dd3c] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.consumable",
+    "method": "POST",
+    "path": "/api/build/line/",
+    "field_name": "consumable",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.allocations",
+    "method": "POST",
+    "path": "/api/build/line/",
+    "field_name": "allocations",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.in_production",
+    "method": "POST",
+    "path":
+2026-02-11 18:14:07 | INFO | [46555c45cd22416ab3fc48a429f7dd3c] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:14:07 | INFO | [46555c45cd22416ab3fc48a429f7dd3c] | openai._base_client | Retrying request to /chat/completions in 0.440698 seconds
+2026-02-11 18:14:22 | INFO | [46555c45cd22416ab3fc48a429f7dd3c] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:14:22 | INFO | [46555c45cd22416ab3fc48a429f7dd3c] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1233
+2026-02-11 18:14:22 | INFO | [46555c45cd22416ab3fc48a429f7dd3c] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1233
+2026-02-11 18:14:22 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:14:22 | INFO | [ea1cdf4c631b4703a6bd037d11d2505f] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:14:22 | INFO | [ea1cdf4c631b4703a6bd037d11d2505f] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:14:22 | INFO | [ea1cdf4c631b4703a6bd037d11d2505f] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:14:22 | INFO | [ea1cdf4c631b4703a6bd037d11d2505f] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.assembly_detail",
+    "method": "POST",
+    "path": "/api/build/line/",
+    "field_name": "assembly_detail",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.available_stock",
+    "method": "POST",
+    "path": "/api/build/line/",
+    "field_name": "available_stock",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.bom_item_detail",
+    "method":
+2026-02-11 18:14:22 | INFO | [ea1cdf4c631b4703a6bd037d11d2505f] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:14:22 | INFO | [ea1cdf4c631b4703a6bd037d11d2505f] | openai._base_client | Retrying request to /chat/completions in 0.468082 seconds
+2026-02-11 18:14:40 | INFO | [ea1cdf4c631b4703a6bd037d11d2505f] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:14:40 | INFO | [ea1cdf4c631b4703a6bd037d11d2505f] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1560
+2026-02-11 18:14:40 | INFO | [ea1cdf4c631b4703a6bd037d11d2505f] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1560
+2026-02-11 18:14:40 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:14:40 | INFO | [16ada86527d0419a90cedaa578e170f8] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:14:40 | INFO | [16ada86527d0419a90cedaa578e170f8] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:14:40 | INFO | [16ada86527d0419a90cedaa578e170f8] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:14:40 | INFO | [16ada86527d0419a90cedaa578e170f8] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.available_variant_stock",
+    "method": "POST",
+    "path": "/api/build/line/",
+    "field_name": "available_variant_stock",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.available_substitute_stock",
+    "method": "POST",
+    "path": "/api/build/line/",
+    "field_name": "available_substitute_stock",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path":
+2026-02-11 18:14:40 | INFO | [16ada86527d0419a90cedaa578e170f8] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:14:40 | INFO | [16ada86527d0419a90cedaa578e170f8] | openai._base_client | Retrying request to /chat/completions in 0.393746 seconds
+2026-02-11 18:14:57 | INFO | [16ada86527d0419a90cedaa578e170f8] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:14:57 | INFO | [16ada86527d0419a90cedaa578e170f8] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1307
+2026-02-11 18:14:57 | INFO | [16ada86527d0419a90cedaa578e170f8] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1307
+2026-02-11 18:14:57 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:14:57 | INFO | [8bad16f5eb004f32bd52aad4dca8b886] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:14:57 | INFO | [8bad16f5eb004f32bd52aad4dca8b886] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:14:57 | INFO | [8bad16f5eb004f32bd52aad4dca8b886] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:14:57 | INFO | [8bad16f5eb004f32bd52aad4dca8b886] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "query.supplier_part_detail",
+    "method": "GET",
+    "path": "/api/stock/{id}/",
+    "field_name": "supplier_part_detail",
+    "rule_candidates": [
+      {
+        "db_table": "part_bomitemsubstitute",
+        "db_column": "part_id",
+        "score": 0.30500000000000005,
+        "reasons": [
+          "类型匹配"
+        ]
+      },
+      {
+        "db_table": "part_partstar",
+     
+2026-02-11 18:14:57 | INFO | [8bad16f5eb004f32bd52aad4dca8b886] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:14:57 | INFO | [8bad16f5eb004f32bd52aad4dca8b886] | openai._base_client | Retrying request to /chat/completions in 0.433384 seconds
+2026-02-11 18:15:16 | INFO | [8bad16f5eb004f32bd52aad4dca8b886] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:15:16 | INFO | [8bad16f5eb004f32bd52aad4dca8b886] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1523
+2026-02-11 18:15:16 | INFO | [8bad16f5eb004f32bd52aad4dca8b886] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1523
+2026-02-11 18:15:16 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:15:16 | INFO | [8cda84ce73f745c39535bd5a80fb34dc] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:15:16 | INFO | [8cda84ce73f745c39535bd5a80fb34dc] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:15:16 | INFO | [8cda84ce73f745c39535bd5a80fb34dc] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:15:16 | INFO | [8cda84ce73f745c39535bd5a80fb34dc] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.cost_min",
+    "method": "POST",
+    "path": "/api/part/stocktake/",
+    "field_name": "cost_min",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.item_count",
+    "method": "POST",
+    "path": "/api/part/stocktake/",
+    "field_name": "item_count",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.cost_max_currency",
+    "method": "POST",
+    "
+2026-02-11 18:15:16 | INFO | [8cda84ce73f745c39535bd5a80fb34dc] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:15:16 | INFO | [8cda84ce73f745c39535bd5a80fb34dc] | openai._base_client | Retrying request to /chat/completions in 0.469359 seconds
+2026-02-11 18:15:40 | INFO | [8cda84ce73f745c39535bd5a80fb34dc] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:15:40 | INFO | [8cda84ce73f745c39535bd5a80fb34dc] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1525
+2026-02-11 18:15:40 | INFO | [8cda84ce73f745c39535bd5a80fb34dc] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1525
+2026-02-11 18:15:40 | INFO | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI返回包含 5 个字段映射结果
+2026-02-11 18:15:40 | INFO | [ac83a77152d248fb9497caf59a964e93] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:15:40 | INFO | [ac83a77152d248fb9497caf59a964e93] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:15:40 | INFO | [ac83a77152d248fb9497caf59a964e93] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:15:40 | INFO | [ac83a77152d248fb9497caf59a964e93] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "body.line_item",
+    "method": "POST",
+    "path": "/api/order/so/{id}/allocate-serials/",
+    "field_name": "line_item",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "query.order_detail",
+    "method": "GET",
+    "path": "/api/order/so-line/{id}/",
+    "field_name": "order_detail",
+    "rule_candidates": []
+  },
+  {
+    "api_field_path": "body.list",
+    "method": 
+2026-02-11 18:15:40 | INFO | [ac83a77152d248fb9497caf59a964e93] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter
+2026-02-11 18:15:40 | INFO | [ac83a77152d248fb9497caf59a964e93] | openai._base_client | Retrying request to /chat/completions in 0.438192 seconds
+2026-02-11 18:16:10 | INFO | [ac83a77152d248fb9497caf59a964e93] | httpx | HTTP Request: POST https://api.siliconflow.cn/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-11 18:16:10 | INFO | [ac83a77152d248fb9497caf59a964e93] | app.ai.adapters.openai | OpenAI 调用成功: model=Qwen/Qwen2.5-Coder-7B-Instruct, tokens=1752
+2026-02-11 18:16:10 | INFO | [ac83a77152d248fb9497caf59a964e93] | app.ai.service | AI 调用成功: task_type=field_mapping_recommendation_batch, project_id=1, tokens_used=1752
+2026-02-11 18:16:10 | WARNING | [39a5231e90454d5b94448023965167ab] | app.field_mapping.processor | [39a5231e90454d5b94448023965167ab] AI调用超时（尝试1/3）
+2026-02-11 18:16:10 | INFO | [3c1074ded6ab4770911980e834d65d3a] | app.api.v1.field_mappings_async | [3c1074ded6ab4770911980e834d65d3a] 获取异步任务进度: task_id=450
+2026-02-11 18:16:10 | INFO | [ae9a7f5be4c84571bff78294925213ae] | app.api.v1.field_mappings_async | [ae9a7f5be4c84571bff78294925213ae] 获取异步任务进度: task_id=450
+2026-02-11 18:16:10 | INFO | [6c2a894dda814924affb3cfdf6da205e] | app.api.v1.field_mappings_async | [6c2a894dda814924affb3cfdf6da205e] 获取异步任务进度: task_id=450
+2026-02-11 18:16:10 | INFO | [5ca0a64a90fa4e7fade2a797f49b44f1] | app.api.v1.api_definitions | [5ca0a64a90fa4e7fade2a797f49b44f1] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 18:16:10 | INFO | [7e84a5c0d5144b938fbd4d07739d18fc] | app.api.v1.db_schemas | [7e84a5c0d5144b938fbd4d07739d18fc] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:16:10 | INFO | [5a9755c73efd4b6b8f5c14a771eaa219] | app.api.v1.field_mappings_async | [5a9755c73efd4b6b8f5c14a771eaa219] 获取异步任务进度: task_id=450
+2026-02-11 18:16:10 | INFO | [62375360ad554411a5166d67a50a51eb] | app.api.v1.db_schemas | [62375360ad554411a5166d67a50a51eb] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:16:10 | INFO | [675df49eb7974e788cb5a4b6c5700004] | app.api.v1.field_mappings_async | [675df49eb7974e788cb5a4b6c5700004] 获取异步任务进度: task_id=450
+2026-02-11 18:16:11 | INFO | [61f8cceae83d455d81b47f2c574fa2da] | app.api.v1.field_mappings_async | [61f8cceae83d455d81b47f2c574fa2da] 获取异步任务进度: task_id=450
+2026-02-11 18:16:11 | INFO | [ca83a0ff7b0c466ea47efbf1409fa1db] | app.api.v1.field_mappings_async | [ca83a0ff7b0c466ea47efbf1409fa1db] 获取异步任务进度: task_id=450
+2026-02-11 18:16:11 | INFO | [7bba50bbff644c93a26f4b9aaf905d86] | app.api.v1.projects | [7bba50bbff644c93a26f4b9aaf905d86] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-11 18:16:11 | INFO | [7bba50bbff644c93a26f4b9aaf905d86] | app.api.v1.projects | [7bba50bbff644c93a26f4b9aaf905d86] 获取项目列表成功: total=2
+2026-02-11 18:16:11 | INFO | [7e0fe2624559431abbae7a574ba7e100] | app.api.v1.field_mappings_async | [7e0fe2624559431abbae7a574ba7e100] 获取异步任务进度: task_id=450
+2026-02-11 18:16:11 | INFO | [978b7d3da9454bb38ba83d14d7faf0d8] | app.api.v1.db_schemas | [978b7d3da9454bb38ba83d14d7faf0d8] 获取数据库结构详情: id=4
+2026-02-11 18:16:11 | INFO | [a6e859952b3a4d6f880ac3cd11c5fed0] | app.api.v1.field_mappings_async | [a6e859952b3a4d6f880ac3cd11c5fed0] 获取异步任务进度: task_id=450
+2026-02-11 18:19:03 | INFO | [94c47aa472b342ebb220aa0adb6becef] | root | 日志系统初始化完成
+2026-02-11 18:19:03 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.main | 启动异步任务工作线程...
+2026-02-11 18:19:03 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.main | 异步任务工作线程已启动
+2026-02-11 18:19:03 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.core.async_task.manager | [94c47aa472b342ebb220aa0adb6becef] 启动异步任务工作线程
+2026-02-11 18:19:05 | INFO | [7b3e9770fd354f4e8bda04d4ffca44d4] | app.api.v1.db_schemas | [7b3e9770fd354f4e8bda04d4ffca44d4] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:19:05 | INFO | [f686f766549241459fcd2b0815f8955a] | app.api.v1.db_schemas | [f686f766549241459fcd2b0815f8955a] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:19:09 | INFO | [8e4543c293f54fd7945f3f26943a9822] | app.api.v1.versions | [8e4543c293f54fd7945f3f26943a9822] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 18:19:09 | INFO | [5f3c36dc52104d21a5ce160d66efb459] | app.api.v1.field_mappings | [5f3c36dc52104d21a5ce160d66efb459] 查询学习统计: project_id=1
+2026-02-11 18:19:09 | INFO | [5127b1d49e234295a7df35b3a6547875] | app.api.v1.db_schemas | [5127b1d49e234295a7df35b3a6547875] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:19:09 | INFO | [b72e4cd447de450fa6d90f3e46f007c4] | app.api.v1.api_definitions | [b72e4cd447de450fa6d90f3e46f007c4] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 18:19:09 | INFO | [2f8a5463d42b493db786c24d9d9fba0a] | app.api.v1.field_mappings | [2f8a5463d42b493db786c24d9d9fba0a] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 18:19:09 | INFO | [f6ce76ebc6ad4e3fb6a2240b56d09c19] | app.api.v1.versions | [f6ce76ebc6ad4e3fb6a2240b56d09c19] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 18:19:09 | INFO | [e1d7edc577ed427587c6729a4863eb3d] | app.api.v1.field_mappings | [e1d7edc577ed427587c6729a4863eb3d] 查询学习统计: project_id=1
+2026-02-11 18:19:09 | INFO | [ea341d1c72aa4a699cdc881928effb36] | app.api.v1.api_definitions | [ea341d1c72aa4a699cdc881928effb36] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 18:19:09 | INFO | [9420ae2015c342a086638f73c1702ea1] | app.api.v1.db_schemas | [9420ae2015c342a086638f73c1702ea1] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:19:09 | INFO | [1093713de65e44b4a66925f7ddd7601f] | app.api.v1.field_mappings | [1093713de65e44b4a66925f7ddd7601f] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 18:19:09 | INFO | [a95d4d7c32294a2e8b9aedc8d68b0ed7] | app.api.v1.field_mappings | [a95d4d7c32294a2e8b9aedc8d68b0ed7] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 18:19:09 | INFO | [ffdd003512fb4874a51ec8ece09c8fa1] | app.api.v1.field_mappings | [ffdd003512fb4874a51ec8ece09c8fa1] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 18:19:09 | INFO | [d47d2795ac0b4d859a3b8aa3f1569654] | app.api.v1.db_schemas | [d47d2795ac0b4d859a3b8aa3f1569654] 获取数据库结构详情: id=4
+2026-02-11 18:19:10 | INFO | [3e53269d995d4c4fbf4a792656121b1f] | app.api.v1.projects | [3e53269d995d4c4fbf4a792656121b1f] 用户 admin 获取项目详情: project_id=1
+2026-02-11 18:19:10 | INFO | [3e53269d995d4c4fbf4a792656121b1f] | app.api.v1.projects | [3e53269d995d4c4fbf4a792656121b1f] 用户 admin 查看 项目 InvenTree (id=1)
+2026-02-11 18:19:10 | INFO | [3e53269d995d4c4fbf4a792656121b1f] | app.api.v1.projects | [3e53269d995d4c4fbf4a792656121b1f] 获取项目详情成功: project_id=1, environments_count=2
+2026-02-11 18:19:10 | INFO | [6221b13c729342749b4a812e4fa04678] | app.api.v1.projects | [6221b13c729342749b4a812e4fa04678] 用户 admin 获取项目详情: project_id=1
+2026-02-11 18:19:10 | INFO | [6221b13c729342749b4a812e4fa04678] | app.api.v1.projects | [6221b13c729342749b4a812e4fa04678] 用户 admin 查看 项目 InvenTree (id=1)
+2026-02-11 18:19:10 | INFO | [6221b13c729342749b4a812e4fa04678] | app.api.v1.projects | [6221b13c729342749b4a812e4fa04678] 获取项目详情成功: project_id=1, environments_count=2
+2026-02-11 18:19:10 | INFO | [49ed7899144c47189b9af9017c25a66b] | app.api.v1.versions | [49ed7899144c47189b9af9017c25a66b] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-02-11 18:19:10 | INFO | [63d7b029aaab4367bb1adfa0c3461338] | app.api.v1.versions | [63d7b029aaab4367bb1adfa0c3461338] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-02-11 18:19:11 | INFO | [35823b5dd21140e2b6cf5a5cfcd29a5d] | app.api.v1.versions | [35823b5dd21140e2b6cf5a5cfcd29a5d] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 18:19:11 | INFO | [f5692de95dc14949846a138ce8afe366] | app.api.v1.field_mappings | [f5692de95dc14949846a138ce8afe366] 查询学习统计: project_id=1
+2026-02-11 18:19:11 | INFO | [ac2a8cc3923945d9bfbdcd6289281a78] | app.api.v1.db_schemas | [ac2a8cc3923945d9bfbdcd6289281a78] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:19:11 | INFO | [f5e48eb4215e41c9b771c805cad870ec] | app.api.v1.field_mappings | [f5e48eb4215e41c9b771c805cad870ec] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 18:19:11 | INFO | [a608eef61fa84087a208a2e36bfd9965] | app.api.v1.api_definitions | [a608eef61fa84087a208a2e36bfd9965] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 18:19:12 | INFO | [9f33c6d70bd444f3896a41dbdb84f834] | app.api.v1.field_mappings | [9f33c6d70bd444f3896a41dbdb84f834] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 18:19:12 | INFO | [b60aab1f41c744efa040a5c2d31243ee] | app.api.v1.versions | [b60aab1f41c744efa040a5c2d31243ee] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-11 18:19:12 | INFO | [601fdc5334994577ab59a17fad160644] | app.api.v1.field_mappings | [601fdc5334994577ab59a17fad160644] 查询学习统计: project_id=1
+2026-02-11 18:19:12 | INFO | [1140fb026e3a45599af922e790fcc564] | app.api.v1.api_definitions | [1140fb026e3a45599af922e790fcc564] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-02-11 18:19:12 | INFO | [7c7940b7df474eabb1178726dc89c41f] | app.api.v1.db_schemas | [7c7940b7df474eabb1178726dc89c41f] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:19:12 | INFO | [a5a0b69b9c2747b5ae8bdefc5c03e087] | app.api.v1.field_mappings | [a5a0b69b9c2747b5ae8bdefc5c03e087] 查询字段映射列表: project_id=1, version_id=1
+2026-02-11 18:19:12 | INFO | [3e3ae691f9ac431ab02d255a9582d6a4] | app.api.v1.field_mappings | [3e3ae691f9ac431ab02d255a9582d6a4] 查询待审核字段映射: project_id=1, version_id=1
+2026-02-11 18:19:12 | INFO | [055175b6a4d54a63969bf13de24891df] | app.api.v1.db_schemas | [055175b6a4d54a63969bf13de24891df] 获取数据库结构详情: id=4
+2026-02-11 18:19:12 | INFO | [a970a87ffae34c018a1e59ffbde65cbc] | app.api.v1.db_schemas | [a970a87ffae34c018a1e59ffbde65cbc] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:19:12 | INFO | [7c576ca355764cfa98e67b7408dd523f] | app.api.v1.db_schemas | [7c576ca355764cfa98e67b7408dd523f] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-11 18:19:26 | INFO | [faddda65efef48f59952f92a4b969294] | app.api.v1.field_mappings_async | [faddda65efef48f59952f92a4b969294] 创建字段映射建议任务: project_id=1, version_id=1, use_ai=True
+2026-02-11 18:19:26 | INFO | [faddda65efef48f59952f92a4b969294] | app.core.async_task.manager | [94c47aa472b342ebb220aa0adb6becef] 创建异步任务: project_id=1, user_id=1, type=field_mapping_suggest
+2026-02-11 18:19:26 | INFO | [faddda65efef48f59952f92a4b969294] | app.core.async_task.manager | [94c47aa472b342ebb220aa0adb6becef] 异步任务已加入队列: task_id=451
+2026-02-11 18:19:26 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.core.async_task.executor | [94c47aa472b342ebb220aa0adb6becef] 执行任务: task_id=451, type=field_mapping_suggest
+2026-02-11 18:19:26 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.core.async_task.executor | [94c47aa472b342ebb220aa0adb6becef] 开始执行字段映射任务: task_id=451
+2026-02-11 18:19:26 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 开始处理字段映射任务: project_id=1, version_id=1, current_stage=0
+2026-02-11 18:19:26 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 开始提取字段: project_id=1, version_id=1
+2026-02-11 18:19:26 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 找到 644 个API定义
+2026-02-11 18:19:26 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 字段提取完成: 原始4320个, 去重后595个唯一字段
+2026-02-11 18:19:26 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 阶段1结果已保存: status=completed, data_keys=['total_fields', 'unique_fields', 'field_count_by_type']
+2026-02-11 18:19:26 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 获取数据库结构成功: 3个表
+2026-02-11 18:19:26 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 开始批量规则评分: 595个字段
+2026-02-11 18:19:26 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 开始处理批次0: 100个字段
+2026-02-11 18:19:29 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 批次0处理完成: 100个字段有结果
+2026-02-11 18:19:29 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 开始处理批次1: 100个字段
+2026-02-11 18:19:31 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 批次1处理完成: 100个字段有结果
+2026-02-11 18:19:31 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 开始处理批次2: 100个字段
+2026-02-11 18:19:33 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 批次2处理完成: 100个字段有结果
+2026-02-11 18:19:33 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 开始处理批次3: 100个字段
+2026-02-11 18:19:36 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 批次3处理完成: 100个字段有结果
+2026-02-11 18:19:36 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 开始处理批次4: 100个字段
+2026-02-11 18:19:38 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 批次4处理完成: 100个字段有结果
+2026-02-11 18:19:38 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 开始处理批次5: 95个字段
+2026-02-11 18:19:41 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 批次5处理完成: 95个字段有结果
+2026-02-11 18:19:41 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 批量规则评分完成
+2026-02-11 18:19:41 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 阶段2结果已保存: status=completed, data_keys=['processed_fields', 'success_fields', 'failed_fields', 'avg_score']
+2026-02-11 18:19:41 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 开始智能筛选
+2026-02-11 18:19:41 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 智能筛选完成: 自动确认=0, 高优先级AI=595, 中优先级AI=0, 低优先级AI=0
+2026-02-11 18:19:41 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 阶段3结果已保存: status=completed, data_keys=['auto_confirm', 'ai_high', 'ai_medium', 'ai_low']
+2026-02-11 18:19:41 | INFO | [94c47aa472b342ebb220aa0adb6becef] | app.field_mapping.processor | [94c47aa472b342ebb220aa0adb6becef] 开始优先级AI调用
+2026-02-11 18:19:41 | INFO | [26e51af00cc74bb882b30a5d2a8ec70f] | app.ai.service | AI 执行开始: task_type=field_mapping_recommendation_batch, project_id=1
+2026-02-11 18:19:41 | INFO | [26e51af00cc74bb882b30a5d2a8ec70f] | app.ai.service | AI 输入数据: method=None, path=None, summary=None
+2026-02-11 18:19:41 | INFO | [26e51af00cc74bb882b30a5d2a8ec70f] | app.ai.context | 注入项目上下文: project_id=1, name=InvenTree
+2026-02-11 18:19:41 | INFO | [26e51af00cc74bb882b30a5d2a8ec70f] | app.ai.service | 渲染后的用户 Prompt（前500字符）: 
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+[
+  {
+    "api_field_path": "path.id",
+    "method": "PUT",
+    "path": "/api/stock/location-type/{id}/",
+    "field_name": "id",
+    "rule_candidates": [
+      {
+        "db_table": "account_emailaddress",
+        "db_column": "id",
+        "score": 0.42000000000000004,
+        "reasons": [
+          "字段名匹配",
+          "类型匹配"
+        ]
+      },
+      {
+        "db_table": "account_emailconfirmation",
+    
+2026-02-11 18:19:41 | INFO | [26e51af00cc74bb882b30a5d2a8ec70f] | app.ai.adapters.factory | 创建模型适配器: provider=openai
+2026-02-11 18:19:41 | INFO | [26e51af00cc74bb882b30a5d2a8ec70f] | app.ai.service | 调用 AI 模型: model=OpenAIAdapter

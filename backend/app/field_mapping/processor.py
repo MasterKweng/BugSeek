@@ -18,6 +18,15 @@ from app.api.v1.field_mappings import (
 )
 from app.core.trace import get_trace_id
 from app.ai.service import AIService
+from app.field_mapping.constants import (
+    Stage,
+    StageStatus,
+    StageConfig,
+    StageResultKey,
+    get_stage_name,
+    get_stage_result_key
+)
+from app.field_mapping.exceptions import TaskCancelledException
 
 logger = logging.getLogger(__name__)
 
@@ -64,11 +73,6 @@ class ScreeningResult:
     ai_priority: str
     reasons: List[str]
     action: str
-
-
-class TaskCancelledException(Exception):
-    """任务取消异常"""
-    pass
 
 
 class FieldMappingProcessor:
@@ -123,10 +127,171 @@ class FieldMappingProcessor:
         """
         if self._check_cancelled():
             raise TaskCancelledException("任务已被取消")
+    
+    def _save_stage_result(
+        self,
+        stage_num: int,
+        stage_data: Dict[str, Any],
+        status: str = StageStatus.COMPLETED
+    ) -> None:
+        """
+        保存阶段结果到数据库（阶段化保存核心方法）
         
+        遵循后端代码规范：
+        - 使用预编译SQL（ORM自动处理）
+        - 事务范围最小化（仅更新单条记录）
+        - 详细的日志记录（包含TraceID）
+        - 异常处理和回滚
+        
+        Args:
+            stage_num: 阶段编号 (1-5)
+            stage_data: 阶段结果数据
+            status: 阶段状态 (not_started/running/completed/failed/skipped)
+        
+        Raises:
+            Exception: 数据库操作失败时抛出异常
+        """
+        try:
+            stage_key = get_stage_result_key(stage_num)
+            
+            # 初始化 stage_results 字段
+            if not self.task.stage_results:
+                self.task.stage_results = {}
+            
+            # 构建阶段结果数据结构
+            self.task.stage_results[stage_key] = {
+                StageResultKey.NAME: get_stage_name(stage_num),
+                StageResultKey.STATUS: status,
+                StageResultKey.PROGRESS: 100 if status == StageStatus.COMPLETED else 0,
+                StageResultKey.COMPLETED_AT: datetime.now().isoformat() if status == StageStatus.COMPLETED else None,
+                StageResultKey.DATA: stage_data
+            }
+            
+            # 更新当前阶段
+            self.task.current_stage = stage_num
+            
+            # 提交事务
+            self.db.commit()
+            
+            logger.info(
+                f"[{self.trace_id}] 阶段{stage_num}结果已保存: "
+                f"status={status}, data_keys={list(stage_data.keys()) if stage_data else []}"
+            )
+            
+        except Exception as e:
+            # 回滚事务
+            self.db.rollback()
+            logger.error(
+                f"[{self.trace_id}] 保存阶段{stage_num}结果失败: {str(e)}",
+                exc_info=True
+            )
+            raise
+    
+    def _load_stage_result(self, stage_num: int) -> Any:
+        """
+        从数据库加载阶段结果（断点续传核心方法）
+        
+        遵循后端代码规范：
+        - 数据类型校验
+        - 异常处理和详细日志
+        - 空值防御（NPE防护）
+        
+        Args:
+            stage_num: 阶段编号 (1-5)
+        
+        Returns:
+            阶段结果数据
+        
+        Raises:
+            ValueError: 阶段结果不存在或未完成时抛出异常
+        """
+        try:
+            stage_key = get_stage_result_key(stage_num)
+            
+            # 检查 stage_results 字段是否存在
+            if not self.task.stage_results:
+                logger.warning(f"[{self.trace_id}] 任务没有 stage_results 字段")
+                raise ValueError(f"阶段{stage_num}结果不存在：任务未初始化阶段结果")
+            
+            # 检查指定阶段的结果是否存在
+            stage_result = self.task.stage_results.get(stage_key)
+            if not stage_result:
+                logger.warning(f"[{self.trace_id}] 阶段{stage_num}结果不存在于 stage_results 中")
+                raise ValueError(f"阶段{stage_num}结果不存在：尚未执行该阶段")
+            
+            # 检查阶段状态
+            stage_status = stage_result.get(StageResultKey.STATUS)
+            if stage_status != StageStatus.COMPLETED:
+                logger.warning(
+                    f"[{self.trace_id}] 阶段{stage_num}状态为 {stage_status}，无法加载结果"
+                )
+                raise ValueError(f"阶段{stage_num}未完成：当前状态为 {stage_status}")
+            
+            # 提取并返回阶段数据
+            stage_data = stage_result.get(StageResultKey.DATA)
+            logger.info(
+                f"[{self.trace_id}] 从数据库加载阶段{stage_num}结果: "
+                f"data_keys={list(stage_data.keys()) if stage_data else []}"
+            )
+            
+            return stage_data
+            
+        except ValueError:
+            # 重新抛出业务异常
+            raise
+        except Exception as e:
+            # 处理其他异常
+            logger.error(
+                f"[{self.trace_id}] 加载阶段{stage_num}结果失败: {str(e)}",
+                exc_info=True
+            )
+            raise ValueError(f"加载阶段{stage_num}结果失败: {str(e)}")
+    
+    def _clear_stage_results_from(self, stage_num: int) -> None:
+        """
+        清除指定阶段及后续阶段的结果（用于重试）
+        
+        Args:
+            stage_num: 起始阶段编号，将清除该阶段及之后的所有阶段结果
+        """
+        try:
+            if not self.task.stage_results:
+                return
+            
+            # 清除当前及后续阶段的结果
+            cleared_stages = []
+            for i in range(stage_num, Stage.RESULT_MERGE + 1):
+                stage_key = get_stage_result_key(i)
+                if stage_key in self.task.stage_results:
+                    del self.task.stage_results[stage_key]
+                    cleared_stages.append(i)
+            
+            # 更新当前阶段
+            self.task.current_stage = max(0, stage_num - 1)
+            
+            self.db.commit()
+            
+            logger.info(
+                f"[{self.trace_id}] 已清除阶段结果: {cleared_stages}"
+            )
+            
+        except Exception as e:
+            self.db.rollback()
+            logger.error(
+                f"[{self.trace_id}] 清除阶段结果失败: {str(e)}",
+                exc_info=True
+            )
+            raise
+    
     async def process(self) -> Dict[str, Any]:
         """
-        处理字段映射建议任务
+        处理字段映射建议任务（支持断点续传）
+        
+        遵循后端代码规范：
+        - 阶段化保存：每个阶段完成后立即保存结果
+        - 断点续传：从 current_stage 继续执行
+        - 异常处理：确保失败时保存状态
+        - 详细日志：包含 TraceID 贯穿全链路
         
         Returns:
             处理结果
@@ -136,9 +301,13 @@ class FieldMappingProcessor:
             project_id = params.get('project_id')
             version_id = params.get('version_id')
             
+            # 获取当前阶段（断点续传）
+            current_stage = self.task.current_stage or Stage.NOT_STARTED
+            
             logger.info(
                 f"[{self.trace_id}] 开始处理字段映射任务: "
-                f"project_id={project_id}, version_id={version_id}"
+                f"project_id={project_id}, version_id={version_id}, "
+                f"current_stage={current_stage}"
             )
             
             # 检查是否被取消
@@ -146,44 +315,91 @@ class FieldMappingProcessor:
             
             # 初始化阶段列表
             stages = [
-                {"name": "字段提取", "status": "pending", "progress": 0},
-                {"name": "规则评分", "status": "pending", "progress": 0},
-                {"name": "智能筛选", "status": "pending", "progress": 0},
-                {"name": "AI优化", "status": "pending", "progress": 0},
-                {"name": "结果合并", "status": "pending", "progress": 0}
+                {"name": get_stage_name(Stage.FIELD_EXTRACTION), "status": "pending", "progress": 0},
+                {"name": get_stage_name(Stage.RULE_SCORING), "status": "pending", "progress": 0},
+                {"name": get_stage_name(Stage.INTELLIGENT_SCREENING), "status": "pending", "progress": 0},
+                {"name": get_stage_name(Stage.AI_OPTIMIZATION), "status": "pending", "progress": 0},
+                {"name": get_stage_name(Stage.RESULT_MERGE), "status": "pending", "progress": 0}
             ]
             
             # 阶段1: 字段提取和去重
-            self._raise_if_cancelled()
-            self._update_stage_progress(stages, 0, "running", 10)
-            self._update_progress(10, "正在提取字段...")
-            field_registry = await self._extract_and_deduplicate_fields(
-                project_id, version_id,
-                include_paths=params.get('include_paths', True),
-                include_query=params.get('include_query', True),
-                include_body=params.get('include_body', True)
-            )
-            self._update_stage_progress(stages, 0, "completed", 100)
+            if current_stage < Stage.FIELD_EXTRACTION:
+                self._raise_if_cancelled()
+                self._update_stage_progress(stages, 0, "running", 10)
+                self._update_progress(10, "正在提取字段...")
+                field_registry = await self._extract_and_deduplicate_fields(
+                    project_id, version_id,
+                    include_paths=params.get('include_paths', True),
+                    include_query=params.get('include_query', True),
+                    include_body=params.get('include_body', True)
+                )
+                self._update_stage_progress(stages, 0, "completed", 100)
+                
+                # 保存阶段1结果
+                self._save_stage_result(
+                    Stage.FIELD_EXTRACTION,
+                    {
+                        "total_fields": len(field_registry),
+                        "unique_fields": len(field_registry),
+                        "field_count_by_type": self._count_by_type(field_registry)
+                    }
+                )
+            else:
+                # 从数据库加载阶段1结果（断点续传）
+                logger.info(f"[{self.trace_id}] 从数据库加载阶段1结果（断点续传）")
+                field_registry = self._load_stage_result(Stage.FIELD_EXTRACTION)
             
             # 更新初步统计信息
             self._update_statistics({"total_fields": len(field_registry)})
             
             # 阶段2: 规则评分
-            self._raise_if_cancelled()
-            self._update_stage_progress(stages, 1, "running", 0)
-            self._update_progress(15, "正在进行规则评分...")
-            db_schema = self._get_db_schema(project_id, version_id)
-            rule_results = await self._batch_rule_scoring(
-                field_registry, db_schema, stages
-            )
-            self._update_stage_progress(stages, 1, "completed", 100)
+            if current_stage < Stage.RULE_SCORING:
+                self._raise_if_cancelled()
+                self._update_stage_progress(stages, 1, "running", 0)
+                self._update_progress(15, "正在进行规则评分...")
+                db_schema = self._get_db_schema(project_id, version_id)
+                rule_results = await self._batch_rule_scoring(
+                    field_registry, db_schema, stages
+                )
+                self._update_stage_progress(stages, 1, "completed", 100)
+                
+                # 保存阶段2结果
+                self._save_stage_result(
+                    Stage.RULE_SCORING,
+                    {
+                        "processed_fields": len(rule_results),
+                        "success_fields": len([r for r in rule_results.values() if r]),
+                        "failed_fields": len([r for r in rule_results.values() if not r]),
+                        "avg_score": self._calculate_avg_score(rule_results)
+                    }
+                )
+            else:
+                # 从数据库加载阶段2结果（断点续传）
+                logger.info(f"[{self.trace_id}] 从数据库加载阶段2结果（断点续传）")
+                rule_results = self._load_stage_result(Stage.RULE_SCORING)
             
             # 阶段3: 智能筛选
-            self._raise_if_cancelled()
-            self._update_stage_progress(stages, 2, "running", 50)
-            self._update_progress(40, "正在进行智能筛选...")
-            categories = self._intelligent_screening(field_registry, rule_results)
-            self._update_stage_progress(stages, 2, "completed", 100)
+            if current_stage < Stage.INTELLIGENT_SCREENING:
+                self._raise_if_cancelled()
+                self._update_stage_progress(stages, 2, "running", 50)
+                self._update_progress(40, "正在进行智能筛选...")
+                categories = self._intelligent_screening(field_registry, rule_results)
+                self._update_stage_progress(stages, 2, "completed", 100)
+                
+                # 保存阶段3结果
+                self._save_stage_result(
+                    Stage.INTELLIGENT_SCREENING,
+                    {
+                        "auto_confirm": len(categories.get('auto_confirm', [])),
+                        "ai_high": len(categories.get('ai_high', [])),
+                        "ai_medium": len(categories.get('ai_medium', [])),
+                        "ai_low": len(categories.get('ai_low', []))
+                    }
+                )
+            else:
+                # 从数据库加载阶段3结果（断点续传）
+                logger.info(f"[{self.trace_id}] 从数据库加载阶段3结果（断点续传）")
+                categories = self._load_stage_result(Stage.INTELLIGENT_SCREENING)
             
             # 更新分类统计
             self._update_statistics({
@@ -194,24 +410,63 @@ class FieldMappingProcessor:
             })
             
             # 阶段4: AI调用
-            self._raise_if_cancelled()
-            if params.get('use_ai', True):
-                self._update_stage_progress(stages, 3, "running", 0)
-                self._update_progress(45, "正在进行AI优化...")
-                ai_results = await self._priority_ai_calling(
-                    field_registry, categories, stages
-                )
-                self._update_stage_progress(stages, 3, "completed", 100)
+            if current_stage < Stage.AI_OPTIMIZATION:
+                self._raise_if_cancelled()
+                if params.get('use_ai', True):
+                    self._update_stage_progress(stages, 3, "running", 0)
+                    self._update_progress(45, "正在进行AI优化...")
+                    ai_results = await self._priority_ai_calling(
+                        field_registry, categories, stages
+                    )
+                    self._update_stage_progress(stages, 3, "completed", 100)
+                    
+                    # 保存阶段4结果
+                    self._save_stage_result(
+                        Stage.AI_OPTIMIZATION,
+                        {
+                            "ai_optimized_fields": len(ai_results),
+                            "ai_failed_fields": len(self.failed_fields)
+                        }
+                    )
+                else:
+                    ai_results = {}
+                    self._update_stage_progress(stages, 3, "completed", 100)
+                    
+                    # 保存阶段4结果（跳过）
+                    self._save_stage_result(
+                        Stage.AI_OPTIMIZATION,
+                        {
+                            "ai_optimized_fields": 0,
+                            "ai_failed_fields": 0,
+                            "skipped": True
+                        },
+                        status=StageStatus.SKIPPED
+                    )
             else:
-                ai_results = {}
-                self._update_stage_progress(stages, 3, "completed", 100)
+                # 从数据库加载阶段4结果（断点续传）
+                logger.info(f"[{self.trace_id}] 从数据库加载阶段4结果（断点续传）")
+                ai_results = self._load_stage_result(Stage.AI_OPTIMIZATION)
             
             # 阶段5: 结果合并
-            self._raise_if_cancelled()
-            self._update_stage_progress(stages, 4, "running", 50)
-            self._update_progress(98, "正在合并结果...")
-            suggestions = self._merge_results(field_registry, ai_results)
-            self._update_stage_progress(stages, 4, "completed", 100)
+            if current_stage < Stage.RESULT_MERGE:
+                self._raise_if_cancelled()
+                self._update_stage_progress(stages, 4, "running", 50)
+                self._update_progress(98, "正在合并结果...")
+                suggestions = self._merge_results(field_registry, ai_results)
+                self._update_stage_progress(stages, 4, "completed", 100)
+                
+                # 保存阶段5结果
+                self._save_stage_result(
+                    Stage.RESULT_MERGE,
+                    {
+                        "total_suggestions": len(suggestions),
+                        "unique_fields_covered": len(field_registry)
+                    }
+                )
+            else:
+                # 从数据库加载阶段5结果（断点续传）
+                logger.info(f"[{self.trace_id}] 从数据库加载阶段5结果（断点续传）")
+                suggestions = self._load_stage_result(Stage.RESULT_MERGE)
             
             # 完成任务
             self._update_progress(100, "处理完成")
@@ -399,6 +654,47 @@ class FieldMappingProcessor:
         if len(parts) == 2:
             return parts[0], parts[1]
         return 'body', field_path
+    
+    def _count_by_type(self, field_registry: Dict[str, Any]) -> Dict[str, int]:
+        """
+        按类型统计字段数量
+        
+        Args:
+            field_registry: 字段注册表
+        
+        Returns:
+            按类型统计的字典 {"path": x, "query": y, "body": z}
+        """
+        type_count = {"path": 0, "query": 0, "body": 0}
+        
+        for field_info in field_registry.values():
+            if field_info.source_type in type_count:
+                type_count[field_info.source_type] += 1
+        
+        return type_count
+    
+    def _calculate_avg_score(self, rule_results: Dict[str, List[Any]]) -> float:
+        """
+        计算平均评分
+        
+        Args:
+            rule_results: 规则评分结果
+        
+        Returns:
+            平均评分
+        """
+        total_score = 0.0
+        total_count = 0
+        
+        for candidates in rule_results.values():
+            if candidates:
+                total_score += sum(c.score for c in candidates)
+                total_count += len(candidates)
+        
+        if total_count > 0:
+            return round(total_score / total_count, 4)
+        
+        return 0.0
     
     def _get_db_schema(self, project_id: int, version_id: int) -> Dict[str, Any]:
         """

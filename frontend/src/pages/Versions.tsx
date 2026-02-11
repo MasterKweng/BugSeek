@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin, Breadcrumb } from 'antd'
+import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin } from 'antd'
 import { PlusOutlined, LockOutlined, UnlockOutlined, CopyOutlined, ArrowLeftOutlined, ProjectOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import * as versionService from '../services/version'
@@ -330,50 +330,42 @@ const Versions: React.FC = () => {
         </Card>
       ) : (
         <>
-          <Breadcrumb style={{ marginBottom: 16 }}>
-            <Breadcrumb.Item>项目管理</Breadcrumb.Item>
-            <Breadcrumb.Item>版本管理</Breadcrumb.Item>
-            <Breadcrumb.Item>{project?.name}</Breadcrumb.Item>
-          </Breadcrumb>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 500 }}>版本管理 - {project?.name || ''}</h2>
+            <Space>
+              <Button
+                icon={<ArrowLeftOutlined />}
+                onClick={() => window.history.back()}
+              >
+                返回
+              </Button>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={handleOpenCreateModal}
+              >
+                新建版本
+              </Button>
+            </Space>
+          </div>
 
-          <Card
-            title={`版本管理 - ${project?.name || ''}`}
-            extra={
-              <Space>
-                <Button
-                  icon={<ArrowLeftOutlined />}
-                  onClick={() => window.history.back()}
-                >
-                  返回
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={handleOpenCreateModal}
-                >
-                  新建版本
-                </Button>
-              </Space>
-            }
-          >
-            <Table
-              columns={columns}
-              dataSource={versions}
-              loading={loading}
-              rowKey="id"
-              pagination={{
-                current: page,
-                pageSize,
-                total,
-                showSizeChanger: true,
-                showTotal: (total) => `共 ${total} 条`,
-                onChange: (page, pageSize) => {
-                  setPage(page)
-                  setPageSize(pageSize)
-                }
-              }}
-            />
-          </Card>
+          <Table
+            columns={columns}
+            dataSource={versions}
+            loading={loading}
+            rowKey="id"
+            pagination={{
+              current: page,
+              pageSize,
+              total,
+              showSizeChanger: true,
+              showTotal: (total) => `共 ${total} 条`,
+              onChange: (page, pageSize) => {
+                setPage(page)
+                setPageSize(pageSize)
+              }
+            }}
+          />
         </>
       )}
 

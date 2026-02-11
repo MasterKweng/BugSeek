@@ -227,6 +227,13 @@ export interface AsyncTask {
   progress: number
   progress_message?: string
   current_stage?: string
+  stage_results?: {
+    stage1?: StageResult
+    stage2?: StageResult
+    stage3?: StageResult
+    stage4?: StageResult
+    stage5?: StageResult
+  }
   stages?: Array<{
     name: string
     status: string
@@ -287,4 +294,51 @@ export const getFieldMappingSuggestions = async (
   return api.get('/field-mappings/suggestions', { 
     params: { task_id: taskId, ...params } 
   })
+}
+
+// 阶段结果相关类型
+export interface StageResult {
+  name: string
+  status: 'not_started' | 'running' | 'completed' | 'failed' | 'skipped'
+  progress: number
+  completed_at?: string
+  data?: any
+}
+
+export interface TaskProgress {
+  current_stage: number
+  stage_results: {
+    stage1?: StageResult
+    stage2?: StageResult
+    stage3?: StageResult
+    stage4?: StageResult
+    stage5?: StageResult
+  }
+}
+
+// 阶段化保存相关 API
+export const getStageResult = async (
+  taskId: number,
+  stageNum: number
+): Promise<ApiResponse<StageResult>> => {
+  return api.get(`/field-mappings/tasks/${taskId}/stage/${stageNum}`)
+}
+
+export const resumeTask = async (
+  taskId: number
+): Promise<ApiResponse<{ task_id: number; status: string; current_stage: number }>> => {
+  return api.post(`/field-mappings/tasks/${taskId}/resume`)
+}
+
+export const retryStage = async (
+  taskId: number,
+  stageNum: number
+): Promise<ApiResponse<{ task_id: number; retry_stage: number; cleared_stages: number[] }>> => {
+  return api.post(`/field-mappings/tasks/${taskId}/retry/${stageNum}`)
+}
+
+export const resetTask = async (
+  taskId: number
+): Promise<ApiResponse<{ task_id: number; status: string }>> => {
+  return api.post(`/field-mappings/tasks/${taskId}/reset`)
 }

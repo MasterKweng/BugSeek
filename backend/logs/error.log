@@ -8435,3 +8435,20 @@ sqlalchemy.exc.TimeoutError: QueuePool limit of size 5 overflow 10 reached, conn
           "db_table": "order_details",
           "db_column": "sale_price",
    
+2026-02-11 18:06:06 | ERROR | [f249a1f022014a0abf968add6441c9ed] | app.field_mapping.processor | [f249a1f022014a0abf968add6441c9ed] 保存阶段1结果失败: 'AsyncTask' object has no attribute 'stage_results'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\field_mapping\processor.py", line 158, in _save_stage_result
+    if not self.task.stage_results:
+AttributeError: 'AsyncTask' object has no attribute 'stage_results'
+2026-02-11 18:06:06 | ERROR | [f249a1f022014a0abf968add6441c9ed] | app.field_mapping.processor | [f249a1f022014a0abf968add6441c9ed] 字段映射任务处理失败: 'AsyncTask' object has no attribute 'stage_results'
+2026-02-11 18:06:06 | ERROR | [f249a1f022014a0abf968add6441c9ed] | app.core.async_task.executor | [f249a1f022014a0abf968add6441c9ed] 任务执行异常: task_id=449, error='AsyncTask' object has no attribute 'stage_results'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\core\async_task\executor.py", line 64, in execute_task
+    result = await self._execute_field_mapping_task(task)
+  File "D:\code\BugSeek\backend\app\core\async_task\executor.py", line 119, in _execute_field_mapping_task
+    result = await processor.process()
+  File "D:\code\BugSeek\backend\app\field_mapping\processor.py", line 339, in process
+    self._save_stage_result(
+  File "D:\code\BugSeek\backend\app\field_mapping\processor.py", line 158, in _save_stage_result
+    if not self.task.stage_results:
+AttributeError: 'AsyncTask' object has no attribute 'stage_results'

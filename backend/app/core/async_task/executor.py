@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.db.base import AsyncTask
 from app.core.trace import get_trace_id
-from app.field_mapping.processor import TaskCancelledException
+from app.field_mapping.exceptions import TaskCancelledException
 
 logger = logging.getLogger(__name__)
 
