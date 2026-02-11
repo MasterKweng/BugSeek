@@ -41,6 +41,21 @@ export const importDbSchema = async (
 }
 
 /**
+ * 通过SQL文件导入数据库结构
+ */
+export const importDbSchemaFromSql = async (
+  formData: FormData,
+  params?: { project_id?: number; version_id?: number }
+): Promise<ApiResponse<{ id: number }>> => {
+  return api.post('/db-schemas/import-sql', formData, {
+    params,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+/**
  * 删除数据库结构
  */
 export const deleteDbSchema = async (
@@ -51,4 +66,14 @@ export const deleteDbSchema = async (
     throw new Error('无效的结构 ID')
   }
   return api.delete(`/db-schemas/${id}`, { params })
+}
+
+/**
+ * 预览SQL文件解析结果
+ */
+export const previewSqlSchema = async (
+  sqlContent: string,
+  params?: { project_id?: number; version_id?: number }
+): Promise<ApiResponse<{ tables: any[]; indexes: any[]; warnings: string[] }>> => {
+  return api.post('/db-schemas/preview-sql', { sql_content: sqlContent }, { params })
 }

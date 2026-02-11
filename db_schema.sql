@@ -1,28 +1,32 @@
-total 276
-drwxr-xr-x  3 ruyukweng ruyukweng   4096 Feb 10 18:03 ./
-drwxr-x---  8 ruyukweng ruyukweng   4096 Jan 19 17:43 ../
--rw-r--r--  1 ruyukweng ruyukweng    532 Jan 19 17:44 .env
--rw-r--r--  1 ruyukweng ruyukweng 258475 Feb 10 18:04 db_schema.sql
--rw-r--r--  1 ruyukweng ruyukweng   1121 Jan 19 18:21 docker-compose.yml
-drwxr-xr-x 12 ruyukweng ruyukweng   4096 Jan 19 17:45 src/
-db_schema.sql
-docker-compose.yml
-src
-/home/ruyukweng/inventree-lab
-db_schema.sql
-docker-compose.yml
-src
-frappe_docker
-install.sh
-inventree-lab
-frappe_docker
-install.sh
-inventree-lab
-total 16
-drwxr-xr-x 12 ruyukweng ruyukweng 4096 Jan 19 09:52 frappe_docker
--rw-r--r--  1 ruyukweng ruyukweng 7439 Jan 19 16:54 install.sh
-drwxr-xr-x  3 ruyukweng ruyukweng 4096 Feb 10 18:03 inventree-lab
-(
+--
+-- PostgreSQL database dump
+--
+
+\restrict f3bI1TzuS6adnq8aEDE9ItYpDvSrdNoagVuVqzESGxT6bt8FcAxyO69wFZxGgFi
+
+-- Dumped from database version 15.15 (Debian 15.15-1.pgdg13+1)
+-- Dumped by pg_dump version 15.15 (Debian 15.15-1.pgdg13+1)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: account_emailaddress; Type: TABLE; Schema: public; Owner: inventree
+--
+
+CREATE TABLE public.account_emailaddress (
     id integer NOT NULL,
     email character varying(254) NOT NULL,
     verified boolean NOT NULL,
@@ -8237,5 +8241,5 @@ ALTER TABLE ONLY public.usersessions_usersession
 -- PostgreSQL database dump complete
 --
 
-\unrestrict PnEZf5nA92vMDn9O2aemynssmLNnyh1dAomuuQbRtl1zpCD5aKvbipEkVyINAqQ
+\unrestrict f3bI1TzuS6adnq8aEDE9ItYpDvSrdNoagVuVqzESGxT6bt8FcAxyO69wFZxGgFi
 

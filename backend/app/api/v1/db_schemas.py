@@ -1,5 +1,5 @@
 """数据库结构版本管理接口（V2.0 - 版本中心）"""
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field
@@ -10,6 +10,7 @@ from app.context import get_current_project_id, get_current_version_id
 from app.db.base import DbSchemaVersion, Version, User
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
+from app.utils.sql_parser import parse_sql_file
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -219,6 +220,83 @@ async def get_db_schema(
     )
 
 
+@router.post("/db-schemas/import-sql", response_model=ApiResponse)
+async def import_sql_schema(
+    file: UploadFile = File(..., description="SQL文件"),
+    name: str = Form(..., description="结构名称"),
+    source_version: Optional[str] = Form(None, description="来源版本"),
+    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
+    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    通过上传SQL文件导入数据库结构（绑定项目与版本）
+    """
+    trace_id = get_trace_id()
+    ctx = _get_project_and_version(db, current_user, project_id, version_id)
+
+    # 验证文件类型
+    if not file.filename.lower().endswith(('.sql', '.txt')):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="仅支持上传 .sql 或 .txt 文件"
+        )
+
+    logger.info(f"[{trace_id}] 开始上传SQL文件: project_id={ctx['project_id']}, version_id={ctx['version_id']}, filename={file.filename}")
+
+    try:
+        # 读取文件内容
+        content = await file.read()
+        sql_content = content.decode('utf-8')
+        
+        # 解析SQL内容
+        logger.info(f"[{trace_id}] 开始解析SQL内容")
+        schema_snapshot = parse_sql_file(sql_content)
+        
+        if not schema_snapshot or not schema_snapshot.get("tables"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="SQL文件中未找到有效的表结构定义"
+            )
+        
+        # 保存到数据库
+        schema = DbSchemaVersion(
+            project_id=ctx["project_id"],
+            version_id=ctx["version_id"],
+            name=name,
+            source_type="sql_file",
+            source_version=source_version,
+            schema_snapshot=schema_snapshot,
+            created_by=current_user.id,
+            updated_by=current_user.id
+        )
+
+        db.add(schema)
+        db.commit()
+        db.refresh(schema)
+
+        logger.info(f"[{trace_id}] SQL文件解析并保存成功: id={schema.id}, table_count={len(schema_snapshot.get('tables', []))}")
+
+        return ApiResponse(
+            code=0,
+            message="SQL文件导入成功",
+            data={"id": schema.id}
+        )
+    
+    except UnicodeDecodeError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="SQL文件编码格式错误，请使用UTF-8编码"
+        )
+    except Exception as e:
+        logger.error(f"[{trace_id}] 导入SQL文件失败: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"导入SQL文件失败: {str(e)}"
+        )
+
+
 @router.delete("/db-schemas/{schema_id}", response_model=ApiResponse)
 async def delete_db_schema(
     schema_id: int,
@@ -249,6 +327,70 @@ async def delete_db_schema(
     db.commit()
 
     logger.info(f"[{trace_id}] 删除数据库结构: id={schema_id}")
+
+    return ApiResponse(
+        success=True,
+        message="数据库结构删除成功",
+        data=None
+    )
+
+
+class SqlPreviewRequest(BaseModel):
+    """SQL预览请求"""
+    sql_content: str = Field(..., description="SQL内容")
+
+
+@router.post("/db-schemas/preview-sql", response_model=ApiResponse)
+async def preview_sql_schema(
+    request: SqlPreviewRequest,
+    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
+    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    预览SQL文件解析结果（不保存到数据库）
+    """
+    trace_id = get_trace_id()
+    
+    # 验证项目和版本
+    ctx = _get_project_and_version(db, current_user, project_id, version_id)
+
+    logger.info(f"[{trace_id}] 开始预览SQL内容: project_id={ctx['project_id']}, version_id={ctx['version_id']}")
+
+    try:
+        # 解析SQL内容
+        schema_snapshot = parse_sql_file(request.sql_content)
+        
+        if not schema_snapshot:
+            return ApiResponse(
+                code=0,
+                message="SQL预览完成",
+                data={
+                    "tables": [],
+                    "indexes": [],
+                    "warnings": ["SQL内容为空或无法解析"]
+                }
+            )
+        
+        logger.info(f"[{trace_id}] SQL预览成功: tables={len(schema_snapshot.get('tables', []))}, indexes={len(schema_snapshot.get('indexes', []))}")
+
+        return ApiResponse(
+            code=0,
+            message="SQL预览成功",
+            data={
+                "tables": schema_snapshot.get("tables", []),
+                "indexes": schema_snapshot.get("indexes", []),
+                "warnings": schema_snapshot.get("warnings", [])
+            }
+        )
+    
+    except Exception as e:
+        logger.error(f"[{trace_id}] SQL预览失败: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"SQL预览失败: {str(e)}"
+        )
 
     return ApiResponse(
         code=0,

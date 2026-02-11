@@ -497,11 +497,17 @@ class AsyncTask(Base, TimestampMixin):
 
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # 创建任务的用户
     task_type = Column(String(50), nullable=False)  # task_type
-    task_config = Column(JSON, nullable=True)
-    status = Column(String(20), default="pending")  # pending/running/completed/failed
+    task_config = Column(JSON, nullable=True)  # 任务配置（兼容旧版本）
+    task_params = Column(JSON, nullable=True)  # 任务参数（新版本使用）
+    status = Column(String(20), default="pending")  # pending/running/completed/failed/cancelled
     progress = Column(Integer, default=0)  # 0-100
-    result = Column(JSON, nullable=True)
+    progress_message = Column(String(500), nullable=True)  # 进度消息
+    current_stage = Column(String(50), nullable=True)  # 当前处理阶段
+    stages = Column(JSON, nullable=True)  # 阶段列表 [{"name": "字段提取", "status": "completed", "progress": 100}]
+    statistics = Column(JSON, nullable=True)  # 统计信息 {"total_fields": 1000, "auto_confirmed": 400}
+    result = Column(JSON, nullable=True)  # 任务结果
     error_message = Column(Text, nullable=True)
     started_at = Column(DateTime, nullable=True)
     finished_at = Column(DateTime, nullable=True)
@@ -510,6 +516,7 @@ class AsyncTask(Base, TimestampMixin):
         Index('ix_async_tasks_project_id', 'project_id'),
         Index('ix_async_tasks_task_type', 'task_type'),
         Index('ix_async_tasks_status', 'status'),
+        Index('ix_async_tasks_user_id', 'user_id'),
     )
 
 

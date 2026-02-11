@@ -19,6 +19,7 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     except Exception as e:
         logger.error(f"数据库会话异常: {str(e)}", exc_info=True)
+        db.rollback()
         raise
     finally:
         db.close()

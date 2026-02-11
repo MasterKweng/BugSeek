@@ -403,6 +403,122 @@ class PromptManager:
   "fix_suggestion": "修复建议"
 }}
 """
+        },
+
+        # 模块7: 字段映射 - API字段到数据库字段映射推荐
+        "field_mapping_recommendation": {
+            "system": "你是数据库字段映射专家，任务是将 API 请求字段映射到数据库表字段。使用路径语义、字段名匹配、主键优先等规则给出推荐映射。",
+            "user": """
+请为以下 API 接口字段生成数据库字段映射推荐：
+
+API 信息：
+- method: {method}
+- path: {path}
+- summary: {summary}
+
+待映射字段:
+- api_field_path: {api_field_path}
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+请遵循以下规则：
+1. 路径语义规则：
+   - 识别路径中的资源段，如 /orders/{order_id}/items 中，order_id 应优先映射到 orders 表
+   - 忽略动词段（create/update/batch/export等）
+   - 路径参数优先映射到最近的资源段
+
+2. 字段名匹配规则：
+   - 字段名相似度匹配
+   - 同义词匹配（如 usr → user, tel → phone 等）
+
+3. 主键优先规则：
+   - ID 字段优先映射到主键
+
+4. 给出理由 (如路径语义、字段名匹配、主键优先)
+
+5. 若无合适映射，返回空列表
+
+返回格式（JSON）：
+{{
+  "candidates": [
+    {{
+      "db_table": "...",
+      "db_column": "...",
+      "confidence": 0.86,
+      "reasons": ["path匹配","字段名相似"]
+    }}
+  ]
+}}
+"""
+        },
+
+        # 模块7扩展: 字段映射 - 批量字段映射推荐（用于处理多个字段的批量推荐）
+        "field_mapping_recommendation_batch": {
+            "system": "你是数据库字段映射专家，专门处理批量字段映射推荐任务。你需要同时分析多个API字段，为每个字段推荐最佳的数据库表字段映射。使用路径语义、字段名匹配、主键优先、上下文一致性等规则，并考虑字段之间的关联关系。",
+            "user": """
+请为以下多个API字段批量生成数据库字段映射推荐：
+
+数据库结构:
+{schema_snapshot}
+
+已有字段字典:
+{field_dictionary}
+
+待映射字段列表:
+{field_mappings}
+
+请为每个字段分析并生成映射推荐，遵循以下规则：
+
+1. 路径语义规则：
+   - 识别路径中的资源段，如 /orders/{order_id}/items 中，order_id 应优先映射到 orders 表
+   - 忽略动词段（create/update/batch/export等）
+   - 路径参数优先映射到最近的资源段
+   - 嵌套路径（如 path.order_id）应映射到主路径对应的表
+
+2. 字段名匹配规则：
+   - 精确匹配优先（如 order_id → orders.id）
+   - 字段名相似度匹配（如 product_name → products.name）
+   - 同义词映射（如 usr → user, tel → phone, addr → address 等）
+
+3. 主键优先规则：
+   - ID 字段优先映射到主键
+   - 外键字段（*_id）优先映射到对应表的主键
+
+4. 规则候选评估：
+   - 分析提供的 rule_candidates，利用规则引擎的初步结果
+   - 规则高评分（≥0.85）的候选应保持高置信度
+   - 规则低评分的候选需要重新评估和重新排序
+
+5. 上下文一致性：
+   - 同一API的多个字段应映射到相关联的表（如 order_id → orders.id, user_id → users.id）
+   - 避免矛盾映射（如一个字段的多个候选指向不相关的表）
+
+6. 批量优化：
+   - 利用批量信息进行模式识别
+   - 相似路径的字段应使用一致的映射策略
+
+返回格式（JSON）：
+{{
+  "field_mappings": [
+    {{
+      "field_name": "order_id",
+      "api_field_path": "body.order_id",
+      "candidates": [
+        {{
+          "db_table": "orders",
+          "db_column": "id",
+          "confidence": 0.92,
+          "reasons": ["路径语义匹配", "字段名精确匹配", "主键优先"]
+        }}
+      ]
+    }}
+  ]
+}}
+"""
         }
     }
     
@@ -453,7 +569,8 @@ class PromptManager:
         real_placeholders = ['method', 'path', 'summary', 'description', 'request_schema', 'response_schema',
                             'response_sample', 'project_name', 'tech_stack', 'database', 'test_types_config',
                             'old_definition', 'new_definition', 'diff_data', 'affected_cases', 'git_diff',
-                            'test_cases', 'error_message', 'logs', 'code', 'language', 'framework', 'input']
+                            'test_cases', 'error_message', 'logs', 'code', 'language', 'framework', 'input',
+                            'api_field_path', 'schema_snapshot', 'field_dictionary', 'field_mappings']
 
         # 使用简单的字符串替换来替换真正的占位符
         # 只替换已定义的占位符，避免替换示例代码中的 {}

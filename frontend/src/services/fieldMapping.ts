@@ -215,3 +215,76 @@ export const getPendingFieldMappings = async (params?: {
 }): Promise<ApiResponse<PendingFieldMappingResponse>> => {
   return api.get('/field-mappings/pending', { params })
 }
+
+// 异步任务相关类型
+export interface AsyncTask {
+  id: number
+  project_id: number
+  user_id?: number
+  task_type: string
+  task_params?: Record<string, any>
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
+  progress: number
+  progress_message?: string
+  current_stage?: string
+  stages?: Array<{
+    name: string
+    status: string
+    progress: number
+  }>
+  statistics?: Record<string, any>
+  result?: any
+  error_message?: string
+  started_at?: string
+  finished_at?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface AsyncTaskCreateRequest {
+  include_paths?: boolean
+  include_query?: boolean
+  include_body?: boolean
+  use_ai?: boolean
+  ai_config?: {
+    high_priority_enabled?: boolean
+    medium_priority_enabled?: boolean
+    low_priority_enabled?: boolean
+  }
+}
+
+export interface AsyncTaskCreateResponse {
+  task_id: number
+  status: string
+  estimated_duration?: number
+  estimated_fields?: number
+}
+
+// 异步任务相关 API
+export const createFieldMappingSuggestTask = async (
+  data: AsyncTaskCreateRequest,
+  params?: { project_id?: number; version_id?: number }
+): Promise<ApiResponse<AsyncTaskCreateResponse>> => {
+  return api.post('/field-mappings/suggest-task', data, { params })
+}
+
+export const getAsyncTask = async (
+  taskId: number
+): Promise<ApiResponse<AsyncTask>> => {
+  return api.get(`/async-tasks/${taskId}`)
+}
+
+export const cancelAsyncTask = async (
+  taskId: number
+): Promise<ApiResponse<{ success: boolean }>> => {
+  return api.post(`/async-tasks/${taskId}/cancel`)
+}
+
+export const getFieldMappingSuggestions = async (
+  taskId: number,
+  params?: { page?: number; page_size?: number }
+): Promise<ApiResponse<FieldMappingSuggestionResponse>> => {
+  return api.get('/field-mappings/suggestions', { 
+    params: { task_id: taskId, ...params } 
+  })
+}
