@@ -121,6 +121,26 @@ async def import_db_schema(
     db.commit()
     db.refresh(schema)
 
+    # 异步构建向量索引
+    try:
+        from app.utils.vector_index import VectorIndexManager
+        import concurrent.futures
+        
+        def build_vector_index():
+            """构建向量索引的后台任务"""
+            try:
+                vector_manager = VectorIndexManager()
+                vector_manager.build_index(request.schema_snapshot)
+                logger.info(f"[{trace_id}] 向量索引构建完成: schema_id={schema.id}")
+            except Exception as e:
+                logger.error(f"[{trace_id}] 向量索引构建失败: {str(e)}")
+        
+        # 使用线程池异步构建向量索引，避免阻塞主流程
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            executor.submit(build_vector_index)
+    except Exception as e:
+        logger.warning(f"[{trace_id}] 启动向量索引构建失败（不影响主流程）: {str(e)}")
+
     return ApiResponse(
         code=0,
         message="导入成功",
@@ -277,6 +297,26 @@ async def import_sql_schema(
         db.refresh(schema)
 
         logger.info(f"[{trace_id}] SQL文件解析并保存成功: id={schema.id}, table_count={len(schema_snapshot.get('tables', []))}")
+
+        # 异步构建向量索引
+        try:
+            from app.utils.vector_index import VectorIndexManager
+            import concurrent.futures
+            
+            def build_vector_index():
+                """构建向量索引的后台任务"""
+                try:
+                    vector_manager = VectorIndexManager()
+                    vector_manager.build_index(schema_snapshot)
+                    logger.info(f"[{trace_id}] 向量索引构建完成: schema_id={schema.id}")
+                except Exception as e:
+                    logger.error(f"[{trace_id}] 向量索引构建失败: {str(e)}")
+            
+            # 使用线程池异步构建向量索引，避免阻塞主流程
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                executor.submit(build_vector_index)
+        except Exception as e:
+            logger.warning(f"[{trace_id}] 启动向量索引构建失败（不影响主流程）: {str(e)}")
 
         return ApiResponse(
             code=0,

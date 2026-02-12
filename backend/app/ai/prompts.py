@@ -519,6 +519,29 @@ API 信息：
   ]
 }}
 """
+        },
+
+        # 模块7扩展: 字段映射 - RAG 精准匹配（用于低置信度字段）
+        "field_mapping_rag": {
+            "system": "你是资深数据库架构师，擅长分析字段语义和上下文，从候选列表中选择最正确的映射关系。",
+            "user": """
+角色: 资深数据库架构师
+任务: 将 API 字段映射到数据库列
+
+[上下文]
+- 当前接口推测主表: {gravity_table} (置信度高)
+- 待映射字段: {api_field_name}
+
+[候选列表 - 已按相关性排序]
+{candidates_text}
+
+[要求]
+请分析字段语义和主表上下文。
+- 如果候选 1-{num_candidates} 中有正确的，请返回其序号。
+- 优先选择归属于 '{gravity_table}' 的列。
+- 如果都不匹配，返回 None。
+只返回 JSON 格式: {{"selected_index": 0, "reason": "..."}}
+"""
         }
     }
     
@@ -570,7 +593,8 @@ API 信息：
                             'response_sample', 'project_name', 'tech_stack', 'database', 'test_types_config',
                             'old_definition', 'new_definition', 'diff_data', 'affected_cases', 'git_diff',
                             'test_cases', 'error_message', 'logs', 'code', 'language', 'framework', 'input',
-                            'api_field_path', 'schema_snapshot', 'field_dictionary', 'field_mappings']
+                            'api_field_path', 'schema_snapshot', 'field_dictionary', 'field_mappings',
+                            'gravity_table', 'api_field_name', 'candidates_text', 'num_candidates']
 
         # 使用简单的字符串替换来替换真正的占位符
         # 只替换已定义的占位符，避免替换示例代码中的 {}

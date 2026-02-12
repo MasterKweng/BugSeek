@@ -1,6 +1,7 @@
 """字段映射处理器（异步任务处理）"""
 import asyncio
 import concurrent.futures
+import json
 import logging
 import re
 from typing import Dict, List, Any, Optional, Callable, Tuple
@@ -12,10 +13,10 @@ from sqlalchemy.orm import Session
 from app.db.base import ApiDefinition, DbSchemaVersion, ApiFieldMapping, User, AsyncTask
 from app.api.v1.field_mappings import (
     _extract_api_fields,
-    _generate_mapping_candidates,
     FieldMappingCandidate,
     FieldMappingSuggestion
 )
+from app.utils.vector_index import get_vector_manager
 from app.core.trace import get_trace_id
 from app.ai.service import AIService
 from app.field_mapping.constants import (
@@ -29,6 +30,64 @@ from app.field_mapping.constants import (
 from app.field_mapping.exceptions import TaskCancelledException
 
 logger = logging.getLogger(__name__)
+
+
+def parse_json_safely(text: str) -> Optional[Dict]:
+    """
+    安全解析 LLM 返回的 JSON
+    
+    支持多种格式:
+    1. 标准 JSON: {"key": "value"}
+    2. Markdown 代码块: ```json {...}```
+    3. 带废话文本: Here is result: {...}
+    4. 不完整 JSON 的尝试性解析
+    
+    Returns:
+        解析后的字典，失败返回 None
+    """
+    if not text:
+        return None
+    
+    # 1. 尝试直接解析
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    
+    # 2. 提取 Markdown 代码块 ```json ... ```
+    match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(1).strip())
+        except json.JSONDecodeError:
+            pass
+    
+    # 3. 提取代码块 ``` ... ``` (无 json 标记)
+    match = re.search(r"```\s*(.*?)\s*```", text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(1).strip())
+        except json.JSONDecodeError:
+            pass
+    
+    # 4. 提取第一个 { ... } 对象
+    match = re.search(r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            pass
+    
+    # 5. 提取第一个 [ ... ] 数组
+    match = re.search(r"\[[^\[\]]*(?:\[[^\[\]]*\][^\[\]]*)*\]", text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            pass
+    
+    logger.warning(f"[{get_trace_id()}] 无法解析 AI 返回结果: {text[:200]}...")
+    return None
 
 
 @dataclass
@@ -886,7 +945,7 @@ class FieldMappingProcessor:
         batch_idx: int = 0
     ) -> Dict[str, List[FieldMappingCandidate]]:
         """
-        异步处理一批字段的规则评分
+        异步处理一批字段的规则评分（使用向量搜索 + 重心算法）
         
         Returns:
             评分结果: {field_name: [candidates]}
@@ -894,64 +953,69 @@ class FieldMappingProcessor:
         logger.info(f"[{self.trace_id}] 开始处理批次{batch_idx}: {len(batch)}个字段")
         results = {}
         
-        for field_name, field_info in batch:
-            try:
-                # 从第一个出现该字段的API获取上下文
-                first_api = field_info.apis[0]
-
-                # 从 task_params 中获取 version_id
-                version_id = self.task.task_params.get("version_id") if self.task.task_params else None
-
-                # 生成候选映射（批处理阶段禁用AI，只使用规则评分）
-                candidates = _generate_mapping_candidates(
-                    self.db,
-                    {"project_id": self.task.project_id, "version_id": version_id},
-                    field_info.field_path,
-                    first_api['method'],
-                    first_api['path'],
-                    db_schema,
-                    use_ai=False  # 批处理阶段禁用AI调用
-                )
-                
+        try:
+            # 提取所有字段路径
+            api_fields = [field_info.field_path for _, field_info in batch]
+            
+            # 使用向量搜索批量生成候选（禁用 AI 兜底，阶段2只做规则评分）
+            vector_manager = get_vector_manager()
+            vector_results = await vector_manager.batch_search_with_gravity(
+                api_fields=api_fields,
+                top_k=20,
+                use_ai_fallback=False  # 阶段2禁用 AI，阶段4才用
+            )
+            
+            # 构建结果
+            for field_name, field_info in batch:
+                field_path = field_info.field_path
+                candidates = vector_results.get("candidates", {}).get(field_path, [])
                 results[field_name] = candidates
-            except Exception as e:
-                logger.error(f"[{self.trace_id}] 字段{field_name}处理失败: {str(e)}")
+                
+        except Exception as e:
+            logger.error(f"[{self.trace_id}] 批次{batch_idx}向量搜索失败: {str(e)}")
+            # 降级处理：为所有字段返回空列表
+            for field_name, _ in batch:
                 results[field_name] = []
         
         logger.info(f"[{self.trace_id}] 批次{batch_idx}处理完成: {len(results)}个字段有结果")
         return results
 
-    def _process_rule_scoring_batch(
+    async def _process_rule_scoring_batch(
         self,
         batch: List[Tuple[str, FieldInfo]],
         db_schema: Dict[str, Any]
     ) -> Dict[str, List[FieldMappingCandidate]]:
         """
-        处理一批字段的规则评分
+        处理一批字段的规则评分（使用向量搜索 + 重心算法）
         
         Returns:
             评分结果: {field_name: [candidates]}
         """
         results = {}
         
-        for field_name, field_info in batch:
-            # 从第一个出现该字段的API获取上下文
-            first_api = field_info.apis[0]
-
-            # 从 task_params 中获取 version_id
-            version_id = self.task.task_params.get("version_id") if self.task.task_params else None
-
-            # 生成候选映射
-            candidates = _generate_mapping_candidates(
-                self.db,
-                {"project_id": self.task.project_id, "version_id": version_id},
-                field_info.field_path,
-                first_api['method'],
-                first_api['path'],
-                db_schema
+        try:
+            # 提取所有字段路径
+            api_fields = [field_info.field_path for _, field_info in batch]
+            
+            # 使用向量搜索批量生成候选（禁用 AI 兜底）
+            vector_manager = get_vector_manager()
+            vector_results = await vector_manager.batch_search_with_gravity(
+                api_fields=api_fields,
+                top_k=20,
+                use_ai_fallback=False  # 禁用 AI
             )
-
-            results[field_name] = candidates
+            
+            # 构建结果
+            for field_name, field_info in batch:
+                field_path = field_info.field_path
+                candidates = vector_results.get("candidates", {}).get(field_path, [])
+                results[field_name] = candidates
+                
+        except Exception as e:
+            logger.error(f"[{self.trace_id}] 批量向量搜索失败: {str(e)}")
+            # 降级处理：为所有字段返回空列表
+            for field_name, _ in batch:
+                results[field_name] = []
 
         return results
 
@@ -1343,31 +1407,14 @@ class FieldMappingProcessor:
 
         result_data = ai_result.get("result", {})
 
-        # 尝试解析JSON
-        import json
+        # 使用安全的 JSON 解析函数
         if isinstance(result_data, str):
             logger.debug(f"[{self.trace_id}] AI返回字符串结果（前500字符）: {result_data[:500]}")
-
-            # 尝试提取 markdown 代码块中的 JSON
-            json_content = result_data
-            if "```json" in result_data:
-                # 提取 ```json ... ``` 之间的内容
-                start = result_data.find("```json") + 7
-                end = result_data.find("```", start)
-                if end > start:
-                    json_content = result_data[start:end].strip()
-            elif "```" in result_data:
-                # 提取 ``` ... ``` 之间的内容
-                start = result_data.find("```") + 3
-                end = result_data.find("```", start)
-                if end > start:
-                    json_content = result_data[start:end].strip()
-
-            try:
-                result_data = json.loads(json_content)
-            except json.JSONDecodeError as e:
-                logger.error(f"[{self.trace_id}] AI返回格式错误，不是有效的JSON: {str(e)}")
-                logger.error(f"[{self.trace_id}] 原始内容: {result_data[:500]}")
+            result_data = parse_json_safely(result_data)
+            
+            if result_data is None:
+                logger.error(f"[{self.trace_id}] AI返回格式错误，无法解析为有效JSON")
+                logger.error(f"[{self.trace_id}] 原始内容: {ai_result.get('result', '')[:500]}")
                 return {req.field_name: req.rule_candidates for req in requests}
 
         # 检查解析后的数据格式

@@ -77,6 +77,7 @@ async def startup_event():
     - 事务范围最小化：不在事务内执行长时间运行的操作
     - 非核心异步化：Celery Worker 独立运行，不阻塞主服务
     - 日志规范：记录关键启动信息
+    - 冷启动防御：预热向量索引，避免首个用户请求卡顿
     """
     logger.info("应用启动事件执行中...")
     
@@ -90,6 +91,27 @@ async def startup_event():
         # 检查字段映射任务是否注册
         from app.celery.tasks import execute_field_mapping_task
         logger.info(f"字段映射任务已注册: {execute_field_mapping_task.name}")
+        
+        # 预热向量索引（冷启动防御）
+        logger.info("开始预热向量索引...")
+        from app.utils.vector_index import get_vector_manager
+        import asyncio
+        
+        # 使用后台任务预热，不阻塞启动
+        async def warmup_vector_index():
+            try:
+                vector_manager = get_vector_manager()
+                if vector_manager.column_vectors is None:
+                    logger.info("向量索引缓存不存在，开始构建...")
+                    vector_manager.build_index()
+                    logger.info("向量索引构建完成")
+                else:
+                    logger.info("向量索引已从缓存加载")
+            except Exception as e:
+                logger.warning(f"向量索引预热失败: {str(e)}")
+        
+        # 创建后台任务（不等待完成）
+        asyncio.create_task(warmup_vector_index())
         
         logger.info("应用启动事件执行完成")
         logger.info("提示: 请确保 Celery Worker 正在运行")

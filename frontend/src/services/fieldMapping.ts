@@ -25,6 +25,8 @@ export interface FieldMappingSuggestRequest {
   include_paths?: boolean
   include_query?: boolean
   include_body?: boolean
+  use_ai_fallback?: boolean  // 是否启用 AI 兜底（默认 true）
+  ai_confidence_threshold?: number  // AI 触发阈值（0.0-1.0，默认 0.7）
 }
 
 export interface FieldMappingCandidate {
@@ -32,6 +34,8 @@ export interface FieldMappingCandidate {
   db_column: string
   score: number
   reasons: string[]
+  ai_selected?: boolean  // 是否由 AI 选择
+  ai_reason?: string  // AI 选择原因
 }
 
 export interface FieldMappingSuggestion {
@@ -238,6 +242,7 @@ export interface AsyncTask {
     name: string
     status: string
     progress: number
+    description?: string | null
   }>
   statistics?: Record<string, any>
   result?: any
@@ -370,6 +375,7 @@ export interface AsyncTaskSummary {
     ai_enhanced?: number
   }
   result_count: number | null
+  error_message?: string
 }
 
 /**
@@ -653,4 +659,20 @@ export const deleteTaskCache = (taskId: number): void => {
   const suggestionsCacheKey = `suggestions_${taskId}`
   removeFromCache(taskCacheKey)
   removeFromCache(suggestionsCacheKey)
+}
+
+
+// ==================== 映射统计相关类型 ====================
+
+/**
+ * 映射统计信息
+ */
+export interface MappingStatistics {
+  total_fields: number  // 总字段数
+  gravity_table?: string  // 重心表
+  ai_fallback_count: number  // AI 兜底次数
+  high_confidence_count: number  // 高置信度（≥0.85）
+  medium_confidence_count: number  // 中等置信度（0.6-0.85）
+  low_confidence_count: number  // 低置信度（<0.6）
+  auto_confirmed_count?: number  // 自动确认数
 }

@@ -8,7 +8,6 @@ import {
   Modal, 
   message, 
   Spin, 
-  Tabs, 
   Descriptions,
   Badge,
   Checkbox,
@@ -23,18 +22,17 @@ import {
   Alert,
   List,
   Empty,
-  Result
+  Result,
+  Divider,
+  Slider
 } from 'antd';
 import { 
-  PlusOutlined, 
   CheckCircleOutlined, 
-  CloseCircleOutlined,
   PlayCircleOutlined,
   SyncOutlined,
   ClockCircleOutlined,
-  LoadingOutlined
+  WarningOutlined
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import { useProjectStore } from '../store/project';
 import * as fieldMappingService from '../services/fieldMapping';
 import { getDbSchemas } from '../services/dbSchema';
@@ -44,17 +42,11 @@ import type {
   FieldMappingBatchApplyItem,
   AsyncTask,
   AsyncTaskCreateRequest,
-  TaskProgress,
-  PageState,
-  AsyncTaskSummary
+  PageState
 } from '../services/fieldMapping';
-import type { FieldMapping } from '../types';
 import { FieldMappingStageProgress } from '../components/FieldMappingStageProgress';
 
-const { TabPane } = Tabs;
-
 const FieldMappingSuggestions: React.FC = () => {
-  const navigate = useNavigate();
   const { currentProject, currentVersion } = useProjectStore();
   
   // ==================== 页面状态管理 ====================
@@ -67,7 +59,7 @@ const FieldMappingSuggestions: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
-  const [selectedCandidates, setSelectedCandidates] = useState<Record<number, FieldMappingCandidate | null>>({});
+  const [selectedCandidates] = useState<Record<number, FieldMappingCandidate | null>>({});
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<FieldMappingSuggestion | null>(null);
   const [includePaths, setIncludePaths] = useState(true);
@@ -78,10 +70,10 @@ const FieldMappingSuggestions: React.FC = () => {
   const [taskModalVisible, setTaskModalVisible] = useState(false);
   const [progressModalVisible, setProgressModalVisible] = useState(false);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
-  const [useAi, setUseAi] = useState(true);
-  const [aiHighPriority, setAiHighPriority] = useState(true);
-  const [aiMediumPriority, setAiMediumPriority] = useState(true);
-  const [aiLowPriority, setAiLowPriority] = useState(false);
+  const [useAi] = useState(true);
+  const [aiHighPriority] = useState(true);
+  const [aiMediumPriority] = useState(true);
+  const [aiLowPriority] = useState(false);
   
   // ==================== 轮询优化相关状态 ====================
   const [isPageVisible, setIsPageVisible] = useState(true);
@@ -99,6 +91,13 @@ const FieldMappingSuggestions: React.FC = () => {
   
   // ==================== 数据结构状态 ====================
   const [schemaList, setSchemaList] = useState<any[]>([]);
+  
+  // ==================== 新增：算法配置状态 ====================
+  const [useAiFallback, setUseAiFallback] = useState(true);  // 是否启用 AI 兜底
+  const [aiConfidenceThreshold, setAiConfidenceThreshold] = useState(0.7);  // AI 触发阈值
+  
+  // ==================== 新增：统计信息状态 ====================
+  const [mappingStatistics, setMappingStatistics] = useState<fieldMappingService.MappingStatistics | null>(null);
   
   // 高置信度阈值
   const HIGH_CONFIDENCE_THRESHOLD = 0.85;
@@ -333,14 +332,28 @@ const FieldMappingSuggestions: React.FC = () => {
 
     setLoading(true);
     try {
+      const request: fieldMappingService.FieldMappingSuggestRequest = {
+        include_paths: includePaths,
+        include_query: includeQuery,
+        include_body: includeBody,
+        use_ai_fallback: useAiFallback,
+        ai_confidence_threshold: aiConfidenceThreshold
+      };
+      
       const response = await fieldMappingService.suggestFieldMappings(
-        { include_paths: includePaths, include_query: includeQuery, include_body: includeBody },
+        request,
         { project_id: currentProject.id, version_id: currentVersion.id }
       );
       
       if (response.code === 0) {
-        setSuggestions(response.data?.items || []);
-        message.success(`生成了 ${response.data?.items?.length || 0} 个映射建议`);
+        const items = response.data?.items || [];
+        setSuggestions(items);
+        
+        // 计算统计信息
+        const stats = calculateStatistics(items);
+        setMappingStatistics(stats);
+        
+        message.success(`生成了 ${items.length} 个映射建议`);
       } else {
         message.error(response.message || '获取建议失败');
       }
@@ -350,6 +363,45 @@ const FieldMappingSuggestions: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * 计算映射统计信息
+   */
+  const calculateStatistics = (suggestions: FieldMappingSuggestion[]): fieldMappingService.MappingStatistics => {
+    let highConfidenceCount = 0;
+    let mediumConfidenceCount = 0;
+    let lowConfidenceCount = 0;
+    let aiFallbackCount = 0;
+    let autoConfirmedCount = 0;
+    
+    suggestions.forEach(suggestion => {
+      suggestion.candidates.forEach(candidate => {
+        // 检查是否 AI 选择
+        if (candidate.ai_selected) {
+          aiFallbackCount++;
+        }
+        
+        // 统计置信度分布
+        if (candidate.score >= 0.85) {
+          highConfidenceCount++;
+          autoConfirmedCount++;
+        } else if (candidate.score >= 0.60) {
+          mediumConfidenceCount++;
+        } else {
+          lowConfidenceCount++;
+        }
+      });
+    });
+    
+    return {
+      total_fields: suggestions.length,
+      ai_fallback_count: aiFallbackCount,
+      high_confidence_count: highConfidenceCount,
+      medium_confidence_count: mediumConfidenceCount,
+      low_confidence_count: lowConfidenceCount,
+      auto_confirmed_count: autoConfirmedCount
+    };
   };
 
   // 创建异步任务
@@ -559,53 +611,6 @@ const FieldMappingSuggestions: React.FC = () => {
     });
   };
 
-  /**
-   * 任务重试处理
-   */
-  const handleRetryTask = async () => {
-    if (!currentTask || !currentTask.retryable_stages || currentTask.retryable_stages.length === 0) {
-      message.warning('当前任务不支持重试');
-      return;
-    }
-
-    const stageNum = currentTask.retryable_stages[0];
-
-    Modal.confirm({
-      title: '重试任务',
-      content: `将从阶段 ${stageNum} 开始重新执行，是否继续？`,
-      onOk: async () => {
-        try {
-          const response = await fieldMappingService.retryStage(taskId, stageNum);
-
-          if (response.code === 0) {
-            message.success('任务已重新提交');
-            setPageState('RUNNING');
-            startPolling(taskId);
-          } else {
-            message.error(response.message || '重试任务失败');
-          }
-        } catch (error: any) {
-          console.error('重试任务失败:', error);
-          message.error(error.message || '重试任务失败');
-        }
-      }
-    });
-  };
-
-  // 开始轮询任务进度（保留旧函数用于兼容）
-  const startPollingOld = (taskId: number) => {
-    // 先获取一次任务信息
-    fetchTaskProgress(taskId);
-    
-    // 每3秒轮询一次
-    const interval = setInterval(() => {
-      fetchTaskProgress(taskId);
-    }, 3000);
-    
-    setPollingInterval(interval);
-    setProgressModalVisible(true);
-  };
-
   // 获取任务进度（保留旧函数用于兼容）
   const fetchTaskProgress = async (taskId: number) => {
     try {
@@ -752,7 +757,7 @@ const FieldMappingSuggestions: React.FC = () => {
       title: 'API',
       dataIndex: 'definition_path',
       key: 'api',
-      render: (text: string, record: FieldMappingSuggestion) => (
+      render: (_text: string, record: FieldMappingSuggestion) => (
         <div>
           <Tag color={getMethodColor(record.definition_method)}>
             {record.definition_method}
@@ -778,6 +783,14 @@ const FieldMappingSuggestions: React.FC = () => {
               <div style={{ fontSize: '12px', color: '#999' }}>
                 置信度: {(topCandidate.score * 100).toFixed(1)}%
               </div>
+              {/* 新增：AI 标识 */}
+              {topCandidate.ai_selected && (
+                <div style={{ marginTop: 4 }}>
+                  <Tag color="purple" icon={<SyncOutlined />} style={{ fontSize: 11 }}>
+                    AI 确认
+                  </Tag>
+                </div>
+              )}
             </div>
           );
         }
@@ -815,6 +828,12 @@ const FieldMappingSuggestions: React.FC = () => {
               {topCandidate.reasons.map((reason, idx) => (
                 <Tag key={idx} color="blue">{reason}</Tag>
               ))}
+              {/* 新增：AI 选择原因 */}
+              {topCandidate.ai_reason && (
+                <Tag key="ai-reason" color="purple" icon={<SyncOutlined />}>
+                  {topCandidate.ai_reason}
+                </Tag>
+              )}
             </Space>
           );
         }
@@ -936,6 +955,69 @@ const FieldMappingSuggestions: React.FC = () => {
           </div>
         )}
 
+        {/* ==================== 新增：统计信息卡片 ==================== */}
+        {mappingStatistics && suggestions.length > 0 && (
+          <Row gutter={16} style={{ marginBottom: 16 }}>
+            <Col span={6}>
+              <Card size="small" hoverable>
+                <Statistic
+                  title="总字段数"
+                  value={mappingStatistics.total_fields}
+                  prefix={<ClockCircleOutlined />}
+                />
+              </Card>
+            </Col>
+            
+            <Col span={6}>
+              <Card size="small" hoverable>
+                <Statistic
+                  title="高置信度"
+                  value={mappingStatistics.high_confidence_count}
+                  valueStyle={{ color: '#3f8600' }}
+                  prefix={<CheckCircleOutlined />}
+                  suffix={
+                    <Tag color="green" style={{ marginLeft: 8 }}>
+                      ≥85%
+                    </Tag>
+                  }
+                />
+              </Card>
+            </Col>
+            
+            <Col span={6}>
+              <Card size="small" hoverable>
+                <Statistic
+                  title="AI 兜底"
+                  value={mappingStatistics.ai_fallback_count}
+                  valueStyle={{ color: '#722ed1' }}
+                  prefix={<SyncOutlined />}
+                />
+                {mappingStatistics.gravity_table && (
+                  <div style={{ fontSize: 12, color: '#999', marginTop: 8 }}>
+                    重心表: {mappingStatistics.gravity_table}
+                  </div>
+                )}
+              </Card>
+            </Col>
+            
+            <Col span={6}>
+              <Card size="small" hoverable>
+                <Statistic
+                  title="低置信度"
+                  value={mappingStatistics.low_confidence_count}
+                  valueStyle={{ color: '#ff4d4f' }}
+                  prefix={<WarningOutlined />}
+                  suffix={
+                    <Tag color="red" style={{ marginLeft: 8 }}>
+                      &lt;60%
+                    </Tag>
+                  }
+                />
+              </Card>
+            </Col>
+          </Row>
+        )}
+
         {pageState === 'IDLE' && suggestions.length === 0 && !loading ? (
           <Result
             icon={<Empty description="" />}
@@ -985,10 +1067,10 @@ const FieldMappingSuggestions: React.FC = () => {
                   <Steps 
                     current={getCurrentStageIndex()} 
                     direction="vertical"
-                    items={currentTask.stages?.map((stage, index) => ({
+                    items={currentTask.stages?.map((stage) => ({
                       title: stage.name,
                       status: getStepStatus(stage.status),
-                      description: (
+                      subTitle: (
                         <div>
                           {stage.description && <div style={{ marginBottom: 4 }}>{stage.description}</div>}
                           {stage.status === 'running' && <Spin size="small" />}
@@ -1046,7 +1128,7 @@ const FieldMappingSuggestions: React.FC = () => {
               <Progress 
                 percent={100} 
                 status="success"
-                format={(percent) => `100% - ${currentTask.progress_message || '任务已完成'}`}
+                format={() => `100% - ${currentTask.progress_message || '任务已完成'}`}
               />
             </div>
 
@@ -1055,7 +1137,7 @@ const FieldMappingSuggestions: React.FC = () => {
               <Steps 
                 current={(currentTask.stages?.length || 0)}
                 direction="vertical"
-                items={currentTask.stages?.map((stage, index) => ({
+                items={currentTask.stages?.map((stage) => ({
                   title: stage.name,
                   status: 'finish',
                   description: (
@@ -1171,15 +1253,6 @@ const FieldMappingSuggestions: React.FC = () => {
         width={600}
       >
         <Form layout="vertical">
-          <Form.Item label="使用AI推荐">
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Switch checked={useAi} onChange={setUseAi} />
-              <span style={{ fontSize: 12, color: '#999' }}>
-                启用AI将提高推荐准确率，但会增加处理时间约10分钟
-              </span>
-            </Space>
-          </Form.Item>
-
           <Form.Item label="包含参数类型">
             <Space direction="vertical">
               <Checkbox checked={includePaths} onChange={e => setIncludePaths(e.target.checked)}>
@@ -1194,23 +1267,51 @@ const FieldMappingSuggestions: React.FC = () => {
             </Space>
           </Form.Item>
 
-          <Form.Item label="AI优先级配置">
+          {/* ==================== 新增：算法配置 ==================== */}
+          <Divider>算法配置</Divider>
+
+          <Form.Item label="AI 兜底">
             <Space direction="vertical" style={{ width: '100%' }}>
-              <Checkbox checked={aiHighPriority} onChange={e => setAiHighPriority(e.target.checked)}>
-                高优先级（ID字段、语义冲突）
-              </Checkbox>
-              <Checkbox checked={aiMediumPriority} onChange={e => setAiMediumPriority(e.target.checked)}>
-                中优先级（中等置信度）
-              </Checkbox>
-              <Checkbox checked={aiLowPriority} onChange={e => setAiLowPriority(e.target.checked)}>
-                低优先级（通用字段）
-              </Checkbox>
+              <Switch 
+                checked={useAiFallback} 
+                onChange={setUseAiFallback}
+                checkedChildren="启用"
+                unCheckedChildren="禁用"
+              />
+              <div style={{ fontSize: 12, color: '#999' }}>
+                对低置信度字段使用 AI 辅助决策
+              </div>
             </Space>
           </Form.Item>
 
+          <Form.Item label={`AI 触发阈值: ${aiConfidenceThreshold}`}>
+            <Slider
+              min={0.5}
+              max={0.9}
+              step={0.05}
+              value={aiConfidenceThreshold}
+              onChange={setAiConfidenceThreshold}
+              marks={{
+                0.5: '0.5',
+                0.7: '0.7',
+                0.9: '0.9'
+              }}
+              disabled={!useAiFallback}
+            />
+            <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
+              置信度低于此值时触发 AI（推荐 0.7）
+            </div>
+          </Form.Item>
+
           <Alert
-            message="预计处理时间"
-            description={useAi ? "约10分钟，处理约1000个字段" : "约30秒，处理约1000个字段"}
+            message="算法说明"
+            description={
+              <div>
+                <div>• 重心算法：通过分析字段上下文确定主表，提高跨表同名词映射准确性</div>
+                <div>• AI 兜底：对低置信度字段（{aiConfidenceThreshold}）使用 AI 辅助决策</div>
+                <div>• 推荐配置：启用重心算法 + AI 兜底 + 阈值 0.7</div>
+              </div>
+            }
             type="info"
             showIcon
           />
@@ -1268,7 +1369,7 @@ const FieldMappingSuggestions: React.FC = () => {
               <FieldMappingStageProgress
                 taskId={currentTask.id}
                 progress={currentTask as any}
-                onRetry={async (stageNum) => {
+                onRetry={async () => {
                   // 重试后重新轮询任务进度
                   await fetchTaskProgress(currentTask.id);
                 }}
@@ -1430,7 +1531,7 @@ const FieldMappingSuggestions: React.FC = () => {
           body: { paddingBottom: 80 }
         }}
         extra={
-          <Button onClick={fetchHistoryList} icon={<SyncOutlined />}>
+          <Button onClick={() => fetchHistoryList()} icon={<SyncOutlined />}>
             刷新
           </Button>
         }

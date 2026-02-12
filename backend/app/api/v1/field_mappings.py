@@ -60,6 +60,8 @@ class FieldMappingSuggestRequest(BaseModel):
     include_paths: Optional[bool] = Field(True, description="是否包含路径参数")
     include_query: Optional[bool] = Field(True, description="是否包含查询参数")
     include_body: Optional[bool] = Field(True, description="是否包含请求体参数")
+    use_ai_fallback: Optional[bool] = Field(True, description="是否启用 AI 兜底（推荐开启）")
+    ai_confidence_threshold: Optional[float] = Field(0.7, description="AI 触发阈值（0.0-1.0），低于此值时触发 AI", ge=0.0, le=1.0)
 
 
 class FieldMappingCandidate(BaseModel):
@@ -149,260 +151,106 @@ def _get_db_schema_for_project(db: Session, project_id: int, version_id: int) ->
         return {}
 
 
-def _generate_mapping_candidates(
+async def _generate_mapping_candidates_with_gravity(
     db: Session,
     ctx: Dict[str, int],
-    api_field_path: str,
+    api_fields: List[str],
     api_method: str,
     api_path: str,
     schema_snapshot: Dict[str, Any],
-    use_ai: bool = False
-) -> List[FieldMappingCandidate]:
+    use_ai_fallback: bool = True,
+    ai_confidence_threshold: float = 0.7
+) -> Dict[str, List[FieldMappingCandidate]]:
     """
-    生成字段映射候选列表
-    结合规则评分和AI推荐（如果AI服务可用）
-
+    使用重心算法批量生成字段映射候选 + AI 兜底（异步版本）
+    
+    适用于多个字段同时映射的场景，通过重心表算法提高准确性，
+    对低置信度字段启用 AI 兜底
+    
     Args:
-        use_ai: 是否使用AI推荐，默认False（批处理阶段禁用AI）
+        api_fields: API 字段路径列表（如 ["body.user_id", "body.order_no"]）
+        use_ai_fallback: 是否启用 AI 兜底（默认 True）
+        ai_confidence_threshold: AI 触发阈值（默认 0.7）
+        
+    Returns:
+        字典，键为字段路径，值为候选列表
     """
-    # 获取API字段名（去掉路径前缀，如 body., query., path.）
-    api_field_name = api_field_path.split('.')[-1]
-
-    # 获取数据库结构
-    db_schema = _get_db_schema_for_project(db, ctx["project_id"], ctx["version_id"])
-    logger.debug(f"生成映射候选: api_field={api_field_name}, db_schema={len(db_schema) if db_schema else 0}个表")
-
-    # 获取项目字段字典
-    from sqlalchemy import func
-    field_dict_query = db.query(ApiFieldMapping).filter(
-        ApiFieldMapping.project_id == ctx["project_id"],
-        ApiFieldMapping.status == "confirmed"
-    ).all()
+    # 提取字段名仅用于日志记录
+    field_names = [field.split('.')[-1] for field in api_fields]
     
-    field_dictionary = {}
-    for mapping in field_dict_query:
-        field_name = mapping.api_field_path.split('.')[-1]  # 获取字段名部分
-        key = field_name.lower()
+    # 使用向量索引管理器的批量搜索（带重心算法 + AI 兜底）
+    try:
+        from app.utils.vector_index import get_vector_manager
         
-        if key not in field_dictionary:
-            field_dictionary[key] = {
-                "field_name": field_name,
-                "db_table": mapping.db_table,
-                "db_column": mapping.db_column,
-                "count": 1
-            }
-        else:
-            field_dictionary[key]["count"] += 1
-    
-    # 首先使用规则评分生成候选
-    rule_candidates = []
-
-    if db_schema and isinstance(db_schema, dict):
-        # 处理两种格式的数据库结构：
-        # 1. 字典格式: {table_name: {columns: [...], ...}}
-        # 2. 列表格式: {tables: [{name: ..., columns: [...]}, ...]}
-
-        # 检查是否是列表格式（SQL解析器返回的格式）
-        if "tables" in db_schema and isinstance(db_schema["tables"], list):
-            # 使用列表格式
-            for table_info in db_schema["tables"]:
-                if isinstance(table_info, dict):
-                    table_name = table_info.get("name", "")
-                    columns = table_info.get("columns", [])
-                    for column_info in columns:
-                        if isinstance(column_info, dict):
-                            column_name = column_info.get("name", "")
-                            is_primary_key = column_info.get("primary_key", False)
-                            type_compatible = True
-
-                            scores = calculate_mapping_score(
-                                api_field=api_field_name,
-                                db_column=column_name,
-                                db_table=table_name,
-                                path=api_path,
-                                is_primary_key=is_primary_key,
-                                type_compatible=type_compatible
-                            )
-
-                            score = scores["total_score"]
-
-                            if score > 0.3:
-                                reasons = []
-                                if scores["field_score"] > 0.1:
-                                    reasons.append("字段名匹配")
-                                if scores["table_score"] > 0.1:
-                                    reasons.append("表名匹配")
-                                if scores["path_score"] > 0.05:
-                                    reasons.append("路径语义匹配")
-                                if scores["pk_score"] > 0.05:
-                                    reasons.append("主键优先")
-                                if scores["type_score"] > 0.02:
-                                    reasons.append("类型匹配")
-
-                                rule_candidates.append(FieldMappingCandidate(
-                                    db_table=table_name,
-                                    db_column=column_name,
-                                    score=score,
-                                    reasons=reasons
-                                ))
-        else:
-            # 使用字典格式（旧格式）
-            for table_name, table_info in db_schema.items():
-                if isinstance(table_info, dict) and "columns" in table_info:
-                    for column_info in table_info["columns"]:
-                        if isinstance(column_info, dict):
-                            column_name = column_info.get("name", "")
-
-                            # 计算映射评分
-                            is_primary_key = column_info.get("is_primary_key", False)
-                            type_compatible = True  # 简化处理
-
-                            scores = calculate_mapping_score(
-                                api_field=api_field_name,
-                                db_column=column_name,
-                                db_table=table_name,
-                                path=api_path,
-                                is_primary_key=is_primary_key,
-                                type_compatible=type_compatible
-                            )
-
-                            score = scores["total_score"]
-
-                            # 只保留分数大于0.3的候选
-                            if score > 0.3:
-                                reasons = []
-                                if scores["field_score"] > 0.1:
-                                    reasons.append("字段名匹配")
-                                if scores["table_score"] > 0.1:
-                                    reasons.append("表名匹配")
-                                if scores["path_score"] > 0.05:
-                                    reasons.append("路径语义匹配")
-                                if scores["pk_score"] > 0.05:
-                                    reasons.append("主键优先")
-                                if scores["type_score"] > 0.02:
-                                    reasons.append("类型匹配")
-
-                                rule_candidates.append(FieldMappingCandidate(
-                                    db_table=table_name,
-                                    db_column=column_name,
-                                    score=score,
-                                    reasons=reasons
-                                ))
-    
-    # 按分数降序排列
-    rule_candidates.sort(key=lambda x: x.score, reverse=True)
-    
-    # 只返回前10个规则评分候选，为AI推荐留出空间
-    final_candidates = rule_candidates[:10]
-    
-    # 只在明确启用AI时才调用AI（批处理阶段禁用）
-    if use_ai:
-        try:
-            # 检查AI服务是否可用并调用
-            from app.ai.service import AIService
+        # 使用单例获取函数，避免每次请求都重新加载模型
+        vector_manager = get_vector_manager()
+        
+        # 防御性检查：如果模型没加载成功，抛出异常触发回退
+        if vector_manager.column_vectors is None:
+            raise ValueError("Vector index not initialized")
+        
+        # 调用批量搜索，传入 AI 参数（异步）
+        result = await vector_manager.batch_search_with_gravity(
+            api_fields,  # 传递原始字段路径列表
+            top_k=20,
+            use_ai_fallback=use_ai_fallback,
+            ai_confidence_threshold=ai_confidence_threshold
+        )
+        
+        gravity_table = result.get("gravity_table")
+        vector_results = result.get("results", {})
+        ai_fallback_count = result.get("ai_fallback_count", 0)
+        
+        logger.info(
+            f"[{get_trace_id()}] 重心算法 + AI 兜底映射完成: "
+            f"字段数={len(api_fields)}, 重心表={gravity_table}, AI兜底={ai_fallback_count}"
+        )
+        
+        # 转换为 FieldMappingCandidate 格式
+        final_results = {}
+        for api_field in api_fields:  # 直接遍历 api_fields
+            candidates = vector_results.get(api_field, [])  # 使用 api_field 作为键
             
-            # 准备AI输入数据
-            ai_input = {
-                "api_field_path": api_field_path,
-                "method": api_method,
-                "path": api_path,
-                "summary": "",  # 在这里可以添加API摘要
-                "schema_snapshot": db_schema,
-                "field_dictionary": field_dictionary
-            }
-            
-            # 创建AI服务实例
-            ai_service = AIService()
-            
-            # 使用现有事件循环调用AI服务（避免创建新的事件循环）
-            import asyncio
-            try:
-                # 尝试获取当前事件循环
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    # 如果事件循环正在运行，使用create_task
-                    import concurrent.futures
-                    with concurrent.futures.ThreadPoolExecutor() as executor:
-                        future = executor.submit(
-                            asyncio.run,
-                            ai_service.execute(
-                                task_type="field_mapping_recommendation",
-                                project_id=ctx["project_id"],
-                                input_data=ai_input
-                            )
-                        )
-                        ai_result = future.result(timeout=30)  # 设置30秒超时
-                else:
-                    # 如果事件循环未运行，直接使用asyncio.run
-                    ai_result = asyncio.run(
-                        ai_service.execute(
-                            task_type="field_mapping_recommendation",
-                            project_id=ctx["project_id"],
-                            input_data=ai_input
-                        )
-                    )
-            except RuntimeError:
-                # 如果获取事件循环失败，回退到线程池执行
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(
-                        asyncio.run,
-                        ai_service.execute(
-                            task_type="field_mapping_recommendation",
-                            project_id=ctx["project_id"],
-                            input_data=ai_input
-                        )
-                    )
-                    ai_result = future.result(timeout=30)  # 设置30秒超时
-            
-            ai_candidates = []
-            if ai_result.get("success"):
-                result_data = ai_result.get("result")
-                if isinstance(result_data, str):
-                    try:
-                        result_data = json.loads(result_data)
-                    except json.JSONDecodeError:
-                        logger.warning(f"AI结果JSON解析失败: {result_data[:200]}...")
-                        result_data = {}
+            # 转换格式并添加原因
+            field_candidates = []
+            for cand in candidates:
+                final_score = cand.get("final_score", cand.get("score", 0.0))
+                reasons = cand.get("reasons", [])
                 
-                if isinstance(result_data, dict) and "candidates" in result_data:
-                    for candidate in result_data["candidates"]:
-                        if isinstance(candidate, dict):
-                            ai_candidates.append(FieldMappingCandidate(
-                                db_table=candidate.get("db_table", ""),
-                                db_column=candidate.get("db_column", ""),
-                                score=candidate.get("confidence", 0.0),
-                                reasons=candidate.get("reasons", [])
-                            ))
+                # 如果没有原因，添加默认原因
+                if not reasons:
+                    reasons = ["语义匹配"]
+                
+                # 标记 AI 选择的候选
+                if cand.get("ai_selected"):
+                    reasons.append("AI 确认选择")
+                
+                # 只保留分数大于0.3的候选
+                if final_score > 0.3:
+                    field_candidates.append(FieldMappingCandidate(
+                        db_table=cand.get("db_table", ""),
+                        db_column=cand.get("db_column", ""),
+                        score=final_score,
+                        reasons=reasons
+                    ))
             
-            # 合并AI候选和规则候选
-            all_candidates = final_candidates + ai_candidates
-            
-            # 按分数去重并排序
-            unique_candidates = {}
-            for candidate in all_candidates:
-                key = f"{candidate.db_table}.{candidate.db_column}"
-                if key not in unique_candidates or unique_candidates[key].score < candidate.score:
-                    unique_candidates[key] = candidate
-            
-            # 返回前10个最佳候选
-            result = sorted(unique_candidates.values(), key=lambda x: x.score, reverse=True)
-            return result[:10]
+            # 只返回前10个候选
+            final_results[api_field] = field_candidates[:10]
         
-        except ImportError as e:
-            # 如果AI模块不可用，只返回规则评分的候选
-            logger.warning(f"AI 模块导入失败: {str(e)}")
-            return final_candidates
-        except concurrent.futures.TimeoutError:
-            # 如果AI调用超时，只返回规则评分的候选
-            logger.warning(f"AI 服务调用超时，使用规则生成候选: api_field_path={api_field_path}")
-            return final_candidates
-        except Exception as e:
-            logger.warning(f"AI 服务调用异常，使用规则生成候选: api_field_path={api_field_path}, error={str(e)}")
-            return final_candidates
-    
-    # 如果不使用AI，直接返回规则评分结果
-    return final_candidates
+        return final_results
+        
+    except Exception as e:
+        logger.warning(f"[{get_trace_id()}] 重心算法不可用，回退到单独映射: {str(e)}")
+        
+        # 回退：逐个调用原有的 _generate_mapping_candidates
+        final_results = {}
+        for api_field in api_fields:
+            candidates = _generate_mapping_candidates(
+                db, ctx, api_field, api_method, api_path, schema_snapshot, use_ai=False
+            )
+            final_results[api_field] = candidates
+        
+        return final_results
 
 
 def _extract_api_fields(definition: ApiDefinition, include_paths: bool = True, include_query: bool = True, include_body: bool = True) -> List[str]:
@@ -570,7 +418,7 @@ async def suggest_field_mappings(
 
     logger.info(
         f"[{trace_id}] 生成字段映射建议: project_id={ctx['project_id']}, version_id={ctx['version_id']}, "
-        f"include_paths={request.include_paths}, include_query={request.include_query}, include_body={request.include_body}"
+        f"use_ai={request.use_ai_fallback}, ai_threshold={request.ai_confidence_threshold}"
     )
 
     # 获取项目中的所有API定义
@@ -580,6 +428,7 @@ async def suggest_field_mappings(
 
     suggestions = []
     
+    # 使用重心算法：按API批量处理
     for definition in definitions:
         # 提取API字段
         api_fields = _extract_api_fields(
@@ -589,18 +438,24 @@ async def suggest_field_mappings(
             request.include_body
         )
         
-        for api_field_path in api_fields:
-            # 生成候选映射
-            candidates = _generate_mapping_candidates(
-                db, 
-                ctx, 
-                api_field_path, 
-                definition.method, 
-                definition.path, 
-                definition.schema_snapshot or {}
-            )
-            
-            if candidates:  # 只有在有候选时才添加建议
+        if not api_fields:
+            continue
+        
+        # 使用重心算法批量生成候选（包含 AI 兜底）
+        gravity_results = await _generate_mapping_candidates_with_gravity(
+            db,
+            ctx,
+            api_fields,
+            definition.method,
+            definition.path,
+            definition.schema_snapshot or {},
+            use_ai_fallback=request.use_ai_fallback,
+            ai_confidence_threshold=request.ai_confidence_threshold
+        )
+        
+        # 构建建议列表
+        for api_field_path, candidates in gravity_results.items():
+            if candidates:
                 suggestion = FieldMappingSuggestion(
                     definition_id=definition.id,
                     definition_method=definition.method,
