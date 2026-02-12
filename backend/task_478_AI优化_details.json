@@ -1,0 +1,10 @@
+{
+  "stage_name": "AI优化",
+  "status": "completed",
+  "progress": 100,
+  "completed_at": "2026-02-12T15:20:09.867844",
+  "data": {
+    "ai_failed_fields": 0,
+    "ai_optimized_fields": 595
+  }
+}

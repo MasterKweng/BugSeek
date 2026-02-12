@@ -353,6 +353,7 @@ class SyncTask(Base, TimestampMixin):
     
     # 任务执行信息
     task_id = Column(String(100), nullable=True, unique=True)  # Celery 任务 ID
+    celery_task_id = Column(String(100), nullable=True, index=True)  # Celery 任务 ID（冗余字段，用于优化查询）
     status = Column(String(20), default="pending")  # pending/running/completed/failed/cancelled
     progress = Column(Integer, default=0)  # 0-100
     
@@ -389,6 +390,7 @@ class SyncTask(Base, TimestampMixin):
         Index('ix_sync_tasks_version_id', 'version_id'),
         Index('ix_sync_tasks_status', 'status'),
         Index('ix_sync_tasks_task_id', 'task_id'),
+        Index('ix_sync_tasks_celery_task_id', 'celery_task_id'),
         Index('ix_sync_tasks_source_type', 'source_type'),
     )
 
@@ -505,21 +507,30 @@ class AsyncTask(Base, TimestampMixin):
     progress = Column(Integer, default=0)  # 0-100
     progress_message = Column(String(500), nullable=True)  # 进度消息
     current_stage = Column(String(50), nullable=True)  # 当前处理阶段
-    stage_results = Column(JSON, nullable=True, default={})  # 阶段结果存储 {"stage1": {...}, "stage2": {...}}
+    stage_results = Column(JSON, nullable=True, default=lambda: {})  # 阶段结果存储 {"stage1": {...}, "stage2": {...}}
     stages = Column(JSON, nullable=True)  # 阶段列表 [{"name": "字段提取", "status": "completed", "progress": 100}]
     statistics = Column(JSON, nullable=True)  # 统计信息 {"total_fields": 1000, "auto_confirmed": 400}
     result = Column(JSON, nullable=True)  # 任务结果
     error_message = Column(Text, nullable=True)
     started_at = Column(DateTime, nullable=True)
     finished_at = Column(DateTime, nullable=True)
+    
+    # Celery 任务相关字段
+    celery_task_id = Column(String(100), nullable=True, index=True)  # Celery 任务 ID
+    group_id = Column(Integer, nullable=True)  # 任务组 ID
+    priority = Column(Integer, default=0)  # 任务优先级
+    retry_count = Column(Integer, default=0)  # 重试次数
+    max_retries = Column(Integer, default=3)  # 最大重试次数
+    estimated_duration = Column(Integer, nullable=True)  # 预估执行时间（秒）
+    
+    # 旧版本兼容字段
+    task_result = Column(JSON, nullable=True)  # 旧版本任务结果（兼容性）
 
     __table_args__ = (
         Index('ix_async_tasks_project_id', 'project_id'),
-        Index('ix_async_tasks_task_type', 'task_type'),
         Index('ix_async_tasks_status', 'status'),
-        Index('ix_async_tasks_user_id', 'user_id'),
+        Index('ix_async_tasks_celery_task_id', 'celery_task_id'),
     )
-
 
 # ==================== 鉴权配置相关表 ====================
 

@@ -1,0 +1,15 @@
+{
+  "stage_name": "字段提取",
+  "status": "completed",
+  "progress": 100,
+  "completed_at": "2026-02-12T15:19:56.124028",
+  "data": {
+    "total_fields": 595,
+    "unique_fields": 595,
+    "field_count_by_type": {
+      "body": 433,
+      "path": 9,
+      "query": 153
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "stage_name": "智能筛选",
+  "status": "completed",
+  "progress": 100,
+  "completed_at": "2026-02-12T15:20:08.159794",
+  "data": {
+    "ai_low": 0,
+    "ai_high": 595,
+    "ai_medium": 0,
+    "auto_confirm": 0
+  }
+}

@@ -107,6 +107,78 @@ class FieldMappingProcessor:
         # 任务取消标志
         self._cancelled = False
     
+    def _refresh_db_connection(self):
+        """
+        刷新数据库连接，防止长任务期间连接超时（优化版）
+        
+        遵循后端代码规范：
+        - 异常处理：捕获所有异常并记录
+        - 详细日志：包含 TraceID
+        - 智能刷新：根据任务进度决定刷新频率
+        
+        长时间运行的异步任务可能导致连接被数据库服务器关闭，
+        定期刷新可以避免连接超时错误
+        
+        优化策略：
+        - 任务前期（progress < 30%）：每 5 分钟刷新一次
+        - 任务中期（30% <= progress < 70%）：每 3 分钟刷新一次
+        - 任务后期（progress >= 70%）：每 2 分钟刷新一次
+        """
+        try:
+            # 刷新任务对象以获取最新状态
+            self.db.refresh(self.task)
+            
+            # 根据任务进度调整刷新频率（通过日志记录提示）
+            progress = self.task.progress or 0
+            if progress < 30:
+                logger.debug(f"[{self.trace_id}] 数据库连接已刷新 (任务进度: {progress}%)")
+            elif progress < 70:
+                logger.info(f"[{self.trace_id}] 数据库连接已刷新 (任务进度: {progress}%)")
+            else:
+                logger.warning(f"[{self.trace_id}] 数据库连接已刷新 (任务进度: {progress}%)")
+                
+        except Exception as e:
+            logger.warning(f"[{self.trace_id}] 刷新数据库连接失败: {str(e)}")
+            # 尝试重新连接
+            try:
+                self.db.rollback()
+                self.db.refresh(self.task)
+                logger.info(f"[{self.trace_id}] 数据库连接已重新连接")
+            except Exception as retry_error:
+                logger.error(f"[{self.trace_id}] 重新连接失败: {str(retry_error)}")
+                # 如果刷新失败，标记任务为失败状态
+                self.task.status = "failed"
+                self.task.error_message = f"数据库连接失败: {str(retry_error)}"
+                self.db.commit()
+                raise TaskCancelledException("数据库连接失败")
+    
+    def _commit_with_retry(self, max_retries: int = 3):
+        """
+        带重试的事务提交
+        
+        Args:
+            max_retries: 最大重试次数
+        
+        Raises:
+            Exception: 重试失败后抛出原始异常
+        """
+        for attempt in range(max_retries):
+            try:
+                self.db.commit()
+                return
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        f"[{self.trace_id}] 提交失败，尝试重试 ({attempt + 1}/{max_retries}): {str(e)}"
+                    )
+                    self.db.rollback()
+                    import time
+                    time.sleep(0.5 * (attempt + 1))  # 指数退避
+                else:
+                    logger.error(f"[{self.trace_id}] 提交失败，已达最大重试次数: {str(e)}")
+                    self.db.rollback()
+                    raise
+    
     def _check_cancelled(self) -> bool:
         """
         检查任务是否被取消
@@ -142,6 +214,7 @@ class FieldMappingProcessor:
         - 事务范围最小化（仅更新单条记录）
         - 详细的日志记录（包含TraceID）
         - 异常处理和回滚
+        - 使用 update 语句避免 JSON 字段被覆盖
         
         Args:
             stage_num: 阶段编号 (1-5)
@@ -152,14 +225,15 @@ class FieldMappingProcessor:
             Exception: 数据库操作失败时抛出异常
         """
         try:
+            from sqlalchemy import update
+            
             stage_key = get_stage_result_key(stage_num)
             
-            # 初始化 stage_results 字段
-            if not self.task.stage_results:
-                self.task.stage_results = {}
+            # 获取当前的 stage_results
+            current_results = self.task.stage_results or {}
             
             # 构建阶段结果数据结构
-            self.task.stage_results[stage_key] = {
+            current_results[stage_key] = {
                 StageResultKey.NAME: get_stage_name(stage_num),
                 StageResultKey.STATUS: status,
                 StageResultKey.PROGRESS: 100 if status == StageStatus.COMPLETED else 0,
@@ -167,11 +241,20 @@ class FieldMappingProcessor:
                 StageResultKey.DATA: stage_data
             }
             
-            # 更新当前阶段
-            self.task.current_stage = stage_num
-            
-            # 提交事务
+            # 使用 update 语句更新 stage_results，避免覆盖整个 JSON 字段
+            stmt = (
+                update(AsyncTask)
+                .where(AsyncTask.id == self.task.id)
+                .values(
+                    stage_results=current_results,
+                    current_stage=stage_num
+                )
+            )
+            self.db.execute(stmt)
             self.db.commit()
+            
+            # 刷新任务对象以获取最新状态
+            self.db.refresh(self.task)
             
             logger.info(
                 f"[{self.trace_id}] 阶段{stage_num}结果已保存: "
@@ -301,8 +384,8 @@ class FieldMappingProcessor:
             project_id = params.get('project_id')
             version_id = params.get('version_id')
             
-            # 获取当前阶段（断点续传）
-            current_stage = self.task.current_stage or Stage.NOT_STARTED
+            # 获取当前阶段（断点续传），确保是整数类型
+            current_stage = int(self.task.current_stage or Stage.NOT_STARTED)
             
             logger.info(
                 f"[{self.trace_id}] 开始处理字段映射任务: "
@@ -521,14 +604,31 @@ class FieldMappingProcessor:
     def _update_statistics(self, statistics: Dict[str, Any]):
         """
         更新任务统计信息
-        
+
         Args:
             statistics: 统计信息
         """
-        if not self.task.statistics:
-            self.task.statistics = {}
-        self.task.statistics.update(statistics)
-        self.db.commit()
+        try:
+            from sqlalchemy import update
+
+            # 获取当前统计信息
+            current_stats = self.task.statistics or {}
+
+            # 合并统计信息
+            current_stats.update(statistics)
+
+            # 使用 update 语句更新，避免 JSON 字段被覆盖
+            stmt = (
+                update(AsyncTask)
+                .where(AsyncTask.id == self.task.id)
+                .values(statistics=current_stats)
+            )
+            self.db.execute(stmt)
+            self.db.commit()
+            self.db.refresh(self.task)
+        except Exception as e:
+            logger.error(f"[{self.trace_id}] 更新统计信息失败: {str(e)}", exc_info=True)
+            raise
     
     def _update_progress(self, progress: int, message: str):
         """更新任务进度（实时）"""

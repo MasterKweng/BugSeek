@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from app.api.v1 import auth, projects, versions, environments, variables, context
 from app.api.v1 import api_definitions, api_cases, sync_tasks, version_snapshots, db_schemas, field_mappings, field_mappings_async
 from app.api.v1 import auth_config, auth_config_append
+from app.api.v1 import health
 from app.ai import router as ai_router
 
 api_router = APIRouter()
@@ -24,3 +25,5 @@ api_router.include_router(ai_router, tags=["AI服务"])
 # 鉴权配置路由
 api_router.include_router(auth_config.router, tags=["鉴权配置"])
 api_router.include_router(auth_config_append.router, tags=["鉴权配置V2"])
+# 健康检查路由
+api_router.include_router(health.router, tags=["系统监控"])

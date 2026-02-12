@@ -44,7 +44,9 @@ import type {
   FieldMappingBatchApplyItem,
   AsyncTask,
   AsyncTaskCreateRequest,
-  TaskProgress
+  TaskProgress,
+  PageState,
+  AsyncTaskSummary
 } from '../services/fieldMapping';
 import type { FieldMapping } from '../types';
 import { FieldMappingStageProgress } from '../components/FieldMappingStageProgress';
@@ -54,6 +56,13 @@ const { TabPane } = Tabs;
 const FieldMappingSuggestions: React.FC = () => {
   const navigate = useNavigate();
   const { currentProject, currentVersion } = useProjectStore();
+  
+  // ==================== 页面状态管理 ====================
+  const [pageState, setPageState] = useState<PageState>('IDLE');
+  const [taskId, setTaskId] = useState<number | null>(null);
+  const [currentTask, setCurrentTask] = useState<AsyncTask | null>(null);
+  
+  // ==================== 原有状态 ====================
   const [suggestions, setSuggestions] = useState<FieldMappingSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -65,17 +74,30 @@ const FieldMappingSuggestions: React.FC = () => {
   const [includeQuery, setIncludeQuery] = useState(true);
   const [includeBody, setIncludeBody] = useState(true);
   
-  // 异步任务相关状态
+  // ==================== 异步任务相关状态 ====================
   const [taskModalVisible, setTaskModalVisible] = useState(false);
   const [progressModalVisible, setProgressModalVisible] = useState(false);
-  const [currentTask, setCurrentTask] = useState<AsyncTask | null>(null);
   const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
   const [useAi, setUseAi] = useState(true);
   const [aiHighPriority, setAiHighPriority] = useState(true);
   const [aiMediumPriority, setAiMediumPriority] = useState(true);
   const [aiLowPriority, setAiLowPriority] = useState(false);
   
-  // 数据结构状态
+  // ==================== 轮询优化相关状态 ====================
+  const [isPageVisible, setIsPageVisible] = useState(true);
+  const [pollingStartTime, setPollingStartTime] = useState<number>(Date.now());
+  const POLLING_TIMEOUT = 60 * 60 * 1000; // 1小时超时
+  const pollingFailCount = React.useRef(0);
+  
+  // ==================== 历史记录相关状态 ====================
+  const [historyDrawerVisible, setHistoryDrawerVisible] = useState(false);
+  const [historyList, setHistoryList] = useState<fieldMappingService.AsyncTaskSummary[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyTotal, setHistoryTotal] = useState(0);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyPageSize, setHistoryPageSize] = useState(20);
+  
+  // ==================== 数据结构状态 ====================
   const [schemaList, setSchemaList] = useState<any[]>([]);
   
   // 高置信度阈值
@@ -107,6 +129,194 @@ const FieldMappingSuggestions: React.FC = () => {
       fetchSchemas();
     }
   }, [currentProject?.id, currentVersion?.id]);
+
+  // ==================== 页面可见性监听 ====================
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(!document.hidden);
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // ==================== 智能轮询逻辑 ====================
+  useEffect(() => {
+    // 只有在 RUNNING 状态且有 taskId 时才轮询
+    if (pageState !== 'RUNNING' || !taskId || !isPageVisible) {
+      return;
+    }
+
+    // 检查轮询超时
+    if (Date.now() - pollingStartTime > POLLING_TIMEOUT) {
+      message.warning('轮询超时，请手动刷新页面');
+      stopPolling();
+      return;
+    }
+
+    // 根据页面可见性调整轮询频率
+    const interval = isPageVisible ? 3000 : 30000;
+
+    const poll = async () => {
+      try {
+        const response = await fieldMappingService.getAsyncTask(taskId);
+        const task = response.data;
+
+        // 空值防御
+        if (!task) {
+          console.error('获取任务失败：返回数据为空');
+          return;
+        }
+
+        // 更新任务状态
+        setCurrentTask(task);
+
+        // 根据任务状态决定下一步
+        if (task.status === 'completed') {
+          setPageState('COMPLETED');
+          loadTaskResults(taskId);
+          stopPolling();
+        } else if (task.status === 'failed') {
+          setPageState('FAILED');
+          stopPolling();
+        } else if (task.status === 'cancelled') {
+          setPageState('IDLE');
+          stopPolling();
+        }
+        // running 状态继续轮询
+      } catch (error: any) {
+        console.error('轮询任务失败:', error);
+        pollingFailCount.current += 1;
+        
+        // 连续失败3次后停止轮询
+        if (pollingFailCount.current >= 3) {
+          message.error('获取任务状态失败，请手动刷新');
+          stopPolling();
+        }
+      }
+    };
+
+    const intervalId = setInterval(poll, interval);
+    setPollingInterval(intervalId);
+
+    return () => clearInterval(intervalId);
+  }, [taskId, pageState, isPageVisible]);
+
+  // ==================== 工具函数 ====================
+  
+  /**
+   * 开始轮询
+   */
+  const startPolling = (newTaskId: number) => {
+    setTaskId(newTaskId);
+    setPageState('RUNNING');
+    setPollingStartTime(Date.now());
+    setProgressModalVisible(false); // 关闭旧的 Modal，使用页面态渲染
+  };
+
+  /**
+   * 停止轮询
+   */
+  const stopPolling = () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+    }
+  };
+
+  /**
+   * 刷新任务状态
+   */
+  const handleRefreshTask = async () => {
+    if (!taskId) {
+      return;
+    }
+
+    try {
+      const response = await fieldMappingService.getAsyncTask(taskId);
+      if (response.code === 0 && response.data) {
+        setCurrentTask(response.data);
+        message.success('状态已刷新');
+      }
+    } catch (error: any) {
+      console.error('刷新任务失败:', error);
+      message.error('刷新失败');
+    }
+  };
+
+  /**
+   * 关闭进度 Modal
+   */
+  const handleCloseProgressModal = () => {
+    setProgressModalVisible(false);
+  };
+
+  /**
+   * 加载任务详情
+   */
+  const loadTaskDetails = async (taskId: number) => {
+    try {
+      const response = await fieldMappingService.getAsyncTask(taskId);
+      if (response.code === 0 && response.data) {
+        setCurrentTask(response.data);
+      }
+    } catch (error: any) {
+      console.error('加载任务详情失败:', error);
+      // 超时错误不中断流程，等待轮询自动重试
+      if (error.code === 'ECONNABORTED') {
+        console.warn('加载任务详情超时，等待轮询重试');
+      }
+    }
+  };
+
+  // 加载任务结果（使用缓存优化）
+  const loadTaskResults = async (taskId: number) => {
+    try {
+      // 使用带缓存的服务函数
+      const suggestions = await fieldMappingService.getFieldMappingSuggestionsCached(taskId);
+      setSuggestions(suggestions || []);
+    } catch (error: any) {
+      console.error('加载任务结果失败:', error);
+      message.error(error.message || '加载结果失败');
+    }
+  };
+
+  /**
+   * 获取当前阶段索引
+   */
+  const getCurrentStageIndex = () => {
+    if (!currentTask?.stages) return 0;
+    
+    for (let i = 0; i < currentTask.stages.length; i++) {
+      if (currentTask.stages[i].status === 'running') {
+        return i;
+      }
+    }
+    
+    // 如果没有正在运行的，检查是否有已完成的
+    for (let i = currentTask.stages.length - 1; i >= 0; i--) {
+      if (currentTask.stages[i].status === 'completed') {
+        return i + 1;
+      }
+    }
+    
+    return 0;
+  };
+
+  /**
+   * 获取步骤状态
+   */
+  const getStepStatus = (stageStatus: string) => {
+    const statusMap: Record<string, 'wait' | 'process' | 'finish' | 'error'> = {
+      'pending': 'wait',
+      'running': 'process',
+      'completed': 'finish',
+      'failed': 'error'
+    };
+    return statusMap[stageStatus] || 'wait';
+  };
+
+  // ==================== 原有函数 ====================
 
   // 获取建议
   const fetchSuggestions = async () => {
@@ -175,12 +385,15 @@ const FieldMappingSuggestions: React.FC = () => {
       );
 
       if (response.code === 0 && response.data) {
-        const taskId = response.data.task_id;
+        const newTaskId = response.data.task_id;
         message.success(`任务已创建，预计处理时间约 ${Math.ceil((response.data.estimated_duration || 0) / 60)} 分钟`);
         setTaskModalVisible(false);
         
-        // 开始轮询任务进度
-        startPolling(taskId);
+        // 使用新的状态管理开始轮询
+        startPolling(newTaskId);
+        
+        // 立即加载一次任务详情，避免等待轮询
+        loadTaskDetails(newTaskId);
       } else {
         message.error(response.message || '创建任务失败');
       }
@@ -192,8 +405,195 @@ const FieldMappingSuggestions: React.FC = () => {
     }
   };
 
-  // 开始轮询任务进度
-  const startPolling = (taskId: number) => {
+  // ==================== 历史记录相关函数 ====================
+  
+  /**
+   * 打开历史记录抽屉
+   */
+  const openHistoryDrawer = async () => {
+    if (!currentProject?.id) {
+      message.warning('请先选择项目');
+      return;
+    }
+    
+    setHistoryDrawerVisible(true);
+    await fetchHistoryList(1);
+  };
+
+  /**
+   * 关闭历史记录抽屉
+   */
+  const closeHistoryDrawer = () => {
+    setHistoryDrawerVisible(false);
+  };
+
+  /**
+   * 获取历史记录列表（P2 优化：添加缓存）
+   */
+  const fetchHistoryList = async (page: number = 1) => {
+    if (!currentProject?.id) {
+      return;
+    }
+
+    setHistoryLoading(true);
+    try {
+      // 防御性编程：确保参数有效
+      const validPage = Number.isInteger(page) && page > 0 ? page : 1;
+      const validOffset = (validPage - 1) * historyPageSize;
+      
+      const response = await fieldMappingService.listAsyncTasks({
+        task_type: 'field_mapping_suggest',
+        project_id: currentProject.id,
+        version_id: currentVersion?.id,
+        limit: historyPageSize,
+        offset: validOffset
+      });
+
+      if (response.code === 0 && response.data) {
+        setHistoryList(response.data.items || []);
+        setHistoryTotal(response.data.total || 0);
+        setHistoryPage(validPage);
+      } else {
+        message.error(response.message || '获取历史记录失败');
+      }
+    } catch (error: any) {
+      console.error('获取历史记录失败:', error);
+      message.error(error.message || '获取历史记录失败');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  /**
+   * 历史记录分页改变
+   */
+  const handleHistoryPageChange = (page: number, pageSize: number) => {
+    setHistoryPageSize(pageSize);
+    fetchHistoryList(page);
+  };
+
+  /**
+   * 加载历史任务
+   */
+  const loadHistoryTask = async (taskId: number) => {
+    // 如果当前有正在运行的任务，提示用户
+    if (currentTask && currentTask.status === 'running') {
+      Modal.confirm({
+        title: '当前有任务正在进行',
+        content: '切换历史记录将停止当前任务的监控，是否继续？',
+        onOk: async () => {
+          stopPolling();
+          await switchToTask(taskId);
+        }
+      });
+    } else {
+      await switchToTask(taskId);
+    }
+  };
+
+  /**
+   * 切换到指定任务（P2 优化：使用缓存）
+   */
+  const switchToTask = async (taskId: number) => {
+    try {
+      // 使用带缓存的服务函数
+      const task = await fieldMappingService.getAsyncTaskCached(taskId);
+
+      if (!task) {
+        message.error('任务不存在');
+        return;
+      }
+
+      setTaskId(taskId);
+      setCurrentTask(task);
+
+      if (task.status === 'running') {
+        setPageState('RUNNING');
+        startPolling(taskId);
+      } else if (task.status === 'completed') {
+        setPageState('COMPLETED');
+        loadTaskResults(taskId);
+      } else if (task.status === 'failed') {
+        setPageState('FAILED');
+      } else if (task.status === 'cancelled') {
+        setPageState('IDLE');
+      } else {
+        setPageState('IDLE');
+      }
+
+      closeHistoryDrawer();
+    } catch (error: any) {
+      console.error('加载任务失败:', error);
+      message.error(error.message || '加载任务失败');
+    }
+  };
+
+  /**
+   * 任务取消处理（增强版）
+   */
+  const handleCancelTask = async () => {
+    if (!taskId) {
+      return;
+    }
+
+    Modal.confirm({
+      title: '确认取消任务',
+      content: '取消后将无法恢复，是否继续？',
+      onOk: async () => {
+        try {
+          const response = await fieldMappingService.cancelAsyncTask(taskId);
+          if (response.code === 0) {
+            message.success('任务已取消');
+            stopPolling();
+            setPageState('IDLE');
+            setTaskId(null);
+            setCurrentTask(null);
+          } else {
+            message.error(response.message || '取消任务失败');
+          }
+        } catch (error: any) {
+          console.error('取消任务失败:', error);
+          message.error(error.message || '取消任务失败');
+        }
+      }
+    });
+  };
+
+  /**
+   * 任务重试处理
+   */
+  const handleRetryTask = async () => {
+    if (!currentTask || !currentTask.retryable_stages || currentTask.retryable_stages.length === 0) {
+      message.warning('当前任务不支持重试');
+      return;
+    }
+
+    const stageNum = currentTask.retryable_stages[0];
+
+    Modal.confirm({
+      title: '重试任务',
+      content: `将从阶段 ${stageNum} 开始重新执行，是否继续？`,
+      onOk: async () => {
+        try {
+          const response = await fieldMappingService.retryStage(taskId, stageNum);
+
+          if (response.code === 0) {
+            message.success('任务已重新提交');
+            setPageState('RUNNING');
+            startPolling(taskId);
+          } else {
+            message.error(response.message || '重试任务失败');
+          }
+        } catch (error: any) {
+          console.error('重试任务失败:', error);
+          message.error(error.message || '重试任务失败');
+        }
+      }
+    });
+  };
+
+  // 开始轮询任务进度（保留旧函数用于兼容）
+  const startPollingOld = (taskId: number) => {
     // 先获取一次任务信息
     fetchTaskProgress(taskId);
     
@@ -206,7 +606,7 @@ const FieldMappingSuggestions: React.FC = () => {
     setProgressModalVisible(true);
   };
 
-  // 获取任务进度
+  // 获取任务进度（保留旧函数用于兼容）
   const fetchTaskProgress = async (taskId: number) => {
     try {
       const response = await fieldMappingService.getAsyncTask(taskId);
@@ -235,113 +635,6 @@ const FieldMappingSuggestions: React.FC = () => {
     } catch (error: any) {
       console.error('获取任务进度失败:', error);
     }
-  };
-
-  // 加载任务结果
-  const loadTaskResults = async (taskId: number) => {
-    try {
-      const response = await fieldMappingService.getFieldMappingSuggestions(taskId);
-      
-      if (response.code === 0 && response.data) {
-        setSuggestions(response.data.items || []);
-      }
-    } catch (error: any) {
-      console.error('加载任务结果失败:', error);
-      message.error(error.message || '加载结果失败');
-    }
-  };
-
-  // 取消任务
-  const handleCancelTask = async () => {
-    if (!currentTask) return;
-
-    try {
-      const response = await fieldMappingService.cancelAsyncTask(currentTask.id);
-      
-      if (response.code === 0) {
-        message.success('任务已取消');
-        if (pollingInterval) {
-          clearInterval(pollingInterval);
-          setPollingInterval(null);
-        }
-        setProgressModalVisible(false);
-      } else {
-        message.error(response.message || '取消任务失败');
-      }
-    } catch (error: any) {
-      console.error('取消任务失败:', error);
-      message.error(error.message || '取消任务失败');
-    }
-  };
-
-  // 关闭进度对话框
-  const handleCloseProgressModal = () => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      setPollingInterval(null);
-    }
-    setProgressModalVisible(false);
-  };
-
-  // 组件卸载时清理轮询
-  useEffect(() => {
-    return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-    };
-  }, [pollingInterval]);
-
-  // 获取阶段状态颜色
-  const getStageStatus = (stageName: string) => {
-    if (!currentTask?.stages) return 'wait';
-    
-    const stage = currentTask.stages.find(s => s.name === stageName);
-    if (!stage) return 'wait';
-    
-    if (stage.status === 'completed') return 'finish';
-    if (stage.status === 'running') return 'process';
-    if (stage.status === 'failed') return 'error';
-    return 'wait';
-  };
-
-  // 获取阶段进度百分比
-  const getStageProgress = (stageName: string): number => {
-    if (!currentTask?.stages) return 0;
-    
-    const stage = currentTask.stages.find(s => s.name === stageName);
-    if (!stage) return 0;
-    
-    return stage.progress || 0;
-  };
-
-  // 获取阶段进度状态
-  const getStageProgressStatus = (stageName: string): 'success' | 'exception' | 'active' | 'normal' => {
-    const status = getStageStatus(stageName);
-    if (status === 'finish') return 'success';
-    if (status === 'error') return 'exception';
-    if (status === 'process') return 'active';
-    return 'normal';
-  };
-
-  // 获取当前阶段索引
-  const getCurrentStageIndex = () => {
-    if (!currentTask?.stages) return 0;
-    
-    for (let i = 0; i < currentTask.stages.length; i++) {
-      if (currentTask.stages[i].status === 'running') {
-        return i;
-      }
-    }
-    
-    // 如果没有正在运行的，检查是否有已完成的
-    for (let i = currentTask.stages.length - 1; i >= 0; i--) {
-      if (currentTask.stages[i].status === 'completed') {
-        return i + 1;
-      }
-    }
-    
-    return 0;
   };
 
   // 批量确认选中的映射
@@ -442,6 +735,16 @@ const FieldMappingSuggestions: React.FC = () => {
     setSelectedSuggestion(suggestion);
     setDetailModalVisible(true);
   };
+
+  // ==================== 页面可见性监听 ====================
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(!document.hidden);
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   // 表格列定义
   const columns = [
@@ -583,6 +886,12 @@ const FieldMappingSuggestions: React.FC = () => {
               生成映射建议（异步）
             </Button>
             <Button 
+              icon={<ClockCircleOutlined />} 
+              onClick={openHistoryDrawer}
+            >
+              执行记录
+            </Button>
+            <Button 
               icon={<SyncOutlined />} 
               onClick={fetchSuggestions}
               loading={loading}
@@ -599,30 +908,35 @@ const FieldMappingSuggestions: React.FC = () => {
           </Space>
         }
       >
-        <div style={{ marginBottom: 16 }}>
-          <Space>
-            <Checkbox 
-              checked={includePaths} 
-              onChange={e => setIncludePaths(e.target.checked)}
-            >
-              包含路径参数
-            </Checkbox>
-            <Checkbox 
-              checked={includeQuery} 
-              onChange={e => setIncludeQuery(e.target.checked)}
-            >
-              包含查询参数
-            </Checkbox>
-            <Checkbox 
-              checked={includeBody} 
-              onChange={e => setIncludeBody(e.target.checked)}
-            >
-              包含请求体参数
-            </Checkbox>
-          </Space>
-        </div>
+        {/* ==================== 根据 pageState 渲染不同内容 ==================== */}
+        
+        {/* IDLE 态：显示空状态 */}
+        {pageState === 'IDLE' && (
+          <div style={{ marginBottom: 16 }}>
+            <Space>
+              <Checkbox 
+                checked={includePaths} 
+                onChange={e => setIncludePaths(e.target.checked)}
+              >
+                包含路径参数
+              </Checkbox>
+              <Checkbox 
+                checked={includeQuery} 
+                onChange={e => setIncludeQuery(e.target.checked)}
+              >
+                包含查询参数
+              </Checkbox>
+              <Checkbox 
+                checked={includeBody} 
+                onChange={e => setIncludeBody(e.target.checked)}
+              >
+                包含请求体参数
+              </Checkbox>
+            </Space>
+          </div>
+        )}
 
-        {suggestions.length === 0 && !loading ? (
+        {pageState === 'IDLE' && suggestions.length === 0 && !loading ? (
           <Result
             icon={<Empty description="" />}
             title="暂无映射建议"
@@ -637,7 +951,199 @@ const FieldMappingSuggestions: React.FC = () => {
               </Button>
             }
           />
-        ) : (
+        ) : pageState === 'IDLE' && (
+          <Table
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={suggestions}
+            rowKey="definition_id"
+            loading={loading}
+            pagination={{
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 条`,
+            }}
+          />
+        )}
+
+        {/* RUNNING 态：显示进度面板 */}
+        {pageState === 'RUNNING' && (
+          <div>
+            {currentTask ? (
+              <>
+                {/* 顶部进度条 */}
+                <div style={{ marginBottom: 24 }}>
+                  <Progress 
+                    percent={currentTask.progress} 
+                    status={currentTask.status === 'failed' ? 'exception' : 'active'}
+                    format={(percent) => `${percent}% - ${currentTask.progress_message || '处理中...'}`}
+                  />
+                </div>
+
+                {/* 垂直步骤条 */}
+                <div style={{ marginBottom: 24 }}>
+                  <Steps 
+                    current={getCurrentStageIndex()} 
+                    direction="vertical"
+                    items={currentTask.stages?.map((stage, index) => ({
+                      title: stage.name,
+                      status: getStepStatus(stage.status),
+                      description: (
+                        <div>
+                          {stage.description && <div style={{ marginBottom: 4 }}>{stage.description}</div>}
+                          {stage.status === 'running' && <Spin size="small" />}
+                          <div style={{ fontSize: 12, color: '#999' }}>
+                            进度: {stage.progress}%
+                          </div>
+                        </div>
+                      )
+                    })) || []}
+                  />
+                </div>
+
+                {/* 统计信息卡片 */}
+                {currentTask.statistics && (
+                  <Row gutter={16} style={{ marginBottom: 24 }}>
+                    <Col span={6}>
+                      <Statistic title="总字段数" value={currentTask.statistics.total_fields || 0} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="已处理" value={currentTask.statistics.processed || 0} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="AI增强" value={currentTask.statistics.ai_enhanced || 0} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="自动确认" value={currentTask.statistics.auto_confirmed || 0} />
+                    </Col>
+                  </Row>
+                )}
+
+                {/* 操作按钮 */}
+                <Space>
+                  <Button danger onClick={handleCancelTask}>
+                    取消任务
+                  </Button>
+                  <Button onClick={handleRefreshTask}>
+                    刷新状态
+                  </Button>
+                </Space>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                <Spin size="large" />
+                <div style={{ marginTop: 16, color: '#999' }}>正在加载任务信息...</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* COMPLETED 态：显示任务摘要和结果表格 */}
+        {pageState === 'COMPLETED' && currentTask && (
+          <div>
+            {/* 进度条：显示 100% 完成 */}
+            <div style={{ marginBottom: 24 }}>
+              <Progress 
+                percent={100} 
+                status="success"
+                format={(percent) => `100% - ${currentTask.progress_message || '任务已完成'}`}
+              />
+            </div>
+
+            {/* 垂直步骤条：所有阶段显示为已完成 */}
+            <div style={{ marginBottom: 24 }}>
+              <Steps 
+                current={(currentTask.stages?.length || 0)}
+                direction="vertical"
+                items={currentTask.stages?.map((stage, index) => ({
+                  title: stage.name,
+                  status: 'finish',
+                  description: (
+                    <div>
+                      {stage.description && <div style={{ marginBottom: 4 }}>{stage.description}</div>}
+                      <div style={{ fontSize: 12, color: '#999' }}>
+                        进度: 100%
+                      </div>
+                    </div>
+                  )
+                })) || []}
+              />
+            </div>
+
+            {/* 统计信息卡片 */}
+            {currentTask.statistics && (
+              <Row gutter={16} style={{ marginBottom: 24 }}>
+                <Col span={6}>
+                  <Statistic title="总字段数" value={currentTask.statistics.total_fields || 0} />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="已处理" value={currentTask.statistics.processed || 0} />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="AI增强" value={currentTask.statistics.ai_enhanced || 0} />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="自动确认" value={currentTask.statistics.auto_confirmed || 0} />
+                </Col>
+              </Row>
+            )}
+
+            {/* 任务摘要 */}
+            <Alert
+              message="任务完成"
+              description={
+                <div>
+                  <div>耗时: {Math.ceil((currentTask.finished_at ? new Date(currentTask.finished_at).getTime() - new Date(currentTask.started_at || '').getTime() : 0) / 1000)} 秒</div>
+                  <div>生成建议: {suggestions.length} 个</div>
+                </div>
+              }
+              type="success"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+
+            {/* 结果表格 */}
+            <Table
+              rowSelection={rowSelection}
+              columns={columns}
+              dataSource={suggestions}
+              rowKey="definition_id"
+              loading={loading}
+              pagination={{
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total) => `共 ${total} 条`,
+              }}
+            />
+          </div>
+        )}
+
+        {/* FAILED 态：显示错误信息 */}
+        {pageState === 'FAILED' && currentTask && (
+          <Result
+            status="error"
+            title="任务执行失败"
+            subTitle={currentTask.error_message || '未知错误'}
+            extra={[
+              <Button key="retry" type="primary" onClick={() => {
+                // TODO: 实现重试逻辑
+                message.info('重试功能待实现')
+              }}>
+                重试失败阶段
+              </Button>,
+              <Button key="new" onClick={() => {
+                setPageState('IDLE');
+                setTaskId(null);
+                setCurrentTask(null);
+              }}>
+                重新创建任务
+              </Button>
+            ]}
+          />
+        )}
+
+        {/* 兼容：如果 pageState 为空但 suggestions 有数据，显示表格 */}
+        {!pageState && suggestions.length > 0 && (
           <Table
             rowSelection={rowSelection}
             columns={columns}
@@ -912,6 +1418,114 @@ const FieldMappingSuggestions: React.FC = () => {
           </div>
         )}
       </Modal>
+
+      {/* ==================== 历史记录抽屉 ==================== */}
+      <Drawer
+        title="执行记录"
+        placement="right"
+        width={600}
+        open={historyDrawerVisible}
+        onClose={closeHistoryDrawer}
+        styles={{
+          body: { paddingBottom: 80 }
+        }}
+        extra={
+          <Button onClick={fetchHistoryList} icon={<SyncOutlined />}>
+            刷新
+          </Button>
+        }
+      >
+        <Spin spinning={historyLoading}>
+          <List
+            dataSource={historyList}
+            pagination={{
+              current: historyPage,
+              pageSize: historyPageSize,
+              total: historyTotal,
+              onChange: handleHistoryPageChange,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 条`,
+              // P2 优化：虚拟滚动配置
+              position: 'bottom',
+              simple: false
+            }}
+            renderItem={(item) => (
+              <List.Item
+                key={item.id}
+                actions={[
+                  <Button 
+                    type="link" 
+                    size="small"
+                    onClick={() => loadHistoryTask(item.id)}
+                    disabled={currentTask?.id === item.id}
+                  >
+                    查看
+                  </Button>
+                ]}
+              >
+                <List.Item.Meta
+                  avatar={
+                    <Badge 
+                      status={
+                        item.status === 'completed' ? 'success' : 
+                        item.status === 'failed' ? 'error' : 
+                        item.status === 'running' ? 'processing' : 'default'
+                      }
+                      text={item.id.toString()}
+                    />
+                  }
+                  title={`任务 #${item.id}`}
+                  description={
+                    <div>
+                      <div style={{ marginBottom: 4 }}>
+                        <Tag color={
+                          item.status === 'completed' ? 'green' : 
+                          item.status === 'failed' ? 'red' : 
+                          item.status === 'running' ? 'blue' : 'default'
+                        }>
+                          {item.status === 'completed' ? '已完成' : 
+                           item.status === 'failed' ? '失败' : 
+                           item.status === 'running' ? '进行中' : 
+                           item.status === 'cancelled' ? '已取消' : '等待中'}
+                        </Tag>
+                      </div>
+                      <div style={{ fontSize: 12, color: '#666' }}>
+                        创建时间: {new Date(item.created_at).toLocaleString('zh-CN')}
+                      </div>
+                      {item.finished_at && (
+                        <div style={{ fontSize: 12, color: '#666' }}>
+                          完成时间: {new Date(item.finished_at).toLocaleString('zh-CN')}
+                        </div>
+                      )}
+                      {item.duration && (
+                        <div style={{ fontSize: 12, color: '#666' }}>
+                          耗时: {Math.floor(item.duration / 60)} 分 {item.duration % 60} 秒
+                        </div>
+                      )}
+                      {item.result_count !== null && (
+                        <div style={{ fontSize: 12, color: '#666' }}>
+                          生成建议: {item.result_count} 个
+                        </div>
+                      )}
+                      {item.statistics && (
+                        <div style={{ fontSize: 12, color: '#666' }}>
+                          自动确认: {item.statistics.auto_confirmed || 0}，AI增强: {item.statistics.ai_enhanced || 0}
+                        </div>
+                      )}
+                      {item.error_message && (
+                        <div style={{ fontSize: 12, color: '#ff4d4f' }}>
+                          错误: {item.error_message}
+                        </div>
+                      )}
+                    </div>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+        </Spin>
+      </Drawer>
     </div>
   );
 };

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前端 P2 功能测试 - 字段映射缓存</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #1890ff;
+            margin-top: 0;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #1890ff;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+        }
+        .pass {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #52c41a;
+        }
+        .fail {
+            background-color: #fff1f0;
+            border: 1px solid #ffa39e;
+            color: #ff4d4f;
+        }
+        .info {
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+            color: #1890ff;
+        }
+        button {
+            background-color: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #40a9ff;
+        }
+        button:disabled {
+            background-color: #d9d9d9;
+            cursor: not-allowed;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .summary {
+            background-color: #fafafa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #1890ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>前端 P2 功能测试 - 字段映射缓存</h1>
+    
+    <div class="container">
+        <h2>测试概述</h2>
+        <p>本测试验证字段映射功能的数据缓存优化，包括：</p>
+        <ul>
+            <li>缓存键生成和验证</li>
+            <li>缓存保存和读取</li>
+            <li>缓存过期机制</li>
+            <li>缓存清理功能</li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h2>测试控制</h2>
+        <button onclick="runAllTests()">运行所有测试</button>
+        <button onclick="clearResults()">清除结果</button>
+        <button onclick="exportResults()">导出结果</button>
+    </div>
+
+    <div class="container">
+        <h2>测试结果</h2>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="container">
+        <h2>测试摘要</h2>
+        <div id="testSummary" class="summary">
+            <p>尚未运行测试</p>
+        </div>
+    </div>
+
+    <script>
+        // 测试结果存储
+        let testResults = [];
+        let testStartTime = null;
+
+        // 缓存配置（模拟前端代码）
+        const CACHE_PREFIX = 'field_mapping_task_';
+        const CACHE_EXPIRY = 60 * 60 * 1000; // 1小时
+
+        /**
+         * 生成缓存键
+         */
+        function getCacheKey(key) {
+            return `${CACHE_PREFIX}${key}`;
+        }
+
+        /**
+         * 保存数据到缓存
+         */
+        function saveToCache(key, data) {
+            try {
+                if (!key || key.trim() === '') {
+                    console.warn('[Cache] 无效的缓存键');
+                    return false;
+                }
+                
+                if (data === null || data === undefined) {
+                    console.warn('[Cache] 无效的缓存数据');
+                    return false;
+                }
+                
+                const cacheData = {
+                    data: data,
+                    timestamp: Date.now()
+                };
+                
+                const cacheKey = getCacheKey(key);
+                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+                console.debug(`[Cache] 数据已缓存: ${cacheKey}`);
+                return true;
+            } catch (error) {
+                console.error('[Cache] 保存缓存失败:', error);
+                return false;
+            }
+        }
+
+        /**
+         * 从缓存获取数据
+         */
+        function getFromCache(key) {
+            try {
+                if (!key || key.trim() === '') {
+                    console.warn('[Cache] 无效的缓存键');
+                    return null;
+                }
+                
+                const cacheKey = getCacheKey(key);
+                const cacheStr = localStorage.getItem(cacheKey);
+                
+                if (!cacheStr) {
+                    return null;
+                }
+                
+                const cacheData = JSON.parse(cacheStr);
+                
+                // 过期检查
+                if (Date.now() - cacheData.timestamp > CACHE_EXPIRY) {
+                    console.debug(`[Cache] 缓存已过期: ${cacheKey}`);
+                    localStorage.removeItem(cacheKey);
+                    return null;
+                }
+                
+                console.debug(`[Cache] 命中缓存: ${cacheKey}`);
+                return cacheData.data;
+            } catch (error) {
+                console.error('[Cache] 读取缓存失败:', error);
+                return null;
+            }
+        }
+
+        /**
+         * 删除缓存
+         */
+        function removeFromCache(key) {
+            try {
+                if (!key || key.trim() === '') {
+                    console.warn('[Cache] 无效的缓存键');
+                    return false;
+                }
+                
+                const cacheKey = getCacheKey(key);
+                localStorage.removeItem(cacheKey);
+                console.debug(`[Cache] 缓存已删除: ${cacheKey}`);
+                return true;
+            } catch (error) {
+                console.error('[Cache] 删除缓存失败:', error);
+                return false;
+            }
+        }
+
+        /**
+         * 清除所有字段映射缓存
+         */
+        function clearFieldMappingCache() {
+            try {
+                const keys = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith(CACHE_PREFIX)) {
+                        keys.push(key);
+                    }
+                }
+                
+                keys.forEach(key => localStorage.removeItem(key));
+                console.log(`[Cache] 已清除 ${keys.length} 个缓存项`);
+                return keys.length;
+            } catch (error) {
+                console.error('[Cache] 清除缓存失败:', error);
+                return 0;
+            }
+        }
+
+        /**
+         * 记录测试结果
+         */
+        function logTestResult(testName, passed, message) {
+            const result = {
+                testName,
+                passed,
+                message,
+                timestamp: new Date().toISOString()
+            };
+            testResults.push(result);
+            
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            resultDiv.innerHTML = `
+                <strong>${passed ? '✓ PASS' : '✗ FAIL'} - ${testName}</strong><br>
+                ${message}
+            `;
+            document.getElementById('testResults').appendChild(resultDiv);
+            
+            updateSummary();
+        }
+
+        /**
+         * 更新测试摘要
+         */
+        function updateSummary() {
+            const total = testResults.length;
+            const passed = testResults.filter(r => r.passed).length;
+            const failed = total - passed;
+            const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : 0;
+            
+            const summaryDiv = document.getElementById('testSummary');
+            summaryDiv.innerHTML = `
+                <p><strong>总测试数:</strong> ${total}</p>
+                <p><strong>通过:</strong> ${passed}</p>
+                <p><strong>失败:</strong> ${failed}</p>
+                <p><strong>通过率:</strong> ${passRate}%</p>
+                <p><strong>耗时:</strong> ${testStartTime ? `${Date.now() - testStartTime}ms` : '-'}</p>
+            `;
+        }
+
+        /**
+         * 清除测试结果
+         */
+        function clearResults() {
+            testResults = [];
+            testStartTime = null;
+            document.getElementById('testResults').innerHTML = '';
+            updateSummary();
+        }
+
+        /**
+         * 导出测试结果
+         */
+        function exportResults() {
+            const summary = {
+                total: testResults.length,
+                passed: testResults.filter(r => r.passed).length,
+                failed: testResults.filter(r => !r.passed).length,
+                passRate: testResults.length > 0 ? ((testResults.filter(r => r.passed).length / testResults.length) * 100).toFixed(1) + '%' : '0%',
+                results: testResults
+            };
+            
+            const blob = new Blob([JSON.stringify(summary, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'test_p2_frontend_results.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ==================== 测试用例 ====================
+
+        /**
+         * 测试 1: 缓存键生成
+         */
+        function testCacheKeyGeneration() {
+            const testKey = 'test_task_123';
+            const cacheKey = getCacheKey(testKey);
+            
+            if (cacheKey === 'field_mapping_task_test_task_123') {
+                logTestResult('缓存键生成', true, `生成的缓存键: ${cacheKey}`);
+            } else {
+                logTestResult('缓存键生成', false, `期望: field_mapping_task_test_task_123, 实际: ${cacheKey}`);
+            }
+        }
+
+        /**
+         * 测试 2: 缓存保存和读取
+         */
+        function testCacheSaveAndRead() {
+            const testKey = 'test_save_read';
+            const testData = { id: 1, name: 'test', value: 100 };
+            
+            // 清除可能存在的旧数据
+            removeFromCache(testKey);
+            
+            // 保存数据
+            const saveResult = saveToCache(testKey, testData);
+            if (!saveResult) {
+                logTestResult('缓存保存和读取', false, '保存缓存失败');
+                return;
+            }
+            
+            // 读取数据
+            const readData = getFromCache(testKey);
+            if (readData && JSON.stringify(readData) === JSON.stringify(testData)) {
+                logTestResult('缓存保存和读取', true, '数据保存和读取成功');
+            } else {
+                logTestResult('缓存保存和读取', false, `期望: ${JSON.stringify(testData)}, 实际: ${JSON.stringify(readData)}`);
+            }
+            
+            // 清理
+            removeFromCache(testKey);
+        }
+
+        /**
+         * 测试 3: 缓存过期机制
+         */
+        function testCacheExpiry() {
+            const testKey = 'test_expiry';
+            const testData = { id: 1, name: 'test' };
+            
+            // 清除可能存在的旧数据
+            removeFromCache(testKey);
+            
+            // 保存数据
+            const cacheKey = getCacheKey(testKey);
+            const cacheData = {
+                data: testData,
+                timestamp: Date.now() - CACHE_EXPIRY - 1000 // 设置为已过期
+            };
+            localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+            
+            // 读取数据（应该返回 null，因为已过期）
+            const readData = getFromCache(testKey);
+            if (readData === null) {
+                logTestResult('缓存过期机制', true, '过期缓存已正确返回 null');
+            } else {
+                logTestResult('缓存过期机制', false, `期望: null, 实际: ${JSON.stringify(readData)}`);
+            }
+            
+            // 清理
+            removeFromCache(testKey);
+        }
+
+        /**
+         * 测试 4: 缓存删除
+         */
+        function testCacheRemove() {
+            const testKey = 'test_remove';
+            const testData = { id: 1, name: 'test' };
+            
+            // 保存数据
+            saveToCache(testKey, testData);
+            
+            // 删除数据
+            const removeResult = removeFromCache(testKey);
+            if (!removeResult) {
+                logTestResult('缓存删除', false, '删除缓存失败');
+                return;
+            }
+            
+            // 验证数据已删除
+            const readData = getFromCache(testKey);
+            if (readData === null) {
+                logTestResult('缓存删除', true, '缓存已成功删除');
+            } else {
+                logTestResult('缓存删除', false, `期望: null, 实际: ${JSON.stringify(readData)}`);
+            }
+        }
+
+        /**
+         * 测试 5: 批量缓存清理
+         */
+        function testClearFieldMappingCache() {
+            // 创建多个测试缓存
+            saveToCache('test_clear_1', { id: 1 });
+            saveToCache('test_clear_2', { id: 2 });
+            saveToCache('test_clear_3', { id: 3 });
+            
+            // 创建非字段映射缓存（不应被清除）
+            localStorage.setItem('other_cache', 'should_not_be_cleared');
+            
+            // 清除所有字段映射缓存
+            const clearedCount = clearFieldMappingCache();
+            
+            // 验证字段映射缓存已清除
+            const read1 = getFromCache('test_clear_1');
+            const read2 = getFromCache('test_clear_2');
+            const read3 = getFromCache('test_clear_3');
+            const otherCache = localStorage.getItem('other_cache');
+            
+            if (read1 === null && read2 === null && read3 === null && 
+                otherCache === 'should_not_be_cleared' && clearedCount === 3) {
+                logTestResult('批量缓存清理', true, `已清除 ${clearedCount} 个缓存项，其他缓存保留`);
+            } else {
+                logTestResult('批量缓存清理', false, `部分缓存未正确清除或误删了其他缓存`);
+            }
+            
+            // 清理
+            localStorage.removeItem('other_cache');
+        }
+
+        /**
+         * 测试 6: 无效键处理
+         */
+        function testInvalidKey() {
+            // 测试空键
+            const result1 = saveToCache('', { test: 1 });
+            const result2 = getFromCache('');
+            
+            if (result1 === false && result2 === null) {
+                logTestResult('无效键处理', true, '空键已正确处理');
+            } else {
+                logTestResult('无效键处理', false, '空键处理不正确');
+            }
+        }
+
+        /**
+         * 测试 7: 无效数据处理
+         */
+        function testInvalidData() {
+            const testKey = 'test_invalid_data';
+            
+            // 测试 null 数据
+            const result1 = saveToCache(testKey, null);
+            
+            // 测试 undefined 数据
+            const result2 = saveToCache(testKey, undefined);
+            
+            if (result1 === false && result2 === false) {
+                logTestResult('无效数据处理', true, '无效数据已正确处理');
+            } else {
+                logTestResult('无效数据处理', false, '无效数据处理不正确');
+            }
+            
+            // 清理
+            removeFromCache(testKey);
+        }
+
+        /**
+         * 测试 8: 复杂数据结构
+         */
+        function testComplexData() {
+            const testKey = 'test_complex_data';
+            const complexData = {
+                id: 1,
+                name: 'test',
+                nested: {
+                    field1: 'value1',
+                    field2: ['a', 'b', 'c'],
+                    field3: { x: 1, y: 2 }
+                },
+                array: [1, 2, 3, { a: 'b' }],
+                boolean: true,
+                nullValue: null
+            };
+            
+            // 清除可能存在的旧数据
+            removeFromCache(testKey);
+            
+            // 保存数据
+            const saveResult = saveToCache(testKey, complexData);
+            if (!saveResult) {
+                logTestResult('复杂数据结构', false, '保存缓存失败');
+                return;
+            }
+            
+            // 读取数据
+            const readData = getFromCache(testKey);
+            if (readData && JSON.stringify(readData) === JSON.stringify(complexData)) {
+                logTestResult('复杂数据结构', true, '复杂数据结构保存和读取成功');
+            } else {
+                logTestResult('复杂数据结构', false, '复杂数据结构不匹配');
+            }
+            
+            // 清理
+            removeFromCache(testKey);
+        }
+
+        /**
+         * 运行所有测试
+         */
+        function runAllTests() {
+            clearResults();
+            testStartTime = Date.now();
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'test-result info';
+            infoDiv.innerHTML = '<strong>开始运行测试...</strong>';
+            document.getElementById('testResults').appendChild(infoDiv);
+            
+            // 延迟执行，让 UI 更新
+            setTimeout(() => {
+                testCacheKeyGeneration();
+                testCacheSaveAndRead();
+                testCacheExpiry();
+                testCacheRemove();
+                testClearFieldMappingCache();
+                testInvalidKey();
+                testInvalidData();
+                testComplexData();
+                
+                const endTime = Date.now();
+                testStartTime = endTime - testStartTime;
+                updateSummary();
+            }, 100);
+        }
+    </script>
+</body>
+</html>
