@@ -522,9 +522,6 @@ class AsyncTask(Base, TimestampMixin):
     retry_count = Column(Integer, default=0)  # 重试次数
     max_retries = Column(Integer, default=3)  # 最大重试次数
     estimated_duration = Column(Integer, nullable=True)  # 预估执行时间（秒）
-    
-    # 旧版本兼容字段
-    task_result = Column(JSON, nullable=True)  # 旧版本任务结果（兼容性）
 
     __table_args__ = (
         Index('ix_async_tasks_project_id', 'project_id'),

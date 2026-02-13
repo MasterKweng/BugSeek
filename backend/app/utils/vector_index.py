@@ -2,9 +2,14 @@
 import pickle
 import os
 import logging
+import threading
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from pathlib import Path
+
+# 在导入 sentence_transformers 之前设置镜像地址
+from app.core.config import settings
+os.environ['HF_ENDPOINT'] = settings.HF_ENDPOINT
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -13,6 +18,8 @@ from app.core.trace import get_trace_id
 
 logger = logging.getLogger(__name__)
 
+# 全局初始化锁（用于防止并发初始化问题）
+_init_lock = threading.Lock()
 
 # 通用字段黑名单（噪音过滤）
 STOP_WORDS = [
@@ -76,12 +83,24 @@ class VectorIndexManager:
     def _load_model(self):
         """
         加载 sentence-transformers 模型
-        
-        首次调用时会从 Hugging Face 下载模型（约 80MB）
+
+        模型会缓存到项目的 data/models 目录，避免每次启动都从 Hugging Face 下载
+        首次调用时会从 Hugging Face 下载模型（约 80MB）并缓存
+        后续调用直接从本地缓存加载
         """
         if self.model is None:
+            # 设置模型缓存目录到项目 data/models
+            model_cache_dir = self.cache_dir / "models"
+            model_cache_dir.mkdir(parents=True, exist_ok=True)
+
             logger.info(f"[{self.trace_id}] 加载向量模型: {self.MODEL_NAME}")
-            self.model = SentenceTransformer(self.MODEL_NAME)
+            logger.info(f"[{self.trace_id}] 模型缓存目录: {model_cache_dir}")
+            logger.info(f"[{self.trace_id}] Hugging Face 镜像: {settings.HF_ENDPOINT}")
+
+            self.model = SentenceTransformer(
+                self.MODEL_NAME,
+                cache_folder=str(model_cache_dir)
+            )
             logger.info(f"[{self.trace_id}] 向量模型加载完成")
     
     def _build_feature_text(self, table: str, column: str, column_type: str, comment: Optional[str] = None) -> str:
@@ -163,15 +182,27 @@ class VectorIndexManager:
         """
         构建向量索引
         
+        添加了锁保护，防止并发调用时出现竞态条件：
+        - 多个任务同时调用 build_index 时，只有一个任务会真正构建索引
+        - 其他任务会等待，然后使用已经构建好的索引
+        
         Args:
             schema_snapshot: 数据库结构快照
             force_rebuild: 是否强制重建索引
         """
-        if not force_rebuild and self._load_from_cache():
-            logger.info(f"[{self.trace_id}] 从缓存加载向量索引成功")
+        # 如果已经有索引且不强制重建，直接返回
+        if not force_rebuild and self.column_vectors is not None and len(self.column_vectors) > 0:
+            logger.info(f"[{self.trace_id}] 向量索引已存在，跳过构建: {len(self.column_meta)} 个列")
             return
         
-        logger.info(f"[{self.trace_id}] 开始构建向量索引")
+        # 使用锁保护，防止并发构建
+        with _init_lock:
+            # 双重检查：在锁内再次检查，防止其他线程已经构建完成
+            if not force_rebuild and self.column_vectors is not None and len(self.column_vectors) > 0:
+                logger.info(f"[{self.trace_id}] 向量索引已存在（锁内检查），跳过构建: {len(self.column_meta)} 个列")
+                return
+            
+            logger.info(f"[{self.trace_id}] 开始构建向量索引")
         
         # 加载模型
         self._load_model()
@@ -233,11 +264,12 @@ class VectorIndexManager:
         Returns:
             候选列列表，按相似度降序排列
         """
-        if self.column_vectors is None or self.column_vectors is None:
-            logger.warning(f"[{self.trace_id}] 向量索引未构建，请先调用 build_index()")
+        if self.column_vectors is None:
+            logger.error(f"[{self.trace_id}] 向量索引未构建，无法进行搜索。请先调用 build_index() 方法构建索引。")
             return []
         
         if len(self.column_vectors) == 0:
+            logger.warning(f"[{self.trace_id}] 向量索引为空，没有可搜索的列")
             return []
         
         # 加载模型
@@ -568,7 +600,7 @@ class VectorIndexManager:
             包含重心表、重排序结果和 AI 兜底统计的字典
         """
         if self.column_vectors is None or self.column_meta is None:
-            logger.warning(f"[{self.trace_id}] 向量索引未构建")
+            logger.error(f"[{self.trace_id}] 向量索引未构建，无法进行批量搜索。请先调用 build_index() 方法构建索引。")
             return {
                 "gravity_table": None,
                 "results": {field: [] for field in api_fields},
@@ -629,19 +661,44 @@ class VectorIndexManager:
 # 全局单例函数
 from functools import lru_cache
 
-@lru_cache()
+# 使用函数属性来实现单例缓存（替代 lru_cache，避免缓存实例状态的问题）
+_vector_manager_instance = None
+
 def get_vector_manager():
     """
     获取向量索引管理器的全局单例
     
+    使用双重检查锁定模式来防止并发初始化问题：
+    1. 第一次检查（无锁）：如果已经初始化，直接返回
+    2. 加锁
+    3. 第二次检查（有锁）：在锁内再次检查，防止并发情况下多次初始化
+    4. 如果未初始化，则初始化并加载缓存
+    5. 释放锁
+    6. 返回实例
+    
     Returns:
         VectorIndexManager 单例实例
     """
-    manager = VectorIndexManager()
-    # 尝试加载索引（如果缓存存在则自动加载）
-    if manager.column_vectors is None:
-        try:
-            manager._load_from_cache()
-        except Exception as e:
-            logger.warning(f"向量索引加载失败（将在首次使用时构建）: {str(e)}")
-    return manager
+    global _vector_manager_instance
+    
+    # 第一次检查（无锁）
+    if _vector_manager_instance is not None:
+        return _vector_manager_instance
+    
+    # 加锁
+    with _init_lock:
+        # 第二次检查（有锁）
+        if _vector_manager_instance is None:
+            _vector_manager_instance = VectorIndexManager()
+            logger.info("VectorIndexManager 单例初始化完成")
+            
+            # 尝试加载索引（如果缓存存在则自动加载）
+            if _vector_manager_instance.column_vectors is None:
+                try:
+                    _vector_manager_instance._load_from_cache()
+                    if _vector_manager_instance.column_vectors is not None:
+                        logger.info(f"VectorIndexManager 缓存加载成功: {len(_vector_manager_instance.column_meta)} 个列")
+                except Exception as e:
+                    logger.warning(f"向量索引加载失败（将在首次使用时构建）: {str(e)}")
+        
+        return _vector_manager_instance

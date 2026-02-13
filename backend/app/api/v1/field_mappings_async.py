@@ -245,7 +245,7 @@ async def get_suggestions(
         )
 
     # 返回结果
-    result = task.task_result or {}
+    result = task.result or {}
     return ApiResponse(
         code=0,
         message="查询成功",

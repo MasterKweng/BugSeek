@@ -1,5 +1,5 @@
 import api from './api'
-import type { ApiResponse, FieldMappingListResponse } from '../types'
+import type { ApiResponse, FieldMapping } from '../types'
 
 export interface FieldMappingCreateRequest {
   definition_id: number
@@ -29,6 +29,19 @@ export interface FieldMappingSuggestRequest {
   ai_confidence_threshold?: number  // AI 触发阈值（0.0-1.0，默认 0.7）
 }
 
+// 映射来源类型
+export enum MappingSourceType {
+  MANUAL = 'manual',  // 手动映射
+  AI = 'ai'  // 自动映射
+}
+
+// 映射状态
+export enum MappingStatus {
+  PROPOSED = 'proposed',  // 待审核
+  CONFIRMED = 'confirmed',  // 已确认
+  REJECTED = 'rejected'  // 已拒绝
+}
+
 export interface FieldMappingCandidate {
   db_table: string
   db_column: string
@@ -44,6 +57,8 @@ export interface FieldMappingSuggestion {
   definition_path: string
   api_field_path: string
   candidates: FieldMappingCandidate[]
+  source?: MappingSourceType  // 映射来源类型
+  status?: MappingStatus  // 映射状态
 }
 
 export interface FieldMappingSuggestionResponse {

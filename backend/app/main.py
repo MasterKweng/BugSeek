@@ -95,6 +95,8 @@ async def startup_event():
         # 预热向量索引（冷启动防御）
         logger.info("开始预热向量索引...")
         from app.utils.vector_index import get_vector_manager
+        from app.db.base import DbSchemaVersion
+        from app.db.session import SessionLocal
         import asyncio
         
         # 使用后台任务预热，不阻塞启动
@@ -103,8 +105,22 @@ async def startup_event():
                 vector_manager = get_vector_manager()
                 if vector_manager.column_vectors is None:
                     logger.info("向量索引缓存不存在，开始构建...")
-                    vector_manager.build_index()
-                    logger.info("向量索引构建完成")
+                    
+                    # 从数据库获取最新的 schema_snapshot
+                    db = SessionLocal()
+                    try:
+                        # 获取最新的一个 schema_snapshot（按创建时间倒序）
+                        latest_schema = db.query(DbSchemaVersion).order_by(
+                            DbSchemaVersion.created_at.desc()
+                        ).first()
+                        
+                        if latest_schema and latest_schema.schema_snapshot:
+                            vector_manager.build_index(latest_schema.schema_snapshot)
+                            logger.info(f"向量索引构建完成 (使用 schema_id={latest_schema.id})")
+                        else:
+                            logger.warning("数据库中没有找到可用的 schema_snapshot，跳过向量索引构建")
+                    finally:
+                        db.close()
                 else:
                     logger.info("向量索引已从缓存加载")
             except Exception as e:

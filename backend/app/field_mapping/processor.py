@@ -893,6 +893,16 @@ class FieldMappingProcessor:
         logger.info(f"[{self.trace_id}] 开始批量规则评分: "
                    f"{len(field_registry)}个字段")
         
+        # 确保向量索引已构建
+        vector_manager = get_vector_manager()
+        if vector_manager.column_vectors is None:
+            logger.info(f"[{self.trace_id}] 向量索引未构建，开始构建...")
+            vector_manager.build_index(db_schema)
+            if vector_manager.column_vectors is None or len(vector_manager.column_vectors) == 0:
+                logger.error(f"[{self.trace_id}] 向量索引构建失败，无法进行规则评分")
+                return {field_name: [] for field_name in field_registry.keys()}
+            logger.info(f"[{self.trace_id}] 向量索引构建完成: {len(vector_manager.column_vectors)}个列")
+        
         # 将字段分批
         field_items = list(field_registry.items())
         batches = [
@@ -965,10 +975,20 @@ class FieldMappingProcessor:
                 use_ai_fallback=False  # 阶段2禁用 AI，阶段4才用
             )
             
-            # 构建结果
+            # 构建结果，将字典转换为 FieldMappingCandidate 对象
             for field_name, field_info in batch:
                 field_path = field_info.field_path
-                candidates = vector_results.get("candidates", {}).get(field_path, [])
+                candidates_dicts = vector_results.get("results", {}).get(field_path, [])
+                # 转换字典为 FieldMappingCandidate 对象
+                candidates = [
+                    FieldMappingCandidate(
+                        db_table=cand.get("db_table", ""),
+                        db_column=cand.get("db_column", ""),
+                        score=cand.get("score", 0.0),
+                        reasons=cand.get("reasons", [])
+                    )
+                    for cand in candidates_dicts
+                ]
                 results[field_name] = candidates
                 
         except Exception as e:
@@ -1005,10 +1025,20 @@ class FieldMappingProcessor:
                 use_ai_fallback=False  # 禁用 AI
             )
             
-            # 构建结果
+            # 构建结果，将字典转换为 FieldMappingCandidate 对象
             for field_name, field_info in batch:
                 field_path = field_info.field_path
-                candidates = vector_results.get("candidates", {}).get(field_path, [])
+                candidates_dicts = vector_results.get("results", {}).get(field_path, [])
+                # 转换字典为 FieldMappingCandidate 对象
+                candidates = [
+                    FieldMappingCandidate(
+                        db_table=cand.get("db_table", ""),
+                        db_column=cand.get("db_column", ""),
+                        score=cand.get("score", 0.0),
+                        reasons=cand.get("reasons", [])
+                    )
+                    for cand in candidates_dicts
+                ]
                 results[field_name] = candidates
                 
         except Exception as e:

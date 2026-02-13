@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     OPENAI_MODEL: str = "Qwen/Qwen2.5-Coder-7B-Instruct"
     OPENAI_BASE_URL: str = "https://api.siliconflow.cn/v1"
 
+    # Hugging Face 配置
+    HF_ENDPOINT: str = "https://hf-mirror.com"  # 国内镜像加速
+
     class Config:
         env_file = ".env"
         case_sensitive = True
