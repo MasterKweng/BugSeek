@@ -481,69 +481,113 @@ async def batch_apply_field_mappings(
     current_user: User = Depends(get_current_user)
 ):
     """
-    批量应用字段映射
+    批量应用字段映射（原子性保证 + 建议表更新）
+    
+    遵循后端代码规范：
+    - 事务原子性：整个操作在一个事务中
+    - 双写策略：同时更新 api_field_mappings 和 field_mapping_suggestions
+    - 幂等性：如果映射已存在，更新而不是插入
+    - 异常处理：失败时回滚事务
     """
     trace_id = get_trace_id()
     ctx = _get_project_and_version(db, current_user, project_id, version_id)
+    from app.db.base import FieldMappingSuggestion
 
     logger.info(
         f"[{trace_id}] 批量应用字段映射: project_id={ctx['project_id']}, version_id={ctx['version_id']}, "
         f"items_count={len(request.items)}, mode={request.mode}"
     )
 
-    created_count = 0
-    for item in request.items:
-        # 验证API定义存在性
-        definition = db.query(ApiDefinition).filter(
-            ApiDefinition.id == item.definition_id,
-            ApiDefinition.project_id == ctx["project_id"]
-        ).first()
+    try:
+        created_count = 0
+        updated_suggestion_ids = []
         
-        if not definition:
-            logger.warning(f"[{trace_id}] API定义不存在或无权限: {item.definition_id}")
-            continue
+        for item in request.items:
+            # 验证API定义存在性
+            definition = db.query(ApiDefinition).filter(
+                ApiDefinition.id == item.definition_id,
+                ApiDefinition.project_id == ctx["project_id"]
+            ).first()
+            
+            if not definition:
+                logger.warning(f"[{trace_id}] API定义不存在或无权限: {item.definition_id}")
+                continue
+            
+            # 检查是否已存在相同的映射
+            existing = db.query(ApiFieldMapping).filter(
+                ApiFieldMapping.project_id == ctx["project_id"],
+                ApiFieldMapping.version_id == ctx["version_id"],
+                ApiFieldMapping.definition_id == item.definition_id,
+                ApiFieldMapping.api_field_path == item.api_field_path,
+                ApiFieldMapping.db_table == item.db_table,
+                ApiFieldMapping.db_column == item.db_column
+            ).first()
+            
+            mapping = None
+            
+            if existing:
+                # 更新现有映射
+                existing.relation_type = item.relation_type
+                existing.source = item.source
+                existing.updated_by = current_user.id
+                mapping = existing
+            else:
+                # 创建新映射
+                mapping = ApiFieldMapping(
+                    project_id=ctx["project_id"],
+                    version_id=ctx["version_id"],
+                    definition_id=item.definition_id,
+                    api_field_path=item.api_field_path,
+                    db_table=item.db_table,
+                    db_column=item.db_column,
+                    relation_type=item.relation_type,
+                    source=item.source,
+                    status="confirmed" if request.mode == "confirm" else "proposed",
+                    created_by=current_user.id,
+                    updated_by=current_user.id
+                )
+                db.add(mapping)
+                db.flush()  # 获取 mapping.id
+            
+            # 3. 更新建议表状态（新增逻辑）
+            # 查找对应的建议记录
+            suggestion = db.query(FieldMappingSuggestion).filter(
+                FieldMappingSuggestion.project_id == ctx["project_id"],
+                FieldMappingSuggestion.definition_id == item.definition_id,
+                FieldMappingSuggestion.api_field_path == item.api_field_path,
+                FieldMappingSuggestion.status == "pending"
+            ).first()
+            
+            if suggestion:
+                # 更新建议状态和关联映射
+                suggestion.status = "accepted"
+                suggestion.mapping_id = mapping.id
+                updated_suggestion_ids.append(suggestion.id)
+            
+            created_count += 1
         
-        # 检查是否已存在相同的映射
-        existing = db.query(ApiFieldMapping).filter(
-            ApiFieldMapping.project_id == ctx["project_id"],
-            ApiFieldMapping.version_id == ctx["version_id"],
-            ApiFieldMapping.definition_id == item.definition_id,
-            ApiFieldMapping.api_field_path == item.api_field_path,
-            ApiFieldMapping.db_table == item.db_table,
-            ApiFieldMapping.db_column == item.db_column
-        ).first()
+        # 提交事务（原子性保证）
+        db.commit()
         
-        if existing:
-            # 如果已存在，更新状态和置信度
-            existing.relation_type = item.relation_type
-            existing.source = item.source
-            existing.updated_by = current_user.id
-        else:
-            # 创建新的映射
-            mapping = ApiFieldMapping(
-                project_id=ctx["project_id"],
-                version_id=ctx["version_id"],
-                definition_id=item.definition_id,
-                api_field_path=item.api_field_path,
-                db_table=item.db_table,
-                db_column=item.db_column,
-                relation_type=item.relation_type,
-                source=item.source,
-                status="confirmed" if request.mode == "confirm" else "proposed",
-                created_by=current_user.id,
-                updated_by=current_user.id
-            )
-            db.add(mapping)
+        logger.info(
+            f"[{trace_id}] 批量应用字段映射成功: "
+            f"created_count={created_count}, updated_suggestions={len(updated_suggestion_ids)}"
+        )
         
-        created_count += 1
-
-    db.commit()
-
-    return ApiResponse(
-        code=0,
-        message=f"批量应用成功，处理了 {created_count} 个映射",
-        data={"processed_count": created_count}
-    )
+        return ApiResponse(
+            code=0,
+            message=f"批量应用成功，处理了 {created_count} 个映射",
+            data={
+                "processed_count": created_count,
+                "updated_suggestion_count": len(updated_suggestion_ids)
+            }
+        )
+        
+    except Exception as e:
+        # 回滚事务（原子性保证）
+        db.rollback()
+        logger.error(f"[{trace_id}] 批量应用字段映射失败: {str(e)}", exc_info=True)
+        raise
 
 
 @router.put("/field-mappings/{mapping_id}/status", response_model=ApiResponse)

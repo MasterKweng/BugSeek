@@ -12805,3 +12805,344 @@ None
 2026-02-13 16:55:18 | INFO | [bf601b2523f04f32b215f1470088f8d1] | app.api.v1.versions | [bf601b2523f04f32b215f1470088f8d1] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
 2026-02-13 16:55:18 | INFO | [65cb894cba334424b0f85ac1c1a34248] | app.api.v1.projects | [65cb894cba334424b0f85ac1c1a34248] 用户 admin 获取项目列表: page=1, page_size=100
 2026-02-13 16:55:18 | INFO | [65cb894cba334424b0f85ac1c1a34248] | app.api.v1.projects | [65cb894cba334424b0f85ac1c1a34248] 获取项目列表成功: total=3
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | root | 日志系统初始化完成
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.main | 应用启动事件执行中...
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.main | Celery 实例: bugseek
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.main | 开始预热向量索引...
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.main | 应用启动事件执行完成
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.utils.vector_index | [7730cb5042e04386809fc02110d82049] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:31:28 | INFO | [7730cb5042e04386809fc02110d82049] | app.main | 向量索引已从缓存加载
+2026-02-13 17:32:11 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | root | 日志系统初始化完成
+2026-02-13 17:32:11 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.main | 应用启动事件执行中...
+2026-02-13 17:32:12 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.main | Celery 实例: bugseek
+2026-02-13 17:32:12 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:32:12 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:32:12 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:32:12 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.main | 开始预热向量索引...
+2026-02-13 17:32:12 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.main | 应用启动事件执行完成
+2026-02-13 17:32:12 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:32:12 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:32:12 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:32:12 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.utils.vector_index | [b4adfa20f2f94e5da6a8e07069fac029] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:32:12 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:32:12 | INFO | [b4adfa20f2f94e5da6a8e07069fac029] | app.main | 向量索引已从缓存加载
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | root | 日志系统初始化完成
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.main | 应用启动事件执行中...
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.main | Celery 实例: bugseek
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.main | 开始预热向量索引...
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.main | 应用启动事件执行完成
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.utils.vector_index | [9f7c930011e54f66a238d17746e272fc] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:32:24 | INFO | [9f7c930011e54f66a238d17746e272fc] | app.main | 向量索引已从缓存加载
+2026-02-13 17:33:04 | INFO | [0ba78dd544b34353bb696137302b410a] | root | 日志系统初始化完成
+2026-02-13 17:33:04 | INFO | [0ba78dd544b34353bb696137302b410a] | app.main | 应用启动事件执行中...
+2026-02-13 17:33:05 | INFO | [0ba78dd544b34353bb696137302b410a] | app.main | Celery 实例: bugseek
+2026-02-13 17:33:05 | INFO | [0ba78dd544b34353bb696137302b410a] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:33:05 | INFO | [0ba78dd544b34353bb696137302b410a] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:33:05 | INFO | [0ba78dd544b34353bb696137302b410a] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:33:05 | INFO | [0ba78dd544b34353bb696137302b410a] | app.main | 开始预热向量索引...
+2026-02-13 17:33:05 | INFO | [0ba78dd544b34353bb696137302b410a] | app.main | 应用启动事件执行完成
+2026-02-13 17:33:05 | INFO | [0ba78dd544b34353bb696137302b410a] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:33:05 | INFO | [0ba78dd544b34353bb696137302b410a] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:33:05 | INFO | [0ba78dd544b34353bb696137302b410a] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:33:05 | INFO | [0ba78dd544b34353bb696137302b410a] | app.utils.vector_index | [0ba78dd544b34353bb696137302b410a] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:33:05 | INFO | [0ba78dd544b34353bb696137302b410a] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:33:05 | INFO | [0ba78dd544b34353bb696137302b410a] | app.main | 向量索引已从缓存加载
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | root | 日志系统初始化完成
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.main | 应用启动事件执行中...
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.main | Celery 实例: bugseek
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.main | 开始预热向量索引...
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.main | 应用启动事件执行完成
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.utils.vector_index | [e84e7d57092241438f6e5906a2d73b13] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:33:17 | INFO | [e84e7d57092241438f6e5906a2d73b13] | app.main | 向量索引已从缓存加载
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | root | 日志系统初始化完成
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.main | 应用启动事件执行中...
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.main | Celery 实例: bugseek
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.main | 开始预热向量索引...
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.main | 应用启动事件执行完成
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.utils.vector_index | [3ef054dd243a47958c40dd675aecfe47] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:33:30 | INFO | [3ef054dd243a47958c40dd675aecfe47] | app.main | 向量索引已从缓存加载
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | root | 日志系统初始化完成
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.main | 应用启动事件执行中...
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.main | Celery 实例: bugseek
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.main | 开始预热向量索引...
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.main | 应用启动事件执行完成
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.utils.vector_index | [1fa5cb4c83eb45068184bc5b6fd0ba6d] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:33:46 | INFO | [1fa5cb4c83eb45068184bc5b6fd0ba6d] | app.main | 向量索引已从缓存加载
+2026-02-13 17:33:58 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | root | 日志系统初始化完成
+2026-02-13 17:33:58 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.main | 应用启动事件执行中...
+2026-02-13 17:33:59 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.main | Celery 实例: bugseek
+2026-02-13 17:33:59 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:33:59 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:33:59 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:33:59 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.main | 开始预热向量索引...
+2026-02-13 17:33:59 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.main | 应用启动事件执行完成
+2026-02-13 17:33:59 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:33:59 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:33:59 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:33:59 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.utils.vector_index | [bbbbfa04d60f40eca3c807705a1daefc] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:33:59 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:33:59 | INFO | [bbbbfa04d60f40eca3c807705a1daefc] | app.main | 向量索引已从缓存加载
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | root | 日志系统初始化完成
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.main | 应用启动事件执行中...
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.main | Celery 实例: bugseek
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.main | 开始预热向量索引...
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.main | 应用启动事件执行完成
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.utils.vector_index | [9fea7cd04b2e4a169b938ae43178900c] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:34:50 | INFO | [9fea7cd04b2e4a169b938ae43178900c] | app.main | 向量索引已从缓存加载
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | root | 日志系统初始化完成
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.main | 应用启动事件执行中...
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.main | Celery 实例: bugseek
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.main | 开始预热向量索引...
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.main | 应用启动事件执行完成
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.utils.vector_index | [4e3dfd5ee2174a10b44ff4541f9e38e7] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:34:57 | INFO | [4e3dfd5ee2174a10b44ff4541f9e38e7] | app.main | 向量索引已从缓存加载
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | root | 日志系统初始化完成
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.main | 应用启动事件执行中...
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.main | Celery 实例: bugseek
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.main | 开始预热向量索引...
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.main | 应用启动事件执行完成
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.utils.vector_index | [46ba7700084145db89079bf0eb9fc472] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:35:18 | INFO | [46ba7700084145db89079bf0eb9fc472] | app.main | 向量索引已从缓存加载
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | root | 日志系统初始化完成
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.main | 应用启动事件执行中...
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.main | Celery 实例: bugseek
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.main | 开始预热向量索引...
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.main | 应用启动事件执行完成
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.utils.vector_index | [61480a5d16e74e698135353b6a15bc36] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:35:38 | INFO | [61480a5d16e74e698135353b6a15bc36] | app.main | 向量索引已从缓存加载
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | root | 日志系统初始化完成
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.main | 应用启动事件执行中...
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.main | Celery 实例: bugseek
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.main | 开始预热向量索引...
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.main | 应用启动事件执行完成
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.utils.vector_index | [7e33e0910d394f3d941939723689e13e] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:37:16 | INFO | [7e33e0910d394f3d941939723689e13e] | app.main | 向量索引已从缓存加载
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | root | 日志系统初始化完成
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.main | 应用启动事件执行中...
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.main | Celery 实例: bugseek
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.main | 开始预热向量索引...
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.main | 应用启动事件执行完成
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.utils.vector_index | [d3b5799f1cc740d8823ef548d611bf6f] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:38:49 | INFO | [d3b5799f1cc740d8823ef548d611bf6f] | app.main | 向量索引已从缓存加载
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | root | 日志系统初始化完成
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.main | 应用启动事件执行中...
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.main | Celery 实例: bugseek
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.main | 开始预热向量索引...
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.main | 应用启动事件执行完成
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.utils.vector_index | [0ea9eefa9a51469a8accf91dc05e1a22] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:39:25 | INFO | [0ea9eefa9a51469a8accf91dc05e1a22] | app.main | 向量索引已从缓存加载
+2026-02-13 17:40:26 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | root | 日志系统初始化完成
+2026-02-13 17:40:26 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.main | 应用启动事件执行中...
+2026-02-13 17:40:27 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.main | Celery 实例: bugseek
+2026-02-13 17:40:27 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:40:27 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:40:27 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:40:27 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.main | 开始预热向量索引...
+2026-02-13 17:40:27 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.main | 应用启动事件执行完成
+2026-02-13 17:40:27 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:40:27 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:40:27 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:40:27 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.utils.vector_index | [8e8918440f1f494b835f285da3fcbbf2] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:40:27 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:40:27 | INFO | [8e8918440f1f494b835f285da3fcbbf2] | app.main | 向量索引已从缓存加载
+2026-02-13 17:45:05 | INFO | [8fb4a11c696a4923955db184c628a6ce] | app.api.v1.db_schemas | [8fb4a11c696a4923955db184c628a6ce] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-13 17:45:43 | INFO | [beda18d8e90746949bd4ae9b289b5d28] | app.api.v1.db_schemas | [beda18d8e90746949bd4ae9b289b5d28] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-13 17:45:43 | INFO | [0acd244fa49345a6ad15a023aaa4a166] | app.api.v1.db_schemas | [0acd244fa49345a6ad15a023aaa4a166] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-13 17:53:00 | INFO | [8512db2d8138450e932a16e7dad519a1] | app.api.v1.db_schemas | [8512db2d8138450e932a16e7dad519a1] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-13 17:54:58 | INFO | [368c220454dc4843b358b0f08f4fa1bf] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -18, 已检出: 1, 空闲: 19, 统计 - 创建: 4, 检出: 10, 检入: 8, 溢出: 0, 错误: 0, 最大并发: 1
+2026-02-13 17:54:58 | INFO | [368c220454dc4843b358b0f08f4fa1bf] | app.api.v1.projects | [368c220454dc4843b358b0f08f4fa1bf] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:54:58 | INFO | [368c220454dc4843b358b0f08f4fa1bf] | app.api.v1.projects | [368c220454dc4843b358b0f08f4fa1bf] 获取项目列表成功: total=3
+2026-02-13 17:54:58 | INFO | [c32a2e4e581945e5ab15e1728660fbb1] | app.api.v1.db_schemas | [c32a2e4e581945e5ab15e1728660fbb1] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-13 17:54:58 | INFO | [8ceb4e11fd584d9e8e9b953589142de9] | app.api.v1.projects | [8ceb4e11fd584d9e8e9b953589142de9] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:54:58 | INFO | [8ceb4e11fd584d9e8e9b953589142de9] | app.api.v1.projects | [8ceb4e11fd584d9e8e9b953589142de9] 获取项目列表成功: total=3
+2026-02-13 17:54:58 | INFO | [5684d36454334f1099bcfca2f0ec5ded] | app.api.v1.versions | [5684d36454334f1099bcfca2f0ec5ded] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-13 17:54:58 | INFO | [ee25058e85cf47c0b1f8b3ede5e2a781] | app.api.v1.projects | [ee25058e85cf47c0b1f8b3ede5e2a781] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:54:58 | INFO | [ee25058e85cf47c0b1f8b3ede5e2a781] | app.api.v1.projects | [ee25058e85cf47c0b1f8b3ede5e2a781] 获取项目列表成功: total=3
+2026-02-13 17:54:58 | INFO | [ad64e1d576b04a0b94889117ae4dc600] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -15, 已检出: 5, 空闲: 15, 统计 - 创建: 10, 检出: 20, 检入: 10, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-13 17:54:58 | INFO | [ad64e1d576b04a0b94889117ae4dc600] | app.api.v1.db_schemas | [ad64e1d576b04a0b94889117ae4dc600] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-13 17:54:58 | INFO | [d7cd908a630a4ece8da9a1d6f7bfff13] | app.api.v1.versions | [d7cd908a630a4ece8da9a1d6f7bfff13] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-13 17:54:58 | INFO | [674746d2b27846f7bddcd9f100fbcab6] | app.api.v1.projects | [674746d2b27846f7bddcd9f100fbcab6] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:54:58 | INFO | [674746d2b27846f7bddcd9f100fbcab6] | app.api.v1.projects | [674746d2b27846f7bddcd9f100fbcab6] 获取项目列表成功: total=3
+2026-02-13 17:54:59 | INFO | [74ece61a68e84f2989c31b888653b28b] | app.api.v1.field_mappings_async | [74ece61a68e84f2989c31b888653b28b] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-13 17:55:00 | INFO | [74ece61a68e84f2989c31b888653b28b] | app.api.v1.field_mappings_async | [74ece61a68e84f2989c31b888653b28b] 查询任务列表完成: total=10, returned=10
+2026-02-13 17:55:05 | INFO | [5f05a51c28714ffa8a3a14bd7be20660] | app.api.v1.projects | [5f05a51c28714ffa8a3a14bd7be20660] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:55:05 | INFO | [5f05a51c28714ffa8a3a14bd7be20660] | app.api.v1.projects | [5f05a51c28714ffa8a3a14bd7be20660] 获取项目列表成功: total=3
+2026-02-13 17:55:05 | INFO | [f1fc46dddc764f329088be527675ace6] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -15, 已检出: 2, 空闲: 18, 统计 - 创建: 10, 检出: 30, 检入: 26, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-13 17:55:05 | INFO | [f1fc46dddc764f329088be527675ace6] | app.api.v1.db_schemas | [f1fc46dddc764f329088be527675ace6] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-13 17:55:05 | INFO | [123dd00e75574445a050bdabac73c5ba] | app.api.v1.projects | [123dd00e75574445a050bdabac73c5ba] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:55:05 | INFO | [123dd00e75574445a050bdabac73c5ba] | app.api.v1.projects | [123dd00e75574445a050bdabac73c5ba] 获取项目列表成功: total=3
+2026-02-13 17:55:05 | INFO | [a9e5ef84b3504f569bd5a4612cd09d6e] | app.api.v1.versions | [a9e5ef84b3504f569bd5a4612cd09d6e] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-13 17:55:05 | INFO | [11df004539704a719fc76e7db526d729] | app.api.v1.projects | [11df004539704a719fc76e7db526d729] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:55:05 | INFO | [11df004539704a719fc76e7db526d729] | app.api.v1.projects | [11df004539704a719fc76e7db526d729] 获取项目列表成功: total=3
+2026-02-13 17:55:05 | INFO | [82d85d7658a8430c84d60b23b68e40c4] | app.api.v1.db_schemas | [82d85d7658a8430c84d60b23b68e40c4] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-13 17:55:05 | INFO | [c51be067213b481c878d5a977acf3fbc] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -15, 已检出: 3, 空闲: 17, 统计 - 创建: 10, 检出: 40, 检入: 34, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-13 17:55:05 | INFO | [c51be067213b481c878d5a977acf3fbc] | app.api.v1.versions | [c51be067213b481c878d5a977acf3fbc] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-13 17:55:05 | INFO | [387b62ba85114e81bb4cedb3e56be6f3] | app.api.v1.projects | [387b62ba85114e81bb4cedb3e56be6f3] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:55:05 | INFO | [387b62ba85114e81bb4cedb3e56be6f3] | app.api.v1.projects | [387b62ba85114e81bb4cedb3e56be6f3] 获取项目列表成功: total=3
+2026-02-13 17:55:23 | INFO | [67a3bcdb778447d798296190b9e45e02] | app.api.v1.projects | [67a3bcdb778447d798296190b9e45e02] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:55:23 | INFO | [67a3bcdb778447d798296190b9e45e02] | app.api.v1.projects | [67a3bcdb778447d798296190b9e45e02] 获取项目列表成功: total=3
+2026-02-13 17:55:23 | INFO | [75cf8bdbc45642f79fe9e8283a60411e] | app.api.v1.db_schemas | [75cf8bdbc45642f79fe9e8283a60411e] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-13 17:55:23 | INFO | [ace0e2f44a8245f09a349495ff5bc41d] | app.api.v1.projects | [ace0e2f44a8245f09a349495ff5bc41d] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:55:23 | INFO | [ace0e2f44a8245f09a349495ff5bc41d] | app.api.v1.projects | [ace0e2f44a8245f09a349495ff5bc41d] 获取项目列表成功: total=3
+2026-02-13 17:55:23 | INFO | [221ee998fa6c4db18da0aaac78280f67] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -15, 已检出: 3, 空闲: 17, 统计 - 创建: 10, 检出: 50, 检入: 44, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-13 17:55:23 | INFO | [221ee998fa6c4db18da0aaac78280f67] | app.api.v1.versions | [221ee998fa6c4db18da0aaac78280f67] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-13 17:55:23 | INFO | [2d34e15f73c94591b2e39ce748be5c55] | app.api.v1.projects | [2d34e15f73c94591b2e39ce748be5c55] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:55:23 | INFO | [2d34e15f73c94591b2e39ce748be5c55] | app.api.v1.projects | [2d34e15f73c94591b2e39ce748be5c55] 获取项目列表成功: total=3
+2026-02-13 17:55:23 | INFO | [630a198a62ff494c8575ad2c5dee9519] | app.api.v1.db_schemas | [630a198a62ff494c8575ad2c5dee9519] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-13 17:55:23 | INFO | [e3a77d09035a4245934809fae5c707a0] | app.api.v1.versions | [e3a77d09035a4245934809fae5c707a0] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-13 17:55:23 | INFO | [f139b5a6e6714749b6898b6d93543787] | app.api.v1.projects | [f139b5a6e6714749b6898b6d93543787] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:55:23 | INFO | [f139b5a6e6714749b6898b6d93543787] | app.api.v1.projects | [f139b5a6e6714749b6898b6d93543787] 获取项目列表成功: total=3
+2026-02-13 17:55:27 | INFO | [6fb09a8896e6493ca54ffbb0ae4041d5] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -15, 已检出: 1, 空闲: 19, 统计 - 创建: 10, 检出: 60, 检入: 58, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-13 17:55:27 | INFO | [6fb09a8896e6493ca54ffbb0ae4041d5] | app.api.v1.projects | [6fb09a8896e6493ca54ffbb0ae4041d5] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:55:27 | INFO | [6fb09a8896e6493ca54ffbb0ae4041d5] | app.api.v1.projects | [6fb09a8896e6493ca54ffbb0ae4041d5] 获取项目列表成功: total=3
+2026-02-13 17:55:27 | INFO | [b7cbfec525dc48e9a6b16e9ad212464b] | app.api.v1.db_schemas | [b7cbfec525dc48e9a6b16e9ad212464b] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-13 17:55:27 | INFO | [f1425a1bd7cc499fae9f59640fafcd8b] | app.api.v1.versions | [f1425a1bd7cc499fae9f59640fafcd8b] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-13 17:55:27 | INFO | [b1bf5d919d1a44b1a6a5cfe917ccd822] | app.api.v1.projects | [b1bf5d919d1a44b1a6a5cfe917ccd822] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:55:27 | INFO | [b1bf5d919d1a44b1a6a5cfe917ccd822] | app.api.v1.projects | [b1bf5d919d1a44b1a6a5cfe917ccd822] 获取项目列表成功: total=3
+2026-02-13 17:55:27 | INFO | [9c62ac7585cb40e096277027cf7dffea] | app.api.v1.projects | [9c62ac7585cb40e096277027cf7dffea] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:55:27 | INFO | [9c62ac7585cb40e096277027cf7dffea] | app.api.v1.projects | [9c62ac7585cb40e096277027cf7dffea] 获取项目列表成功: total=3
+2026-02-13 17:55:27 | INFO | [1aa7f76860aa4f0abe574dc8ceea9d39] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 6, 空闲: 14, 统计 - 创建: 12, 检出: 70, 检入: 58, 溢出: 0, 错误: 0, 最大并发: 6
+2026-02-13 17:55:27 | INFO | [1aa7f76860aa4f0abe574dc8ceea9d39] | app.api.v1.db_schemas | [1aa7f76860aa4f0abe574dc8ceea9d39] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-13 17:55:27 | INFO | [5b3e9c3b7ac645408a597344df021838] | app.api.v1.versions | [5b3e9c3b7ac645408a597344df021838] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-13 17:55:27 | INFO | [1a130dfe5da64cb388400cea0d8f0f72] | app.api.v1.projects | [1a130dfe5da64cb388400cea0d8f0f72] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-13 17:55:27 | INFO | [1a130dfe5da64cb388400cea0d8f0f72] | app.api.v1.projects | [1a130dfe5da64cb388400cea0d8f0f72] 获取项目列表成功: total=3
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | root | 日志系统初始化完成
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.main | 应用启动事件执行中...
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.main | Celery 实例: bugseek
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.main | 开始预热向量索引...
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.main | 应用启动事件执行完成
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.utils.vector_index | [912b90a784394e45974bd49bef654606] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:57:56 | INFO | [912b90a784394e45974bd49bef654606] | app.main | 向量索引已从缓存加载
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | root | 日志系统初始化完成
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.main | 应用启动事件执行中...
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.main | Celery 实例: bugseek
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.main | 开始预热向量索引...
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.main | 应用启动事件执行完成
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.utils.vector_index | [8b260bf8671241c7b0948f7e9f988cfb] 从缓存加载向量索引成功: 289 个列
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 17:59:30 | INFO | [8b260bf8671241c7b0948f7e9f988cfb] | app.main | 向量索引已从缓存加载
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | root | 日志系统初始化完成
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.main | 应用启动事件执行中...
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.main | Celery 实例: bugseek
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.main | 开始预热向量索引...
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.main | 应用启动事件执行完成
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.utils.vector_index | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] 从缓存加载向量索引成功: 289 个列
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 18:01:36 | INFO | [6bdd8a4c3fd24f5ebb30c4ad3bb23f3f] | app.main | 向量索引已从缓存加载
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | root | 日志系统初始化完成
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.main | 应用启动事件执行中...
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.main | Celery 实例: bugseek
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.main | 开始预热向量索引...
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.main | 应用启动事件执行完成
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.utils.vector_index | [a89f419970cb460ea58ea9f16060f81f] 从缓存加载向量索引成功: 289 个列
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-13 18:02:15 | INFO | [a89f419970cb460ea58ea9f16060f81f] | app.main | 向量索引已从缓存加载

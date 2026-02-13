@@ -25,8 +25,7 @@ import {
   Result,
   Divider,
   Slider,
-  Select,
-  Tabs
+  Select
 } from 'antd';
 import { 
   CheckCircleOutlined, 
@@ -76,9 +75,6 @@ const FieldMappingSuggestions: React.FC = () => {
     pageSize: 20,
     total: 0
   });
-  
-  // ==================== 新增：Tab 切换状态 ====================
-  const [activeTab, setActiveTab] = useState<'suggestions' | 'mappings'>('suggestions');
   
   // ==================== 异步任务相关状态 ====================
   const [taskModalVisible, setTaskModalVisible] = useState(false);
@@ -1101,16 +1097,7 @@ const FieldMappingSuggestions: React.FC = () => {
         </Space>
       </div>
 
-      {/* Tabs 组件 */}
-      <Tabs
-        activeKey={activeTab}
-        onChange={(key) => setActiveTab(key as 'suggestions' | 'mappings')}
-        items={[
-          {
-            key: 'suggestions',
-            label: '建议管理',
-            children: (
-              <>
+      {/* ==================== 筛选器工具栏 ==================== */}
       {pageState === 'IDLE' && suggestions.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             <Space>
@@ -1146,23 +1133,344 @@ const FieldMappingSuggestions: React.FC = () => {
             </Space>
           </div>
         )}
-              </>
-            )
-          },
-          {
-            key: 'mappings',
-            label: '映射管理',
-            children: (
-              <div>
-                {/* 映射管理Tab的内容 */}
-                <div style={{ padding: 40, textAlign: 'center', color: '#999' }}>
-                  <Empty description="映射管理功能开发中..." />
+
+        {/* ==================== 根据 pageState 渲染不同内容 ==================== */}
+        
+        {/* IDLE 态：显示空状态 */}
+        {pageState === 'IDLE' && (
+          <div style={{ marginBottom: 16 }}>
+            <Space>
+              <Checkbox 
+                checked={includePaths} 
+                onChange={e => setIncludePaths(e.target.checked)}
+              >
+                包含路径参数
+              </Checkbox>
+              <Checkbox 
+                checked={includeQuery} 
+                onChange={e => setIncludeQuery(e.target.checked)}
+              >
+                包含查询参数
+              </Checkbox>
+              <Checkbox 
+                checked={includeBody} 
+                onChange={e => setIncludeBody(e.target.checked)}
+              >
+                包含请求体参数
+              </Checkbox>
+            </Space>
+          </div>
+        )}
+
+        {/* ==================== 新增：统计信息卡片 ==================== */}
+        {mappingStatistics && suggestions.length > 0 && (
+          <Row gutter={16} style={{ marginBottom: 16 }}>
+            <Col span={6}>
+              <Card size="small" hoverable>
+                <Statistic
+                  title="总字段数"
+                  value={mappingStatistics.total_fields}
+                  prefix={<ClockCircleOutlined />}
+                />
+              </Card>
+            </Col>
+            
+            <Col span={6}>
+              <Card size="small" hoverable>
+                <Statistic
+                  title="高置信度"
+                  value={mappingStatistics.high_confidence_count}
+                  valueStyle={{ color: '#3f8600' }}
+                  prefix={<CheckCircleOutlined />}
+                  suffix={
+                    <Tag color="green" style={{ marginLeft: 8 }}>
+                      ≥85%
+                    </Tag>
+                  }
+                />
+              </Card>
+            </Col>
+            
+            <Col span={6}>
+              <Card size="small" hoverable>
+                <Statistic
+                  title="AI 兜底"
+                  value={mappingStatistics.ai_fallback_count}
+                  valueStyle={{ color: '#722ed1' }}
+                  prefix={<SyncOutlined />}
+                />
+                {mappingStatistics.gravity_table && (
+                  <div style={{ fontSize: 12, color: '#999', marginTop: 8 }}>
+                    重心表: {mappingStatistics.gravity_table}
+                  </div>
+                )}
+              </Card>
+            </Col>
+            
+            <Col span={6}>
+              <Card size="small" hoverable>
+                <Statistic
+                  title="低置信度"
+                  value={mappingStatistics.low_confidence_count}
+                  valueStyle={{ color: '#ff4d4f' }}
+                  prefix={<WarningOutlined />}
+                  suffix={
+                    <Tag color="red" style={{ marginLeft: 8 }}>
+                      &lt;60%
+                    </Tag>
+                  }
+                />
+              </Card>
+            </Col>
+          </Row>
+        )}
+
+        {pageState === 'IDLE' && suggestions.length === 0 && !loading ? (
+          <Table
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={[]}
+            rowKey="definition_id"
+            loading={loading}
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 条`,
+              onChange: (page, pageSize) => {
+                loadTaskResults(taskId!, page, pageSize);
+              },
+              onShowSizeChange: (current, size) => {
+                loadTaskResults(taskId!, 1, size);
+              }
+            }}
+          />
+        ) : pageState === 'IDLE' && (
+          <Table
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={filteredSuggestions}
+            rowKey="definition_id"
+            loading={loading}
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 条`,
+              onChange: (page, pageSize) => {
+                loadTaskResults(taskId!, page, pageSize);
+              },
+              onShowSizeChange: (current, size) => {
+                loadTaskResults(taskId!, 1, size);
+              }
+            }}
+          />
+        )}
+
+        {/* RUNNING 态：显示进度面板 */}
+        {pageState === 'RUNNING' && (
+          <div>
+            {currentTask ? (
+              <>
+                {/* 顶部进度条 */}
+                <div style={{ marginBottom: 24 }}>
+                  <Progress 
+                    percent={currentTask.progress} 
+                    status={currentTask.status === 'failed' ? 'exception' : 'active'}
+                    format={(percent) => `${percent}% - ${currentTask.progress_message || '处理中...'}`}
+                  />
                 </div>
+
+                {/* 垂直步骤条 */}
+                <div style={{ marginBottom: 24 }}>
+                  <Steps 
+                    current={getCurrentStageIndex()} 
+                    direction="vertical"
+                    items={currentTask.stages?.map((stage) => ({
+                      title: stage.name,
+                      status: getStepStatus(stage.status),
+                      subTitle: (
+                        <div>
+                          {stage.description && <div style={{ marginBottom: 4 }}>{stage.description}</div>}
+                          {stage.status === 'running' && <Spin size="small" />}
+                          <div style={{ fontSize: 12, color: '#999' }}>
+                            进度: {stage.progress}%
+                          </div>
+                        </div>
+                      )
+                    })) || []}
+                  />
+                </div>
+
+                {/* 统计信息卡片 */}
+                {currentTask.statistics && (
+                  <Row gutter={16} style={{ marginBottom: 24 }}>
+                    <Col span={6}>
+                      <Statistic title="总字段数" value={currentTask.statistics.total_fields || 0} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="已处理" value={currentTask.statistics.processed || 0} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="AI增强" value={currentTask.statistics.ai_enhanced || 0} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="自动确认" value={currentTask.statistics.auto_confirmed || 0} />
+                    </Col>
+                  </Row>
+                )}
+
+                {/* 操作按钮 */}
+                <Space>
+                  <Button danger onClick={handleCancelTask}>
+                    取消任务
+                  </Button>
+                  <Button onClick={handleRefreshTask}>
+                    刷新状态
+                  </Button>
+                </Space>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                <Spin size="large" />
+                <div style={{ marginTop: 16, color: '#999' }}>正在加载任务信息...</div>
               </div>
-            )
-          }
-        ]}
-      />
+            )}
+          </div>
+        )}
+
+        {/* COMPLETED 态：显示任务摘要和结果表格 */}
+        {pageState === 'COMPLETED' && currentTask && (
+          <div>
+            {/* 进度条：显示 100% 完成 */}
+            <div style={{ marginBottom: 24 }}>
+              <Progress 
+                percent={100} 
+                status="success"
+                format={() => `100% - ${currentTask.progress_message || '任务已完成'}`}
+              />
+            </div>
+
+            {/* 垂直步骤条：所有阶段显示为已完成 */}
+            <div style={{ marginBottom: 24 }}>
+              <Steps 
+                current={(currentTask.stages?.length || 0)}
+                direction="vertical"
+                items={currentTask.stages?.map((stage) => ({
+                  title: stage.name,
+                  status: 'finish',
+                  description: (
+                    <div>
+                      {stage.description && <div style={{ marginBottom: 4 }}>{stage.description}</div>}
+                      <div style={{ fontSize: 12, color: '#999' }}>
+                        进度: 100%
+                      </div>
+                    </div>
+                  )
+                })) || []}
+              />
+            </div>
+
+            {/* 统计信息卡片 */}
+            {currentTask.statistics && (
+              <Row gutter={16} style={{ marginBottom: 24 }}>
+                <Col span={6}>
+                  <Statistic title="总字段数" value={currentTask.statistics.total_fields || 0} />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="已处理" value={currentTask.statistics.processed || 0} />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="AI增强" value={currentTask.statistics.ai_enhanced || 0} />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="自动确认" value={currentTask.statistics.auto_confirmed || 0} />
+                </Col>
+              </Row>
+            )}
+
+            {/* 任务摘要 */}
+            <Alert
+              message="任务完成"
+              description={
+                <div>
+                  <div>耗时: {Math.ceil((currentTask.finished_at ? new Date(currentTask.finished_at).getTime() - new Date(currentTask.started_at || '').getTime() : 0) / 1000)} 秒</div>
+                  <div>生成建议: {suggestions.length} 个</div>
+                </div>
+              }
+              type="success"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+
+            {/* 结果表格 */}
+            <Table
+              rowSelection={rowSelection}
+              columns={columns}
+              dataSource={suggestions}
+              rowKey="definition_id"
+              loading={loading}
+              pagination={{
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total) => `共 ${total} 条`,
+              }}
+            />
+          </div>
+        )}
+
+        {/* FAILED 态：显示错误信息 */}
+        {pageState === 'FAILED' && currentTask && (
+          <Result
+            status="error"
+            title="任务执行失败"
+            subTitle={currentTask.error_message || '未知错误'}
+            extra={[
+              <Button key="retry" type="primary" onClick={() => {
+                // TODO: 实现重试逻辑
+                message.info('重试功能待实现')
+              }}>
+                重试失败阶段
+              </Button>,
+              <Button key="new" onClick={() => {
+                setPageState('IDLE');
+                setTaskId(null);
+                setCurrentTask(null);
+              }}>
+                重新创建任务
+              </Button>
+            ]}
+          />
+        )}
+
+        {/* 兼容：如果 pageState 为空但 suggestions 有数据，显示表格 */}
+        {!pageState && suggestions.length > 0 && (
+          <Table
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={suggestions}
+            rowKey="definition_id"
+            loading={loading}
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 条`,
+              onChange: (page, pageSize) => {
+                loadTaskResults(taskId!, page, pageSize);
+              },
+              onShowSizeChange: (current, size) => {
+                loadTaskResults(taskId!, 1, size);
+              }
+            }}
+          />
+        )}
 
       {/* 任务创建模态框 */}
       <Modal

@@ -185,15 +185,35 @@ async def create_suggest_task(
 @router.get("/field-mappings/suggestions", response_model=ApiResponse)
 async def get_suggestions(
     task_id: int,
+    status: Optional[str] = Query(None, description="状态筛选"),
+    page: int = Query(1, ge=1, description="页码"),
+    size: int = Query(20, ge=1, le=100, description="每页数量"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    获取字段映射建议结果
+    获取字段映射建议结果（建议表版本）
+    
+    遵循后端代码规范：
+    - 真分页：数据库层面分页
+    - 状态筛选：支持 status 参数
+    - 水平越权校验（IDOR）：检查资源归属人
+    - 全链路 TraceID：使用 get_trace_id()
+    - 向后兼容：如果建议表为空，尝试从 JSON 读取
+    
+    Args:
+        task_id: 任务ID
+        status: 状态筛选
+        page: 页码
+        size: 每页数量
+    
+    Returns:
+        建议列表
     """
     trace_id = get_trace_id()
-
-    logger.info(f"[{trace_id}] 获取字段映射建议结果: task_id={task_id}")
+    from app.db.base import FieldMappingSuggestion
+    
+    logger.info(f"[{trace_id}] 获取字段映射建议结果: task_id={task_id}, status={status}, page={page}, size={size}")
 
     # 查询任务
     task = db.query(AsyncTask).filter(AsyncTask.id == task_id).first()
@@ -244,12 +264,78 @@ async def get_suggestions(
             }
         )
 
-    # 返回结果
-    result = task.result or {}
+    # 尝试从建议表查询
+    query = db.query(FieldMappingSuggestion).filter(
+        FieldMappingSuggestion.task_id == task_id
+    )
+    
+    # 状态筛选
+    if status:
+        query = query.filter(FieldMappingSuggestion.status == status)
+    
+    # 获取总数
+    total = query.count()
+    
+    # 如果建议表为空，尝试从 JSON 读取（向后兼容）
+    if total == 0:
+        logger.info(f"[{trace_id}] 建议表为空，尝试从 JSON 读取")
+        result = task.result or {}
+        suggestions = result.get("suggestions", [])
+        
+        # 临时分页（客户端分页）
+        start = (page - 1) * size
+        end = start + size
+        paginated_suggestions = suggestions[start:end]
+        
+        return ApiResponse(
+            code=0,
+            message="查询成功（从 JSON 读取）",
+            data={
+                "items": paginated_suggestions,
+                "total": len(suggestions),
+                "page": page,
+                "size": size,
+                "source": "json"  # 标识数据来源
+            }
+        )
+    
+    # 分页查询（服务器端分页）
+    items = query.order_by(FieldMappingSuggestion.id).offset(
+        (page - 1) * size
+    ).limit(size).all()
+    
+    # 转换为响应格式
+    items_data = []
+    for item in items:
+        # 获取 definition 信息
+        definition_info = None
+        if item.definition:
+            definition_info = {
+                "method": item.definition.method,
+                "path": item.definition.path
+            }
+        
+        items_data.append({
+            "id": item.id,
+            "definition_id": item.definition_id,
+            "definition_method": definition_info["method"] if definition_info else None,
+            "definition_path": definition_info["path"] if definition_info else None,
+            "api_field_path": item.api_field_path,
+            "candidates": item.candidates,  # JSON 自动反序列化
+            "status": item.status,
+            "mapping_id": item.mapping_id
+        })
+    
     return ApiResponse(
         code=0,
         message="查询成功",
-        data=result
+        data={
+            "items": items_data,  # 关键修正：重命名为 items
+            "total": total,
+            "page": page,
+            "size": size,
+            "source": "table"  # 标识数据来源
+        }
     )
 
 

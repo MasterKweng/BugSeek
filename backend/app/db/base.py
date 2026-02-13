@@ -1,8 +1,9 @@
 """数据库模型基类"""
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, JSON, ForeignKey, Index, UniqueConstraint, Float
+from sqlalchemy import Column, Integer, BigInteger, String, Boolean, DateTime, Text, JSON, ForeignKey, Index, UniqueConstraint, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import JSONB
 
 Base = declarative_base()
 
@@ -489,6 +490,69 @@ class ApiFieldMapping(Base, TimestampMixin):
         UniqueConstraint(
             'project_id', 'version_id', 'definition_id', 'api_field_path', 'db_table', 'db_column',
             name='uq_field_mapping'
+        ),
+    )
+
+
+class FieldMappingSuggestion(Base, TimestampMixin):
+    """
+    字段映射建议表（业务工作台）
+    
+    用于存储异步任务生成的建议数据，支持：
+    - 建议数据的持久化存储
+    - 状态管理（pending/accepted/ignored/modified）
+    - 与 api_field_mappings 的关联
+    - 高效查询和分页
+    
+    遵循后端代码规范：
+    - 使用 JSONB 存储候选列表（PostgreSQL 特性）
+    - 建立完整的索引和约束
+    - 支持状态流转
+    """
+    __tablename__ = "field_mapping_suggestions"
+
+    # 主键
+    id = Column(BigInteger, primary_key=True, index=True)
+    
+    # 关联字段
+    task_id = Column(Integer, ForeignKey("async_tasks.id", ondelete="CASCADE"), nullable=False, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    # API 坐标
+    definition_id = Column(Integer, ForeignKey("api_definitions.id", ondelete="CASCADE"), nullable=False, index=True)
+    api_field_path = Column(String(255), nullable=False, index=True)
+    
+    # 核心数据（候选列表）
+    # PostgreSQL JSONB 类型，支持索引和查询
+    # 注意：SQLAlchemy 的 JSON 类型在 PostgreSQL 上会自动映射为 JSONB
+    candidates = Column(JSON, nullable=False)
+    
+    # 状态管理（关键！）
+    status = Column(String(50), nullable=False, default="pending", index=True)
+    # pending: 待审核
+    # accepted: 已接受
+    # ignored: 已忽略
+    # modified: 已修改
+    
+    # 关联已确认的映射（Optional）
+    mapping_id = Column(BigInteger, ForeignKey("api_field_mappings.id", ondelete="SET NULL"), nullable=True)
+    
+    # 关系定义
+    task = relationship("AsyncTask", foreign_keys=[task_id], backref="suggestions")
+    project = relationship("Project", foreign_keys=[project_id])
+    definition = relationship("ApiDefinition", foreign_keys=[definition_id])
+    mapping = relationship("ApiFieldMapping", foreign_keys=[mapping_id])
+    
+    __table_args__ = (
+        # 复合索引：任务+状态（用于查询任务的建议状态）
+        Index('ix_field_mapping_suggestions_task_status', 'task_id', 'status'),
+        # 复合索引：项目+定义+字段路径（用于查询某个字段的建议）
+        Index('ix_field_mapping_suggestions_project_definition_field', 
+              'project_id', 'definition_id', 'api_field_path'),
+        # 唯一约束：防止同一任务同一字段重复建议
+        UniqueConstraint(
+            'task_id', 'definition_id', 'api_field_path',
+            name='uq_suggestion_task_definition_field'
         ),
     )
 
