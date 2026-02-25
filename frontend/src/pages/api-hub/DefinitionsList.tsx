@@ -444,7 +444,7 @@ const DefinitionsList: React.FC = () => {
             <div style={{ fontWeight: 'bold' }}>{path}</div>
           </Space>
           {record.summary && (
-            <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
               {record.summary}
             </div>
           )}
@@ -863,55 +863,55 @@ const DefinitionsList: React.FC = () => {
                 <div>
                   <Row gutter={[16, 16]}>
                     <Col span={8}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>请求方法</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>请求方法</div>
                       <Tag color={getMethodColor(currentRecord.method)}>{currentRecord.method.toUpperCase()}</Tag>
                     </Col>
                     <Col span={16}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>接口路径</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>接口路径</div>
                       <div style={{ fontWeight: 'bold' }}>{currentRecord.path}</div>
                     </Col>
                     <Col span={24}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>接口摘要</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>接口摘要</div>
                       <div>{currentRecord.summary || '-'}</div>
                     </Col>
                     <Col span={24}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>接口描述</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>接口描述</div>
                       <div>{currentRecord.description || '-'}</div>
                     </Col>
                     <Col span={12}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>分组</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>分组</div>
                       <div>{currentRecord.group_name || '-'}</div>
                     </Col>
                     <Col span={12}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>用例数量</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>用例数量</div>
                       <Badge count={currentRecord.case_count} showZero style={{ backgroundColor: '#52c41a' }} />
                     </Col>
                     <Col span={12}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>同步状态</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>同步状态</div>
                       {getSyncStatusTag(currentRecord.sync_status)}
                     </Col>
                     <Col span={12}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>锁定状态</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>锁定状态</div>
                       {getLockStatusTag(currentRecord.lock_status)}
                     </Col>
                     <Col span={12}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>来源类型</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>来源类型</div>
                       <div>{currentRecord.source_type || '-'}</div>
                     </Col>
                     <Col span={12}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>来源版本</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>来源版本</div>
                       <div>{currentRecord.source_version || '-'}</div>
                     </Col>
                     <Col span={12}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>创建时间</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>创建时间</div>
                       <div>{new Date(currentRecord.created_at).toLocaleString('zh-CN')}</div>
                     </Col>
                     <Col span={12}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>更新时间</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>更新时间</div>
                       <div>{new Date(currentRecord.updated_at).toLocaleString('zh-CN')}</div>
                     </Col>
                     <Col span={24}>
-                      <div style={{ color: '#999', marginBottom: 4 }}>标签</div>
+                      <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>标签</div>
                       <Space>
                         {currentRecord.tags?.map((tag: string) => (
                           <Tag key={tag}>{tag}</Tag>
@@ -942,7 +942,7 @@ const DefinitionsList: React.FC = () => {
                         children: (
                           <div>
                             <pre style={{ 
-                              background: '#f5f5f5', 
+                              background: 'var(--bg-tertiary)', 
                               padding: 16, 
                               borderRadius: 4,
                               maxHeight: 400,
@@ -967,7 +967,7 @@ const DefinitionsList: React.FC = () => {
                         children: (
                           <div>
                             <pre style={{ 
-                              background: '#f5f5f5', 
+                              background: 'var(--bg-tertiary)', 
                               padding: 16, 
                               borderRadius: 4,
                               maxHeight: 400,
@@ -1013,7 +1013,7 @@ const DefinitionsList: React.FC = () => {
                     showIcon
                     style={{ marginBottom: 16 }}
                   />
-                  <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                  <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
                     版本历史功能开发中...
                   </div>
                 </div>

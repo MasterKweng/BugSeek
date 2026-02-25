@@ -7,7 +7,10 @@
 - 清晰的命名和注释
 """
 from enum import IntEnum
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Any
+
+# Schema 版本
+SCHEMA_VERSION = "1.0"  # 阶段结果数据结构版本
 
 
 class Stage(IntEnum):
@@ -149,6 +152,86 @@ def get_progress_range(stage_num: int) -> Tuple[int, int]:
         (起始百分比, 结束百分比)
     """
     return StageConfig.PROGRESS_RANGES.get(stage_num, (0, 0))
+
+
+# 阶段数据结构定义（用于验证）
+STAGE_DATA_SCHEMAS = {
+    Stage.FIELD_EXTRACTION: {
+        "required": ["total_fields", "unique_fields", "field_count_by_type"],
+        "optional": [],
+        "types": {
+            "total_fields": int,
+            "unique_fields": int,
+            "field_count_by_type": dict
+        }
+    },
+    Stage.RULE_SCORING: {
+        "required": ["processed_fields", "success_fields", "failed_fields", "avg_score"],
+        "optional": [],
+        "types": {
+            "processed_fields": int,
+            "success_fields": int,
+            "failed_fields": int,
+            "avg_score": float
+        }
+    },
+    Stage.INTELLIGENT_SCREENING: {
+        "required": ["auto_confirm", "ai_high", "ai_medium", "ai_low"],
+        "optional": [],
+        "types": {
+            "auto_confirm": int,
+            "ai_high": int,
+            "ai_medium": int,
+            "ai_low": int
+        }
+    },
+    Stage.AI_OPTIMIZATION: {
+        "required": ["ai_optimized_fields"],
+        "optional": ["ai_failed_fields", "skipped"],
+        "types": {
+            "ai_optimized_fields": int,
+            "ai_failed_fields": int,
+            "skipped": bool
+        }
+    },
+    Stage.RESULT_MERGE: {
+        "required": ["total_suggestions"],
+        "optional": ["unique_fields_covered"],
+        "types": {
+            "total_suggestions": int,
+            "unique_fields_covered": int
+        }
+    }
+}
+
+
+def validate_stage_data(stage_num: int, data: Dict[str, Any]) -> Tuple[bool, str]:
+    """
+    验证阶段数据结构
+    
+    Args:
+        stage_num: 阶段编号
+        data: 阶段数据
+        
+    Returns:
+        (是否有效, 错误信息)
+    """
+    if stage_num not in STAGE_DATA_SCHEMAS:
+        return False, f"未知阶段编号: {stage_num}"
+    
+    schema = STAGE_DATA_SCHEMAS[stage_num]
+    
+    # 检查必需字段
+    for field in schema["required"]:
+        if field not in data:
+            return False, f"缺少必需字段: {field}"
+    
+    # 检查字段类型
+    for field, expected_type in schema["types"].items():
+        if field in data and not isinstance(data[field], expected_type):
+            return False, f"字段类型错误: {field} 应为 {expected_type.__name__}"
+    
+    return True, ""
 
 
 def get_stage_result_key(stage_num: int) -> str:

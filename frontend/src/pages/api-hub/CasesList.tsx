@@ -422,7 +422,7 @@ const CasesList: React.FC = () => {
             <div style={{ marginTop: '4px' }}>
               <Tag icon={<RobotOutlined />} color="blue">AI 生成</Tag>
               {record.ai_confidence && (
-                <span style={{ fontSize: '12px', color: '#999', marginLeft: '4px' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>
                   {Math.round(record.ai_confidence * 100)}%
                 </span>
               )}
@@ -444,7 +444,7 @@ const CasesList: React.FC = () => {
             <Tag color={def.method === 'GET' ? 'green' : def.method === 'POST' ? 'blue' : 'orange'}>
               {def.method}
             </Tag>
-            <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
               {def.path}
             </div>
           </div>
@@ -810,13 +810,13 @@ const CasesList: React.FC = () => {
               </Col>
               <Col span={24}>
                 <div style={{ fontWeight: 'bold', marginBottom: 8 }}>入参</div>
-                <pre style={{ background: '#f5f5f5', padding: 12, borderRadius: 4 }}>
+                <pre style={{ background: 'var(--bg-tertiary)', padding: 12, borderRadius: 4 }}>
                   {JSON.stringify(aiGeneratedCase.request_data, null, 2)}
                 </pre>
               </Col>
               <Col span={24}>
                 <div style={{ fontWeight: 'bold', marginBottom: 8 }}>断言规则</div>
-                <div style={{ background: '#f5f5f5', padding: 12, borderRadius: 4 }}>
+                <div style={{ background: 'var(--bg-tertiary)', padding: 12, borderRadius: 4 }}>
                   {aiGeneratedCase.assertion_rules?.map((rule: any, index: number) => (
                     <div key={index} style={{ marginBottom: 4 }}>
                       <Tag color="blue">{rule.operator}</Tag>
@@ -829,7 +829,7 @@ const CasesList: React.FC = () => {
               {aiGeneratedCase.extraction_rules && aiGeneratedCase.extraction_rules.length > 0 && (
                 <Col span={24}>
                   <div style={{ fontWeight: 'bold', marginBottom: 8 }}>变量提取</div>
-                  <div style={{ background: '#f5f5f5', padding: 12, borderRadius: 4 }}>
+                  <div style={{ background: 'var(--bg-tertiary)', padding: 12, borderRadius: 4 }}>
                     {aiGeneratedCase.extraction_rules.map((rule: any, index: number) => (
                       <div key={index}>
                         <span>{rule.var_name || rule.variable_name} = {rule.field || rule.json_path}</span>
@@ -980,13 +980,13 @@ const CasesList: React.FC = () => {
           <div>
             <Row gutter={[16, 16]}>
               <Col span={24}>
-                <div style={{ color: '#999', marginBottom: 4 }}>用例名称</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>用例名称</div>
                 <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{currentRecord.name}</div>
                 {currentRecord.ai_generated && (
                   <div style={{ marginTop: '8px' }}>
                     <Tag icon={<RobotOutlined />} color="blue">AI 生成</Tag>
                     {currentRecord.ai_confidence && (
-                      <span style={{ fontSize: '12px', color: '#999', marginLeft: '4px' }}>
+                      <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>
                         置信度: {Math.round(currentRecord.ai_confidence * 100)}%
                       </span>
                     )}
@@ -994,17 +994,17 @@ const CasesList: React.FC = () => {
                 )}
               </Col>
               <Col span={24}>
-                <div style={{ color: '#999', marginBottom: 4 }}>用例描述</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>用例描述</div>
                 <div>{currentRecord.description || '-'}</div>
               </Col>
               {currentRecord.request_data && (
                 <Col span={24}>
-                  <div style={{ color: '#999', marginBottom: 4 }}>请求数据</div>
-                  <div style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                  <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>请求数据</div>
+                  <div style={{ background: 'var(--bg-tertiary)', padding: '12px', borderRadius: '4px' }}>
                     {currentRecord.request_data.path_params && (
                       <div style={{ marginBottom: '12px' }}>
                         <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>路径参数 (Path Parameters)</div>
-                        <pre style={{ margin: 0, fontSize: '12px', background: '#fff', padding: '8px', borderRadius: '4px' }}>
+                        <pre style={{ margin: 0, fontSize: '12px', background: 'var(--bg-elevated)', padding: '8px', borderRadius: '4px' }}>
                           {JSON.stringify(currentRecord.request_data.path_params, null, 2)}
                         </pre>
                       </div>
@@ -1012,7 +1012,7 @@ const CasesList: React.FC = () => {
                     {currentRecord.request_data.headers && (
                       <div style={{ marginBottom: '12px' }}>
                         <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>请求头 (Headers)</div>
-                        <pre style={{ margin: 0, fontSize: '12px', background: '#fff', padding: '8px', borderRadius: '4px' }}>
+                        <pre style={{ margin: 0, fontSize: '12px', background: 'var(--bg-elevated)', padding: '8px', borderRadius: '4px' }}>
                           {JSON.stringify(currentRecord.request_data.headers, null, 2)}
                         </pre>
                       </div>
@@ -1020,7 +1020,7 @@ const CasesList: React.FC = () => {
                     {currentRecord.request_data.body && (
                       <div style={{ marginBottom: '12px' }}>
                         <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>请求体 (Body)</div>
-                        <pre style={{ margin: 0, fontSize: '12px', background: '#fff', padding: '8px', borderRadius: '4px' }}>
+                        <pre style={{ margin: 0, fontSize: '12px', background: 'var(--bg-elevated)', padding: '8px', borderRadius: '4px' }}>
                           {JSON.stringify(currentRecord.request_data.body, null, 2)}
                         </pre>
                       </div>
@@ -1028,7 +1028,7 @@ const CasesList: React.FC = () => {
                     {!currentRecord.request_data.path_params && !currentRecord.request_data.headers && !currentRecord.request_data.body && (
                       <div>
                         <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>查询参数 (Query Parameters)</div>
-                        <pre style={{ margin: 0, fontSize: '12px', background: '#fff', padding: '8px', borderRadius: '4px' }}>
+                        <pre style={{ margin: 0, fontSize: '12px', background: 'var(--bg-elevated)', padding: '8px', borderRadius: '4px' }}>
                           {JSON.stringify(currentRecord.request_data, null, 2)}
                         </pre>
                       </div>
@@ -1037,7 +1037,7 @@ const CasesList: React.FC = () => {
                 </Col>
               )}
               <Col span={12}>
-                <div style={{ color: '#999', marginBottom: 4 }}>所属接口</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>所属接口</div>
                 <div>
                   {(() => {
                     const def = definitions.find(d => d.id === currentRecord.definition_id);
@@ -1046,35 +1046,35 @@ const CasesList: React.FC = () => {
                 </div>
               </Col>
               <Col span={12}>
-                <div style={{ color: '#999', marginBottom: 4 }}>执行环境</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>执行环境</div>
                 <div>{currentRecord.environment_name || '-'}</div>
               </Col>
               <Col span={8}>
-                <div style={{ color: '#999', marginBottom: 4 }}>优先级</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>优先级</div>
                 <Tag color={getPriorityColor(currentRecord.priority)}>{currentRecord.priority}</Tag>
               </Col>
               <Col span={8}>
-                <div style={{ color: '#999', marginBottom: 4 }}>用例类型</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>用例类型</div>
                 {getCaseTypeTag(currentRecord.case_type)}
               </Col>
               <Col span={8}>
-                <div style={{ color: '#999', marginBottom: 4 }}>状态</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>状态</div>
                 <Tag color={currentRecord.status === 'active' ? 'success' : 'default'}>
                   {currentRecord.status === 'active' ? '活跃' : '归档'}
                 </Tag>
               </Col>
               <Col span={12}>
-                <div style={{ color: '#999', marginBottom: 4 }}>创建时间</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>创建时间</div>
                 <div>{new Date(currentRecord.created_at).toLocaleString('zh-CN')}</div>
               </Col>
               <Col span={12}>
-                <div style={{ color: '#999', marginBottom: 4 }}>更新时间</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>更新时间</div>
                 <div>{new Date(currentRecord.updated_at).toLocaleString('zh-CN')}</div>
               </Col>
               {currentRecord.assertion_rules && currentRecord.assertion_rules.length > 0 && (
                 <Col span={24}>
-                  <div style={{ color: '#999', marginBottom: 4 }}>断言规则</div>
-                  <div style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                  <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>断言规则</div>
+                  <div style={{ background: 'var(--bg-tertiary)', padding: '12px', borderRadius: '4px' }}>
                     {currentRecord.assertion_rules.map((rule: any, index: number) => (
                       <div key={index} style={{ marginBottom: '4px' }}>
                         <Tag color="blue">{rule.operator}</Tag>
@@ -1087,8 +1087,8 @@ const CasesList: React.FC = () => {
               )}
               {currentRecord.extraction_rules && currentRecord.extraction_rules.length > 0 && (
                 <Col span={24}>
-                  <div style={{ color: '#999', marginBottom: 4 }}>变量提取规则</div>
-                  <div style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px' }}>
+                  <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>变量提取规则</div>
+                  <div style={{ background: 'var(--bg-tertiary)', padding: '12px', borderRadius: '4px' }}>
                     {currentRecord.extraction_rules.map((rule: any, index: number) => (
                       <div key={index} style={{ marginBottom: '4px' }}>
                         <span>提取 {rule.field} → {rule.var_name}</span>
@@ -1162,7 +1162,7 @@ const CasesList: React.FC = () => {
                   <Card>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 24, fontWeight: 'bold' }}>{executionResults.total}</div>
-                      <div style={{ color: '#999' }}>总数</div>
+                      <div style={{ color: 'var(--text-tertiary)' }}>总数</div>
                     </div>
                   </Card>
                 </Col>
@@ -1170,7 +1170,7 @@ const CasesList: React.FC = () => {
                   <Card>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 24, fontWeight: 'bold', color: '#52c41a' }}>{executionResults.success}</div>
-                      <div style={{ color: '#999' }}>成功</div>
+                      <div style={{ color: 'var(--text-tertiary)' }}>成功</div>
                     </div>
                   </Card>
                 </Col>
@@ -1178,7 +1178,7 @@ const CasesList: React.FC = () => {
                   <Card>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 24, fontWeight: 'bold', color: '#f5222d' }}>{executionResults.failed}</div>
-                      <div style={{ color: '#999' }}>失败</div>
+                      <div style={{ color: 'var(--text-tertiary)' }}>失败</div>
                     </div>
                   </Card>
                 </Col>
@@ -1186,7 +1186,7 @@ const CasesList: React.FC = () => {
                   <Card>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 24, fontWeight: 'bold' }}>{executionResults.total_time}ms</div>
-                      <div style={{ color: '#999' }}>总耗时</div>
+                      <div style={{ color: 'var(--text-tertiary)' }}>总耗时</div>
                     </div>
                   </Card>
                 </Col>

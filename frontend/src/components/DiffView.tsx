@@ -146,7 +146,7 @@ const DiffView: React.FC<DiffViewProps> = ({ oldData, newData, title = '版本�
       }
     >
       {diffs.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
           没有检测到变更
         </div>
       ) : (

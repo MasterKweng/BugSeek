@@ -252,7 +252,7 @@ const EnvironmentConfigEditor: React.FC<EnvironmentConfigEditorProps> = ({
             <div style={{ padding: '40px 0', textAlign: 'center' }}>
               <Space direction="vertical" size="large">
                 <div>
-                  <Text style={{ fontSize: 16, color: '#333' }}>当前默认使用项目鉴权配置</Text>
+                  <Text style={{ fontSize: 16, color: 'var(--text-primary)' }}>当前默认使用项目鉴权配置</Text>
                 </div>
                 <Button 
                   type="primary"

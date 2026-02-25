@@ -82,7 +82,7 @@ const ProjectTemplateEditor: React.FC<ProjectTemplateEditorProps> = ({ projectId
   return (
     <Card title="项目模板配置">
       <div style={{ marginBottom: 16 }}>
-        <p style={{ color: '#666' }}>
+        <p style={{ color: 'var(--text-secondary)' }}>
           项目模板是所有环境的默认鉴权配置。可以为不同环境创建差异化的配置，覆盖项目模板的设置。
         </p>
       </div>

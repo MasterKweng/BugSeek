@@ -1,0 +1,826 @@
+2026-02-20 13:26:41 | WARNING | [c08fcf1cd15644e58682a2a703276ad6] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-20 13:26:41 | WARNING | [6e288a1fb4d04f4a8582bc23273d5c3d] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-20 13:26:41 | WARNING | [ef7959af3ab940c09d2d56bced6d3f24] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-20 13:26:41 | WARNING | [9c3bdc98f93b4149989df63043185f52] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-20 13:26:41 | WARNING | [61e89991ac584aa19e731e796ef75db4] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-20 13:26:41 | ERROR | [c08fcf1cd15644e58682a2a703276ad6] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-20 13:26:41 | WARNING | [3aef2d678bd249d2b6dcd188000d67ac] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-20 13:26:41 | ERROR | [6e288a1fb4d04f4a8582bc23273d5c3d] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-20 13:26:41 | ERROR | [ef7959af3ab940c09d2d56bced6d3f24] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-20 13:26:41 | ERROR | [9c3bdc98f93b4149989df63043185f52] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-20 13:26:41 | ERROR | [61e89991ac584aa19e731e796ef75db4] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-20 13:26:41 | ERROR | [3aef2d678bd249d2b6dcd188000d67ac] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-20 13:26:41 | WARNING | [cdc1a4ce21a5404ea2977d78c2307dec] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-20 13:26:41 | ERROR | [cdc1a4ce21a5404ea2977d78c2307dec] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-20 13:26:41 | WARNING | [4ffe593258bc4634b2699da988a800df] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-20 13:26:41 | WARNING | [af05e9f8469e4792b41db1769af094f5] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-20 13:26:41 | ERROR | [4ffe593258bc4634b2699da988a800df] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-20 13:26:41 | ERROR | [af05e9f8469e4792b41db1769af094f5] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-20 13:26:41 | WARNING | [00de1c8471064f9eaa6d79be02cc902b] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-20 13:26:41 | ERROR | [00de1c8471064f9eaa6d79be02cc902b] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-20 13:26:54 | INFO | [09145726771d42889c3868020c383553] | app.api.v1.auth | 用户登录请求: username=admin
+2026-02-20 13:26:55 | INFO | [09145726771d42889c3868020c383553] | app.api.v1.auth | 用户登录成功: user_id=1, username=admin
+2026-02-20 13:26:55 | INFO | [a6679eab26294237a589f6d6de17289d] | app.api.v1.projects | [a6679eab26294237a589f6d6de17289d] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:26:55 | INFO | [a6679eab26294237a589f6d6de17289d] | app.api.v1.projects | [a6679eab26294237a589f6d6de17289d] 获取项目列表成功: total=3
+2026-02-20 13:26:55 | INFO | [0b338decc4504a18b1ed904e7f8f6e1c] | app.api.v1.db_schemas | [0b338decc4504a18b1ed904e7f8f6e1c] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:26:55 | INFO | [b779019f1bde434d8bc4ce18bb1d1c26] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 2, 空闲: 18, 统计 - 创建: 20, 检出: 160, 检入: 156, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:26:55 | INFO | [b779019f1bde434d8bc4ce18bb1d1c26] | app.api.v1.field_mappings_async | [b779019f1bde434d8bc4ce18bb1d1c26] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:26:55 | INFO | [b779019f1bde434d8bc4ce18bb1d1c26] | app.api.v1.field_mappings_async | [b779019f1bde434d8bc4ce18bb1d1c26] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:26:55 | INFO | [5c41a89bd589497da9de1ada48f13b7f] | app.api.v1.projects | [5c41a89bd589497da9de1ada48f13b7f] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:26:55 | INFO | [5c41a89bd589497da9de1ada48f13b7f] | app.api.v1.projects | [5c41a89bd589497da9de1ada48f13b7f] 获取项目列表成功: total=3
+2026-02-20 13:26:55 | INFO | [c5a0373c7f1c4035b8bcb593b7be2190] | app.api.v1.versions | [c5a0373c7f1c4035b8bcb593b7be2190] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:26:55 | INFO | [417d2918f34c4b45a55ff3c5978fe3f8] | app.api.v1.projects | [417d2918f34c4b45a55ff3c5978fe3f8] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:26:55 | INFO | [417d2918f34c4b45a55ff3c5978fe3f8] | app.api.v1.projects | [417d2918f34c4b45a55ff3c5978fe3f8] 获取项目列表成功: total=3
+2026-02-20 13:26:55 | INFO | [e874ad6dc39e4afba2fbd35850d41850] | app.api.v1.db_schemas | [e874ad6dc39e4afba2fbd35850d41850] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:26:55 | INFO | [e16c6c2ef5cc4763a4387b613680e058] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 2, 空闲: 18, 统计 - 创建: 24, 检出: 170, 检入: 166, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:26:55 | INFO | [e16c6c2ef5cc4763a4387b613680e058] | app.api.v1.field_mappings_async | [e16c6c2ef5cc4763a4387b613680e058] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:26:55 | INFO | [e16c6c2ef5cc4763a4387b613680e058] | app.api.v1.field_mappings_async | [e16c6c2ef5cc4763a4387b613680e058] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:26:55 | INFO | [002de75eeb1149f8a5d05f8eb065788b] | app.api.v1.versions | [002de75eeb1149f8a5d05f8eb065788b] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:26:55 | INFO | [fd88a1efdeb14426a454fdbf2cc79287] | app.api.v1.projects | [fd88a1efdeb14426a454fdbf2cc79287] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:26:55 | INFO | [fd88a1efdeb14426a454fdbf2cc79287] | app.api.v1.projects | [fd88a1efdeb14426a454fdbf2cc79287] 获取项目列表成功: total=3
+2026-02-20 13:26:55 | INFO | [0510ca60e6bd4ca2a299be5d3c79a7ac] | app.api.v1.field_mappings_async | [0510ca60e6bd4ca2a299be5d3c79a7ac] 获取异步任务进度: task_id=5
+2026-02-20 13:26:55 | INFO | [e086e707f95a4b00947847e2345170d5] | app.api.v1.field_mappings_async | [e086e707f95a4b00947847e2345170d5] 获取异步任务进度: task_id=5
+2026-02-20 13:26:55 | INFO | [e68ea725dada42959ca0d6c695543867] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 24, 检出: 180, 检入: 178, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:26:55 | INFO | [e68ea725dada42959ca0d6c695543867] | app.api.v1.field_mappings_async | [e68ea725dada42959ca0d6c695543867] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:26:55 | INFO | [8d0136fb84be48cf8a9672076135cbfa] | app.api.v1.field_mappings_async | [8d0136fb84be48cf8a9672076135cbfa] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:32:09 | INFO | [12e3645582344974b6e86673ee5293c6] | app.api.v1.projects | [12e3645582344974b6e86673ee5293c6] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:32:09 | INFO | [12e3645582344974b6e86673ee5293c6] | app.api.v1.projects | [12e3645582344974b6e86673ee5293c6] 获取项目列表成功: total=3
+2026-02-20 13:32:09 | INFO | [eba2692f1781418b9e555484d66dd5e9] | app.api.v1.db_schemas | [eba2692f1781418b9e555484d66dd5e9] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:32:09 | INFO | [8c9dbe91aea94ef291788694486b3753] | app.api.v1.field_mappings_async | [8c9dbe91aea94ef291788694486b3753] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:32:09 | INFO | [8c9dbe91aea94ef291788694486b3753] | app.api.v1.field_mappings_async | [8c9dbe91aea94ef291788694486b3753] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:32:09 | INFO | [b6053a09062d462b881d51d3c3854eef] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 4, 空闲: 16, 统计 - 创建: 24, 检出: 190, 检入: 182, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:32:09 | INFO | [b6053a09062d462b881d51d3c3854eef] | app.api.v1.versions | [b6053a09062d462b881d51d3c3854eef] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:32:09 | INFO | [b6e459f891914736a83af4606e950325] | app.api.v1.db_schemas | [b6e459f891914736a83af4606e950325] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:32:09 | INFO | [eab5c2ed35514b03bfa8b0df11197765] | app.api.v1.projects | [eab5c2ed35514b03bfa8b0df11197765] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:32:09 | INFO | [eab5c2ed35514b03bfa8b0df11197765] | app.api.v1.projects | [eab5c2ed35514b03bfa8b0df11197765] 获取项目列表成功: total=3
+2026-02-20 13:32:09 | INFO | [0cd7d6a0f819426fa10474f5995df485] | app.api.v1.versions | [0cd7d6a0f819426fa10474f5995df485] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:32:09 | INFO | [d6b2e68825e74a2896512ea805219739] | app.api.v1.field_mappings_async | [d6b2e68825e74a2896512ea805219739] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:32:09 | INFO | [d6b2e68825e74a2896512ea805219739] | app.api.v1.field_mappings_async | [d6b2e68825e74a2896512ea805219739] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:32:09 | INFO | [8ff6459d51444bc5a5f10c065547cd7b] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 24, 检出: 200, 检入: 198, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:32:09 | INFO | [8ff6459d51444bc5a5f10c065547cd7b] | app.api.v1.projects | [8ff6459d51444bc5a5f10c065547cd7b] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:32:09 | INFO | [8ff6459d51444bc5a5f10c065547cd7b] | app.api.v1.projects | [8ff6459d51444bc5a5f10c065547cd7b] 获取项目列表成功: total=3
+2026-02-20 13:32:09 | INFO | [129edfca69164823ba981e38445dc25f] | app.api.v1.projects | [129edfca69164823ba981e38445dc25f] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:32:09 | INFO | [129edfca69164823ba981e38445dc25f] | app.api.v1.projects | [129edfca69164823ba981e38445dc25f] 获取项目列表成功: total=3
+2026-02-20 13:32:09 | INFO | [5036bdad251346e8bf500570b7b4b04f] | app.api.v1.field_mappings_async | [5036bdad251346e8bf500570b7b4b04f] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:32:09 | INFO | [b6687aa3045d4bef8b996e89ad997a40] | app.api.v1.field_mappings_async | [b6687aa3045d4bef8b996e89ad997a40] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:43:51 | INFO | [21670d678177427dafe4eaec07d17020] | app.api.v1.field_mappings_async | [21670d678177427dafe4eaec07d17020] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:44:02 | INFO | [403775d02cf84810bc33cd5b7c80dca9] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 24, 检出: 210, 检入: 208, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:44:02 | INFO | [403775d02cf84810bc33cd5b7c80dca9] | app.api.v1.field_mappings_async | [403775d02cf84810bc33cd5b7c80dca9] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:44:04 | INFO | [94367e01f8214dfb98df34c9b79897eb] | app.api.v1.field_mappings_async | [94367e01f8214dfb98df34c9b79897eb] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:44:04 | INFO | [94367e01f8214dfb98df34c9b79897eb] | app.api.v1.field_mappings_async | [94367e01f8214dfb98df34c9b79897eb] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:44:05 | INFO | [88db5f74e4eb4b629a26daed77b1c5e9] | app.api.v1.field_mappings | [88db5f74e4eb4b629a26daed77b1c5e9] 查询字段映射列表: project_id=1, version_id=1
+2026-02-20 13:44:08 | INFO | [daed817f67474ea48748baf56dfe448c] | app.api.v1.projects | [daed817f67474ea48748baf56dfe448c] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:44:08 | INFO | [daed817f67474ea48748baf56dfe448c] | app.api.v1.projects | [daed817f67474ea48748baf56dfe448c] 获取项目列表成功: total=3
+2026-02-20 13:44:08 | INFO | [d90e4690761042589f83b2eff562a5f5] | app.api.v1.versions | [d90e4690761042589f83b2eff562a5f5] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:44:08 | INFO | [c3a24b39767d4979b09dfcc699628fc8] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 3, 空闲: 17, 统计 - 创建: 24, 检出: 220, 检入: 214, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:44:08 | INFO | [c3a24b39767d4979b09dfcc699628fc8] | app.api.v1.db_schemas | [c3a24b39767d4979b09dfcc699628fc8] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:44:08 | INFO | [ed2d7952752247c4a39b05996994ee6a] | app.api.v1.field_mappings_async | [ed2d7952752247c4a39b05996994ee6a] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:44:08 | INFO | [ed2d7952752247c4a39b05996994ee6a] | app.api.v1.field_mappings_async | [ed2d7952752247c4a39b05996994ee6a] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:44:08 | INFO | [8d994524b08d42838601ea5ac1c0dd22] | app.api.v1.db_schemas | [8d994524b08d42838601ea5ac1c0dd22] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:44:08 | INFO | [9b12ae17ed9c43948f25da57da1b4280] | app.api.v1.projects | [9b12ae17ed9c43948f25da57da1b4280] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:44:08 | INFO | [9b12ae17ed9c43948f25da57da1b4280] | app.api.v1.projects | [9b12ae17ed9c43948f25da57da1b4280] 获取项目列表成功: total=3
+2026-02-20 13:44:08 | INFO | [a93d5bb3ad4d469b9e10ef0598d11160] | app.api.v1.field_mappings_async | [a93d5bb3ad4d469b9e10ef0598d11160] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:44:08 | INFO | [a93d5bb3ad4d469b9e10ef0598d11160] | app.api.v1.field_mappings_async | [a93d5bb3ad4d469b9e10ef0598d11160] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:44:08 | INFO | [649dc130f77048cfb1b48424f5d09595] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 2, 空闲: 18, 统计 - 创建: 24, 检出: 230, 检入: 226, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:44:08 | INFO | [649dc130f77048cfb1b48424f5d09595] | app.api.v1.versions | [649dc130f77048cfb1b48424f5d09595] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:44:08 | INFO | [2d72165ac8c141ec9d2bb24cf3692053] | app.api.v1.projects | [2d72165ac8c141ec9d2bb24cf3692053] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:44:08 | INFO | [2d72165ac8c141ec9d2bb24cf3692053] | app.api.v1.projects | [2d72165ac8c141ec9d2bb24cf3692053] 获取项目列表成功: total=3
+2026-02-20 13:44:08 | INFO | [e1f75afe8bbd48b19d8c66257f092fdb] | app.api.v1.projects | [e1f75afe8bbd48b19d8c66257f092fdb] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:44:08 | INFO | [e1f75afe8bbd48b19d8c66257f092fdb] | app.api.v1.projects | [e1f75afe8bbd48b19d8c66257f092fdb] 获取项目列表成功: total=3
+2026-02-20 13:44:08 | INFO | [d6b6e662b7e947a6904fe2acf847bdbe] | app.api.v1.field_mappings_async | [d6b6e662b7e947a6904fe2acf847bdbe] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:44:08 | INFO | [24cbe7d218de4f51b75546a40f07d113] | app.api.v1.field_mappings_async | [24cbe7d218de4f51b75546a40f07d113] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:44:14 | INFO | [16f89d95d7594012b3793a678793ef2b] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 24, 检出: 240, 检入: 238, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:44:14 | INFO | [16f89d95d7594012b3793a678793ef2b] | app.api.v1.field_mappings_async | [16f89d95d7594012b3793a678793ef2b] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:44:15 | INFO | [fb0f2bdc5b8f4a14ab6abbf2df1971d2] | app.api.v1.field_mappings_async | [fb0f2bdc5b8f4a14ab6abbf2df1971d2] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:44:17 | INFO | [fd88d9d9bb0f43aeb282d0dd978771fe] | app.api.v1.field_mappings_async | [fd88d9d9bb0f43aeb282d0dd978771fe] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:44:18 | INFO | [d1b7f06f057542b18136f71bb83fd1c4] | app.api.v1.field_mappings_async | [d1b7f06f057542b18136f71bb83fd1c4] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:44:21 | INFO | [7c6c3826610143c4a21641edf2b3e075] | app.api.v1.field_mappings_async | [7c6c3826610143c4a21641edf2b3e075] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:44:21 | INFO | [db06d0644a6243be8feb4971eb2c436d] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 24, 检出: 250, 检入: 248, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:44:21 | INFO | [db06d0644a6243be8feb4971eb2c436d] | app.api.v1.field_mappings_async | [db06d0644a6243be8feb4971eb2c436d] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:44:21 | INFO | [db06d0644a6243be8feb4971eb2c436d] | app.api.v1.field_mappings_async | [db06d0644a6243be8feb4971eb2c436d] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:44:24 | INFO | [9e81b5e64fd6463eb7e4daae9f08ad5a] | app.api.v1.projects | [9e81b5e64fd6463eb7e4daae9f08ad5a] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:44:24 | INFO | [9e81b5e64fd6463eb7e4daae9f08ad5a] | app.api.v1.projects | [9e81b5e64fd6463eb7e4daae9f08ad5a] 获取项目列表成功: total=3
+2026-02-20 13:44:24 | INFO | [0d2525dc33464b6aaa39cee1a95abbd9] | app.api.v1.db_schemas | [0d2525dc33464b6aaa39cee1a95abbd9] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:44:24 | INFO | [c396491542c6493287569ee2da5c674c] | app.api.v1.versions | [c396491542c6493287569ee2da5c674c] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:44:24 | INFO | [f686b1a3e0dd4d88bc5e7e046854bf7a] | app.api.v1.field_mappings_async | [f686b1a3e0dd4d88bc5e7e046854bf7a] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:44:24 | INFO | [f686b1a3e0dd4d88bc5e7e046854bf7a] | app.api.v1.field_mappings_async | [f686b1a3e0dd4d88bc5e7e046854bf7a] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:44:24 | INFO | [6576b5b54cae46daad8ea244b3c11067] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 4, 空闲: 16, 统计 - 创建: 24, 检出: 260, 检入: 252, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:44:24 | INFO | [6576b5b54cae46daad8ea244b3c11067] | app.api.v1.db_schemas | [6576b5b54cae46daad8ea244b3c11067] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:44:24 | INFO | [312289ea4d974179a6081b3e7440bd51] | app.api.v1.projects | [312289ea4d974179a6081b3e7440bd51] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:44:24 | INFO | [312289ea4d974179a6081b3e7440bd51] | app.api.v1.projects | [312289ea4d974179a6081b3e7440bd51] 获取项目列表成功: total=3
+2026-02-20 13:44:24 | INFO | [712bad4e2747471e8d7d3abb6fe53fd3] | app.api.v1.field_mappings_async | [712bad4e2747471e8d7d3abb6fe53fd3] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:44:24 | INFO | [712bad4e2747471e8d7d3abb6fe53fd3] | app.api.v1.field_mappings_async | [712bad4e2747471e8d7d3abb6fe53fd3] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:44:24 | INFO | [8751fb1db05d4b8c8a3e03e456e487b7] | app.api.v1.projects | [8751fb1db05d4b8c8a3e03e456e487b7] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:44:24 | INFO | [8751fb1db05d4b8c8a3e03e456e487b7] | app.api.v1.projects | [8751fb1db05d4b8c8a3e03e456e487b7] 获取项目列表成功: total=3
+2026-02-20 13:44:24 | INFO | [def9134fde5545c59bf9fea984c4512b] | app.api.v1.projects | [def9134fde5545c59bf9fea984c4512b] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:44:24 | INFO | [def9134fde5545c59bf9fea984c4512b] | app.api.v1.projects | [def9134fde5545c59bf9fea984c4512b] 获取项目列表成功: total=3
+2026-02-20 13:44:24 | INFO | [b3854064e8e542359457756347f86833] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 3, 空闲: 17, 统计 - 创建: 24, 检出: 270, 检入: 264, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:44:24 | INFO | [b3854064e8e542359457756347f86833] | app.api.v1.versions | [b3854064e8e542359457756347f86833] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:44:24 | INFO | [2c8a05dc0c524023a2bcd5673ae58420] | app.api.v1.field_mappings_async | [2c8a05dc0c524023a2bcd5673ae58420] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:44:24 | INFO | [db0d7f0d57de4e73a4d4db498d09a30a] | app.api.v1.field_mappings_async | [db0d7f0d57de4e73a4d4db498d09a30a] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:47:55 | INFO | [65366c6da8004ed992b8dd043cfbff06] | app.api.v1.db_schemas | [65366c6da8004ed992b8dd043cfbff06] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:48:53 | INFO | [e3215a1909d14e7f80a10949cdf2711b] | app.api.v1.projects | [e3215a1909d14e7f80a10949cdf2711b] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:48:53 | INFO | [e3215a1909d14e7f80a10949cdf2711b] | app.api.v1.projects | [e3215a1909d14e7f80a10949cdf2711b] 获取项目列表成功: total=3
+2026-02-20 13:48:53 | INFO | [647f20dbc3024d17b96811a14e3bc1b3] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 2, 空闲: 18, 统计 - 创建: 24, 检出: 280, 检入: 276, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:48:53 | INFO | [647f20dbc3024d17b96811a14e3bc1b3] | app.api.v1.db_schemas | [647f20dbc3024d17b96811a14e3bc1b3] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:48:53 | INFO | [8638cfc11b604b20aae641719ce146aa] | app.api.v1.projects | [8638cfc11b604b20aae641719ce146aa] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:48:53 | INFO | [8638cfc11b604b20aae641719ce146aa] | app.api.v1.projects | [8638cfc11b604b20aae641719ce146aa] 获取项目列表成功: total=3
+2026-02-20 13:48:53 | INFO | [f8f2f57d4ee04d708cf84ab39bdea8e3] | app.api.v1.versions | [f8f2f57d4ee04d708cf84ab39bdea8e3] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:48:53 | INFO | [61ba2a3bc6d540ccb2546d0809925c2f] | app.api.v1.field_mappings_async | [61ba2a3bc6d540ccb2546d0809925c2f] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:48:53 | INFO | [61ba2a3bc6d540ccb2546d0809925c2f] | app.api.v1.field_mappings_async | [61ba2a3bc6d540ccb2546d0809925c2f] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:48:53 | INFO | [3620b79933214152905ae8127947e970] | app.api.v1.projects | [3620b79933214152905ae8127947e970] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:48:53 | INFO | [3620b79933214152905ae8127947e970] | app.api.v1.projects | [3620b79933214152905ae8127947e970] 获取项目列表成功: total=3
+2026-02-20 13:48:53 | INFO | [333383ff7258456dbcfe18a186cb10dc] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 24, 检出: 290, 检入: 288, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:48:53 | INFO | [333383ff7258456dbcfe18a186cb10dc] | app.api.v1.db_schemas | [333383ff7258456dbcfe18a186cb10dc] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:48:53 | INFO | [0a3e0bc9aec34a48a3920cc08cc4a75a] | app.api.v1.field_mappings_async | [0a3e0bc9aec34a48a3920cc08cc4a75a] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:48:53 | INFO | [0a3e0bc9aec34a48a3920cc08cc4a75a] | app.api.v1.field_mappings_async | [0a3e0bc9aec34a48a3920cc08cc4a75a] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:48:53 | INFO | [32961ac9835d4e1b8cf1e655f162ec74] | app.api.v1.projects | [32961ac9835d4e1b8cf1e655f162ec74] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:48:53 | INFO | [32961ac9835d4e1b8cf1e655f162ec74] | app.api.v1.projects | [32961ac9835d4e1b8cf1e655f162ec74] 获取项目列表成功: total=3
+2026-02-20 13:48:53 | INFO | [a5c1ceefcd8a401da7a63d75bd3df1e9] | app.api.v1.versions | [a5c1ceefcd8a401da7a63d75bd3df1e9] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:48:53 | INFO | [18e9ddcd4a684bd499b60d72fa0882ea] | app.api.v1.field_mappings_async | [18e9ddcd4a684bd499b60d72fa0882ea] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:48:53 | INFO | [2b46769ac3f04954a2576eaba13eaf1a] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 24, 检出: 300, 检入: 298, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:48:53 | INFO | [2b46769ac3f04954a2576eaba13eaf1a] | app.api.v1.field_mappings_async | [2b46769ac3f04954a2576eaba13eaf1a] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:48:54 | INFO | [b689be49dcf94fc7bf93aeca4ee434bc] | app.api.v1.field_mappings_async | [b689be49dcf94fc7bf93aeca4ee434bc] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:48:56 | INFO | [5dd0e273a6d64bfca83e148bee2ee073] | app.api.v1.field_mappings_async | [5dd0e273a6d64bfca83e148bee2ee073] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:48:59 | INFO | [dda86c697d2d4d8eb2cadb9fb4be23fb] | app.api.v1.field_mappings_async | [dda86c697d2d4d8eb2cadb9fb4be23fb] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:48:59 | INFO | [58a24f13901a40e6988b2f357b796c7a] | app.api.v1.field_mappings_async | [58a24f13901a40e6988b2f357b796c7a] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:49:00 | INFO | [a869ddff944b451b9373dadc053d0b37] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 24, 检出: 310, 检入: 308, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:49:00 | INFO | [a869ddff944b451b9373dadc053d0b37] | app.api.v1.field_mappings_async | [a869ddff944b451b9373dadc053d0b37] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:49:05 | INFO | [ab91db1e6d1b4dcb88ae99ca6ff8fed4] | app.api.v1.field_mappings_async | [ab91db1e6d1b4dcb88ae99ca6ff8fed4] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:49:06 | INFO | [21d3b8cbc0c3417394003b0d18aed453] | app.api.v1.field_mappings_async | [21d3b8cbc0c3417394003b0d18aed453] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:49:06 | INFO | [21d3b8cbc0c3417394003b0d18aed453] | app.api.v1.field_mappings_async | [21d3b8cbc0c3417394003b0d18aed453] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:49:07 | INFO | [b3028827627348439722020291009a61] | app.api.v1.field_mappings_async | [b3028827627348439722020291009a61] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:49:07 | INFO | [b3028827627348439722020291009a61] | app.api.v1.field_mappings_async | [b3028827627348439722020291009a61] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:49:08 | INFO | [dce346474f9a4d9ab3293a795b05ca27] | app.api.v1.field_mappings_async | [dce346474f9a4d9ab3293a795b05ca27] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:49:10 | INFO | [8d83cc359d9246c1994d9f5e62c4d523] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 24, 检出: 320, 检入: 318, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:49:10 | INFO | [8d83cc359d9246c1994d9f5e62c4d523] | app.api.v1.field_mappings_async | [8d83cc359d9246c1994d9f5e62c4d523] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:49:11 | INFO | [6c1ccd9f2800405e9063f25abde02352] | app.api.v1.field_mappings_async | [6c1ccd9f2800405e9063f25abde02352] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:49:12 | INFO | [bde4a84b824f46da9f81e0013897ce17] | app.api.v1.field_mappings_async | [bde4a84b824f46da9f81e0013897ce17] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:49:13 | INFO | [0b65fe793c644f20a2116748dd750681] | app.api.v1.field_mappings_async | [0b65fe793c644f20a2116748dd750681] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:49:19 | INFO | [e1388ec1776642abb5c1cd2220f57c2e] | app.api.v1.field_mappings_async | [e1388ec1776642abb5c1cd2220f57c2e] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:49:20 | INFO | [42f230659dad451a98d85242ed06a97b] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 24, 检出: 330, 检入: 328, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:49:20 | INFO | [42f230659dad451a98d85242ed06a97b] | app.api.v1.field_mappings_async | [42f230659dad451a98d85242ed06a97b] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:49:20 | INFO | [42f230659dad451a98d85242ed06a97b] | app.api.v1.field_mappings_async | [42f230659dad451a98d85242ed06a97b] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | root | 日志系统初始化完成
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.main | 应用启动事件执行中...
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.main | Celery 实例: bugseek
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.main | 开始预热向量索引...
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.main | 应用启动事件执行完成
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.utils.vector_index | [8e05d0f9d2654787b0ceca6197730457] 从缓存加载向量索引成功: 289 个列
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-20 13:52:02 | INFO | [8e05d0f9d2654787b0ceca6197730457] | app.main | 向量索引已从缓存加载
+2026-02-20 13:52:35 | INFO | [d70222b6291c42afafb838f2c0bc6f0a] | app.api.v1.field_mappings_async | [d70222b6291c42afafb838f2c0bc6f0a] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:52:40 | INFO | [6ab627e553aa4f9ea4ee67583c6fd16b] | app.api.v1.field_mappings_async | [6ab627e553aa4f9ea4ee67583c6fd16b] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:52:41 | INFO | [6293ea3604064c1c97132faa757a997b] | app.api.v1.field_mappings_async | [6293ea3604064c1c97132faa757a997b] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:52:42 | INFO | [8a3b39d8a57f4a09ab049c2ccd7051fd] | app.api.v1.field_mappings_async | [8a3b39d8a57f4a09ab049c2ccd7051fd] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:52:42 | INFO | [8a3b39d8a57f4a09ab049c2ccd7051fd] | app.api.v1.field_mappings_async | [8a3b39d8a57f4a09ab049c2ccd7051fd] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:52:44 | INFO | [ff200968d43546b2827977a8f0120bbf] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -19, 已检出: 1, 空闲: 19, 统计 - 创建: 2, 检出: 10, 检入: 8, 溢出: 0, 错误: 0, 最大并发: 1
+2026-02-20 13:52:44 | INFO | [ff200968d43546b2827977a8f0120bbf] | app.api.v1.field_mappings_async | [ff200968d43546b2827977a8f0120bbf] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:52:44 | INFO | [ff200968d43546b2827977a8f0120bbf] | app.api.v1.field_mappings_async | [ff200968d43546b2827977a8f0120bbf] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:52:44 | INFO | [51dbe519da4e4e04a0f7194f9a00e85f] | app.api.v1.field_mappings_async | [51dbe519da4e4e04a0f7194f9a00e85f] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:52:44 | INFO | [51dbe519da4e4e04a0f7194f9a00e85f] | app.api.v1.field_mappings_async | [51dbe519da4e4e04a0f7194f9a00e85f] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:52:47 | INFO | [5230edc9c887492780195e5e7b1fa50a] | app.api.v1.projects | [5230edc9c887492780195e5e7b1fa50a] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:52:48 | INFO | [5230edc9c887492780195e5e7b1fa50a] | app.api.v1.projects | [5230edc9c887492780195e5e7b1fa50a] 获取项目列表成功: total=3
+2026-02-20 13:52:48 | INFO | [d7c1a1e691094141878c9f7af602898a] | app.api.v1.db_schemas | [d7c1a1e691094141878c9f7af602898a] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:52:48 | INFO | [5a24ba8f79ba42c9ab4119df750d585c] | app.api.v1.field_mappings_async | [5a24ba8f79ba42c9ab4119df750d585c] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:52:48 | INFO | [5a24ba8f79ba42c9ab4119df750d585c] | app.api.v1.field_mappings_async | [5a24ba8f79ba42c9ab4119df750d585c] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:52:48 | INFO | [e1a42d0545124e4bb0bb1aaacb2e6750] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -17, 已检出: 3, 空闲: 17, 统计 - 创建: 6, 检出: 20, 检入: 14, 溢出: 0, 错误: 0, 最大并发: 3
+2026-02-20 13:52:48 | INFO | [e1a42d0545124e4bb0bb1aaacb2e6750] | app.api.v1.versions | [e1a42d0545124e4bb0bb1aaacb2e6750] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:52:48 | INFO | [11c270e8ba944a9589b859b1453bab3a] | app.api.v1.projects | [11c270e8ba944a9589b859b1453bab3a] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:52:48 | INFO | [11c270e8ba944a9589b859b1453bab3a] | app.api.v1.projects | [11c270e8ba944a9589b859b1453bab3a] 获取项目列表成功: total=3
+2026-02-20 13:52:48 | INFO | [00b014da2492440da5bcdd15b499e049] | app.api.v1.db_schemas | [00b014da2492440da5bcdd15b499e049] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:52:48 | INFO | [0dde6fa8afdf426c8830562598eb6f40] | app.api.v1.projects | [0dde6fa8afdf426c8830562598eb6f40] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:52:48 | INFO | [0dde6fa8afdf426c8830562598eb6f40] | app.api.v1.projects | [0dde6fa8afdf426c8830562598eb6f40] 获取项目列表成功: total=3
+2026-02-20 13:52:48 | INFO | [66e43615622c4b0aa035be1f850ee163] | app.api.v1.field_mappings_async | [66e43615622c4b0aa035be1f850ee163] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:52:48 | INFO | [66e43615622c4b0aa035be1f850ee163] | app.api.v1.field_mappings_async | [66e43615622c4b0aa035be1f850ee163] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:52:48 | INFO | [9bcfbb5f279c4d8f98b29c31087bb12e] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -15, 已检出: 1, 空闲: 19, 统计 - 创建: 10, 检出: 30, 检入: 28, 溢出: 0, 错误: 0, 最大并发: 3
+2026-02-20 13:52:48 | INFO | [9bcfbb5f279c4d8f98b29c31087bb12e] | app.api.v1.versions | [9bcfbb5f279c4d8f98b29c31087bb12e] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:52:48 | INFO | [622b090044c449b093aeef19f73a8bfc] | app.api.v1.projects | [622b090044c449b093aeef19f73a8bfc] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:52:48 | INFO | [622b090044c449b093aeef19f73a8bfc] | app.api.v1.projects | [622b090044c449b093aeef19f73a8bfc] 获取项目列表成功: total=3
+2026-02-20 13:52:48 | INFO | [a9820fe4a2c14f6b9b3ae03d14c9d9cb] | app.api.v1.field_mappings_async | [a9820fe4a2c14f6b9b3ae03d14c9d9cb] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:52:48 | INFO | [e0df0a149368480bb2038b1a8f37c9c7] | app.api.v1.field_mappings_async | [e0df0a149368480bb2038b1a8f37c9c7] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:52:49 | INFO | [1fec8ae65a934bd393f3795ab1b3fdf6] | app.api.v1.field_mappings_async | [1fec8ae65a934bd393f3795ab1b3fdf6] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:52:50 | INFO | [3371eaaf32854058942b4d5fae51fd5e] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -15, 已检出: 1, 空闲: 19, 统计 - 创建: 10, 检出: 40, 检入: 38, 溢出: 0, 错误: 0, 最大并发: 3
+2026-02-20 13:52:50 | INFO | [3371eaaf32854058942b4d5fae51fd5e] | app.api.v1.field_mappings_async | [3371eaaf32854058942b4d5fae51fd5e] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:52:52 | INFO | [c3b481c7b0e64338bac6440c90dcbfc6] | app.api.v1.field_mappings_async | [c3b481c7b0e64338bac6440c90dcbfc6] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:52:53 | INFO | [0719c5081b1449f896994024c18a0a7a] | app.api.v1.field_mappings_async | [0719c5081b1449f896994024c18a0a7a] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:52:53 | INFO | [0719c5081b1449f896994024c18a0a7a] | app.api.v1.field_mappings_async | [0719c5081b1449f896994024c18a0a7a] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:52:54 | INFO | [ba3db11c1e914e908a57f82297ae323b] | app.api.v1.field_mappings_async | [ba3db11c1e914e908a57f82297ae323b] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:52:54 | INFO | [ba3db11c1e914e908a57f82297ae323b] | app.api.v1.field_mappings_async | [ba3db11c1e914e908a57f82297ae323b] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:52:55 | INFO | [f018083725f645788cdbd4a3ced4d7e3] | app.api.v1.field_mappings_async | [f018083725f645788cdbd4a3ced4d7e3] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:52:55 | INFO | [f018083725f645788cdbd4a3ced4d7e3] | app.api.v1.field_mappings_async | [f018083725f645788cdbd4a3ced4d7e3] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:52:56 | INFO | [31467137fd9043099d88414fc59a4c95] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -15, 已检出: 1, 空闲: 19, 统计 - 创建: 10, 检出: 50, 检入: 48, 溢出: 0, 错误: 0, 最大并发: 3
+2026-02-20 13:52:56 | INFO | [31467137fd9043099d88414fc59a4c95] | app.api.v1.field_mappings_async | [31467137fd9043099d88414fc59a4c95] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:52:56 | INFO | [31467137fd9043099d88414fc59a4c95] | app.api.v1.field_mappings_async | [31467137fd9043099d88414fc59a4c95] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:52:57 | INFO | [09b01985eb944b3b94327ed8043a527d] | app.api.v1.field_mappings_async | [09b01985eb944b3b94327ed8043a527d] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:53:07 | INFO | [e53d989b8fa0496fb1c356b11fbcb830] | app.api.v1.field_mappings_async | [e53d989b8fa0496fb1c356b11fbcb830] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:53:09 | INFO | [53903bf26fff4fffb40734f3358c884c] | app.api.v1.field_mappings_async | [53903bf26fff4fffb40734f3358c884c] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:54:53 | INFO | [8ee8c17d7de14d61b52e039d0b34fde5] | app.api.v1.field_mappings_async | [8ee8c17d7de14d61b52e039d0b34fde5] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 13:54:53 | INFO | [8ee8c17d7de14d61b52e039d0b34fde5] | app.api.v1.field_mappings_async | [8ee8c17d7de14d61b52e039d0b34fde5] 查询任务列表完成: total=2, returned=2
+2026-02-20 13:54:55 | INFO | [0ed61063e7c843368596c1481ba9ae41] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -15, 已检出: 1, 空闲: 19, 统计 - 创建: 10, 检出: 60, 检入: 58, 溢出: 0, 错误: 0, 最大并发: 3
+2026-02-20 13:54:55 | INFO | [0ed61063e7c843368596c1481ba9ae41] | app.api.v1.field_mappings_async | [0ed61063e7c843368596c1481ba9ae41] 获取异步任务进度: task_id=5
+2026-02-20 13:54:55 | INFO | [493eaea0cfb648b0b30ee68df16f1616] | app.api.v1.field_mappings_async | [493eaea0cfb648b0b30ee68df16f1616] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | root | 日志系统初始化完成
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.main | 应用启动事件执行中...
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.main | Celery 实例: bugseek
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.main | 开始预热向量索引...
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.main | 应用启动事件执行完成
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.utils.vector_index | [f55caa2294de4ce892876769cf73dbf2] 从缓存加载向量索引成功: 289 个列
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-20 13:55:11 | INFO | [f55caa2294de4ce892876769cf73dbf2] | app.main | 向量索引已从缓存加载
+2026-02-20 13:55:11 | INFO | [f241d8bb3ffb45cb8533fcdaf6745666] | app.api.v1.field_mappings_async | [f241d8bb3ffb45cb8533fcdaf6745666] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:55:11 | INFO | [f241d8bb3ffb45cb8533fcdaf6745666] | app.api.v1.field_mappings_async | [f241d8bb3ffb45cb8533fcdaf6745666] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:55:11 | INFO | [41e6a4c779294a96a900b64972113343] | app.api.v1.projects | [41e6a4c779294a96a900b64972113343] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:55:11 | INFO | [41e6a4c779294a96a900b64972113343] | app.api.v1.projects | [41e6a4c779294a96a900b64972113343] 获取项目列表成功: total=3
+2026-02-20 13:55:11 | INFO | [1081a82f857f477a91b9b64cfd487204] | app.api.v1.db_schemas | [1081a82f857f477a91b9b64cfd487204] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:55:11 | INFO | [e5f6cbce9c31468f8b1c1260f3bd5c19] | app.api.v1.projects | [e5f6cbce9c31468f8b1c1260f3bd5c19] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:55:11 | INFO | [e5f6cbce9c31468f8b1c1260f3bd5c19] | app.api.v1.projects | [e5f6cbce9c31468f8b1c1260f3bd5c19] 获取项目列表成功: total=3
+2026-02-20 13:55:11 | INFO | [5fd84aa6a032403d912029c9e63ad6da] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -15, 已检出: 5, 空闲: 15, 统计 - 创建: 10, 检出: 10, 检入: 0, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:55:11 | INFO | [5fd84aa6a032403d912029c9e63ad6da] | app.api.v1.versions | [5fd84aa6a032403d912029c9e63ad6da] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:55:12 | INFO | [ec99c79b6b3e40f2a7cc71a21713fc0b] | app.api.v1.projects | [ec99c79b6b3e40f2a7cc71a21713fc0b] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:55:12 | INFO | [ec99c79b6b3e40f2a7cc71a21713fc0b] | app.api.v1.projects | [ec99c79b6b3e40f2a7cc71a21713fc0b] 获取项目列表成功: total=3
+2026-02-20 13:55:12 | INFO | [589a12a3af78437aaadbb93db3359457] | app.api.v1.db_schemas | [589a12a3af78437aaadbb93db3359457] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:55:12 | INFO | [78b2fd1cf8494d319ec78c92311e826c] | app.api.v1.field_mappings_async | [78b2fd1cf8494d319ec78c92311e826c] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 13:55:12 | INFO | [78b2fd1cf8494d319ec78c92311e826c] | app.api.v1.field_mappings_async | [78b2fd1cf8494d319ec78c92311e826c] 查询任务列表完成: total=2, returned=1
+2026-02-20 13:55:12 | INFO | [28d3c66970624eec959dda40b3e77185] | app.api.v1.projects | [28d3c66970624eec959dda40b3e77185] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 13:55:12 | INFO | [28d3c66970624eec959dda40b3e77185] | app.api.v1.projects | [28d3c66970624eec959dda40b3e77185] 获取项目列表成功: total=3
+2026-02-20 13:55:12 | INFO | [5ac4920e00f34a2f99deb44e3d36984f] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 4, 空闲: 16, 统计 - 创建: 12, 检出: 20, 检入: 12, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:55:12 | INFO | [5ac4920e00f34a2f99deb44e3d36984f] | app.api.v1.versions | [5ac4920e00f34a2f99deb44e3d36984f] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 13:55:12 | INFO | [38554dbfa0c946998c34869dabd9efd3] | app.api.v1.field_mappings_async | [38554dbfa0c946998c34869dabd9efd3] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:12 | INFO | [a8b508688096455d907c5acacca90cfe] | app.api.v1.field_mappings_async | [a8b508688096455d907c5acacca90cfe] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:14 | INFO | [05a4dac55e064676be00e53d1c0af303] | app.api.v1.field_mappings_async | [05a4dac55e064676be00e53d1c0af303] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:15 | INFO | [eed1b12d098745048d3f7ff6ec25812e] | app.api.v1.field_mappings_async | [eed1b12d098745048d3f7ff6ec25812e] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:55:17 | INFO | [3e1126a90ade4ba89bb14ece19736d8a] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 30, 检入: 28, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:55:17 | INFO | [3e1126a90ade4ba89bb14ece19736d8a] | app.api.v1.field_mappings_async | [3e1126a90ade4ba89bb14ece19736d8a] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:55:17 | INFO | [3e1126a90ade4ba89bb14ece19736d8a] | app.api.v1.field_mappings_async | [3e1126a90ade4ba89bb14ece19736d8a] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:55:19 | INFO | [4e6d2c2f128f4ec3ba14fed7c9b4e33d] | app.api.v1.field_mappings_async | [4e6d2c2f128f4ec3ba14fed7c9b4e33d] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:55:19 | INFO | [4e6d2c2f128f4ec3ba14fed7c9b4e33d] | app.api.v1.field_mappings_async | [4e6d2c2f128f4ec3ba14fed7c9b4e33d] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:55:20 | INFO | [b69b95dac2974c4cbabda6acad8e6ca4] | app.api.v1.field_mappings_async | [b69b95dac2974c4cbabda6acad8e6ca4] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:55:20 | INFO | [b69b95dac2974c4cbabda6acad8e6ca4] | app.api.v1.field_mappings_async | [b69b95dac2974c4cbabda6acad8e6ca4] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:55:20 | INFO | [c0dd8f537f7b4f8aa78275068b1c3cbf] | app.api.v1.field_mappings_async | [c0dd8f537f7b4f8aa78275068b1c3cbf] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:55:20 | INFO | [c0dd8f537f7b4f8aa78275068b1c3cbf] | app.api.v1.field_mappings_async | [c0dd8f537f7b4f8aa78275068b1c3cbf] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:55:20 | INFO | [f0ffa3dbb5a44031be93dfb618b8d1bf] | app.api.v1.field_mappings_async | [f0ffa3dbb5a44031be93dfb618b8d1bf] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:55:20 | INFO | [f0ffa3dbb5a44031be93dfb618b8d1bf] | app.api.v1.field_mappings_async | [f0ffa3dbb5a44031be93dfb618b8d1bf] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:55:21 | INFO | [6ab1c0c36bbd40f2b5482da698f7958a] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 40, 检入: 38, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:55:21 | INFO | [6ab1c0c36bbd40f2b5482da698f7958a] | app.api.v1.field_mappings_async | [6ab1c0c36bbd40f2b5482da698f7958a] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:55:21 | INFO | [6ab1c0c36bbd40f2b5482da698f7958a] | app.api.v1.field_mappings_async | [6ab1c0c36bbd40f2b5482da698f7958a] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:55:23 | INFO | [39ebdd46e6ae40579faa6c01eb82dca3] | app.api.v1.field_mappings_async | [39ebdd46e6ae40579faa6c01eb82dca3] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:23 | INFO | [483b214eecc64f9997e797854e7a50e8] | app.api.v1.field_mappings_async | [483b214eecc64f9997e797854e7a50e8] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:23 | INFO | [e30ab70fd77141a1b6538cbf1f68670c] | app.api.v1.field_mappings_async | [e30ab70fd77141a1b6538cbf1f68670c] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:23 | INFO | [e18f8ce023ee4d8fb3873d65852f43ec] | app.api.v1.field_mappings_async | [e18f8ce023ee4d8fb3873d65852f43ec] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:24 | INFO | [1775245f399b47ff970af28820eed1d4] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 50, 检入: 48, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:55:24 | INFO | [1775245f399b47ff970af28820eed1d4] | app.api.v1.field_mappings_async | [1775245f399b47ff970af28820eed1d4] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:24 | INFO | [1892ddf252e24cbf9f8fcd4edce604fe] | app.api.v1.field_mappings_async | [1892ddf252e24cbf9f8fcd4edce604fe] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:25 | INFO | [8a8075cc818a48e49ac6d641d1b79a2e] | app.api.v1.field_mappings_async | [8a8075cc818a48e49ac6d641d1b79a2e] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:27 | INFO | [15400eaa1e6d40069d42cbbc5e5fc437] | app.api.v1.field_mappings_async | [15400eaa1e6d40069d42cbbc5e5fc437] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:30 | INFO | [923a8c79cc9e42b49003788c95e0b91b] | app.api.v1.field_mappings_async | [923a8c79cc9e42b49003788c95e0b91b] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:32 | INFO | [c9785aabe9004be1904c8ee1a65bb3be] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 60, 检入: 58, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:55:32 | INFO | [c9785aabe9004be1904c8ee1a65bb3be] | app.api.v1.field_mappings_async | [c9785aabe9004be1904c8ee1a65bb3be] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:55:35 | INFO | [f454b9c4f068446086ac0c426e6612f4] | app.api.v1.field_mappings_async | [f454b9c4f068446086ac0c426e6612f4] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:55:36 | INFO | [41b03bc525dd4e959ce4246c96a34453] | app.api.v1.field_mappings_async | [41b03bc525dd4e959ce4246c96a34453] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:55:36 | INFO | [41b03bc525dd4e959ce4246c96a34453] | app.api.v1.field_mappings_async | [41b03bc525dd4e959ce4246c96a34453] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:55:38 | INFO | [270033515ffa43d2830607b64ccb61ef] | app.api.v1.field_mappings_async | [270033515ffa43d2830607b64ccb61ef] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:55:38 | INFO | [270033515ffa43d2830607b64ccb61ef] | app.api.v1.field_mappings_async | [270033515ffa43d2830607b64ccb61ef] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:55:39 | INFO | [5ac727cae7ca46919fc24dc809595445] | app.api.v1.field_mappings_async | [5ac727cae7ca46919fc24dc809595445] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:55:41 | INFO | [8e781994528b43beaabd1fe570ba98fc] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 70, 检入: 68, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:55:41 | INFO | [8e781994528b43beaabd1fe570ba98fc] | app.api.v1.field_mappings_async | [8e781994528b43beaabd1fe570ba98fc] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:55:43 | INFO | [830c054412f348aeb2e03e0a420b82f2] | app.api.v1.field_mappings_async | [830c054412f348aeb2e03e0a420b82f2] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:55:43 | INFO | [830c054412f348aeb2e03e0a420b82f2] | app.api.v1.field_mappings_async | [830c054412f348aeb2e03e0a420b82f2] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:55:45 | INFO | [50406ac361124b869cf000335d75dc7f] | app.api.v1.field_mappings_async | [50406ac361124b869cf000335d75dc7f] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:55:45 | INFO | [50406ac361124b869cf000335d75dc7f] | app.api.v1.field_mappings_async | [50406ac361124b869cf000335d75dc7f] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:55:46 | INFO | [3e0a09c3fe534ab5ace29774533808fa] | app.api.v1.field_mappings_async | [3e0a09c3fe534ab5ace29774533808fa] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:55:49 | INFO | [ad3b922e19324bac93d9e3842728aff7] | app.api.v1.field_mappings_async | [ad3b922e19324bac93d9e3842728aff7] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:55:49 | INFO | [db733df0e1f441ad8d7a71211ab88175] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 80, 检入: 78, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:55:49 | INFO | [db733df0e1f441ad8d7a71211ab88175] | app.api.v1.field_mappings_async | [db733df0e1f441ad8d7a71211ab88175] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:57:33 | INFO | [d751d126e62546ad9146223ab938fe66] | app.api.v1.db_schemas | [d751d126e62546ad9146223ab938fe66] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 13:58:14 | INFO | [7b6ca4fcbe474d8691be9e881be0712b] | app.api.v1.field_mappings_async | [7b6ca4fcbe474d8691be9e881be0712b] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:58:15 | INFO | [dccfb72c51c4409389f604dba0ed900c] | app.api.v1.field_mappings_async | [dccfb72c51c4409389f604dba0ed900c] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:58:17 | INFO | [03d8e96ca2e742a3951109581869ad3c] | app.api.v1.field_mappings_async | [03d8e96ca2e742a3951109581869ad3c] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:58:21 | INFO | [c6c7cf9967934a9faec02cc0cc6e19b2] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 90, 检入: 88, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:58:21 | INFO | [c6c7cf9967934a9faec02cc0cc6e19b2] | app.api.v1.field_mappings_async | [c6c7cf9967934a9faec02cc0cc6e19b2] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:58:23 | INFO | [70c0ea4d7d344ae5b7e60200f3811f97] | app.api.v1.field_mappings_async | [70c0ea4d7d344ae5b7e60200f3811f97] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:58:25 | INFO | [7be8dd60941143f09ef05eaaf9b14821] | app.api.v1.field_mappings_async | [7be8dd60941143f09ef05eaaf9b14821] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:58:25 | INFO | [7be8dd60941143f09ef05eaaf9b14821] | app.api.v1.field_mappings_async | [7be8dd60941143f09ef05eaaf9b14821] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:58:27 | INFO | [ce0148b78cfc42308dfb4334f1f75bf7] | app.api.v1.field_mappings_async | [ce0148b78cfc42308dfb4334f1f75bf7] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:58:27 | INFO | [ce0148b78cfc42308dfb4334f1f75bf7] | app.api.v1.field_mappings_async | [ce0148b78cfc42308dfb4334f1f75bf7] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:58:28 | INFO | [29b9d56a27ae4ded87ed07ba51a9d967] | app.api.v1.field_mappings_async | [29b9d56a27ae4ded87ed07ba51a9d967] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:58:28 | INFO | [29b9d56a27ae4ded87ed07ba51a9d967] | app.api.v1.field_mappings_async | [29b9d56a27ae4ded87ed07ba51a9d967] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:58:29 | INFO | [da14d9bde2a640a89c3cdb2c216984ff] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 100, 检入: 98, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:58:29 | INFO | [da14d9bde2a640a89c3cdb2c216984ff] | app.api.v1.field_mappings_async | [da14d9bde2a640a89c3cdb2c216984ff] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:58:29 | INFO | [da14d9bde2a640a89c3cdb2c216984ff] | app.api.v1.field_mappings_async | [da14d9bde2a640a89c3cdb2c216984ff] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:58:30 | INFO | [de53df3f448040649df944fac848133b] | app.api.v1.field_mappings_async | [de53df3f448040649df944fac848133b] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:58:30 | INFO | [de53df3f448040649df944fac848133b] | app.api.v1.field_mappings_async | [de53df3f448040649df944fac848133b] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:58:32 | INFO | [0602dda1754f4a48b7491bec9c599fce] | app.api.v1.field_mappings_async | [0602dda1754f4a48b7491bec9c599fce] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:58:32 | INFO | [0602dda1754f4a48b7491bec9c599fce] | app.api.v1.field_mappings_async | [0602dda1754f4a48b7491bec9c599fce] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:58:33 | INFO | [7696115407294f20945a6e1033ff5c64] | app.api.v1.field_mappings_async | [7696115407294f20945a6e1033ff5c64] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:58:33 | INFO | [7696115407294f20945a6e1033ff5c64] | app.api.v1.field_mappings_async | [7696115407294f20945a6e1033ff5c64] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:58:34 | INFO | [349e44c65c184be09d747a2b3108ed1c] | app.api.v1.field_mappings_async | [349e44c65c184be09d747a2b3108ed1c] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:58:34 | INFO | [349e44c65c184be09d747a2b3108ed1c] | app.api.v1.field_mappings_async | [349e44c65c184be09d747a2b3108ed1c] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:58:37 | INFO | [74da133f6e614269a50e9cd051ecdfa4] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 110, 检入: 108, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:58:37 | INFO | [74da133f6e614269a50e9cd051ecdfa4] | app.api.v1.field_mappings_async | [74da133f6e614269a50e9cd051ecdfa4] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:59:19 | INFO | [01f0f97dc44c4a6f87693809671f72e0] | app.api.v1.field_mappings_async | [01f0f97dc44c4a6f87693809671f72e0] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:59:20 | INFO | [e14466593edd49d3a6044ddd2fea5f3f] | app.api.v1.field_mappings_async | [e14466593edd49d3a6044ddd2fea5f3f] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:59:20 | INFO | [e14466593edd49d3a6044ddd2fea5f3f] | app.api.v1.field_mappings_async | [e14466593edd49d3a6044ddd2fea5f3f] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:59:21 | INFO | [7ad8d0fc0ff048dca97f7045d7ce1a4c] | app.api.v1.field_mappings_async | [7ad8d0fc0ff048dca97f7045d7ce1a4c] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:59:21 | INFO | [7ad8d0fc0ff048dca97f7045d7ce1a4c] | app.api.v1.field_mappings_async | [7ad8d0fc0ff048dca97f7045d7ce1a4c] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:59:22 | INFO | [f425fc8dda46473d90d10592108cac4f] | app.api.v1.field_mappings_async | [f425fc8dda46473d90d10592108cac4f] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:59:24 | INFO | [9bc7a88c0b184471bed91774111213bf] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 120, 检入: 118, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:59:24 | INFO | [9bc7a88c0b184471bed91774111213bf] | app.api.v1.field_mappings_async | [9bc7a88c0b184471bed91774111213bf] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:59:24 | INFO | [9bc7a88c0b184471bed91774111213bf] | app.api.v1.field_mappings_async | [9bc7a88c0b184471bed91774111213bf] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:59:26 | INFO | [dc2d9168e606426dbe511f9145d515c2] | app.api.v1.field_mappings_async | [dc2d9168e606426dbe511f9145d515c2] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:59:26 | INFO | [dc2d9168e606426dbe511f9145d515c2] | app.api.v1.field_mappings_async | [dc2d9168e606426dbe511f9145d515c2] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:59:27 | INFO | [3d118dfb9754414e85e9c3e7405c5e31] | app.api.v1.field_mappings_async | [3d118dfb9754414e85e9c3e7405c5e31] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:59:27 | INFO | [3d118dfb9754414e85e9c3e7405c5e31] | app.api.v1.field_mappings_async | [3d118dfb9754414e85e9c3e7405c5e31] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:59:27 | INFO | [146321119ebe476c8c2c402359b57e4d] | app.api.v1.field_mappings_async | [146321119ebe476c8c2c402359b57e4d] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:59:27 | INFO | [146321119ebe476c8c2c402359b57e4d] | app.api.v1.field_mappings_async | [146321119ebe476c8c2c402359b57e4d] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:59:28 | INFO | [edcf51459e5142abb02393dff97d0aac] | app.api.v1.field_mappings_async | [edcf51459e5142abb02393dff97d0aac] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 13:59:28 | INFO | [edcf51459e5142abb02393dff97d0aac] | app.api.v1.field_mappings_async | [edcf51459e5142abb02393dff97d0aac] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:59:28 | INFO | [5dd1f6c9f33d4905bfa5057939676e55] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 130, 检入: 128, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:59:28 | INFO | [5dd1f6c9f33d4905bfa5057939676e55] | app.api.v1.field_mappings_async | [5dd1f6c9f33d4905bfa5057939676e55] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:59:28 | INFO | [5dd1f6c9f33d4905bfa5057939676e55] | app.api.v1.field_mappings_async | [5dd1f6c9f33d4905bfa5057939676e55] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:59:28 | INFO | [61f9190fec044a36a33505d180baea90] | app.api.v1.field_mappings_async | [61f9190fec044a36a33505d180baea90] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:59:28 | INFO | [61f9190fec044a36a33505d180baea90] | app.api.v1.field_mappings_async | [61f9190fec044a36a33505d180baea90] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:59:28 | INFO | [3d62fb4f0e874192b0705c1a33650c1a] | app.api.v1.field_mappings_async | [3d62fb4f0e874192b0705c1a33650c1a] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:59:28 | INFO | [3d62fb4f0e874192b0705c1a33650c1a] | app.api.v1.field_mappings_async | [3d62fb4f0e874192b0705c1a33650c1a] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:59:29 | INFO | [a9dd62f8a0e44413b18097fb2dc619f2] | app.api.v1.field_mappings_async | [a9dd62f8a0e44413b18097fb2dc619f2] 获取字段映射建议结果: task_id=5, status=confirmed, page=1, size=20
+2026-02-20 13:59:29 | INFO | [a9dd62f8a0e44413b18097fb2dc619f2] | app.api.v1.field_mappings_async | [a9dd62f8a0e44413b18097fb2dc619f2] 建议表为空，尝试从 JSON 读取
+2026-02-20 13:59:30 | INFO | [351215ba2d8945538d792e6b6d1f7229] | app.api.v1.field_mappings_async | [351215ba2d8945538d792e6b6d1f7229] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:59:30 | INFO | [83703d4f8c454b418eea5e1ab82878a6] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 140, 检入: 138, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:59:30 | INFO | [83703d4f8c454b418eea5e1ab82878a6] | app.api.v1.field_mappings_async | [83703d4f8c454b418eea5e1ab82878a6] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:59:30 | INFO | [3b6a05edc2a849efacf8a8e70a108009] | app.api.v1.field_mappings_async | [3b6a05edc2a849efacf8a8e70a108009] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:59:30 | INFO | [0c1f3cc7697643b8b009c3d6f0f0fa7e] | app.api.v1.field_mappings_async | [0c1f3cc7697643b8b009c3d6f0f0fa7e] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:59:31 | INFO | [8a4ba6e7974a46d1a88d65ad0c2abf09] | app.api.v1.field_mappings_async | [8a4ba6e7974a46d1a88d65ad0c2abf09] 获取字段映射建议结果: task_id=5, status=proposed, page=1, size=20
+2026-02-20 13:59:31 | INFO | [9e8e9651444d4044961afe99151e2da6] | app.api.v1.field_mappings_async | [9e8e9651444d4044961afe99151e2da6] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:59:32 | INFO | [eaa4d953b8a54679a0bb9e7588ab3729] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 150, 检入: 148, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 13:59:32 | INFO | [eaa4d953b8a54679a0bb9e7588ab3729] | app.api.v1.field_mappings_async | [eaa4d953b8a54679a0bb9e7588ab3729] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 13:59:32 | INFO | [2146cabc328f4313862f568c9f02ace4] | app.api.v1.field_mappings_async | [2146cabc328f4313862f568c9f02ace4] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 14:02:38 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | root | 日志系统初始化完成
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.main | 应用启动事件执行中...
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.main | Celery 实例: bugseek
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.main | 开始预热向量索引...
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.main | 应用启动事件执行完成
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.utils.vector_index | [6d7c88236e1b4b3b8b31f42ed20d9948] 从缓存加载向量索引成功: 289 个列
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-20 14:02:39 | INFO | [6d7c88236e1b4b3b8b31f42ed20d9948] | app.main | 向量索引已从缓存加载
+2026-02-20 14:02:39 | INFO | [98bcccdf329e4bc6823bdd53aeffcff3] | app.api.v1.db_schemas | [98bcccdf329e4bc6823bdd53aeffcff3] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 14:03:01 | INFO | [c192b87d04ea4a5e84534e8fcc59c4aa] | app.api.v1.db_schemas | [c192b87d04ea4a5e84534e8fcc59c4aa] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 14:03:44 | INFO | [11baddfb01c74632b7f56afbfcbdfcdf] | app.api.v1.field_mappings_async | [11baddfb01c74632b7f56afbfcbdfcdf] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 14:03:46 | INFO | [7a04e48da72846b49047069141750a97] | app.api.v1.field_mappings_async | [7a04e48da72846b49047069141750a97] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 14:03:46 | INFO | [64337d749d7b48a99ceb8fe44a4616ed] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -19, 已检出: 1, 空闲: 19, 统计 - 创建: 2, 检出: 10, 检入: 8, 溢出: 0, 错误: 0, 最大并发: 1
+2026-02-20 14:03:46 | INFO | [64337d749d7b48a99ceb8fe44a4616ed] | app.api.v1.field_mappings_async | [64337d749d7b48a99ceb8fe44a4616ed] 获取字段映射建议结果: task_id=5, status=rejected, page=1, size=20
+2026-02-20 14:03:46 | INFO | [64337d749d7b48a99ceb8fe44a4616ed] | app.api.v1.field_mappings_async | [64337d749d7b48a99ceb8fe44a4616ed] 建议表为空，尝试从 JSON 读取
+2026-02-20 14:04:05 | INFO | [ddb48acce90b464a87c771ca95265123] | app.api.v1.field_mappings_async | [ddb48acce90b464a87c771ca95265123] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:04:06 | INFO | [ddb48acce90b464a87c771ca95265123] | app.api.v1.field_mappings_async | [ddb48acce90b464a87c771ca95265123] 查询任务列表完成: total=2, returned=2
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | root | 日志系统初始化完成
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.main | 应用启动事件执行中...
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.main | Celery 实例: bugseek
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.main | 开始预热向量索引...
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.main | 应用启动事件执行完成
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.utils.vector_index | [ed08bcf76c2d4f61873397a55135439b] 从缓存加载向量索引成功: 289 个列
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-20 14:04:44 | INFO | [ed08bcf76c2d4f61873397a55135439b] | app.main | 向量索引已从缓存加载
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | root | 日志系统初始化完成
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.main | 应用启动事件执行中...
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.main | Celery 实例: bugseek
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.main | 开始预热向量索引...
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.main | 应用启动事件执行完成
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.utils.vector_index | [c5d95170b4b14b1b89b97c4fd1141b00] 从缓存加载向量索引成功: 289 个列
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-02-20 14:05:03 | INFO | [c5d95170b4b14b1b89b97c4fd1141b00] | app.main | 向量索引已从缓存加载
+2026-02-20 14:05:26 | INFO | [3a8eb983d6364ecbba45b3b426cf4ba2] | app.api.v1.projects | [3a8eb983d6364ecbba45b3b426cf4ba2] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 14:05:26 | INFO | [3a8eb983d6364ecbba45b3b426cf4ba2] | app.api.v1.projects | [3a8eb983d6364ecbba45b3b426cf4ba2] 获取项目列表成功: total=3
+2026-02-20 14:05:26 | INFO | [e9a3530af92744aca3b1770b0a96817a] | app.api.v1.db_schemas | [e9a3530af92744aca3b1770b0a96817a] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 14:05:26 | INFO | [2d452087d20d4c19aaae0e6338a46c7f] | app.api.v1.field_mappings_async | [2d452087d20d4c19aaae0e6338a46c7f] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 14:05:26 | INFO | [2d452087d20d4c19aaae0e6338a46c7f] | app.api.v1.field_mappings_async | [2d452087d20d4c19aaae0e6338a46c7f] 查询任务列表完成: total=2, returned=1
+2026-02-20 14:05:26 | INFO | [281b6bb8b78d4a61bbd89a19d7d23d9f] | app.api.v1.projects | [281b6bb8b78d4a61bbd89a19d7d23d9f] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 14:05:26 | INFO | [281b6bb8b78d4a61bbd89a19d7d23d9f] | app.api.v1.projects | [281b6bb8b78d4a61bbd89a19d7d23d9f] 获取项目列表成功: total=3
+2026-02-20 14:05:26 | INFO | [7e007f3cd8884bab90e71c2218824950] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -15, 已检出: 5, 空闲: 15, 统计 - 创建: 10, 检出: 10, 检入: 0, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:05:26 | INFO | [7e007f3cd8884bab90e71c2218824950] | app.api.v1.projects | [7e007f3cd8884bab90e71c2218824950] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 14:05:26 | INFO | [7e007f3cd8884bab90e71c2218824950] | app.api.v1.projects | [7e007f3cd8884bab90e71c2218824950] 获取项目列表成功: total=3
+2026-02-20 14:05:26 | INFO | [b35a94edbf2c47139b25209167f5045b] | app.api.v1.versions | [b35a94edbf2c47139b25209167f5045b] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 14:05:26 | INFO | [2ef947c7fe824f76b33c2ee09dc3d943] | app.api.v1.field_mappings_async | [2ef947c7fe824f76b33c2ee09dc3d943] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 14:05:26 | INFO | [2ef947c7fe824f76b33c2ee09dc3d943] | app.api.v1.field_mappings_async | [2ef947c7fe824f76b33c2ee09dc3d943] 查询任务列表完成: total=2, returned=1
+2026-02-20 14:05:26 | INFO | [da2d40bcdd324049a80ee53690e3043c] | app.api.v1.db_schemas | [da2d40bcdd324049a80ee53690e3043c] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 14:05:26 | INFO | [bfeed0589bab4e73a7a711789a4fef25] | app.api.v1.projects | [bfeed0589bab4e73a7a711789a4fef25] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 14:05:26 | INFO | [bfeed0589bab4e73a7a711789a4fef25] | app.api.v1.projects | [bfeed0589bab4e73a7a711789a4fef25] 获取项目列表成功: total=3
+2026-02-20 14:05:26 | INFO | [9adff9a3c6344ff695ad171836524097] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 2, 空闲: 18, 统计 - 创建: 12, 检出: 20, 检入: 16, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:05:26 | INFO | [9adff9a3c6344ff695ad171836524097] | app.api.v1.versions | [9adff9a3c6344ff695ad171836524097] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 14:05:26 | INFO | [368df969af9b48d89f7c33c943322430] | app.api.v1.field_mappings_async | [368df969af9b48d89f7c33c943322430] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 14:05:26 | INFO | [368df969af9b48d89f7c33c943322430] | app.api.v1.field_mappings_async | [368df969af9b48d89f7c33c943322430] 建议表为空，尝试从 JSON 读取
+2026-02-20 14:05:26 | INFO | [f8dea65dfb7f42caafbe2b1b5c931638] | app.api.v1.field_mappings_async | [f8dea65dfb7f42caafbe2b1b5c931638] 获取字段映射建议结果: task_id=5, status=None, page=1, size=20
+2026-02-20 14:05:26 | INFO | [f8dea65dfb7f42caafbe2b1b5c931638] | app.api.v1.field_mappings_async | [f8dea65dfb7f42caafbe2b1b5c931638] 建议表为空，尝试从 JSON 读取
+2026-02-20 14:05:27 | INFO | [423000d9e19b4b90b613cb58f5fbe131] | app.api.v1.field_mappings | [423000d9e19b4b90b613cb58f5fbe131] 查询字段映射列表: project_id=1, version_id=1
+2026-02-20 14:05:28 | INFO | [d500b4bddd314d6c8bddccb4e8b1fbf1] | app.api.v1.field_mappings_async | [d500b4bddd314d6c8bddccb4e8b1fbf1] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:29 | INFO | [d500b4bddd314d6c8bddccb4e8b1fbf1] | app.api.v1.field_mappings_async | [d500b4bddd314d6c8bddccb4e8b1fbf1] 查询任务列表完成: total=2, returned=2
+2026-02-20 14:05:30 | INFO | [1e9c10b76c5e45d8ad892618353f5460] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 30, 检入: 28, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:05:30 | INFO | [1e9c10b76c5e45d8ad892618353f5460] | app.api.v1.field_mappings_async | [1e9c10b76c5e45d8ad892618353f5460] 获取异步任务进度: task_id=5
+2026-02-20 14:05:34 | INFO | [5ae6275862b84654904719b20cb6e699] | app.api.v1.field_mappings_async | [5ae6275862b84654904719b20cb6e699] 创建字段映射建议任务: project_id=1, version_id=1, use_ai=True
+2026-02-20 14:05:35 | INFO | [5ae6275862b84654904719b20cb6e699] | app.api.v1.field_mappings_async | [5ae6275862b84654904719b20cb6e699] Celery 任务已提交: task_id=6, celery_task_id=18fba1d4-4117-46cd-b93b-92ac052ef0b0
+2026-02-20 14:05:35 | INFO | [fe852dc996ab4285bce166586899321a] | app.api.v1.field_mappings_async | [fe852dc996ab4285bce166586899321a] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:35 | INFO | [fe852dc996ab4285bce166586899321a] | app.api.v1.field_mappings_async | [fe852dc996ab4285bce166586899321a] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:35 | INFO | [ccbde9f044f848a6b8631575e49a98fa] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 40, 检入: 38, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:05:35 | INFO | [ccbde9f044f848a6b8631575e49a98fa] | app.api.v1.field_mappings_async | [ccbde9f044f848a6b8631575e49a98fa] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:35 | INFO | [ccbde9f044f848a6b8631575e49a98fa] | app.api.v1.field_mappings_async | [ccbde9f044f848a6b8631575e49a98fa] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:37 | INFO | [0afff7ee7aab4301a9698495e00173db] | app.api.v1.field_mappings_async | [0afff7ee7aab4301a9698495e00173db] 获取异步任务进度: task_id=6
+2026-02-20 14:05:38 | INFO | [836677a65c1747208ded774e59079ff8] | app.api.v1.field_mappings_async | [836677a65c1747208ded774e59079ff8] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:39 | INFO | [836677a65c1747208ded774e59079ff8] | app.api.v1.field_mappings_async | [836677a65c1747208ded774e59079ff8] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:39 | INFO | [178a594b907d400b81f3214673d38a03] | app.api.v1.field_mappings_async | [178a594b907d400b81f3214673d38a03] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:39 | INFO | [178a594b907d400b81f3214673d38a03] | app.api.v1.field_mappings_async | [178a594b907d400b81f3214673d38a03] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:39 | INFO | [6591a7f3cf024d2f817f2cb65aba693a] | app.api.v1.field_mappings_async | [6591a7f3cf024d2f817f2cb65aba693a] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:40 | INFO | [6591a7f3cf024d2f817f2cb65aba693a] | app.api.v1.field_mappings_async | [6591a7f3cf024d2f817f2cb65aba693a] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:40 | INFO | [d5fa8b7efe024765b7be5552ebd68728] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 50, 检入: 48, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:05:40 | INFO | [d5fa8b7efe024765b7be5552ebd68728] | app.api.v1.field_mappings_async | [d5fa8b7efe024765b7be5552ebd68728] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:41 | INFO | [d5fa8b7efe024765b7be5552ebd68728] | app.api.v1.field_mappings_async | [d5fa8b7efe024765b7be5552ebd68728] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:41 | INFO | [373c5cf1c9144e798562b0d8df5e9b20] | app.api.v1.field_mappings_async | [373c5cf1c9144e798562b0d8df5e9b20] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:41 | INFO | [373c5cf1c9144e798562b0d8df5e9b20] | app.api.v1.field_mappings_async | [373c5cf1c9144e798562b0d8df5e9b20] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:42 | INFO | [65089129263246bfa54223797f123615] | app.api.v1.field_mappings_async | [65089129263246bfa54223797f123615] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:42 | INFO | [65089129263246bfa54223797f123615] | app.api.v1.field_mappings_async | [65089129263246bfa54223797f123615] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:42 | INFO | [1521e1b2928e41cfab7bb4bcc2515a22] | app.api.v1.field_mappings_async | [1521e1b2928e41cfab7bb4bcc2515a22] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:43 | INFO | [1521e1b2928e41cfab7bb4bcc2515a22] | app.api.v1.field_mappings_async | [1521e1b2928e41cfab7bb4bcc2515a22] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:43 | INFO | [88ae9e5ecc234dfca7889757156d7e99] | app.api.v1.field_mappings_async | [88ae9e5ecc234dfca7889757156d7e99] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:43 | INFO | [88ae9e5ecc234dfca7889757156d7e99] | app.api.v1.field_mappings_async | [88ae9e5ecc234dfca7889757156d7e99] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:43 | INFO | [0ce4d6c0965e4ee39ac5536fb7f118a9] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 60, 检入: 58, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:05:43 | INFO | [0ce4d6c0965e4ee39ac5536fb7f118a9] | app.api.v1.field_mappings_async | [0ce4d6c0965e4ee39ac5536fb7f118a9] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:44 | INFO | [0ce4d6c0965e4ee39ac5536fb7f118a9] | app.api.v1.field_mappings_async | [0ce4d6c0965e4ee39ac5536fb7f118a9] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:44 | INFO | [84e36dc26a544ac8ab830423e7ef8614] | app.api.v1.field_mappings_async | [84e36dc26a544ac8ab830423e7ef8614] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:44 | INFO | [84e36dc26a544ac8ab830423e7ef8614] | app.api.v1.field_mappings_async | [84e36dc26a544ac8ab830423e7ef8614] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:45 | INFO | [21cb9ad72b5b459cb9251396a6652ebb] | app.api.v1.field_mappings_async | [21cb9ad72b5b459cb9251396a6652ebb] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:45 | INFO | [21cb9ad72b5b459cb9251396a6652ebb] | app.api.v1.field_mappings_async | [21cb9ad72b5b459cb9251396a6652ebb] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:46 | INFO | [036501cb95234cacbc2675d872bb1699] | app.api.v1.field_mappings_async | [036501cb95234cacbc2675d872bb1699] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:46 | INFO | [036501cb95234cacbc2675d872bb1699] | app.api.v1.field_mappings_async | [036501cb95234cacbc2675d872bb1699] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:46 | INFO | [7f98a14146f04add88e1610b2276bb34] | app.api.v1.field_mappings_async | [7f98a14146f04add88e1610b2276bb34] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:47 | INFO | [7f98a14146f04add88e1610b2276bb34] | app.api.v1.field_mappings_async | [7f98a14146f04add88e1610b2276bb34] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:47 | INFO | [18b34a9cba4a4ab3a1103fd315768029] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 70, 检入: 68, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:05:47 | INFO | [18b34a9cba4a4ab3a1103fd315768029] | app.api.v1.field_mappings_async | [18b34a9cba4a4ab3a1103fd315768029] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:48 | INFO | [18b34a9cba4a4ab3a1103fd315768029] | app.api.v1.field_mappings_async | [18b34a9cba4a4ab3a1103fd315768029] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:48 | INFO | [c3adc41c34bb40d1b83da15b8ac476ba] | app.api.v1.field_mappings_async | [c3adc41c34bb40d1b83da15b8ac476ba] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:48 | INFO | [c3adc41c34bb40d1b83da15b8ac476ba] | app.api.v1.field_mappings_async | [c3adc41c34bb40d1b83da15b8ac476ba] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:49 | INFO | [d0cc9659074c476bbe61f75a7e77a6e9] | app.api.v1.field_mappings_async | [d0cc9659074c476bbe61f75a7e77a6e9] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:49 | INFO | [d0cc9659074c476bbe61f75a7e77a6e9] | app.api.v1.field_mappings_async | [d0cc9659074c476bbe61f75a7e77a6e9] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:51 | INFO | [bee91fa2e00d453ca1d617d33c7801ea] | app.api.v1.field_mappings_async | [bee91fa2e00d453ca1d617d33c7801ea] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:05:52 | INFO | [bee91fa2e00d453ca1d617d33c7801ea] | app.api.v1.field_mappings_async | [bee91fa2e00d453ca1d617d33c7801ea] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:05:52 | INFO | [8498f4eb439c407bb0fc5c7ccb337021] | app.api.v1.field_mappings_async | [8498f4eb439c407bb0fc5c7ccb337021] 获取异步任务进度: task_id=6
+2026-02-20 14:05:53 | INFO | [075ada16a13548bbbe57f351b7aa6ce9] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 80, 检入: 78, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:05:53 | INFO | [075ada16a13548bbbe57f351b7aa6ce9] | app.api.v1.field_mappings_async | [075ada16a13548bbbe57f351b7aa6ce9] 获取字段映射建议结果: task_id=6, status=None, page=1, size=20
+2026-02-20 14:05:58 | INFO | [f950a96af0174025acc58fbcf27b769f] | app.api.v1.projects | [f950a96af0174025acc58fbcf27b769f] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 14:05:58 | INFO | [f950a96af0174025acc58fbcf27b769f] | app.api.v1.projects | [f950a96af0174025acc58fbcf27b769f] 获取项目列表成功: total=3
+2026-02-20 14:05:58 | INFO | [75f21f0e7a8b46dea9eb6a4f2da8bf2c] | app.api.v1.versions | [75f21f0e7a8b46dea9eb6a4f2da8bf2c] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 14:05:58 | INFO | [44192516c5024ab795e51ca83034692b] | app.api.v1.field_mappings_async | [44192516c5024ab795e51ca83034692b] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 14:05:58 | INFO | [44192516c5024ab795e51ca83034692b] | app.api.v1.field_mappings_async | [44192516c5024ab795e51ca83034692b] 查询任务列表完成: total=3, returned=1
+2026-02-20 14:05:58 | INFO | [14b990ebe281477db93f117df758292f] | app.api.v1.projects | [14b990ebe281477db93f117df758292f] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 14:05:58 | INFO | [14b990ebe281477db93f117df758292f] | app.api.v1.projects | [14b990ebe281477db93f117df758292f] 获取项目列表成功: total=3
+2026-02-20 14:05:58 | INFO | [5a2c6125566a499d8bc52aadb3ce8fd2] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 5, 空闲: 15, 统计 - 创建: 12, 检出: 90, 检入: 80, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:05:58 | INFO | [5a2c6125566a499d8bc52aadb3ce8fd2] | app.api.v1.db_schemas | [5a2c6125566a499d8bc52aadb3ce8fd2] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 14:05:58 | INFO | [531e9b2d50b547af925830e595f2441d] | app.api.v1.projects | [531e9b2d50b547af925830e595f2441d] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 14:05:58 | INFO | [531e9b2d50b547af925830e595f2441d] | app.api.v1.projects | [531e9b2d50b547af925830e595f2441d] 获取项目列表成功: total=3
+2026-02-20 14:05:58 | INFO | [527912ac41b048f78b030741a1e7e26e] | app.api.v1.db_schemas | [527912ac41b048f78b030741a1e7e26e] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 14:05:58 | INFO | [f9a7cc3da3584259ab1cec02aa84caef] | app.api.v1.field_mappings_async | [f9a7cc3da3584259ab1cec02aa84caef] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 14:05:58 | INFO | [f9a7cc3da3584259ab1cec02aa84caef] | app.api.v1.field_mappings_async | [f9a7cc3da3584259ab1cec02aa84caef] 查询任务列表完成: total=3, returned=1
+2026-02-20 14:05:58 | INFO | [429ebc5c8e8f40f0ac4b046306825815] | app.api.v1.projects | [429ebc5c8e8f40f0ac4b046306825815] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 14:05:58 | INFO | [429ebc5c8e8f40f0ac4b046306825815] | app.api.v1.projects | [429ebc5c8e8f40f0ac4b046306825815] 获取项目列表成功: total=3
+2026-02-20 14:05:58 | INFO | [598bd649934443fe8f6d6c1a83d8d92b] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 3, 空闲: 17, 统计 - 创建: 12, 检出: 100, 检入: 94, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:05:58 | INFO | [598bd649934443fe8f6d6c1a83d8d92b] | app.api.v1.versions | [598bd649934443fe8f6d6c1a83d8d92b] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 14:05:58 | INFO | [67178ef9ff7847b197c94a388222b532] | app.api.v1.field_mappings_async | [67178ef9ff7847b197c94a388222b532] 获取异步任务进度: task_id=6
+2026-02-20 14:05:59 | INFO | [a2df7578362e48f581f392ae8bffc0c3] | app.api.v1.field_mappings_async | [a2df7578362e48f581f392ae8bffc0c3] 获取异步任务进度: task_id=6
+2026-02-20 14:05:59 | INFO | [bd599d82f9c240e8a0571db1256a33c4] | app.api.v1.field_mappings_async | [bd599d82f9c240e8a0571db1256a33c4] 获取字段映射建议结果: task_id=6, status=None, page=1, size=20
+2026-02-20 14:06:00 | INFO | [cf9a85d2ca694253a102e03fe81b7e93] | app.api.v1.field_mappings_async | [cf9a85d2ca694253a102e03fe81b7e93] 获取字段映射建议结果: task_id=6, status=None, page=1, size=20
+2026-02-20 14:06:00 | INFO | [d55937592bc64c059bc88fc7211a849a] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 110, 检入: 108, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:06:00 | INFO | [d55937592bc64c059bc88fc7211a849a] | app.api.v1.field_mappings_async | [d55937592bc64c059bc88fc7211a849a] 获取字段映射建议结果: task_id=6, status=None, page=1, size=20
+2026-02-20 14:06:48 | INFO | [9b501de64acf43f2a2a77f9d5a67064f] | app.api.v1.field_mappings_async | [9b501de64acf43f2a2a77f9d5a67064f] 获取字段映射建议结果: task_id=6, status=None, page=4, size=20
+2026-02-20 14:07:14 | INFO | [dd50b3bbedb142b69f1856bc7db0aa74] | app.api.v1.field_mappings_async | [dd50b3bbedb142b69f1856bc7db0aa74] 获取字段映射建议结果: task_id=6, status=None, page=216, size=20
+2026-02-20 14:07:32 | INFO | [84cff8e4c0dc46bb8369d9b16e6b58aa] | app.api.v1.field_mappings_async | [84cff8e4c0dc46bb8369d9b16e6b58aa] 获取字段映射建议结果: task_id=6, status=None, page=1, size=20
+2026-02-20 14:07:36 | INFO | [8420f4ce425c47e5bbb48ba9993768ed] | app.api.v1.field_mappings_async | [8420f4ce425c47e5bbb48ba9993768ed] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=None, limit=20, offset=0
+2026-02-20 14:07:37 | INFO | [8420f4ce425c47e5bbb48ba9993768ed] | app.api.v1.field_mappings_async | [8420f4ce425c47e5bbb48ba9993768ed] 查询任务列表完成: total=3, returned=3
+2026-02-20 14:07:40 | INFO | [9f297329571444fa848e4530a2ef49a9] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 120, 检入: 118, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:07:40 | INFO | [9f297329571444fa848e4530a2ef49a9] | app.api.v1.field_mappings_async | [9f297329571444fa848e4530a2ef49a9] 获取异步任务进度: task_id=6
+2026-02-20 14:09:01 | INFO | [f363dae74f6f45dc8f42d6a246e425e1] | app.api.v1.field_mappings_async | [f363dae74f6f45dc8f42d6a246e425e1] 获取字段映射建议结果: task_id=6, status=None, page=5, size=20
+2026-02-20 14:09:06 | INFO | [a1c5cdb4d6364364aef66142a0b093f9] | app.api.v1.field_mappings_async | [a1c5cdb4d6364364aef66142a0b093f9] 获取字段映射建议结果: task_id=6, status=None, page=7, size=20
+2026-02-20 14:09:12 | INFO | [7562c998e7b94b189c0afc5b1ef802d0] | app.api.v1.field_mappings_async | [7562c998e7b94b189c0afc5b1ef802d0] 获取字段映射建议结果: task_id=6, status=None, page=5, size=20
+2026-02-20 14:10:12 | INFO | [565473aec5a04311bedbaf678e758305] | app.api.v1.field_mappings_async | [565473aec5a04311bedbaf678e758305] 获取字段映射建议结果: task_id=6, status=None, page=1, size=20
+2026-02-20 14:10:24 | INFO | [9b9744943462424ca4bc5bf168dd8418] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 130, 检入: 128, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:10:24 | INFO | [9b9744943462424ca4bc5bf168dd8418] | app.api.v1.field_mappings_async | [9b9744943462424ca4bc5bf168dd8418] 获取字段映射建议结果: task_id=6, status=None, page=2, size=20
+2026-02-20 14:10:28 | INFO | [aee191e2f3b447aeaa910ea99cbed17c] | app.api.v1.field_mappings_async | [aee191e2f3b447aeaa910ea99cbed17c] 获取字段映射建议结果: task_id=6, status=None, page=1, size=20
+2026-02-20 14:15:44 | INFO | [08761d8f09a94cf29f7ede643b779008] | app.api.v1.db_schemas | [08761d8f09a94cf29f7ede643b779008] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 14:22:50 | INFO | [95330fda944c47f1adfbe80ea1f2670e] | app.api.v1.projects | [95330fda944c47f1adfbe80ea1f2670e] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 14:22:50 | INFO | [95330fda944c47f1adfbe80ea1f2670e] | app.api.v1.projects | [95330fda944c47f1adfbe80ea1f2670e] 获取项目列表成功: total=3
+2026-02-20 14:22:50 | INFO | [df5020a89007428881f81194434ae138] | app.api.v1.db_schemas | [df5020a89007428881f81194434ae138] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 14:22:50 | INFO | [337c3bc0b86a463c879293314e7d51a7] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 2, 空闲: 18, 统计 - 创建: 12, 检出: 140, 检入: 136, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:22:50 | INFO | [337c3bc0b86a463c879293314e7d51a7] | app.api.v1.field_mappings_async | [337c3bc0b86a463c879293314e7d51a7] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 14:22:50 | INFO | [337c3bc0b86a463c879293314e7d51a7] | app.api.v1.field_mappings_async | [337c3bc0b86a463c879293314e7d51a7] 查询任务列表完成: total=3, returned=1
+2026-02-20 14:22:50 | INFO | [c9abbdfbb27f410fae98069bb2cc829e] | app.api.v1.projects | [c9abbdfbb27f410fae98069bb2cc829e] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 14:22:50 | INFO | [c9abbdfbb27f410fae98069bb2cc829e] | app.api.v1.projects | [c9abbdfbb27f410fae98069bb2cc829e] 获取项目列表成功: total=3
+2026-02-20 14:22:50 | INFO | [d165a3a813594aa588d905fa5648a97d] | app.api.v1.versions | [d165a3a813594aa588d905fa5648a97d] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 14:22:50 | INFO | [923e511b997440108f13dd9add808d8e] | app.api.v1.projects | [923e511b997440108f13dd9add808d8e] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 14:22:50 | INFO | [923e511b997440108f13dd9add808d8e] | app.api.v1.projects | [923e511b997440108f13dd9add808d8e] 获取项目列表成功: total=3
+2026-02-20 14:22:50 | INFO | [c6c05ad26fe34a0e8a14864f1ca7e1b4] | app.api.v1.db_schemas | [c6c05ad26fe34a0e8a14864f1ca7e1b4] 查询数据库结构列表: project_id=1, version_id=1
+2026-02-20 14:22:50 | INFO | [698723bc563948469879bc772209257f] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 2, 空闲: 18, 统计 - 创建: 12, 检出: 150, 检入: 146, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:22:50 | INFO | [698723bc563948469879bc772209257f] | app.api.v1.field_mappings_async | [698723bc563948469879bc772209257f] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=1, status=completed, limit=1, offset=0
+2026-02-20 14:22:50 | INFO | [698723bc563948469879bc772209257f] | app.api.v1.field_mappings_async | [698723bc563948469879bc772209257f] 查询任务列表完成: total=3, returned=1
+2026-02-20 14:22:50 | INFO | [cde2914d9b5341b486ce44c8e22496cb] | app.api.v1.versions | [cde2914d9b5341b486ce44c8e22496cb] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-02-20 14:22:50 | INFO | [dae068e30e7849f0a2053e7d6ab89a40] | app.api.v1.projects | [dae068e30e7849f0a2053e7d6ab89a40] 用户 admin 获取项目列表: page=1, page_size=100
+2026-02-20 14:22:50 | INFO | [dae068e30e7849f0a2053e7d6ab89a40] | app.api.v1.projects | [dae068e30e7849f0a2053e7d6ab89a40] 获取项目列表成功: total=3
+2026-02-20 14:22:50 | INFO | [72a80f961c4d4540b2ebe5f39059f4c3] | app.api.v1.field_mappings_async | [72a80f961c4d4540b2ebe5f39059f4c3] 获取异步任务进度: task_id=6
+2026-02-20 14:22:51 | INFO | [9c42a22b99c84f21b83f0ceccf2ccc72] | app.api.v1.field_mappings_async | [9c42a22b99c84f21b83f0ceccf2ccc72] 获取异步任务进度: task_id=6
+2026-02-20 14:22:52 | INFO | [320a90c25c0b49a8a0d86f1a9e6f3717] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -14, 已检出: 1, 空闲: 19, 统计 - 创建: 12, 检出: 160, 检入: 158, 溢出: 0, 错误: 0, 最大并发: 5
+2026-02-20 14:22:52 | INFO | [320a90c25c0b49a8a0d86f1a9e6f3717] | app.api.v1.field_mappings_async | [320a90c25c0b49a8a0d86f1a9e6f3717] 获取字段映射建议结果: task_id=6, status=None, page=1, size=20
+2026-02-20 14:22:52 | INFO | [7142511f8fbd4b77915c286e613cfdac] | app.api.v1.field_mappings_async | [7142511f8fbd4b77915c286e613cfdac] 获取字段映射建议结果: task_id=6, status=None, page=1, size=20

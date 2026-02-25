@@ -240,41 +240,41 @@ export const FieldMappingStageProgress: React.FC<FieldMappingStageProgressProps>
   // 渲染阶段结果数据
   const renderStageData = (data: any, stageNum: number) => {
     if (!data) {
-      return <div className="text-center text-gray-400 py-4">暂无数据</div>;
+      return <div style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '16px 0' }}>暂无数据</div>;
     }
 
     return (
-      <div className="space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {Object.entries(data).map(([key, value]) => {
           // 处理嵌套对象
           if (typeof value === 'object' && value !== null) {
             return (
-              <div key={key} className="mb-2">
-                <div className="font-medium text-gray-700 mb-1">{key}:</div>
-                <div className="ml-4 text-sm text-gray-600">
+              <div key={key} style={{ marginBottom: 8 }}>
+                <div style={{ fontWeight: 500, color: 'var(--text-primary)', marginBottom: 4 }}>{key}:</div>
+                <div style={{ marginLeft: 16, fontSize: 14, color: 'var(--text-secondary)' }}>
                   {renderStageData(value, stageNum)}
                 </div>
               </div>
             );
           }
-          
+
           // 处理数组
           if (Array.isArray(value)) {
             return (
-              <div key={key} className="mb-2">
-                <div className="font-medium text-gray-700 mb-1">{key}:</div>
-                <div className="ml-4 text-sm text-gray-600">
+              <div key={key} style={{ marginBottom: 8 }}>
+                <div style={{ fontWeight: 500, color: 'var(--text-primary)', marginBottom: 4 }}>{key}:</div>
+                <div style={{ marginLeft: 16, fontSize: 14, color: 'var(--text-secondary)' }}>
                   {value.join(', ')}
                 </div>
               </div>
             );
           }
-          
+
           // 处理字符串
           return (
-            <div key={key} className="mb-2">
-              <span className="font-medium text-gray-700">{key}:</span>
-              <span className="ml-2 text-sm text-gray-600">{String(value)}</span>
+            <div key={key} style={{ marginBottom: 8 }}>
+              <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{key}:</span>
+              <span style={{ marginLeft: 8, fontSize: 14, color: 'var(--text-secondary)' }}>{String(value)}</span>
             </div>
           );
         })}
@@ -283,10 +283,10 @@ export const FieldMappingStageProgress: React.FC<FieldMappingStageProgressProps>
   };
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* 控制按钮区域 */}
-      <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-        <div className="text-sm text-gray-600">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--bg-tertiary)', padding: 12, borderRadius: 8 }}>
+        <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
           当前阶段: {progress?.current_stage || 0} / 5
         </div>
         <Space>
@@ -312,7 +312,7 @@ export const FieldMappingStageProgress: React.FC<FieldMappingStageProgressProps>
       </div>
 
       {/* 阶段进度列表 */}
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {stages.map((stage) => {
           const status = getStageStatus(stage.num);
           const stageProgress = getStageProgress(stage.num);
@@ -324,16 +324,21 @@ export const FieldMappingStageProgress: React.FC<FieldMappingStageProgressProps>
           return (
             <div
               key={stage.num}
-              className={`p-4 border rounded-lg transition-all ${
-                isCurrent ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-              }`}
+              style={{
+                padding: 16,
+                border: '1px solid',
+                borderRadius: 8,
+                transition: 'all 0.2s',
+                backgroundColor: isCurrent ? 'var(--bg-hover)' : 'var(--bg-tertiary)',
+                borderColor: isCurrent ? '#1890ff' : 'var(--border-color)'
+              }}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{stage.icon}</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 24 }}>{stage.icon}</span>
                   <div>
-                    <div className="font-medium">{stage.name}</div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                    <div style={{ fontWeight: 500 }}>{stage.name}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-tertiary)' }}>
                       <span>状态: </span>
                       <Tag color={getStatusColor(status)}>
                         {getStatusLabel(status)}
@@ -342,7 +347,7 @@ export const FieldMappingStageProgress: React.FC<FieldMappingStageProgressProps>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {/* 进度条 */}
                   <Progress
                     percent={stageProgress}
@@ -397,17 +402,17 @@ export const FieldMappingStageProgress: React.FC<FieldMappingStageProgressProps>
         }}
       >
         {loading ? (
-          <div className="text-center py-8">
+          <div style={{ textAlign: 'center', padding: '32px 0' }}>
             <Spin size="large" tip="加载中..." />
           </div>
         ) : (
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* 阶段基本信息 */}
             {stageResultModal.data && (
               <div>
-                <div className="mb-2">
-                  <span className="font-medium text-gray-700">状态:</span>
-                  <Tag 
+                <div style={{ marginBottom: 8 }}>
+                  <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>状态:</span>
+                  <Tag
                     color={getStatusColor(stageResultModal.data.status)}
                     style={{ marginLeft: 8 }}
                   >
@@ -416,16 +421,16 @@ export const FieldMappingStageProgress: React.FC<FieldMappingStageProgressProps>
                 </div>
                 {stageResultModal.data.completed_at && (
                   <div>
-                    <span className="font-medium text-gray-700">完成时间:</span>
-                    <span className="ml-2 text-sm text-gray-600">
+                    <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>完成时间:</span>
+                    <span style={{ marginLeft: 8, fontSize: 14, color: 'var(--text-secondary)' }}>
                       {stageResultModal.data.completed_at}
                     </span>
                   </div>
                 )}
                 {stageResultModal.data.progress !== undefined && (
                   <div>
-                    <span className="font-medium text-gray-700">进度:</span>
-                    <span className="ml-2 text-sm text-gray-600">
+                    <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>进度:</span>
+                    <span style={{ marginLeft: 8, fontSize: 14, color: 'var(--text-secondary)' }}>
                       {stageResultModal.data.progress}%
                     </span>
                   </div>
@@ -434,8 +439,8 @@ export const FieldMappingStageProgress: React.FC<FieldMappingStageProgressProps>
             )}
 
             {/* 阶段详细数据 */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="font-medium text-gray-700 mb-2">详细数据:</div>
+            <div style={{ backgroundColor: 'var(--bg-tertiary)', padding: 16, borderRadius: 8 }}>
+              <div style={{ fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8 }}>详细数据:</div>
               {renderStageData(stageResultModal.data?.data, stageResultModal.stageNum || 0)}
             </div>
           </div>

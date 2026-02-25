@@ -42,7 +42,7 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f0f2f5' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--bg-primary)' }}>
       <Card title="BugSeek" style={{ width: 400 }}>
         <Form name="login" onFinish={onFinish} autoComplete="off">
           <Form.Item

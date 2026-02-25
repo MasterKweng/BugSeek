@@ -70,6 +70,8 @@ class FieldMappingCandidate(BaseModel):
     db_column: str = Field(..., description="数据库字段名")
     score: float = Field(..., description="匹配分数", ge=0.0, le=1.0)
     reasons: List[str] = Field(..., description="匹配原因")
+    ai_selected: Optional[bool] = Field(None, description="是否由AI选择")
+    ai_reason: Optional[str] = Field(None, description="AI选择原因")
 
 
 class FieldMappingSuggestion(BaseModel):
@@ -79,10 +81,12 @@ class FieldMappingSuggestion(BaseModel):
     definition_path: str = Field(..., description="API 路径")
     api_field_path: str = Field(..., description="API 字段路径")
     candidates: List[FieldMappingCandidate] = Field(..., description="候选映射列表")
+    decision_trace: Optional[Dict[str, Any]] = Field(None, description="决策审计链路")
 
 
 class FieldMappingBatchApplyItem(BaseModel):
     """批量应用映射项"""
+    suggestion_id: int = Field(..., description="建议ID（必填，用于精确命中建议表）")
     definition_id: int = Field(..., description="API 定义ID")
     api_field_path: str = Field(..., description="API 字段路径")
     db_table: str = Field(..., description="数据库表名")
@@ -343,6 +347,66 @@ def _extract_api_fields(definition: ApiDefinition, include_paths: bool = True, i
     return result_fields
 
 
+def _extract_field_descriptions(definition: ApiDefinition) -> Dict[str, str]:
+    """
+    提取字段描述（独立方法，不修改 _extract_api_fields）
+    
+    Args:
+        definition: API 定义
+        
+    Returns:
+        字段描述字典: {field_path: description}
+        例如: {"body.order_id": "订单ID", "query.user_id": "用户ID"}
+    """
+    descriptions = {}
+    schema_snapshot = definition.schema_snapshot
+    
+    if not schema_snapshot:
+        return descriptions
+    
+    # 解析 schema_snapshot
+    if isinstance(schema_snapshot, str):
+        try:
+            schema_snapshot = json.loads(schema_snapshot)
+        except:
+            schema_snapshot = {}
+    
+    if isinstance(schema_snapshot, dict):
+        # 提取查询参数描述
+        parameters = schema_snapshot.get('parameters', [])
+        for param in parameters:
+            if param.get('in') == 'query':
+                field_path = f"query.{param.get('name')}"
+                descriptions[field_path] = param.get('description', '')
+        
+        # 提取请求体参数描述
+        request_schema = schema_snapshot.get('request_schema')
+        if not request_schema and hasattr(definition, 'request_schema'):
+            request_schema = definition.request_schema
+            if isinstance(request_schema, str):
+                try:
+                    request_schema = json.loads(request_schema)
+                except:
+                    request_schema = {}
+        
+        if request_schema and isinstance(request_schema, dict):
+            # 处理 YApi 结构
+            if 'type' in request_schema and 'schema' in request_schema:
+                actual_schema = request_schema.get('schema', {})
+                if isinstance(actual_schema, dict) and 'properties' in actual_schema:
+                    for prop_name, prop_def in actual_schema['properties'].items():
+                        field_path = f"body.{prop_name}"
+                        descriptions[field_path] = prop_def.get('description', '')
+            
+            # 处理标准 JSON Schema 结构
+            elif 'properties' in request_schema:
+                for prop_name, prop_def in request_schema['properties'].items():
+                    field_path = f"body.{prop_name}"
+                    descriptions[field_path] = prop_def.get('description', '')
+    
+    return descriptions
+
+
 @router.post("/field-mappings", response_model=ApiResponse)
 async def create_field_mapping(
     request: FieldMappingCreate,
@@ -501,17 +565,52 @@ async def batch_apply_field_mappings(
     try:
         created_count = 0
         updated_suggestion_ids = []
-        
+
+        # 预校验：所有 API 定义必须存在
+        definition_ids = {item.definition_id for item in request.items}
+        definitions = db.query(ApiDefinition).filter(
+            ApiDefinition.id.in_(definition_ids),
+            ApiDefinition.project_id == ctx["project_id"]
+        ).all()
+        definition_map = {d.id: d for d in definitions}
+        missing_definition_ids = sorted(definition_ids - set(definition_map.keys()))
+        if missing_definition_ids:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"API定义不存在或无权限: {missing_definition_ids}"
+            )
+
+        # 预校验：所有 suggestion_id 必须存在且为 pending
+        suggestion_ids = [item.suggestion_id for item in request.items]
+        suggestions = db.query(FieldMappingSuggestion).filter(
+            FieldMappingSuggestion.id.in_(suggestion_ids),
+            FieldMappingSuggestion.project_id == ctx["project_id"],
+            FieldMappingSuggestion.status == "pending"
+        ).all()
+        suggestion_map = {s.id: s for s in suggestions}
+        missing_suggestion_ids = sorted(set(suggestion_ids) - set(suggestion_map.keys()))
+        if missing_suggestion_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"建议记录不存在或非pending状态: {missing_suggestion_ids}"
+            )
+
         for item in request.items:
-            # 验证API定义存在性
-            definition = db.query(ApiDefinition).filter(
-                ApiDefinition.id == item.definition_id,
-                ApiDefinition.project_id == ctx["project_id"]
-            ).first()
-            
-            if not definition:
-                logger.warning(f"[{trace_id}] API定义不存在或无权限: {item.definition_id}")
-                continue
+            definition = definition_map[item.definition_id]
+            suggestion = suggestion_map[item.suggestion_id]
+
+            # 精确命中校验：请求坐标需与 suggestion 记录一致
+            if (
+                suggestion.definition_id != item.definition_id or
+                suggestion.api_field_path != item.api_field_path
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"suggestion_id={item.suggestion_id} 与请求坐标不一致: "
+                        f"expected(definition_id={suggestion.definition_id}, api_field_path={suggestion.api_field_path})"
+                    )
+                )
             
             # 检查是否已存在相同的映射
             existing = db.query(ApiFieldMapping).filter(
@@ -548,21 +647,11 @@ async def batch_apply_field_mappings(
                 )
                 db.add(mapping)
                 db.flush()  # 获取 mapping.id
-            
-            # 3. 更新建议表状态（新增逻辑）
-            # 查找对应的建议记录
-            suggestion = db.query(FieldMappingSuggestion).filter(
-                FieldMappingSuggestion.project_id == ctx["project_id"],
-                FieldMappingSuggestion.definition_id == item.definition_id,
-                FieldMappingSuggestion.api_field_path == item.api_field_path,
-                FieldMappingSuggestion.status == "pending"
-            ).first()
-            
-            if suggestion:
-                # 更新建议状态和关联映射
-                suggestion.status = "accepted"
-                suggestion.mapping_id = mapping.id
-                updated_suggestion_ids.append(suggestion.id)
+
+            # 更新建议状态和关联映射
+            suggestion.status = "accepted"
+            suggestion.mapping_id = mapping.id
+            updated_suggestion_ids.append(suggestion.id)
             
             created_count += 1
         
@@ -636,6 +725,74 @@ async def update_field_mapping_status(
         message="更新状态成功",
         data={"id": mapping_id, "status": status}
     )
+
+
+class FieldMappingSuggestionRejectRequest(BaseModel):
+    """批量拒绝建议请求"""
+    suggestion_ids: List[int] = Field(..., description="建议ID列表")
+
+
+@router.post("/field-mappings/suggestions/reject", response_model=ApiResponse)
+async def batch_reject_suggestions(
+    request: FieldMappingSuggestionRejectRequest,
+    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
+    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    批量拒绝字段映射建议
+    
+    将选中的建议记录状态从pending更新为ignored
+    """
+    trace_id = get_trace_id()
+    from app.db.base import FieldMappingSuggestion
+    
+    ctx = _get_project_and_version(db, current_user, project_id, version_id)
+
+    logger.info(
+        f"[{trace_id}] 批量拒绝字段映射建议: project_id={ctx['project_id']}, "
+        f"version_id={ctx['version_id']}, suggestion_ids={len(request.suggestion_ids)}"
+    )
+
+    try:
+        # 查询要拒绝的建议记录
+        suggestions = db.query(FieldMappingSuggestion).filter(
+            FieldMappingSuggestion.id.in_(request.suggestion_ids),
+            FieldMappingSuggestion.project_id == ctx["project_id"]
+        ).all()
+
+        if not suggestions:
+            return ApiResponse(
+                code=0,
+                message="没有找到要拒绝的建议记录",
+                data={"processed_count": 0}
+            )
+
+        # 批量更新状态为ignored
+        rejected_count = 0
+        for suggestion in suggestions:
+            if suggestion.status == "pending":
+                suggestion.status = "ignored"
+                suggestion.updated_at = datetime.now()
+                rejected_count += 1
+
+        db.commit()
+
+        logger.info(
+            f"[{trace_id}] 批量拒绝字段映射建议成功: rejected_count={rejected_count}"
+        )
+
+        return ApiResponse(
+            code=0,
+            message=f"成功拒绝了 {rejected_count} 个映射建议",
+            data={"processed_count": rejected_count}
+        )
+
+    except Exception as e:
+        db.rollback()
+        logger.error(f"[{trace_id}] 批量拒绝字段映射建议失败: {str(e)}", exc_info=True)
+        raise
 
 
 @router.get("/field-mappings/pending", response_model=ApiResponse)

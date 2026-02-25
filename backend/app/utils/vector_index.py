@@ -353,6 +353,38 @@ class VectorIndexManager:
             logger.error(f"[{self.trace_id}] 加载向量索引缓存失败: {str(e)}")
             return False
     
+    def _build_query_text(self, query: str, field_description: Optional[str] = None) -> str:
+        """
+        构建查询文本（包含字段描述）
+        
+        Args:
+            query: 字段名
+            field_description: 字段描述
+            
+        Returns:
+            查询文本
+        """
+        parts = [query]
+        
+        if field_description and field_description.strip():
+            parts.append(field_description)
+        
+        return " ".join(parts)
+    
+    def _extract_field_name_from_path(self, field_path: str) -> str:
+        """
+        从字段路径中提取字段名
+        
+        Args:
+            field_path: 字段路径（如 "body.order_id"）
+            
+        Returns:
+            字段名（如 "order_id"）
+        """
+        if '.' in field_path:
+            return field_path.split('.', 1)[1]
+        return field_path
+    
     def clear_cache(self):
         """清除缓存文件"""
         if self.cache_file.exists():
@@ -585,16 +617,18 @@ class VectorIndexManager:
         api_fields: List[str],
         top_k: int = 10,
         use_ai_fallback: bool = True,
-        ai_confidence_threshold: float = 0.7
+        ai_confidence_threshold: float = 0.7,
+        field_description_map: Optional[Dict[str, str]] = None  # 新增可选参数
     ) -> Dict[str, Any]:
         """
-        批量搜索字段映射，使用重心算法优化 + AI 兜底（异步版本）
+        批量搜索字段映射，使用重心算法优化 + AI 兜底（支持字段描述）
         
         Args:
             api_fields: API 字段名列表（原始路径，如 ["body.user_id", "query.id"]）
             top_k: 每个字段返回的候选数量
             use_ai_fallback: 是否启用 AI 兜底
             ai_confidence_threshold: AI 触发阈值
+            field_description_map: 字段描述映射（可选），格式: {field_path: description}
             
         Returns:
             包含重心表、重排序结果和 AI 兜底统计的字典
@@ -607,13 +641,17 @@ class VectorIndexManager:
                 "ai_fallback_count": 0
             }
         
-        # 提取字段名仅用于向量搜索
-        field_names = [field.split('.')[-1] for field in api_fields]
+        # 提取字段名，使用新的辅助方法
+        field_names = [self._extract_field_name_from_path(field) for field in api_fields]
         
-        # 步骤A: 全量初筛
+        # 步骤A: 全量初筛（使用字段描述）
         all_candidates = []
-        for field_name in field_names:
-            candidates = self.search(field_name, top_k=top_k)
+        for i, field_name in enumerate(field_names):
+            # 获取字段描述
+            field_description = field_description_map.get(api_fields[i], '') if field_description_map else None
+            # 使用包含描述的查询文本进行搜索
+            query_text = self._build_query_text(field_name, field_description)
+            candidates = self.search(query_text, top_k=top_k)
             all_candidates.append(candidates)
         
         # 步骤B: 计算重心表（带噪音过滤）

@@ -621,7 +621,7 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
             }
             extra={
               getParameters().filter((p: any) => p.in === 'path').length > 0 ? (
-                <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+                <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
                   <Text>参数说明：</Text>
                   {getParameters()
                     .filter((p: any) => p.in === 'path')
@@ -633,7 +633,7 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
                     ))}
                 </div>
               ) : (
-                <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-tertiary)' }}>
                   此接口没有路径参数
                 </div>
               )
@@ -660,7 +660,7 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
             }
             extra={
               getParameters().filter((p: any) => p.in === 'query').length > 0 ? (
-                <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+                <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
                   <Text>参数说明：</Text>
                   {getParameters()
                     .filter((p: any) => p.in === 'query')
@@ -672,7 +672,7 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
                     ))}
                 </div>
               ) : (
-                <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-tertiary)' }}>
                   此接口没有查询参数
                 </div>
               )
@@ -701,7 +701,7 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
               </Space>
             }
             extra={
-              <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+              <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-tertiary)' }}>
                 自动根据环境配置注入鉴权信息（环境 headers/variables 或项目鉴权配置）
               </div>
             }
@@ -727,7 +727,7 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
             }
             extra={
               getParameters().filter((p: any) => p.in === 'body').length > 0 ? (
-                <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
+                <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
                   <Text>参数说明：</Text>
                   {getParameters()
                     .filter((p: any) => p.in === 'body')
@@ -739,7 +739,7 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
                     ))}
                 </div>
               ) : (
-                <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+                <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-tertiary)' }}>
                   此接口没有请求体参数
                 </div>
               )
@@ -790,7 +790,7 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
             {/* 响应头 */}
             <div>
               <Text strong>响应头</Text>
-              <div style={{ marginTop: 8, background: '#f5f5f5', padding: 12, borderRadius: 4 }}>
+              <div style={{ marginTop: 8, background: 'var(--bg-tertiary)', padding: 12, borderRadius: 4 }}>
                 <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
                   {formatJson(debugResult.response_headers)}
                 </pre>
@@ -823,7 +823,7 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
                   自动生成断言
                 </Button>
               </Space>
-              <div style={{ marginTop: 8, background: '#f5f5f5', padding: 12, borderRadius: 4 }}>
+              <div style={{ marginTop: 8, background: 'var(--bg-tertiary)', padding: 12, borderRadius: 4 }}>
                 <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
                   {formatJson(debugResult.response_body)}
                 </pre>
@@ -841,7 +841,7 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
           </Space>
         </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
           请先发送请求查看响应结果
         </div>
       ),

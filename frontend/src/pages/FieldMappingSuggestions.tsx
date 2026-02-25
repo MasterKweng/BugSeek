@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Table, 
-  Button, 
-  Space, 
-  Tag, 
-  Modal, 
-  message, 
-  Spin, 
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  Card,
+  Table,
+  Button,
+  Space,
+  Tag,
+  Modal,
+  message,
+  Spin,
   Descriptions,
   Badge,
   Checkbox,
@@ -26,7 +26,8 @@ import {
   Divider,
   Slider,
   Select,
-  Tabs
+  Tabs,
+  Popconfirm
 } from 'antd';
 import { 
   CheckCircleOutlined, 
@@ -79,6 +80,91 @@ const FieldMappingSuggestions: React.FC = () => {
   
   // ==================== 新增：Tab 切换状态 ====================
   const [activeTab, setActiveTab] = useState<'suggestions' | 'mappings'>('suggestions');
+  
+  // ==================== 新增：映射管理状态 ====================
+  const [mappings, setMappings] = useState<fieldMappingService.FieldMappingWithDetails[]>([]);
+  const [mappingsLoading, setMappingsLoading] = useState(false);
+  const [mappingsPagination, setMappingsPagination] = useState({
+    current: 1,
+    pageSize: 20,
+    total: 0
+  });
+  const [mappingFilter, setMappingFilter] = useState<'all' | 'proposed' | 'confirmed' | 'rejected'>('all');
+
+  const filteredMappings = useMemo(() => {
+    if (mappingFilter === 'all') {
+      return mappings;
+    }
+    return mappings.filter(mapping => mapping.status === mappingFilter);
+  }, [mappings, mappingFilter]);
+  
+  // ==================== 新增：映射管理函数 ====================
+  const fetchMappings = useCallback(async () => {
+    if (!currentProject?.id || !currentVersion?.id) {
+      message.warning('请先选择项目和版本');
+      return;
+    }
+    
+    setMappingsLoading(true);
+    try {
+      const response = await fieldMappingService.getFieldMappings({
+        project_id: currentProject.id,
+        version_id: currentVersion.id
+      });
+      
+      if (response.code === 0 && response.data) {
+        setMappings(response.data.items || []);
+        setMappingsPagination({
+          current: 1,
+          pageSize: 20,
+          total: response.data.total || 0
+        });
+      }
+    } catch (error: any) {
+      console.error('获取映射失败:', error);
+      message.error(error.message || '获取映射失败');
+    } finally {
+      setMappingsLoading(false);
+    }
+  }, [currentProject?.id, currentVersion?.id]);
+  
+  const handleDeleteMapping = async (mappingId: number) => {
+    try {
+      const response = await fieldMappingService.deleteFieldMapping(mappingId, {
+        project_id: currentProject.id,
+        version_id: currentVersion.id
+      });
+      
+      if (response.code === 0) {
+        message.success('删除成功');
+        fetchMappings();
+      } else {
+        message.error(response.message || '删除失败');
+      }
+    } catch (error: any) {
+      console.error('删除映射失败:', error);
+      message.error(error.message || '删除失败');
+    }
+  };
+  
+  const handleUpdateMappingStatus = async (mappingId: number, status: string) => {
+    try {
+      const response = await fieldMappingService.updateFieldMappingStatus(mappingId, status, {
+        project_id: currentProject.id,
+        version_id: currentVersion.id
+      });
+      
+      if (response.code === 0) {
+        message.success('状态更新成功');
+        fetchMappings();
+      } else {
+        message.error(response.message || '状态更新失败');
+      }
+    } catch (error: any) {
+      console.error('状态更新失败:', error);
+      message.error(error.message || '状态更新失败');
+    }
+  };
   
   // ==================== 异步任务相关状态 ====================
   const [taskModalVisible, setTaskModalVisible] = useState(false);
@@ -149,6 +235,25 @@ const FieldMappingSuggestions: React.FC = () => {
       fetchSchemas();
     }
   }, [currentProject?.id, currentVersion?.id]);
+
+  // 初始化时自动加载最近完成的任务建议
+  useEffect(() => {
+    if (currentProject?.id && currentVersion?.id && !taskId && pageState === 'IDLE') {
+      fetchLatestCompletedTask();
+    }
+  }, [currentProject?.id, currentVersion?.id, taskId, pageState]);
+
+  useEffect(() => {
+    if (currentProject?.id && currentVersion?.id) {
+      fetchMappings();
+    }
+  }, [currentProject?.id, currentVersion?.id, fetchMappings]);
+
+  useEffect(() => {
+    if (activeTab === 'mappings' && currentProject?.id && currentVersion?.id) {
+      fetchMappings();
+    }
+  }, [activeTab, currentProject?.id, currentVersion?.id, fetchMappings]);
 
   // ==================== 页面可见性监听 ====================
   useEffect(() => {
@@ -286,6 +391,29 @@ const FieldMappingSuggestions: React.FC = () => {
       if (error.code === 'ECONNABORTED') {
         console.warn('加载任务详情超时，等待轮询重试');
       }
+    }
+  };
+
+  // 获取最近完成的任务
+  const fetchLatestCompletedTask = async () => {
+    try {
+      const response = await fieldMappingService.listAsyncTasks({
+        task_type: 'field_mapping_suggest',
+        status: 'completed',
+        page: 1,
+        page_size: 1
+      });
+
+      if (response.code === 0 && response.data?.items && response.data.items.length > 0) {
+        const latestTask = response.data.items[0];
+        setTaskId(latestTask.id);
+        setCurrentTask(latestTask);
+        setPageState('COMPLETED');
+        loadTaskResults(latestTask.id);
+      }
+    } catch (error: any) {
+      console.error('获取最近完成的任务失败:', error);
+      // 不显示错误提示，因为没有最近的任务是正常情况
     }
   };
 
@@ -788,9 +916,10 @@ const FieldMappingSuggestions: React.FC = () => {
     const batchItems: FieldMappingBatchApplyItem[] = [];
     
     selectedSuggestions.forEach(suggestion => {
-      const selectedCandidate = selectedCandidates[suggestion.definition_id];
-      if (selectedCandidate) {
+      const selectedCandidate = suggestion.candidates?.[0];
+      if (selectedCandidate && typeof suggestion.id === 'number') {
         batchItems.push({
+          suggestion_id: suggestion.id,
           definition_id: suggestion.definition_id,
           api_field_path: suggestion.api_field_path,
           db_table: selectedCandidate.db_table,
@@ -908,7 +1037,7 @@ const FieldMappingSuggestions: React.FC = () => {
           return (
             <div>
               <div><strong>{topCandidate.db_table}</strong>.{topCandidate.db_column}</div>
-              <div style={{ fontSize: '12px', color: '#999' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
                 置信度: {(topCandidate.score * 100).toFixed(1)}%
               </div>
               {/* 新增：AI 标识 */}
@@ -1060,7 +1189,22 @@ const FieldMappingSuggestions: React.FC = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      {/* 标题行：参考数据结构页面样式 */}
+      {/* 标题行 */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 500 }}>字段映射管理</h2>
+      </div>
+
+      {/* Tabs 组件 */}
+      <Tabs
+        activeKey={activeTab}
+        onChange={(key) => setActiveTab(key as 'suggestions' | 'mappings')}
+        items={[
+          {
+            key: 'suggestions',
+            label: '建议管理',
+            children: (
+              <>
+{/* 标题行：参考数据结构页面样式 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <h2 style={{ margin: 0, fontSize: 20, fontWeight: 500 }}>字段映射建议</h2>
         <Space>
@@ -1101,20 +1245,11 @@ const FieldMappingSuggestions: React.FC = () => {
         </Space>
       </div>
 
-      {/* Tabs 组件 */}
-      <Tabs
-        activeKey={activeTab}
-        onChange={(key) => setActiveTab(key as 'suggestions' | 'mappings')}
-        items={[
-          {
-            key: 'suggestions',
-            label: '建议管理',
-            children: (
-              <>
+      {/* ==================== 筛选器工具栏 ==================== */}
       {pageState === 'IDLE' && suggestions.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             <Space>
-              <span style={{ color: '#999' }}>🔍</span>
+              <span style={{ color: 'var(--text-tertiary)' }}>🔍</span>
               <Select
                 style={{ width: 120 }}
                 value={typeFilter}
@@ -1146,23 +1281,344 @@ const FieldMappingSuggestions: React.FC = () => {
             </Space>
           </div>
         )}
-              </>
-            )
-          },
-          {
-            key: 'mappings',
-            label: '映射管理',
-            children: (
-              <div>
-                {/* 映射管理Tab的内容 */}
-                <div style={{ padding: 40, textAlign: 'center', color: '#999' }}>
-                  <Empty description="映射管理功能开发中..." />
+
+        {/* ==================== 根据 pageState 渲染不同内容 ==================== */}
+        
+        {/* IDLE 态：显示空状态 */}
+        {pageState === 'IDLE' && (
+          <div style={{ marginBottom: 16 }}>
+            <Space>
+              <Checkbox 
+                checked={includePaths} 
+                onChange={e => setIncludePaths(e.target.checked)}
+              >
+                包含路径参数
+              </Checkbox>
+              <Checkbox 
+                checked={includeQuery} 
+                onChange={e => setIncludeQuery(e.target.checked)}
+              >
+                包含查询参数
+              </Checkbox>
+              <Checkbox 
+                checked={includeBody} 
+                onChange={e => setIncludeBody(e.target.checked)}
+              >
+                包含请求体参数
+              </Checkbox>
+            </Space>
+          </div>
+        )}
+
+        {/* ==================== 新增：统计信息卡片 ==================== */}
+        {mappingStatistics && suggestions.length > 0 && (
+          <Row gutter={16} style={{ marginBottom: 16 }}>
+            <Col span={6}>
+              <Card size="small" hoverable>
+                <Statistic
+                  title="总字段数"
+                  value={mappingStatistics.total_fields}
+                  prefix={<ClockCircleOutlined />}
+                />
+              </Card>
+            </Col>
+            
+            <Col span={6}>
+              <Card size="small" hoverable>
+                <Statistic
+                  title="高置信度"
+                  value={mappingStatistics.high_confidence_count}
+                  valueStyle={{ color: '#3f8600' }}
+                  prefix={<CheckCircleOutlined />}
+                  suffix={
+                    <Tag color="green" style={{ marginLeft: 8 }}>
+                      ≥85%
+                    </Tag>
+                  }
+                />
+              </Card>
+            </Col>
+            
+            <Col span={6}>
+              <Card size="small" hoverable>
+                <Statistic
+                  title="AI 兜底"
+                  value={mappingStatistics.ai_fallback_count}
+                  valueStyle={{ color: '#722ed1' }}
+                  prefix={<SyncOutlined />}
+                />
+                {mappingStatistics.gravity_table && (
+                  <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 8 }}>
+                    重心表: {mappingStatistics.gravity_table}
+                  </div>
+                )}
+              </Card>
+            </Col>
+            
+            <Col span={6}>
+              <Card size="small" hoverable>
+                <Statistic
+                  title="低置信度"
+                  value={mappingStatistics.low_confidence_count}
+                  valueStyle={{ color: '#ff4d4f' }}
+                  prefix={<WarningOutlined />}
+                  suffix={
+                    <Tag color="red" style={{ marginLeft: 8 }}>
+                      &lt;60%
+                    </Tag>
+                  }
+                />
+              </Card>
+            </Col>
+          </Row>
+        )}
+
+        {pageState === 'IDLE' && suggestions.length === 0 && !loading ? (
+          <Table
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={[]}
+            rowKey="definition_id"
+            loading={loading}
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 条`,
+              onChange: (page, pageSize) => {
+                loadTaskResults(taskId!, page, pageSize);
+              },
+              onShowSizeChange: (current, size) => {
+                loadTaskResults(taskId!, 1, size);
+              }
+            }}
+          />
+        ) : pageState === 'IDLE' && (
+          <Table
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={filteredSuggestions}
+            rowKey="definition_id"
+            loading={loading}
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 条`,
+              onChange: (page, pageSize) => {
+                loadTaskResults(taskId!, page, pageSize);
+              },
+              onShowSizeChange: (current, size) => {
+                loadTaskResults(taskId!, 1, size);
+              }
+            }}
+          />
+        )}
+
+        {/* RUNNING 态：显示进度面板 */}
+        {pageState === 'RUNNING' && (
+          <div>
+            {currentTask ? (
+              <>
+                {/* 顶部进度条 */}
+                <div style={{ marginBottom: 24 }}>
+                  <Progress 
+                    percent={currentTask.progress} 
+                    status={currentTask.status === 'failed' ? 'exception' : 'active'}
+                    format={(percent) => `${percent}% - ${currentTask.progress_message || '处理中...'}`}
+                  />
                 </div>
+
+                {/* 垂直步骤条 */}
+                <div style={{ marginBottom: 24 }}>
+                  <Steps 
+                    current={getCurrentStageIndex()} 
+                    direction="vertical"
+                    items={currentTask.stages?.map((stage) => ({
+                      title: stage.name,
+                      status: getStepStatus(stage.status),
+                      subTitle: (
+                        <div>
+                          {stage.description && <div style={{ marginBottom: 4 }}>{stage.description}</div>}
+                          {stage.status === 'running' && <Spin size="small" />}
+                          <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                            进度: {stage.progress}%
+                          </div>
+                        </div>
+                      )
+                    })) || []}
+                  />
+                </div>
+
+                {/* 统计信息卡片 */}
+                {currentTask.statistics && (
+                  <Row gutter={16} style={{ marginBottom: 24 }}>
+                    <Col span={6}>
+                      <Statistic title="总字段数" value={currentTask.statistics.total_fields || 0} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="已处理" value={currentTask.statistics.processed || 0} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="AI增强" value={currentTask.statistics.ai_enhanced || 0} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="自动确认" value={currentTask.statistics.auto_confirmed || 0} />
+                    </Col>
+                  </Row>
+                )}
+
+                {/* 操作按钮 */}
+                <Space>
+                  <Button danger onClick={handleCancelTask}>
+                    取消任务
+                  </Button>
+                  <Button onClick={handleRefreshTask}>
+                    刷新状态
+                  </Button>
+                </Space>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                <Spin size="large" />
+                <div style={{ marginTop: 16, color: 'var(--text-tertiary)' }}>正在加载任务信息...</div>
               </div>
-            )
-          }
-        ]}
-      />
+            )}
+          </div>
+        )}
+
+        {/* COMPLETED 态：显示任务摘要和结果表格 */}
+        {pageState === 'COMPLETED' && currentTask && (
+          <div>
+            {/* 进度条：显示 100% 完成 */}
+            <div style={{ marginBottom: 24 }}>
+              <Progress 
+                percent={100} 
+                status="success"
+                format={() => `100% - ${currentTask.progress_message || '任务已完成'}`}
+              />
+            </div>
+
+            {/* 垂直步骤条：所有阶段显示为已完成 */}
+            <div style={{ marginBottom: 24 }}>
+              <Steps 
+                current={(currentTask.stages?.length || 0)}
+                direction="vertical"
+                items={currentTask.stages?.map((stage) => ({
+                  title: stage.name,
+                  status: 'finish',
+                  description: (
+                    <div>
+                      {stage.description && <div style={{ marginBottom: 4 }}>{stage.description}</div>}
+                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                        进度: 100%
+                      </div>
+                    </div>
+                  )
+                })) || []}
+              />
+            </div>
+
+            {/* 统计信息卡片 */}
+            {currentTask.statistics && (
+              <Row gutter={16} style={{ marginBottom: 24 }}>
+                <Col span={6}>
+                  <Statistic title="总字段数" value={currentTask.statistics.total_fields || 0} />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="已处理" value={currentTask.statistics.processed || 0} />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="AI增强" value={currentTask.statistics.ai_enhanced || 0} />
+                </Col>
+                <Col span={6}>
+                  <Statistic title="自动确认" value={currentTask.statistics.auto_confirmed || 0} />
+                </Col>
+              </Row>
+            )}
+
+            {/* 任务摘要 */}
+            <Alert
+              message="任务完成"
+              description={
+                <div>
+                  <div>耗时: {Math.ceil((currentTask.finished_at ? new Date(currentTask.finished_at).getTime() - new Date(currentTask.started_at || '').getTime() : 0) / 1000)} 秒</div>
+                  <div>生成建议: {suggestions.length} 个</div>
+                </div>
+              }
+              type="success"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+
+            {/* 结果表格 */}
+            <Table
+              rowSelection={rowSelection}
+              columns={columns}
+              dataSource={suggestions}
+              rowKey="definition_id"
+              loading={loading}
+              pagination={{
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total) => `共 ${total} 条`,
+              }}
+            />
+          </div>
+        )}
+
+        {/* FAILED 态：显示错误信息 */}
+        {pageState === 'FAILED' && currentTask && (
+          <Result
+            status="error"
+            title="任务执行失败"
+            subTitle={currentTask.error_message || '未知错误'}
+            extra={[
+              <Button key="retry" type="primary" onClick={() => {
+                // TODO: 实现重试逻辑
+                message.info('重试功能待实现')
+              }}>
+                重试失败阶段
+              </Button>,
+              <Button key="new" onClick={() => {
+                setPageState('IDLE');
+                setTaskId(null);
+                setCurrentTask(null);
+              }}>
+                重新创建任务
+              </Button>
+            ]}
+          />
+        )}
+
+        {/* 兼容：如果 pageState 为空但 suggestions 有数据，显示表格 */}
+        {!pageState && suggestions.length > 0 && (
+          <Table
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={suggestions}
+            rowKey="definition_id"
+            loading={loading}
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total) => `共 ${total} 条`,
+              onChange: (page, pageSize) => {
+                loadTaskResults(taskId!, page, pageSize);
+              },
+              onShowSizeChange: (current, size) => {
+                loadTaskResults(taskId!, 1, size);
+              }
+            }}
+          />
+        )}
 
       {/* 任务创建模态框 */}
       <Modal
@@ -1201,7 +1657,7 @@ const FieldMappingSuggestions: React.FC = () => {
                 checkedChildren="启用"
                 unCheckedChildren="禁用"
               />
-              <div style={{ fontSize: 12, color: '#999' }}>
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                 对低置信度字段使用 AI 辅助决策
               </div>
             </Space>
@@ -1221,7 +1677,7 @@ const FieldMappingSuggestions: React.FC = () => {
               }}
               disabled={!useAiFallback}
             />
-            <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>
               置信度低于此值时触发 AI（推荐 0.7）
             </div>
           </Form.Item>
@@ -1255,7 +1711,7 @@ const FieldMappingSuggestions: React.FC = () => {
             <div>
               <div style={{ marginBottom: 8 }}>
                 <strong>总体进度</strong>
-                <span style={{ marginLeft: 16, color: '#999' }}>
+                <span style={{ marginLeft: 16, color: 'var(--text-tertiary)' }}>
                   {currentTask.progress}%
                 </span>
               </div>
@@ -1264,7 +1720,7 @@ const FieldMappingSuggestions: React.FC = () => {
                 status={currentTask.status === 'failed' ? 'exception' : currentTask.status === 'completed' ? 'success' : 'active'}
               />
               {currentTask.progress_message && (
-                <div style={{ marginTop: 8, color: '#999' }}>{currentTask.progress_message}</div>
+                <div style={{ marginTop: 8, color: 'var(--text-tertiary)' }}>{currentTask.progress_message}</div>
               )}
             </div>
 
@@ -1447,7 +1903,7 @@ const FieldMappingSuggestions: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', padding: '24px', color: '#999' }}>
+                <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-tertiary)' }}>
                   没有找到合适的候选映射
                 </div>
               )}
@@ -1526,26 +1982,26 @@ const FieldMappingSuggestions: React.FC = () => {
                              item.status === 'cancelled' ? '已取消' : '等待中'}
                           </Tag>
                         </div>
-                        <div style={{ fontSize: 12, color: '#666' }}>
+                        <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
                           创建时间: {new Date(item.created_at).toLocaleString('zh-CN')}
                         </div>
                         {item.finished_at && (
-                          <div style={{ fontSize: 12, color: '#666' }}>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
                             完成时间: {new Date(item.finished_at).toLocaleString('zh-CN')}
                           </div>
                         )}
                         {item.duration && (
-                          <div style={{ fontSize: 12, color: '#666' }}>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
                             耗时: {Math.floor(item.duration / 60)} 分 {item.duration % 60} 秒
                           </div>
                         )}
                         {item.result_count !== null && (
-                          <div style={{ fontSize: 12, color: '#666' }}>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
                             生成建议: {item.result_count} 个
                           </div>
                         )}
                         {item.statistics && (
-                          <div style={{ fontSize: 12, color: '#666' }}>
+                          <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
                             自动确认: {item.statistics.auto_confirmed || 0}，AI增强: {item.statistics.ai_enhanced || 0}
                           </div>
                         )}
@@ -1561,10 +2017,10 @@ const FieldMappingSuggestions: React.FC = () => {
 
                 {/* 展开的任务详情 */}
                 {expandedTaskId === item.id && expandedTaskDetail && (
-                  <div style={{ 
-                    padding: '16px 16px 16px 48px', 
-                    backgroundColor: '#f5f5f5',
-                    borderTop: '1px solid #f0f0f0'
+                  <div style={{
+                    padding: '16px 16px 16px 48px',
+                    backgroundColor: 'var(--bg-tertiary)',
+                    borderTop: '1px solid var(--border-color)'
                   }}>
                     {/* 任务状态 */}
                     <div style={{ marginBottom: 16 }}>
@@ -1657,7 +2113,7 @@ const FieldMappingSuggestions: React.FC = () => {
                             description: (
                               <div>
                                 {stage.description && <div style={{ marginBottom: 4 }}>{stage.description}</div>}
-                                <div style={{ fontSize: 12, color: '#999' }}>
+                                <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                                   进度: {stage.progress}%
                                 </div>
                               </div>
@@ -1705,7 +2161,7 @@ const FieldMappingSuggestions: React.FC = () => {
                                   return (
                                     <div style={{ fontSize: 12 }}>
                                       <strong>{topCandidate.db_table}</strong>.{topCandidate.db_column}
-                                      <div style={{ fontSize: 11, color: '#999' }}>
+                                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
                                         置信度: {(topCandidate.score * 100).toFixed(1)}%
                                       </div>
                                     </div>
@@ -1748,6 +2204,163 @@ const FieldMappingSuggestions: React.FC = () => {
           />
         </Spin>
       </Drawer>
+              </>
+            )
+          },
+          {
+            key: 'mappings',
+            label: '映射管理',
+            children: (
+              <div>
+                {/* 工具栏 */}
+                <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Space>
+                    <Select
+                      value={mappingFilter}
+                      onChange={(value: any) => setMappingFilter(value)}
+                      style={{ width: 120 }}
+                      size="small"
+                    >
+                      <Select.Option value="all">全部状态</Select.Option>
+                      <Select.Option value="confirmed">已确认</Select.Option>
+                      <Select.Option value="rejected">已拒绝</Select.Option>
+                      <Select.Option value="proposed">待审核</Select.Option>
+                    </Select>
+                    <Button 
+                      icon={<SyncOutlined />} 
+                      onClick={fetchMappings}
+                      size="small"
+                    >
+                      刷新
+                    </Button>
+                  </Space>
+                  <Space>
+                    <Tag color="blue">
+                      {filteredMappings.length} 条映射
+                      {mappingFilter !== 'all' && `（共 ${mappings.length} 条）`}
+                    </Tag>
+                  </Space>
+                </div>
+
+                {/* 映射列表表格 */}
+                <Table
+                  dataSource={filteredMappings}
+                  rowKey="id"
+                  loading={mappingsLoading}
+                  pagination={{
+                    current: mappingsPagination.current,
+                    pageSize: mappingsPagination.pageSize,
+                    total: filteredMappings.length,
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total) => `共 ${total} 条`,
+                    onChange: (page, pageSize) => {
+                      setMappingsPagination({
+                        ...mappingsPagination,
+                        current: page,
+                        pageSize: pageSize || 20
+                      });
+                    },
+                    onShowSizeChange: (current, size) => {
+                      setMappingsPagination({
+                        current: 1,
+                        pageSize: size,
+                        total: mappingsPagination.total
+                      });
+                    }
+                  }}
+                  columns={[
+                    {
+                      title: 'API',
+                      key: 'api',
+                      render: (_: any, record: fieldMappingService.FieldMappingWithDetails) => (
+                        <div>
+                          <Tag color={getMethodColor(record.definition_method)}>
+                            {record.definition_method}
+                          </Tag>
+                          <span>{record.definition_path}</span>
+                        </div>
+                      )
+                    },
+                    {
+                      title: 'API 字段',
+                      dataIndex: 'api_field_path',
+                      key: 'api_field_path'
+                    },
+                    {
+                      title: '映射表/字段',
+                      key: 'mapping',
+                      render: (_: any, record: fieldMappingService.FieldMappingWithDetails) => (
+                        <div>
+                          <strong>{record.db_table}</strong>.{record.db_column}
+                        </div>
+                      )
+                    },
+                    {
+                      title: '置信度',
+                      dataIndex: 'confidence',
+                      key: 'confidence',
+                      width: 100,
+                      render: (score: number) => {
+                        if (!score) return <span>-</span>;
+                        const percentage = (score * 100).toFixed(1);
+                        let color = 'default';
+                        if (score >= 0.85) color = 'success';
+                        else if (score >= 0.7) color = 'processing';
+                        else if (score >= 0.5) color = 'warning';
+                        else color = 'error';
+                        return (
+                          <Progress 
+                            percent={parseFloat(percentage)} 
+                            size="small" 
+                            strokeColor={color}
+                            format={() => `${percentage}%`}
+                          />
+                        );
+                      }
+                    },
+                    {
+                      title: '来源',
+                      dataIndex: 'source',
+                      key: 'source',
+                      width: 100,
+                      render: (source: string) => {
+                        if (source === 'ai') {
+                          return <Tag color="green">自动 AI</Tag>;
+                        }
+                        return <Tag color="blue">手动</Tag>;
+                      }
+                    },
+                    {
+                      title: '操作',
+                      key: 'action',
+                      width: 120,
+                      render: (_: any, record: fieldMappingService.FieldMappingWithDetails) => (
+                        <Space size="small">
+                          <Popconfirm
+                            title="确认删除？"
+                            onConfirm={() => handleDeleteMapping(record.id)}
+                            okText="确定"
+                            cancelText="取消"
+                          >
+                            <Button 
+                              type="link" 
+                              size="small" 
+                              danger
+                            >
+                              删除
+                            </Button>
+                          </Popconfirm>
+                        </Space>
+                      )
+                    }
+                  ]}
+                />
+              </div>
+            )
+          }
+        ]}
+      />
     </div>
   );
 };

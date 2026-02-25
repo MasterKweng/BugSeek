@@ -317,7 +317,7 @@ const Versions: React.FC = () => {
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
             <ProjectOutlined style={{ fontSize: '64px', color: '#d9d9d9', marginBottom: '24px' }} />
             <h2 style={{ marginBottom: '12px' }}>项目不存在</h2>
-            <p style={{ color: '#999', marginBottom: '24px' }}>
+            <p style={{ color: 'var(--text-tertiary)', marginBottom: '24px' }}>
               您访问的项目 ID 无效或已被删除
             </p>
             <Space>

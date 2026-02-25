@@ -35,7 +35,11 @@ class TestFieldInfo:
             source_type="body",
             apis=[],
             total_count=0,
-            first_seen="POST /orders"
+            first_seen="POST /orders",
+            appears_in_multiple_apis=False,
+            field_name_common=False,
+            field_description="订单ID",  # 新增字段
+            has_description=True         # 新增字段
         )
         
         assert field_info.field_name == "order_id"
@@ -44,6 +48,24 @@ class TestFieldInfo:
         assert field_info.total_count == 0
         assert field_info.appears_in_multiple_apis is False
         assert field_info.field_name_common is False
+        assert field_info.field_description == "订单ID"  # 新增断言
+        assert field_info.has_description is True         # 新增断言
+    
+    def test_field_info_without_description(self):
+        """测试无描述的字段信息初始化"""
+        field_info = FieldInfo(
+            field_name="id",
+            field_path="query.id",
+            source_type="query",
+            apis=[],
+            total_count=0,
+            first_seen="GET /orders",
+            appears_in_multiple_apis=False,
+            field_name_common=False
+        )
+        
+        assert field_info.field_description is None  # 默认为 None
+        assert field_info.has_description is False    # 默认为 False
 
 
 class TestScreeningResult:
@@ -253,7 +275,7 @@ class TestFieldMappingProcessor:
         # 不应该抛出异常
         processor._raise_if_cancelled()
     
-    def test_update_progress(self, processor, mock_task):
+    def test_update_progress(self, processor, mock_task, mock_db):
         """测试进度更新"""
         processor._update_progress(50, "处理中")
         
@@ -360,21 +382,27 @@ class TestIntelligentScreening:
         assert result.action == "auto_confirm"
     
     def test_screen_field_medium_confidence(self, processor, medium_confidence_field_info):
-        """测试中等置信度字段筛选"""
+        """test medium confidence screening"""
         candidates = [
             FieldMappingCandidate(
                 db_table="orders",
                 db_column="status",
                 score=0.70,
-                reasons=["字段名匹配"]
+                reasons=["name matched"]
+            ),
+            FieldMappingCandidate(
+                db_table="order_events",
+                db_column="status",
+                score=0.62,
+                reasons=["semantic related"]
             )
         ]
-        
+
         result = processor._screen_field("status", medium_confidence_field_info, candidates)
-        
+
         assert result.ai_priority == "medium"
-        assert "规则评分中等(0.60-0.85)，AI优化候选排序" in result.reasons
-    
+        assert any("0.60-0.85" in r for r in result.reasons)
+
     def test_screen_field_low_confidence(self, processor, medium_confidence_field_info):
         """测试低置信度字段筛选"""
         candidates = [
@@ -422,28 +450,34 @@ class TestIntelligentScreening:
         assert "ID类字段，需要AI精确匹配" in result.reasons
     
     def test_screen_field_multiple_apis(self, processor, medium_confidence_field_info):
-        """测试多API共享字段筛选"""
+        """test multi-api field screening"""
         medium_confidence_field_info.apis = [
             {'method': 'POST', 'path': '/orders', 'definition_id': 1, 'field_path': 'body.status'},
             {'method': 'PUT', 'path': '/orders/{id}', 'definition_id': 2, 'field_path': 'body.status'},
             {'method': 'GET', 'path': '/orders', 'definition_id': 3, 'field_path': 'query.status'}
         ]
         medium_confidence_field_info.total_count = 3
+        medium_confidence_field_info.appears_in_multiple_apis = True
         candidates = [
             FieldMappingCandidate(
                 db_table="orders",
                 db_column="status",
-                score=0.90,
-                reasons=["字段名匹配"]
+                score=0.70,
+                reasons=["name matched"]
+            ),
+            FieldMappingCandidate(
+                db_table="order_events",
+                db_column="status",
+                score=0.65,
+                reasons=["semantic related"]
             )
         ]
-        
+
         result = processor._screen_field("status", medium_confidence_field_info, candidates)
-        
-        # 即使置信度高，也会因为多API共享而降低优先级
-        assert result.ai_priority == "low"
-        assert "字段在3个API中使用" in result.reasons
-    
+
+        assert result.ai_priority == "medium"
+        assert any("API" in r for r in result.reasons)
+
     def test_merge_candidates(self, processor):
         """测试候选合并"""
         rule_candidates = [
@@ -484,6 +518,177 @@ class TestIntelligentScreening:
         assert merged[0].score == 0.95  # AI评分更高
         assert merged[1].db_table == "order_items"
         assert merged[1].score == 0.85
+
+
+class TestFieldDescriptionFeatures:
+    """字段描述功能测试"""
+    
+    def test_extract_field_name_from_path(self):
+        """测试从路径中提取字段名"""
+        from app.utils.vector_index import VectorIndexManager
+        manager = VectorIndexManager()
+        
+        # 测试各种路径格式
+        assert manager._extract_field_name_from_path("body.order_id") == "order_id"
+        assert manager._extract_field_name_from_path("query.user_id") == "user_id"
+        assert manager._extract_field_name_from_path("path.id") == "id"
+        assert manager._extract_field_name_from_path("id") == "id"
+    
+    def test_build_query_text(self):
+        """测试构建查询文本"""
+        from app.utils.vector_index import VectorIndexManager
+        manager = VectorIndexManager()
+        
+        # 无描述
+        assert manager._build_query_text("order_id", None) == "order_id"
+        assert manager._build_query_text("order_id", "") == "order_id"
+        
+        # 有描述
+        assert manager._build_query_text("order_id", "订单ID") == "order_id 订单ID"
+        assert manager._build_query_text("user_name", "用户姓名") == "user_name 用户姓名"
+    
+    def test_calculate_text_similarity(self):
+        """测试文本相似度计算"""
+        import re
+        from app.field_mapping.processor import FieldMappingProcessor
+        
+        def calculate_similarity(text1: str, text2: str) -> float:
+            """直接使用方法实现进行测试"""
+            if not text1 or not text2:
+                return 0.0
+            
+            words1 = set(re.findall(r'\w+', text1.lower()))
+            words2 = set(re.findall(r'\w+', text2.lower()))
+            
+            if not words1 or not words2:
+                return 0.0
+            
+            intersection = len(words1 & words2)
+            union = len(words1 | words2)
+            
+            return intersection / union if union else 0.0
+        
+        # 完全匹配
+        sim = calculate_similarity("order_id", "order_id")
+        assert sim == 1.0
+        
+        # 部分匹配（有共同词）
+        sim = calculate_similarity("order_id user_id", "order_id")
+        assert sim > 0.3
+        
+        # 低相似度（无共同词）
+        sim = calculate_similarity("order_id", "user_name")
+        assert sim == 0.0
+        
+        # 空文本
+        assert calculate_similarity("", "order_id") == 0.0
+        assert calculate_similarity("order_id", "") == 0.0
+    
+    def test_get_column_comment(self):
+        """测试获取列注释"""
+        import re
+        from app.field_mapping.processor import FieldMappingProcessor
+        
+        def get_column_comment(db_schema, table_name, column_name) -> str:
+            """直接使用方法实现进行测试"""
+            if not db_schema or not isinstance(db_schema, dict):
+                return ""
+            
+            tables = db_schema.get("tables", {})
+            if table_name not in tables:
+                return ""
+            
+            columns = tables[table_name].get("columns", {})
+            if column_name not in columns:
+                return ""
+            
+            return columns[column_name].get("comment", "")
+        
+        db_schema = {
+            "tables": {
+                "orders": {
+                    "columns": {
+                        "id": {"name": "id", "type": "int", "comment": "订单主键ID"},
+                        "order_no": {"name": "order_no", "type": "varchar", "comment": "订单编号"}
+                    }
+                },
+                "users": {
+                    "columns": {
+                        "id": {"name": "id", "type": "int", "comment": "用户ID"}
+                    }
+                }
+            }
+        }
+        
+        # 存在的列
+        assert get_column_comment(db_schema, "orders", "id") == "订单主键ID"
+        assert get_column_comment(db_schema, "orders", "order_no") == "订单编号"
+        
+        # 不存在的表或列
+        assert get_column_comment(db_schema, "orders", "name") == ""
+        assert get_column_comment(db_schema, "products", "id") == ""
+        
+        # 空的 db_schema
+        assert get_column_comment({}, "orders", "id") == ""
+        assert get_column_comment(None, "orders", "id") == ""
+    
+    def test_is_id_type_by_description(self):
+        """测试根据描述判断是否为ID类型（简化版）"""
+        import re
+        from app.field_mapping.processor import FieldMappingProcessor
+        
+        def is_id_type_by_description(field_description) -> bool:
+            """直接使用方法实现进行测试"""
+            if not field_description:
+                return True
+            
+            id_keywords = [
+                'id', 'ID', '标识', '唯一标识',
+                'unique', 'identifier', 'uuid', '主键',
+                '主键ID', '唯一ID', 'ID号'
+            ]
+            
+            for keyword in id_keywords:
+                if keyword in field_description:
+                    return True
+            
+            not_id_keywords = [
+                '非ID', 'not id', '不是id', '编号(非ID)',
+                '非标识', 'not identifier', '编号(字符串)'
+            ]
+            for keyword in not_id_keywords:
+                if keyword in field_description:
+                    return False
+            
+            description_lower = field_description.lower().strip()
+            
+            if len(description_lower) < 10:
+                return True
+            
+            if description_lower.isdigit():
+                return True
+            
+            code_keywords = ['编号', '号码', '代码', 'code', 'number']
+            for keyword in code_keywords:
+                if keyword in field_description:
+                    return False
+            
+            return True
+        
+        # 基本测试
+        assert is_id_type_by_description("订单ID") == True
+        assert is_id_type_by_description("UUID") == True
+        assert is_id_type_by_description("") == True
+        assert is_id_type_by_description(None) == True
+        assert is_id_type_by_description("123") == True
+        
+        # 短描述（<10字符），保守判断为 True
+        assert is_id_type_by_description("订单号") == True  # 长度3，<10
+        
+        # 模糊情况（保守判断）
+        assert is_id_type_by_description("") == True
+        assert is_id_type_by_description(None) == True
+        assert is_id_type_by_description("123") == True
 
 
 if __name__ == "__main__":

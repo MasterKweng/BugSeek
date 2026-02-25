@@ -105,7 +105,7 @@ const ProjectSelector: React.FC = () => {
         {
           key: 'empty',
           label: (
-            <div style={{ padding: '8px 0', color: '#999', textAlign: 'center' }}>
+            <div style={{ padding: '8px 0', color: 'var(--text-tertiary)', textAlign: 'center' }}>
               暂无项目
             </div>
           ),

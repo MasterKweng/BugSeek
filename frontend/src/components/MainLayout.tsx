@@ -189,11 +189,11 @@ const MainLayout: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header style={{
-        background: '#fff',
+        background: 'var(--bg-secondary)',
         padding: '0 24px',
         display: 'flex',
         alignItems: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.45)',
         height: 64,
       }}>
         {/* Logo */}
@@ -210,12 +210,12 @@ const MainLayout: React.FC = () => {
 
         {/* 顶部导航菜单 */}
         <Menu
-          theme="light"
+          theme="dark"
           mode="horizontal"
           selectedKeys={getSelectedKeys()}
           items={menuItems}
           onClick={handleMenuClick}
-          style={{ flex: 1, lineHeight: '64px', border: 'none' }}
+          style={{ flex: 1, lineHeight: '64px', border: 'none', background: 'transparent' }}
         />
 
         {/* 右侧工具栏 */}
@@ -251,7 +251,7 @@ const MainLayout: React.FC = () => {
         </Space>
       </Header>
       <Content style={{ margin: '24px', overflow: 'auto' }}>
-        <div style={{ padding: 24, minHeight: 'calc(100vh - 112px)', background: '#fff', borderRadius: 8 }}>
+        <div style={{ padding: 24, minHeight: 'calc(100vh - 112px)', background: 'var(--bg-secondary)', borderRadius: 8 }}>
           <Outlet />
         </div>
       </Content>

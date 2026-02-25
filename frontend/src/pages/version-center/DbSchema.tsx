@@ -426,7 +426,7 @@ const DbSchema: React.FC = () => {
                       <Button icon={<UploadOutlined />}>选择JSON文件</Button>
                     </Upload>
                     {fileName ? (
-                      <div style={{ marginTop: 8, color: '#999' }}>已选择：{fileName}</div>
+                      <div style={{ marginTop: 8, color: 'var(--text-tertiary)' }}>已选择：{fileName}</div>
                     ) : null}
                   </Form.Item>
                 </Form>
@@ -460,7 +460,7 @@ const DbSchema: React.FC = () => {
                       <Button icon={<UploadOutlined />}>选择SQL文件</Button>
                     </Upload>
                     {sqlFileName ? (
-                      <div style={{ marginTop: 8, color: '#999' }}>已选择：{sqlFileName}</div>
+                      <div style={{ marginTop: 8, color: 'var(--text-tertiary)' }}>已选择：{sqlFileName}</div>
                     ) : null}
                   </Form.Item>
                   
@@ -479,7 +479,7 @@ const DbSchema: React.FC = () => {
                             {sqlPreview.tables.map((table: any, idx: number) => (
                               <div key={idx} style={{ marginBottom: 4, fontSize: 12 }}>
                                 <strong>{table.name}</strong>
-                                <span style={{ color: '#999', marginLeft: 8 }}>
+                                <span style={{ color: 'var(--text-tertiary)', marginLeft: 8 }}>
                                   ({table.columns?.length || 0} 个字段)
                                 </span>
                               </div>
@@ -500,7 +500,7 @@ const DbSchema: React.FC = () => {
                           {warningsExpanded && (
                             <div style={{ marginTop: 8, border: '1px solid #d9d9d9', borderRadius: 4, padding: 8, backgroundColor: '#fafafa' }}>
                               {sqlPreview.warnings.map((warning: string, idx: number) => (
-                                <div key={idx} style={{ fontSize: 12, color: '#999', marginBottom: 2 }}>
+                                <div key={idx} style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 2 }}>
                                   - {warning}
                                 </div>
                               ))}

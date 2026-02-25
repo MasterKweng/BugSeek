@@ -663,7 +663,7 @@ const Projects: React.FC = () => {
                     )}
                   </Space>
                 ) : (
-                  <span style={{ color: '#999' }}>暂无环境</span>
+                  <span style={{ color: 'var(--text-tertiary)' }}>暂无环境</span>
                 )}
               </Descriptions.Item>
             </Descriptions>

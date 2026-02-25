@@ -526,6 +526,7 @@ class FieldMappingSuggestion(Base, TimestampMixin):
     # PostgreSQL JSONB 类型，支持索引和查询
     # 注意：SQLAlchemy 的 JSON 类型在 PostgreSQL 上会自动映射为 JSONB
     candidates = Column(JSON, nullable=False)
+    decision_trace = Column(JSON, nullable=True)
     
     # 状态管理（关键！）
     status = Column(String(50), nullable=False, default="pending", index=True)
@@ -570,7 +571,7 @@ class AsyncTask(Base, TimestampMixin):
     status = Column(String(20), default="pending")  # pending/running/completed/failed/cancelled
     progress = Column(Integer, default=0)  # 0-100
     progress_message = Column(String(500), nullable=True)  # 进度消息
-    current_stage = Column(String(50), nullable=True)  # 当前处理阶段
+    current_stage = Column(Integer, default=0)  # 当前处理阶段（整数类型）
     stage_results = Column(JSON, nullable=True, default=lambda: {})  # 阶段结果存储 {"stage1": {...}, "stage2": {...}}
     stages = Column(JSON, nullable=True)  # 阶段列表 [{"name": "字段提取", "status": "completed", "progress": 100}]
     statistics = Column(JSON, nullable=True)  # 统计信息 {"total_fields": 1000, "auto_confirmed": 400}

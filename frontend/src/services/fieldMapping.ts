@@ -52,20 +52,24 @@ export interface FieldMappingCandidate {
 }
 
 export interface FieldMappingSuggestion {
+  id?: number
   definition_id: number
   definition_method: string
   definition_path: string
   api_field_path: string
   candidates: FieldMappingCandidate[]
+  decision_trace?: Record<string, any>
   source?: MappingSourceType  // 映射来源类型
   status?: MappingStatus  // 映射状态
 }
 
 export interface FieldMappingSuggestionResponse {
   items: FieldMappingSuggestion[]
+  total?: number
 }
 
 export interface FieldMappingBatchApplyItem {
+  suggestion_id: number
   definition_id: number
   api_field_path: string
   db_table: string
@@ -242,7 +246,7 @@ export interface AsyncTask {
   user_id?: number
   task_type: string
   task_params?: Record<string, any>
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
+  status: 'pending' | 'running' | 'completed' | 'partial_success' | 'failed' | 'cancelled'
   progress: number
   progress_message?: string
   current_stage?: string
@@ -379,7 +383,7 @@ export type PageState = 'IDLE' | 'RUNNING' | 'COMPLETED' | 'FAILED'
 export interface AsyncTaskSummary {
   id: number
   task_type: string
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
+  status: 'pending' | 'running' | 'completed' | 'partial_success' | 'failed' | 'cancelled'
   progress: number
   created_at: string
   finished_at: string | null
@@ -690,4 +694,26 @@ export interface MappingStatistics {
   medium_confidence_count: number  // 中等置信度（0.6-0.85）
   low_confidence_count: number  // 低置信度（<0.6）
   auto_confirmed_count?: number  // 自动确认数
+}
+
+// ==================== 批量拒绝建议相关类型 ====================
+
+/**
+ * 批量拒绝建议请求
+ */
+export interface FieldMappingSuggestionRejectRequest {
+  suggestion_ids: number[]  // 建议ID列表
+}
+
+/**
+ * 批量拒绝建议
+ */
+export const batchRejectSuggestions = async (
+  request: FieldMappingSuggestionRejectRequest,
+  context?: {
+    project_id?: number
+    version_id?: number
+  }
+): Promise<ApiResponse<{ processed_count: number }>> => {
+  return api.post('/field-mappings/suggestions/reject', request, { params: context })
 }

@@ -1,4 +1,4 @@
-"""字段映射处理器（异步任务处理）"""
+﻿"""字段映射处理器（异步任务处理）"""
 import asyncio
 import concurrent.futures
 import json
@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.db.base import ApiDefinition, DbSchemaVersion, ApiFieldMapping, User, AsyncTask
 from app.api.v1.field_mappings import (
     _extract_api_fields,
+    _extract_field_descriptions,
     FieldMappingCandidate,
     FieldMappingSuggestion
 )
@@ -24,6 +25,7 @@ from app.field_mapping.constants import (
     StageStatus,
     StageConfig,
     StageResultKey,
+    SCHEMA_VERSION,
     get_stage_name,
     get_stage_result_key
 )
@@ -99,6 +101,12 @@ class FieldInfo:
     apis: List[Dict[str, Any]]
     total_count: int
     first_seen: str
+    appears_in_multiple_apis: bool
+    field_name_common: bool
+    
+    # 新增：字段描述相关字段
+    field_description: Optional[str] = None  # 字段描述
+    has_description: bool = False           # 是否有描述
     
     # 规则评分结果
     rule_candidates: List[FieldMappingCandidate] = None
@@ -110,11 +118,6 @@ class FieldInfo:
     
     # AI结果
     ai_candidates: List[FieldMappingCandidate] = None
-    final_candidates: List[FieldMappingCandidate] = None
-    
-    # 标记
-    appears_in_multiple_apis: bool = False
-    field_name_common: bool = False
 
 
 @dataclass
@@ -122,6 +125,7 @@ class AIRequest:
     """AI请求"""
     field_name: str
     field_path: str
+    field_description: Optional[str]  # 字段描述
     rule_candidates: List[FieldMappingCandidate]
     api_context: Dict[str, Any]
 
@@ -158,6 +162,7 @@ class FieldMappingProcessor:
         self.max_ai_retries = 3
         self.ai_retry_delay = 2  # 秒
         self.ai_timeout = 30  # 秒
+        self.semantic_conflict_min_score_gap = 0.08
         
         # 记录失败的字段
         self.failed_fields = set()
@@ -594,7 +599,7 @@ class FieldMappingProcessor:
                 self._raise_if_cancelled()
                 self._update_stage_progress(stages, 4, "running", 50)
                 self._update_progress(98, "正在合并结果...")
-                suggestions = self._merge_results(field_registry, ai_results)
+                suggestions = self._merge_results(field_registry, ai_results, db_schema)
                 self._update_stage_progress(stages, 4, "completed", 100)
                 
                 # 保存阶段5结果
@@ -747,6 +752,8 @@ class FieldMappingProcessor:
                    f"project_id={project_id}, version_id={version_id}")
         
         field_registry: Dict[str, FieldInfo] = {}
+        logical_occurrences: Dict[str, int] = {}
+        common_names = {'data', 'info', 'result', 'content', 'item'}
         
         # 获取所有API定义
         definitions = self.db.query(ApiDefinition).filter(
@@ -755,47 +762,51 @@ class FieldMappingProcessor:
         
         logger.info(f"[{self.trace_id}] 找到 {len(definitions)} 个API定义")
         
-        # 遍历所有API定义，提取字段
+        # 遍历所有API定义，提取字段实例（按 definition + field_path 建索引）
         for definition in definitions:
             api_fields = _extract_api_fields(
                 definition, include_paths, include_query, include_body
             )
             
-            for field_path in api_fields:
-                # 解析字段路径
-                source_type, field_name = self._parse_field_path(field_path)
-                
-                # 检查字段名是否已存在
-                if field_name not in field_registry:
-                    field_registry[field_name] = FieldInfo(
-                        field_name=field_name,
-                        field_path=field_path,
-                        source_type=source_type,
-                        apis=[],
-                        total_count=0,
-                        first_seen=f"{definition.method} {definition.path}"
-                    )
-                
-                # 记录该字段出现的API
-                field_registry[field_name].apis.append({
-                    'definition_id': definition.id,
-                    'method': definition.method,
-                    'path': definition.path,
-                    'field_path': field_path
-                })
-                field_registry[field_name].total_count += 1
-        
-        # 分析字段使用模式
-        for field_name, field_info in field_registry.items():
-            # 判断是否为多API共享字段
-            field_info.appears_in_multiple_apis = field_info.total_count >= 3
+            # 提取字段描述
+            field_descriptions = _extract_field_descriptions(definition)
             
-            # 判断是否为通用字段名
-            common_names = ['data', 'info', 'result', 'content', 'item']
-            field_info.field_name_common = field_name in common_names
-        
-        total_fields = sum(len(f.apis) for f in field_registry.values())
-        unique_fields = len(field_registry)
+            for field_path in api_fields:
+                source_type, field_name = self._parse_field_path(field_path)
+                logical_key = self._build_logical_cache_key(source_type, field_name)
+                instance_key = f"{definition.id}:{field_path}"
+                logical_occurrences[logical_key] = logical_occurrences.get(logical_key, 0) + 1
+                
+                # 获取字段描述
+                field_description = field_descriptions.get(field_path, '')
+
+                field_registry[instance_key] = FieldInfo(
+                    field_name=field_name,
+                    field_path=field_path,
+                    field_description=field_description if field_description else None,
+                    has_description=bool(field_description and field_description.strip()),
+                    source_type=source_type,
+                    apis=[{
+                        'definition_id': definition.id,
+                        'method': definition.method,
+                        'path': definition.path,
+                        'field_path': field_path
+                    }],
+                    total_count=logical_occurrences[logical_key],
+                    first_seen=f"{definition.method} {definition.path}",
+                    appears_in_multiple_apis=False,
+                    field_name_common=field_name in common_names,
+                    logical_cache_key=logical_key
+                )
+
+        # 基于逻辑键回填统计
+        for field_info in field_registry.values():
+            usage_count = logical_occurrences.get(field_info.logical_cache_key, 0)
+            field_info.total_count = usage_count
+            field_info.appears_in_multiple_apis = usage_count >= 3
+
+        total_fields = len(field_registry)
+        unique_fields = len(logical_occurrences)
         
         logger.info(f"[{self.trace_id}] 字段提取完成: 原始{total_fields}个, "
                    f"去重后{unique_fields}个唯一字段")
@@ -813,6 +824,23 @@ class FieldMappingProcessor:
         if len(parts) == 2:
             return parts[0], parts[1]
         return 'body', field_path
+
+    def _build_logical_cache_key(self, source_type: str, field_name: str) -> str:
+        return f"{source_type}:{field_name}".lower()
+
+    def _clone_candidates(
+        self,
+        candidates: List[FieldMappingCandidate]
+    ) -> List[FieldMappingCandidate]:
+        return [
+            FieldMappingCandidate(
+                db_table=c.db_table,
+                db_column=c.db_column,
+                score=c.score,
+                reasons=list(c.reasons or [])
+            )
+            for c in candidates
+        ]
     
     def _count_by_type(self, field_registry: Dict[str, Any]) -> Dict[str, int]:
         """
@@ -964,9 +992,20 @@ class FieldMappingProcessor:
         results = {}
         
         try:
-            # 提取所有字段路径
-            api_fields = [field_info.field_path for _, field_info in batch]
-            
+            cache_key_to_instances: Dict[str, List[Tuple[str, FieldInfo]]] = {}
+            cache_key_to_path: Dict[str, str] = {}
+
+            for instance_key, field_info in batch:
+                cache_key = field_info.logical_cache_key or self._build_logical_cache_key(
+                    field_info.source_type,
+                    field_info.field_name
+                )
+                cache_key_to_instances.setdefault(cache_key, []).append((instance_key, field_info))
+                if cache_key not in cache_key_to_path:
+                    cache_key_to_path[cache_key] = field_info.field_path
+
+            api_fields = list(cache_key_to_path.values())
+
             # 使用向量搜索批量生成候选（禁用 AI 兜底，阶段2只做规则评分）
             vector_manager = get_vector_manager()
             vector_results = await vector_manager.batch_search_with_gravity(
@@ -974,13 +1013,12 @@ class FieldMappingProcessor:
                 top_k=20,
                 use_ai_fallback=False  # 阶段2禁用 AI，阶段4才用
             )
-            
-            # 构建结果，将字典转换为 FieldMappingCandidate 对象
-            for field_name, field_info in batch:
-                field_path = field_info.field_path
-                candidates_dicts = vector_results.get("results", {}).get(field_path, [])
-                # 转换字典为 FieldMappingCandidate 对象
-                candidates = [
+
+            path_results = vector_results.get("results", {})
+            cache_key_candidates: Dict[str, List[FieldMappingCandidate]] = {}
+            for cache_key, field_path in cache_key_to_path.items():
+                candidates_dicts = path_results.get(field_path, [])
+                cache_key_candidates[cache_key] = [
                     FieldMappingCandidate(
                         db_table=cand.get("db_table", ""),
                         db_column=cand.get("db_column", ""),
@@ -989,13 +1027,17 @@ class FieldMappingProcessor:
                     )
                     for cand in candidates_dicts
                 ]
-                results[field_name] = candidates
+
+            for cache_key, instances in cache_key_to_instances.items():
+                shared_candidates = cache_key_candidates.get(cache_key, [])
+                for instance_key, _ in instances:
+                    results[instance_key] = self._clone_candidates(shared_candidates)
                 
         except Exception as e:
             logger.error(f"[{self.trace_id}] 批次{batch_idx}向量搜索失败: {str(e)}")
             # 降级处理：为所有字段返回空列表
-            for field_name, _ in batch:
-                results[field_name] = []
+            for instance_key, _ in batch:
+                results[instance_key] = []
         
         logger.info(f"[{self.trace_id}] 批次{batch_idx}处理完成: {len(results)}个字段有结果")
         return results
@@ -1005,49 +1047,7 @@ class FieldMappingProcessor:
         batch: List[Tuple[str, FieldInfo]],
         db_schema: Dict[str, Any]
     ) -> Dict[str, List[FieldMappingCandidate]]:
-        """
-        处理一批字段的规则评分（使用向量搜索 + 重心算法）
-        
-        Returns:
-            评分结果: {field_name: [candidates]}
-        """
-        results = {}
-        
-        try:
-            # 提取所有字段路径
-            api_fields = [field_info.field_path for _, field_info in batch]
-            
-            # 使用向量搜索批量生成候选（禁用 AI 兜底）
-            vector_manager = get_vector_manager()
-            vector_results = await vector_manager.batch_search_with_gravity(
-                api_fields=api_fields,
-                top_k=20,
-                use_ai_fallback=False  # 禁用 AI
-            )
-            
-            # 构建结果，将字典转换为 FieldMappingCandidate 对象
-            for field_name, field_info in batch:
-                field_path = field_info.field_path
-                candidates_dicts = vector_results.get("results", {}).get(field_path, [])
-                # 转换字典为 FieldMappingCandidate 对象
-                candidates = [
-                    FieldMappingCandidate(
-                        db_table=cand.get("db_table", ""),
-                        db_column=cand.get("db_column", ""),
-                        score=cand.get("score", 0.0),
-                        reasons=cand.get("reasons", [])
-                    )
-                    for cand in candidates_dicts
-                ]
-                results[field_name] = candidates
-                
-        except Exception as e:
-            logger.error(f"[{self.trace_id}] 批量向量搜索失败: {str(e)}")
-            # 降级处理：为所有字段返回空列表
-            for field_name, _ in batch:
-                results[field_name] = []
-
-        return results
+        return await self._process_rule_scoring_batch_async(batch, db_schema, batch_idx=-1)
 
     def _intelligent_screening(
         self,
@@ -1089,7 +1089,7 @@ class FieldMappingProcessor:
 
         for field_name, field_info in field_registry.items():
             rule_candidates = rule_results.get(field_name, [])
-            screening_result = self._screen_field(field_name, field_info, rule_candidates)
+            screening_result = self._screen_field(field_info.field_name, field_info, rule_candidates)
 
             # 更新字段信息
             field_info.rule_candidates = rule_candidates
@@ -1114,6 +1114,13 @@ class FieldMappingProcessor:
                    f"低优先级AI={len(categories['ai_low'])}")
 
         return categories
+
+    def _merge_ai_priority(self, current_priority: str, new_priority: str) -> str:
+        """Keep the higher priority to avoid lower-priority rules overriding higher ones."""
+        rank = {"none": 0, "low": 1, "medium": 2, "high": 3}
+        current_rank = rank.get(current_priority, 0)
+        new_rank = rank.get(new_priority, 0)
+        return new_priority if new_rank > current_rank else current_priority
     
     def _screen_field(
         self,
@@ -1140,57 +1147,60 @@ class FieldMappingProcessor:
                 action="auto_confirm"
             )
         elif top_score >= 0.60:
-            ai_priority = "medium"
+            ai_priority = self._merge_ai_priority(ai_priority, "medium")
             reasons.append("规则评分中等(0.60-0.85)，AI优化候选排序")
         else:
-            ai_priority = "high"
+            ai_priority = self._merge_ai_priority(ai_priority, "high")
             reasons.append("规则评分低(<0.60)，需要AI重新推荐")
         
         # === 第二级：候选数量筛选 ===
         candidate_count = len(rule_candidates)
         if candidate_count <= 1:
-            ai_priority = "high"
+            ai_priority = self._merge_ai_priority(ai_priority, "high")
             reasons.append(f"候选数量过少({candidate_count}个)，需要AI扩展")
         elif candidate_count >= 5:
-            ai_priority = "high"
+            ai_priority = self._merge_ai_priority(ai_priority, "high")
             reasons.append(f"候选数量过多({candidate_count}个)，需要AI筛选")
         elif candidate_count >= 3 and top_score < 0.70:
-            ai_priority = "high"
+            ai_priority = self._merge_ai_priority(ai_priority, "high")
             reasons.append("候选较多且置信度不足，需要AI重新排序")
         
-        # === 第三级：字段类型筛选 ===
+        # === 第三级：字段类型筛选（增强版）===
         if self._is_id_field(field_name):
-            ai_priority = "high"
-            reasons.append("ID类字段，需要AI精确匹配")
+            # 使用字段描述验证是否真的是 ID 类型
+            if self._is_id_type_by_description(field_info.field_description):
+                ai_priority = self._merge_ai_priority(ai_priority, "high")
+                reasons.append("ID类字段，需要AI精确匹配")
+            else:
+                # 字段名看起来像 ID，但描述说明不是
+                ai_priority = self._merge_ai_priority(ai_priority, "medium")
+                reasons.append("字段名像ID但描述表明不是，AI需确认")
         
         if self._is_complex_nested(field_info.field_path):
-            ai_priority = "high"
+            ai_priority = self._merge_ai_priority(ai_priority, "high")
             reasons.append("复杂嵌套字段，需要AI深度分析")
         
         if self._is_array_field(field_info.field_path):
-            ai_priority = "medium"
+            ai_priority = self._merge_ai_priority(ai_priority, "medium")
             reasons.append("数组字段，建议AI优化")
         
-        # === 第四级：语义冲突筛选 ===
+        # === 第四级：语义冲突筛选（增强版）===
         if self._has_semantic_conflict(
             rule_candidates, 
             field_name, 
+            field_info.field_description,  # 传递字段描述
             field_info.apis[0]['path']
         ):
-            ai_priority = "high"
+            ai_priority = self._merge_ai_priority(ai_priority, "high")
             reasons.append("路径语义与候选表名冲突，需要AI纠正")
         
         # === 第五级：使用模式筛选 ===
         if field_info.appears_in_multiple_apis:
-            if ai_priority == "none":
-                ai_priority = "low"
-            elif ai_priority == "medium":
-                ai_priority = "medium"
+            ai_priority = self._merge_ai_priority(ai_priority, "low")
             reasons.append(f"字段在{field_info.total_count}个API中使用，AI可学习模式")
         
         if field_info.field_name_common:
-            if ai_priority == "none":
-                ai_priority = "low"
+            ai_priority = self._merge_ai_priority(ai_priority, "low")
             reasons.append("通用字段名，建议AI确认上下文")
         
         return ScreeningResult(
@@ -1215,39 +1225,143 @@ class FieldMappingProcessor:
         """判断是否为数组字段"""
         return '[]' in field_path or 'items' in field_path.lower()
     
+    def _is_id_type_by_description(self, field_description: Optional[str]) -> bool:
+        """
+        根据字段描述判断是否为 ID 类型
+        
+        Args:
+            field_description: 字段描述
+            
+        Returns:
+            是否为 ID 类型
+        """
+        if not field_description:
+            # 没有描述时，保守判断
+            return True
+        
+        # 检查描述中是否包含 ID 相关关键词
+        id_keywords = [
+            'id', 'ID', '标识', '唯一标识', 
+            'unique', 'identifier', 'uuid', '主键',
+            '主键ID', '唯一ID', 'ID号'
+        ]
+        
+        # 如果描述中包含 ID 关键词，认为是 ID 类型
+        for keyword in id_keywords:
+            if keyword in field_description:
+                return True
+        
+        # 如果描述明确说明不是 ID（如 "订单编号（非ID）"），则不是
+        not_id_keywords = [
+            '非ID', 'not id', '不是id', '编号(非ID)', 
+            '非标识', 'not identifier', '编号(字符串)'
+        ]
+        for keyword in not_id_keywords:
+            if keyword in field_description:
+                return False
+        
+        # 检查描述长度和内容
+        description_lower = field_description.lower().strip()
+        
+        # 如果描述较短且不包含明确信息，保守认为是 ID 类型
+        if len(description_lower) < 10:
+            return True
+        
+        # 如果描述是纯数字相关（如 "12345"），可能是 ID
+        if description_lower.isdigit():
+            return True
+        
+        # 如果描述包含 "号"、"码" 等词，可能是编号类，但不是 ID
+        code_keywords = ['编号', '号码', '代码', 'code', 'number']
+        for keyword in code_keywords:
+            if keyword in field_description:
+                return False
+        
+        # 默认判断
+        return True
+    
+    def _description_supports_candidate(
+        self,
+        field_description: str,
+        candidate: FieldMappingCandidate
+    ) -> bool:
+        """
+        检查字段描述是否支持候选
+        
+        Args:
+            field_description: 字段描述
+            candidate: 候选映射
+            
+        Returns:
+            是否支持
+        """
+        if not field_description:
+            return False
+        
+        # 提取表名关键词
+        table_keywords = re.split(r"[_\\W]+", candidate.db_table.lower())
+        
+        # 检查描述中是否包含表名关键词
+        for keyword in table_keywords:
+            if len(keyword) >= 3 and keyword in field_description.lower():
+                return True
+        
+        return False
+    
     def _has_semantic_conflict(
         self,
         candidates: List[FieldMappingCandidate],
         field_name: str,
+        field_description: Optional[str],  # 新增参数
         api_path: str
     ) -> bool:
         """判断是否存在语义冲突"""
         if not candidates:
-            return True
-        
+            return False
+
+        # 提取路径资源词：过滤路径参数和过短片段
+        path_resources = [
+            seg.lower()
+            for seg in api_path.strip('/').split('/')
+            if seg and not seg.startswith('{') and len(seg) > 2
+        ]
+        if not path_resources:
+            return False
+
+        def _table_overlap_score(table: str) -> int:
+            table_tokens = set(re.split(r"[_\\W]+", (table or "").lower()))
+            table_tokens.discard("")
+            return sum(1 for resource in path_resources if resource in table_tokens)
+
         top_candidate = candidates[0]
-        top_table = top_candidate.db_table
-        
-        # 提取路径中的资源词
-        path_segments = api_path.strip('/').split('/')
-        path_resources = [seg for seg in path_segments 
-                        if not seg.startswith('{') and len(seg) > 2]
-        
-        # 如果路径有明确资源，但候选表名不匹配
-        if path_resources:
-            has_better_match = False
-            
+        top_overlap = _table_overlap_score(top_candidate.db_table)
+
+        # Top1 已和路径资源一致，不判冲突
+        if top_overlap > 0:
+            return False
+
+        # 使用字段描述辅助判断
+        if field_description and len(candidates) > 1:
+            # 检查其他候选是否与字段描述更匹配
             for candidate in candidates[1:]:
-                for resource in path_resources:
-                    if resource in candidate.db_table:
-                        has_better_match = True
-                        break
-                if has_better_match:
-                    break
-            
-            if has_better_match:
+                overlap = _table_overlap_score(candidate.db_table)
+                cand_score = candidate.score or 0.0
+                top_score = top_candidate.score or 0.0
+                
+                # 如果其他候选与路径资源匹配且分数接近，且有描述支持
+                if overlap > 0 and cand_score >= top_score - self.semantic_conflict_min_score_gap:
+                    # 检查字段描述是否支持这个候选
+                    if self._description_supports_candidate(field_description, candidate):
+                        return True
+
+        # 存在“资源更匹配且分差不大”的备选，才判语义冲突，降低误报
+        top_score = top_candidate.score or 0.0
+        for candidate in candidates[1:]:
+            overlap = _table_overlap_score(candidate.db_table)
+            cand_score = candidate.score or 0.0
+            if overlap > 0 and cand_score >= top_score - self.semantic_conflict_min_score_gap:
                 return True
-        
+
         return False
     
     async def _priority_ai_calling(
@@ -1350,12 +1464,15 @@ class FieldMappingProcessor:
                     "method": req.api_context['method'],
                     "path": req.api_context['path'],
                     "field_name": req.field_name,
+                    "field_description": req.field_description or "",  # 传递字段描述
+                    "logical_field_name": req.field_path.split('.', 1)[1] if '.' in req.field_path else req.field_path,
                     "rule_candidates": [
                         {
                             "db_table": c.db_table,
                             "db_column": c.db_column,
                             "score": c.score,
-                            "reasons": c.reasons
+                            "reasons": c.reasons,
+                            "comment": c.comment if hasattr(c, 'comment') else ""  # 添加数据库列注释
                         }
                         for c in req.rule_candidates[:3]
                     ]
@@ -1456,8 +1573,11 @@ class FieldMappingProcessor:
         # 提取批量结果
         if isinstance(result_data, dict) and "field_mappings" in result_data:
             logger.info(f"[{self.trace_id}] AI返回包含 {len(result_data['field_mappings'])} 个字段映射结果")
-            for mapping_result in result_data["field_mappings"]:
+            request_keys = [req.field_name for req in requests]
+            for idx, mapping_result in enumerate(result_data["field_mappings"]):
                 field_name = mapping_result.get("field_name")
+                if field_name not in request_keys and idx < len(requests):
+                    field_name = requests[idx].field_name
                 ai_candidates = mapping_result.get("candidates", [])
 
                 logger.debug(f"[{self.trace_id}] 处理字段 {field_name}: {len(ai_candidates)} 个候选")
@@ -1477,11 +1597,55 @@ class FieldMappingProcessor:
             logger.error(f"[{self.trace_id}] AI返回格式错误，缺少 field_mappings 字段，实际键: {list(result_data.keys()) if isinstance(result_data, dict) else 'N/A'}")
 
         return results
+
+    def _build_decision_trace(
+        self,
+        field_key: str,
+        field_info: FieldInfo,
+        rule_candidates: List[FieldMappingCandidate],
+        ai_candidates: List[FieldMappingCandidate],
+        final_candidates: List[FieldMappingCandidate]
+    ) -> Dict[str, Any]:
+        top_rule = rule_candidates[0] if rule_candidates else None
+        top_ai = ai_candidates[0] if ai_candidates else None
+        top_final = final_candidates[0] if final_candidates else None
+        return {
+            "trace_id": self.trace_id,
+            "schema_version": SCHEMA_VERSION,
+            "field_instance_key": field_key,
+            "logical_cache_key": field_info.logical_cache_key,
+            "source_type": field_info.source_type,
+            "field_name": field_info.field_name,
+            "api_context": field_info.apis[0] if field_info.apis else {},
+            "ai_priority": field_info.ai_priority,
+            "rule_top_score": field_info.rule_top_score,
+            "rule_candidate_count": len(rule_candidates),
+            "ai_candidate_count": len(ai_candidates),
+            "top_rule_candidate": {
+                "db_table": top_rule.db_table,
+                "db_column": top_rule.db_column,
+                "score": top_rule.score,
+                "ai_selected": bool(getattr(top_rule, "ai_selected", False))
+            } if top_rule else None,
+            "top_ai_candidate": {
+                "db_table": top_ai.db_table,
+                "db_column": top_ai.db_column,
+                "score": top_ai.score,
+                "ai_selected": bool(getattr(top_ai, "ai_selected", False))
+            } if top_ai else None,
+            "top_final_candidate": {
+                "db_table": top_final.db_table,
+                "db_column": top_final.db_column,
+                "score": top_final.score,
+                "ai_selected": bool(getattr(top_final, "ai_selected", False))
+            } if top_final else None
+        }
     
     def _merge_results(
         self,
         field_registry: Dict[str, FieldInfo],
-        ai_results: Dict[str, List[FieldMappingCandidate]]
+        ai_results: Dict[str, List[FieldMappingCandidate]],
+        db_schema: Dict[str, Any]  # 新增参数
     ) -> List[FieldMappingSuggestion]:
         """
         合并规则结果和AI结果
@@ -1493,18 +1657,31 @@ class FieldMappingProcessor:
         
         suggestions = []
         
-        for field_name, field_info in field_registry.items():
-            ai_candidates = ai_results.get(field_name, [])
+        for field_key, field_info in field_registry.items():
+            ai_candidates = ai_results.get(field_key, [])
             rule_candidates = field_info.rule_candidates or []  # 确保 rule_candidates 不为 None
             
             # 合并策略
             if field_info.ai_priority == "none":
                 final_candidates = rule_candidates
             elif ai_candidates:
-                merged = self._merge_candidates(rule_candidates, ai_candidates)
+                merged = self._merge_candidates(
+                    rule_candidates, 
+                    ai_candidates,
+                    field_info.field_description,  # 传递字段描述
+                    db_schema  # 传递数据库结构
+                )
                 final_candidates = merged
             else:
                 final_candidates = rule_candidates
+
+            decision_trace = self._build_decision_trace(
+                field_key=field_key,
+                field_info=field_info,
+                rule_candidates=rule_candidates,
+                ai_candidates=ai_candidates,
+                final_candidates=final_candidates
+            )
             
             # 为每个API生成建议
             for api_ref in field_info.apis:
@@ -1513,19 +1690,124 @@ class FieldMappingProcessor:
                     definition_method=api_ref['method'],
                     definition_path=api_ref['path'],
                     api_field_path=api_ref['field_path'],
-                    candidates=final_candidates
+                    candidates=final_candidates,
+                    decision_trace=decision_trace
                 )
                 suggestions.append(suggestion)
         
         logger.info(f"[{self.trace_id}] 结果合并完成: {len(suggestions)}个建议")
         return suggestions
     
+    def _get_column_comment(self, db_schema: Dict[str, Any], table_name: str, column_name: str) -> str:
+        """
+        获取数据库列的注释
+        
+        Args:
+            db_schema: 数据库结构
+            table_name: 表名
+            column_name: 列名
+            
+        Returns:
+            列注释，如果不存在则返回空字符串
+        """
+        if not db_schema or not isinstance(db_schema, dict):
+            return ""
+        
+        tables = db_schema.get("tables", {})
+        if table_name not in tables:
+            return ""
+        
+        columns = tables[table_name].get("columns", {})
+        if column_name not in columns:
+            return ""
+        
+        return columns[column_name].get("comment", "")
+    
+    def _calculate_text_similarity(self, text1: str, text2: str) -> float:
+        """
+        计算两个文本的相似度（基于关键词重叠）
+        
+        Args:
+            text1: 文本1
+            text2: 文本2
+            
+        Returns:
+            相似度分数 0.0-1.0
+        """
+        if not text1 or not text2:
+            return 0.0
+        
+        # 分词并转为小写
+        words1 = set(re.findall(r'\w+', text1.lower()))
+        words2 = set(re.findall(r'\w+', text2.lower()))
+        
+        if not words1 or not words2:
+            return 0.0
+        
+        # 计算Jaccard相似度
+        intersection = len(words1 & words2)
+        union = len(words1 | words2)
+        
+        if union == 0:
+            return 0.0
+        
+        return intersection / union
+    
+    def _validate_candidate_with_description(
+        self,
+        field_description: str,
+        candidate: FieldMappingCandidate,
+        db_schema: Dict[str, Any]
+    ) -> bool:
+        """
+        使用字段描述验证候选映射是否合理
+        
+        Args:
+            field_description: 字段描述
+            candidate: 候选映射
+            db_schema: 数据库结构
+            
+        Returns:
+            True if 验证通过，False otherwise
+        """
+        if not field_description or not field_description.strip():
+            # 没有字段描述，无法验证，默认通过
+            return True
+        
+        # 获取数据库列注释
+        column_comment = self._get_column_comment(
+            db_schema,
+            candidate.db_table,
+            candidate.db_column
+        )
+        
+        # 如果没有列注释，无法验证，默认通过
+        if not column_comment or not column_comment.strip():
+            return True
+        
+        # 计算字段描述和列注释的相似度
+        similarity = self._calculate_text_similarity(field_description, column_comment)
+        
+        # 相似度大于阈值则通过
+        threshold = 0.3  # 可调整的阈值
+        return similarity >= threshold
+    
     def _merge_candidates(
         self,
         rule_candidates: List[FieldMappingCandidate],
-        ai_candidates: List[FieldMappingCandidate]
+        ai_candidates: List[FieldMappingCandidate],
+        field_description: Optional[str] = None,
+        db_schema: Optional[Dict[str, Any]] = None
     ) -> List[FieldMappingCandidate]:
-        """合并规则候选和AI候选"""
+        """
+        合并规则候选和AI候选
+        
+        Args:
+            rule_candidates: 规则候选列表
+            ai_candidates: AI候选列表
+            field_description: 字段描述（可选）
+            db_schema: 数据库结构（可选）
+        """
         # 合并所有候选
         all_candidates = rule_candidates + ai_candidates
         
@@ -1539,6 +1821,23 @@ class FieldMappingProcessor:
                 # 保留分数更高的
                 if cand.score > unique[key].score:
                     unique[key] = cand
+        
+        # 使用字段描述进行验证（如果提供了描述和数据库结构）
+        if field_description and db_schema:
+            validated_candidates = []
+            for cand in unique.values():
+                # 验证候选是否通过描述验证
+                if self._validate_candidate_with_description(
+                    field_description,
+                    cand,
+                    db_schema
+                ):
+                    validated_candidates.append(cand)
+                # 注意：未通过验证的候选将被过滤掉
+            
+            # 如果有通过验证的候选，使用它们；否则使用原始候选（降级策略）
+            if validated_candidates:
+                unique = {f"{c.db_table}.{c.db_column}": c for c in validated_candidates}
         
         # 按分数排序
         sorted_candidates = sorted(
@@ -1610,6 +1909,7 @@ class PriorityAIQueue:
         request = AIRequest(
             field_name=field_name,
             field_path=field_info.field_path,
+            field_description=field_info.field_description,  # 传递字段描述
             rule_candidates=field_info.rule_candidates or [],
             api_context=field_info.apis[0] if field_info.apis else {}
         )

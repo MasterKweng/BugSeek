@@ -338,12 +338,12 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
             }
             
             return (
-              <div style={{ marginTop: 16, padding: 16, background: '#f5f5f5', borderRadius: 4 }}>
+              <div style={{ marginTop: 16, padding: 16, background: 'var(--bg-tertiary)', borderRadius: 4 }}>
                 <Divider orientation="left" style={{ margin: '0 0 12px 0' }}>简化配置</Divider>
                 
                 {authType === AuthTypeEnum.BASIC && (
                   <div>
-                    <p style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 8 }}>
                       Basic 认证：输入用户名和密码，系统将自动拼接为 base64(username:password)
                     </p>
                     <Form.Item
@@ -365,7 +365,7 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
                 
                 {authType === AuthTypeEnum.BEARER && (
                   <div>
-                    <p style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 8 }}>
                       Bearer 认证：输入 Token
                     </p>
                     <Form.Item
@@ -380,7 +380,7 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
                 
                 {authType === AuthTypeEnum.API_KEY && (
                   <div>
-                    <p style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 8 }}>
                       API Key 认证：配置 API Key 名称、值和添加位置
                     </p>
                     <Form.Item
@@ -412,7 +412,7 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
                 
                 {authType === AuthTypeEnum.SESSION && (
                   <div>
-                    <p style={{ color: '#666', fontSize: 12, marginBottom: 8 }}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 8 }}>
                       Session 认证：输入 Session ID 和 Cookie 名称
                     </p>
                     <Form.Item
@@ -524,7 +524,7 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
               case AuthTypeEnum.BASIC:
                 return (
                   <div style={{ marginBottom: 16 }}>
-                    <p style={{ color: '#999', fontSize: 12, marginBottom: 8 }}>
+                    <p style={{ color: 'var(--text-tertiary)', fontSize: 12, marginBottom: 8 }}>
                       Basic 认证：输入用户名和密码，系统将自动构建 Basic 认证请求头
                     </p>
                     <Form.Item
@@ -547,7 +547,7 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
               case AuthTypeEnum.BEARER:
                 return (
                   <div style={{ marginBottom: 16 }}>
-                    <p style={{ color: '#999', fontSize: 12, marginBottom: 8 }}>
+                    <p style={{ color: 'var(--text-tertiary)', fontSize: 12, marginBottom: 8 }}>
                       Bearer 认证：输入 Token，系统将自动构建 Bearer 认证请求头
                     </p>
                     <Form.Item
@@ -563,7 +563,7 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
               case AuthTypeEnum.API_KEY:
                 return (
                   <div style={{ marginBottom: 16 }}>
-                    <p style={{ color: '#999', fontSize: 12, marginBottom: 8 }}>
+                    <p style={{ color: 'var(--text-tertiary)', fontSize: 12, marginBottom: 8 }}>
                       API Key 认证：配置 API Key 和添加位置
                     </p>
                     <Form.Item
@@ -596,7 +596,7 @@ const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
               case AuthTypeEnum.SESSION:
                 return (
                   <div style={{ marginBottom: 16 }}>
-                    <p style={{ color: '#999', fontSize: 12, marginBottom: 8 }}>
+                    <p style={{ color: 'var(--text-tertiary)', fontSize: 12, marginBottom: 8 }}>
                       Session 认证：输入 Session ID 和 Cookie 名称
                     </p>
                     <Form.Item

@@ -60,8 +60,8 @@ def add_async_tasks_extended_fields():
             },
             {
                 "name": "current_stage",
-                "type": "VARCHAR(50)",
-                "sql": "ALTER TABLE async_tasks ADD COLUMN current_stage VARCHAR(50)"
+                "type": "INTEGER",
+                "sql": "ALTER TABLE async_tasks ADD COLUMN current_stage INTEGER DEFAULT 0"
             },
             {
                 "name": "stages",

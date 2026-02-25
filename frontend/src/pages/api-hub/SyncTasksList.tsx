@@ -596,42 +596,42 @@ const SyncTasksList: React.FC = () => {
           <div>
             <Row gutter={[16, 16]}>
               <Col span={24}>
-                <div style={{ color: '#999', marginBottom: 4 }}>任务名称</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>任务名称</div>
                 <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{currentRecord.name}</div>
               </Col>
               <Col span={12}>
-                <div style={{ color: '#999', marginBottom: 4 }}>来源类型</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>来源类型</div>
                 {getSourceTypeTag(currentRecord.source_type)}
               </Col>
               <Col span={12}>
-                <div style={{ color: '#999', marginBottom: 4 }}>状态</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>状态</div>
                 {getStatusTag(currentRecord.status)}
               </Col>
               <Col span={24}>
-                <div style={{ color: '#999', marginBottom: 4 }}>来源URL</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>来源URL</div>
                 <div>{currentRecord.source_url || '-'}</div>
               </Col>
               <Col span={12}>
-                <div style={{ color: '#999', marginBottom: 4 }}>来源版本</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>来源版本</div>
                 <div>{currentRecord.source_version || '-'}</div>
               </Col>
               <Col span={12}>
-                <div style={{ color: '#999', marginBottom: 4 }}>任务ID</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>任务ID</div>
                 <div>{currentRecord.task_id || '-'}</div>
               </Col>
               <Col span={24}>
-                <div style={{ color: '#999', marginBottom: 4 }}>进度</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>进度</div>
                 <Progress percent={currentRecord.progress} />
               </Col>
               <Col span={24}>
-                <div style={{ color: '#999', marginBottom: 4 }}>变更统计</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>变更统计</div>
                 <Row gutter={16}>
                   <Col span={6}>
                     <Card size="small">
                       <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}>
                         {currentRecord.added_count}
                       </div>
-                      <div style={{ color: '#999' }}>新增</div>
+                      <div style={{ color: 'var(--text-tertiary)' }}>新增</div>
                     </Card>
                   </Col>
                   <Col span={6}>
@@ -639,7 +639,7 @@ const SyncTasksList: React.FC = () => {
                       <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
                         {currentRecord.updated_count}
                       </div>
-                      <div style={{ color: '#999' }}>更新</div>
+                      <div style={{ color: 'var(--text-tertiary)' }}>更新</div>
                     </Card>
                   </Col>
                   <Col span={6}>
@@ -647,7 +647,7 @@ const SyncTasksList: React.FC = () => {
                       <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ff4d4f' }}>
                         {currentRecord.deleted_count}
                       </div>
-                      <div style={{ color: '#999' }}>删除</div>
+                      <div style={{ color: 'var(--text-tertiary)' }}>删除</div>
                     </Card>
                   </Col>
                   <Col span={6}>
@@ -655,17 +655,17 @@ const SyncTasksList: React.FC = () => {
                       <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#fa8c16' }}>
                         {currentRecord.conflict_count}
                       </div>
-                      <div style={{ color: '#999' }}>冲突</div>
+                      <div style={{ color: 'var(--text-tertiary)' }}>冲突</div>
                     </Card>
                   </Col>
                 </Row>
               </Col>
               <Col span={12}>
-                <div style={{ color: '#999', marginBottom: 4 }}>开始时间</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>开始时间</div>
                 <div>{currentRecord.started_at ? new Date(currentRecord.started_at).toLocaleString('zh-CN') : '-'}</div>
               </Col>
               <Col span={12}>
-                <div style={{ color: '#999', marginBottom: 4 }}>完成时间</div>
+                <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>完成时间</div>
                 <div>{currentRecord.completed_at ? new Date(currentRecord.completed_at).toLocaleString('zh-CN') : '-'}</div>
               </Col>
               {currentRecord.error_message && (
@@ -680,11 +680,11 @@ const SyncTasksList: React.FC = () => {
               )}
               {currentRecord.execution_log && currentRecord.execution_log.length > 0 && (
                 <Col span={24}>
-                  <div style={{ color: '#999', marginBottom: 4 }}>执行日志</div>
-                  <div style={{ background: '#f5f5f5', padding: '12px', borderRadius: '4px', maxHeight: '300px', overflowY: 'auto' }}>
+                  <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>执行日志</div>
+                  <div style={{ background: 'var(--bg-tertiary)', padding: '12px', borderRadius: '4px', maxHeight: '300px', overflowY: 'auto' }}>
                     {currentRecord.execution_log.map((log: any, index: number) => (
                       <div key={index} style={{ marginBottom: '4px', fontSize: '12px' }}>
-                        {log.timestamp && <span style={{ color: '#999' }}>[{new Date(log.timestamp).toLocaleTimeString()}]</span>}
+                        {log.timestamp && <span style={{ color: 'var(--text-tertiary)' }}>[{new Date(log.timestamp).toLocaleTimeString()}]</span>}
                         <span>{log.message}</span>
                       </div>
                     ))}
@@ -693,14 +693,14 @@ const SyncTasksList: React.FC = () => {
               )}
               {currentRecord.diff_data && (
                 <Col span={24}>
-                  <div style={{ color: '#999', marginBottom: 4 }}>变更详情</div>
+                  <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>变更详情</div>
                   <Tabs defaultActiveKey="added">
                     <Tabs.TabPane tab={`新增 (${currentRecord.diff_data.summary?.added_count || 0})`} key="added">
                       {currentRecord.diff_data.added?.map((item: any, index: number) => (
-                        <div key={index} style={{ padding: '8px', background: '#f6ffed', marginBottom: '4px', borderRadius: '4px' }}>
+                        <div key={index} style={{ padding: '8px', background: 'rgba(82, 196, 26, 0.1)', marginBottom: '4px', borderRadius: '4px' }}>
                           <Tag color="green">{item.method}</Tag>
                           <span style={{ fontWeight: 'bold' }}>{item.path}</span>
-                          <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                          <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
                             {item.summary || '无描述'}
                           </div>
                         </div>
@@ -708,10 +708,10 @@ const SyncTasksList: React.FC = () => {
                     </Tabs.TabPane>
                     <Tabs.TabPane tab={`删除 (${currentRecord.diff_data.summary?.removed_count || 0})`} key="removed">
                       {currentRecord.diff_data.removed?.map((item: any, index: number) => (
-                        <div key={index} style={{ padding: '8px', background: '#fff1f0', marginBottom: '4px', borderRadius: '4px' }}>
+                        <div key={index} style={{ padding: '8px', background: 'var(--bg-elevated)'1f0', marginBottom: '4px', borderRadius: '4px' }}>
                           <Tag color="red">{item.method}</Tag>
                           <span style={{ fontWeight: 'bold' }}>{item.path}</span>
-                          <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                          <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
                             {item.summary || '无描述'}
                           </div>
                         </div>
@@ -719,10 +719,10 @@ const SyncTasksList: React.FC = () => {
                     </Tabs.TabPane>
                     <Tabs.TabPane tab={`变更 (${currentRecord.diff_data.summary?.changed_count || 0})`} key="changed">
                       {currentRecord.diff_data.changed?.map((item: any, index: number) => (
-                        <div key={index} style={{ padding: '8px', background: '#fff7e6', marginBottom: '4px', borderRadius: '4px' }}>
+                        <div key={index} style={{ padding: '8px', background: 'var(--bg-elevated)'7e6', marginBottom: '4px', borderRadius: '4px' }}>
                           <Tag color="orange">{item.method}</Tag>
                           <span style={{ fontWeight: 'bold' }}>{item.path}</span>
-                          <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                          <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
                             {item.summary || '无描述'}
                           </div>
                           {item.diff?.summary?.total_changes > 0 && (
@@ -738,21 +738,21 @@ const SyncTasksList: React.FC = () => {
               )}
               {currentRecord.impact_analysis && (
                 <Col span={24}>
-                  <div style={{ color: '#999', marginBottom: 4 }}>影响分析</div>
+                  <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>影响分析</div>
                   <Row gutter={16}>
                     <Col span={12}>
                       <Card size="small" title="受影响的用例">
                         <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#1890ff' }}>
                           {currentRecord.impact_analysis.summary?.affected_case_count || 0}
                         </div>
-                        <div style={{ color: '#999' }}>用例</div>
+                        <div style={{ color: 'var(--text-tertiary)' }}>用例</div>
                         {currentRecord.impact_analysis.affected_cases?.map((case_item: any, index: number) => (
                           <div key={index} style={{ marginTop: '8px', padding: '8px', background: '#f0f5ff', borderRadius: '4px' }}>
                             <div style={{ fontWeight: 'bold' }}>{case_item.case_name}</div>
                             <Tag color={case_item.priority === 'P0' ? 'red' : case_item.priority === 'P1' ? 'orange' : 'blue'}>
                               {case_item.priority}
                             </Tag>
-                            <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
                               变更字段: {case_item.changed_fields?.join(', ') || '无'}
                             </div>
                           </div>
@@ -764,11 +764,11 @@ const SyncTasksList: React.FC = () => {
                         <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#52c41a' }}>
                           {currentRecord.impact_analysis.summary?.affected_scenario_count || 0}
                         </div>
-                        <div style={{ color: '#999' }}>场景</div>
+                        <div style={{ color: 'var(--text-tertiary)' }}>场景</div>
                         {currentRecord.impact_analysis.affected_scenarios?.map((scenario_item: any, index: number) => (
-                          <div key={index} style={{ marginTop: '8px', padding: '8px', background: '#f6ffed', borderRadius: '4px' }}>
+                          <div key={index} style={{ marginTop: '8px', padding: '8px', background: 'rgba(82, 196, 26, 0.1)', borderRadius: '4px' }}>
                             <div style={{ fontWeight: 'bold' }}>{scenario_item.scenario_name}</div>
-                            <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
                               接口数: {scenario_item.endpoint_count}
                             </div>
                           </div>
@@ -819,7 +819,7 @@ const SyncTasksList: React.FC = () => {
                   <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}>
                     {currentRecord.diff_data.added?.length || 0}
                   </div>
-                  <div style={{ color: '#999' }}>新增</div>
+                  <div style={{ color: 'var(--text-tertiary)' }}>新增</div>
                 </Card>
               </Col>
               <Col span={8}>
@@ -827,7 +827,7 @@ const SyncTasksList: React.FC = () => {
                   <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>
                     {currentRecord.diff_data.changed?.length || 0}
                   </div>
-                  <div style={{ color: '#999' }}>更新</div>
+                  <div style={{ color: 'var(--text-tertiary)' }}>更新</div>
                 </Card>
               </Col>
               <Col span={8}>
@@ -835,7 +835,7 @@ const SyncTasksList: React.FC = () => {
                   <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ff4d4f' }}>
                     {currentRecord.diff_data.removed?.length || 0}
                   </div>
-                  <div style={{ color: '#999' }}>删除</div>
+                  <div style={{ color: 'var(--text-tertiary)' }}>删除</div>
                 </Card>
               </Col>
             </Row>

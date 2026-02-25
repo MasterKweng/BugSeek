@@ -141,7 +141,7 @@ const VersionSelector: React.FC = () => {
       <Button type="text" disabled>
         <Space size="small">
           <BranchesOutlined />
-          <span style={{ fontWeight: 500, color: '#999' }}>
+          <span style={{ fontWeight: 500, color: 'var(--text-tertiary)' }}>
             请先选择项目
           </span>
         </Space>

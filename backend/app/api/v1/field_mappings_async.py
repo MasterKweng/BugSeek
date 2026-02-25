@@ -185,7 +185,7 @@ async def create_suggest_task(
 @router.get("/field-mappings/suggestions", response_model=ApiResponse)
 async def get_suggestions(
     task_id: int,
-    status: Optional[str] = Query(None, description="状态筛选"),
+    status_filter: Optional[str] = Query(None, description="状态筛选"),
     page: int = Query(1, ge=1, description="页码"),
     size: int = Query(20, ge=1, le=100, description="每页数量"),
     db: Session = Depends(get_db),
@@ -193,27 +193,27 @@ async def get_suggestions(
 ):
     """
     获取字段映射建议结果（建议表版本）
-    
+
     遵循后端代码规范：
     - 真分页：数据库层面分页
-    - 状态筛选：支持 status 参数
+    - 状态筛选：支持 status_filter 参数（避免与 fastapi.status 冲突）
     - 水平越权校验（IDOR）：检查资源归属人
     - 全链路 TraceID：使用 get_trace_id()
     - 向后兼容：如果建议表为空，尝试从 JSON 读取
-    
+
     Args:
         task_id: 任务ID
-        status: 状态筛选
+        status_filter: 状态筛选
         page: 页码
         size: 每页数量
-    
+
     Returns:
         建议列表
     """
     trace_id = get_trace_id()
     from app.db.base import FieldMappingSuggestion
-    
-    logger.info(f"[{trace_id}] 获取字段映射建议结果: task_id={task_id}, status={status}, page={page}, size={size}")
+
+    logger.info(f"[{trace_id}] 获取字段映射建议结果: task_id={task_id}, status_filter={status_filter}, page={page}, size={size}")
 
     # 查询任务
     task = db.query(AsyncTask).filter(AsyncTask.id == task_id).first()
@@ -263,15 +263,37 @@ async def get_suggestions(
                 "statistics": task.statistics or {}
             }
         )
+    elif task.status == "partial_success":
+        return ApiResponse(
+            code=0,
+            message="任务部分成功（建议写表失败）",
+            data={
+                "status": "partial_success",
+                "task_id": task_id,
+                "error_message": task.error_message,
+                "stages": task.stages or [],
+                "statistics": task.statistics or {},
+                "result": task.result
+            }
+        )
 
     # 尝试从建议表查询
     query = db.query(FieldMappingSuggestion).filter(
         FieldMappingSuggestion.task_id == task_id
     )
     
-    # 状态筛选
-    if status:
-        query = query.filter(FieldMappingSuggestion.status == status)
+    # 状态筛选（带状态映射转换）
+    # 前端使用 proposed/confirmed/rejected，但建议表使用 pending/accepted/ignored
+    # 需要进行状态映射
+    if status_filter:
+        # 状态映射：前端状态 -> 建议表状态
+        status_mapping = {
+            "proposed": "pending",      # 待审核
+            "confirmed": "accepted",    # 已确认
+            "rejected": "ignored"       # 已拒绝
+        }
+        mapped_status = status_mapping.get(status_filter, status_filter)
+        query = query.filter(FieldMappingSuggestion.status == mapped_status)
     
     # 获取总数
     total = query.count()
@@ -315,6 +337,16 @@ async def get_suggestions(
                 "path": item.definition.path
             }
         
+        # 状态映射：数据库状态 -> 前端状态
+        # 建议表使用 pending/accepted/ignored，前端使用 proposed/confirmed/rejected
+        status_mapping = {
+            "pending": "proposed",      # 待审核
+            "accepted": "confirmed",    # 已确认
+            "ignored": "rejected",      # 已拒绝
+            "modified": "modified"      # 已修改
+        }
+        mapped_status = status_mapping.get(item.status, item.status)
+        
         items_data.append({
             "id": item.id,
             "definition_id": item.definition_id,
@@ -322,7 +354,7 @@ async def get_suggestions(
             "definition_path": definition_info["path"] if definition_info else None,
             "api_field_path": item.api_field_path,
             "candidates": item.candidates,  # JSON 自动反序列化
-            "status": item.status,
+            "status": mapped_status,  # 返回映射后的状态值
             "mapping_id": item.mapping_id
         })
     
@@ -415,7 +447,7 @@ async def get_async_task(
         enhanced_stages.append(stage_dict)
     
     # 计算可重试的阶段
-    can_retry = task.status in ["failed", "cancelled"]
+    can_retry = task.status in ["failed", "cancelled", "partial_success"]
     retryable_stages = []
     
     if can_retry and task.current_stage:
@@ -584,10 +616,15 @@ async def resume_field_mapping_task(
     task.status = "pending"
     db.commit()
     
-    # 提交到任务队列
-    await task_manager.submit_task(task_id, task.task_type)
+    # 使用 Celery 重投递任务
+    from app.celery.tasks import execute_field_mapping_task
+    celery_task = execute_field_mapping_task.apply_async(args=[task_id])
     
-    logger.info(f"[{trace_id}] 任务已提交到队列: task_id={task_id}")
+    # 更新任务的 Celery 任务 ID
+    task.celery_task_id = celery_task.id
+    db.commit()
+    
+    logger.info(f"[{trace_id}] 任务已通过 Celery 重投递: task_id={task_id}, celery_task_id={celery_task.id}")
     
     return ApiResponse(
         code=0,
@@ -726,8 +763,15 @@ async def retry_field_mapping_stage(
         f"current_stage={task.current_stage}"
     )
     
-    # 提交到任务队列
-    await task_manager.submit_task(task_id, task.task_type)
+    # 使用 Celery 重投递任务
+    from app.celery.tasks import execute_field_mapping_task
+    celery_task = execute_field_mapping_task.apply_async(args=[task_id])
+    
+    # 更新任务的 Celery 任务 ID
+    task.celery_task_id = celery_task.id
+    db.commit()
+    
+    logger.info(f"[{trace_id}] 任务已通过 Celery 重投递: task_id={task_id}, celery_task_id={celery_task.id}")
     
     return ApiResponse(
         code=0,
@@ -799,8 +843,15 @@ async def reset_field_mapping_task(
     
     logger.info(f"[{trace_id}] 任务已重置: task_id={task_id}")
     
-    # 提交到任务队列
-    await task_manager.submit_task(task_id, task.task_type)
+    # 使用 Celery 重投递任务
+    from app.celery.tasks import execute_field_mapping_task
+    celery_task = execute_field_mapping_task.apply_async(args=[task_id])
+    
+    # 更新任务的 Celery 任务 ID
+    task.celery_task_id = celery_task.id
+    db.commit()
+    
+    logger.info(f"[{trace_id}] 任务已通过 Celery 重投递: task_id={task_id}, celery_task_id={celery_task.id}")
     
     return ApiResponse(
         code=0,
@@ -817,7 +868,7 @@ async def list_async_tasks(
     task_type: str = Query("field_mapping_suggest", description="任务类型"),
     project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
     version_id: Optional[int] = Query(None, description="版本ID（可选）"),
-    status: Optional[str] = Query(None, description="状态筛选（可选）"),
+    status_filter: Optional[str] = Query(None, description="状态筛选（可选）"),
     limit: int = Query(20, ge=1, le=100, description="每页数量"),
     offset: int = Query(0, ge=0, description="偏移量"),
     db: Session = Depends(get_db),
@@ -860,7 +911,7 @@ async def list_async_tasks(
     logger.info(
         f"[{trace_id}] 查询任务列表: task_type={task_type}, "
         f"project_id={project_id}, version_id={version_id}, "
-        f"status={status}, limit={limit}, offset={offset}"
+        f"status_filter={status_filter}, limit={limit}, offset={offset}"
     )
     
     # 构建查询（使用索引覆盖）
@@ -880,8 +931,8 @@ async def list_async_tasks(
         )
     
     # 添加状态筛选（使用索引）
-    if status:
-        query = query.filter(AsyncTask.status == status)
+    if status_filter:
+        query = query.filter(AsyncTask.status == status_filter)
     
     # 获取总数（使用 count() 而不是 all()，性能更好）
     total = query.count()
@@ -900,9 +951,15 @@ async def list_async_tasks(
         # 计算生成建议数量
         result_count = None
         if task.result and isinstance(task.result, dict):
-            result_data = task.result.get("data", {})
-            if isinstance(result_data, dict):
-                result_count = len(result_data.get("items", []))
+            # 优先读取 result.suggestions（新结构）
+            suggestions = task.result.get("suggestions")
+            if suggestions and isinstance(suggestions, list):
+                result_count = len(suggestions)
+            else:
+                # 兼容 result.data.items（旧结构）
+                result_data = task.result.get("data", {})
+                if isinstance(result_data, dict):
+                    result_count = len(result_data.get("items", []))
         
         # 提取统计信息
         statistics = {}
@@ -984,20 +1041,46 @@ async def cancel_async_task(
             detail="无权访问该任务"
         )
     
+    # 幂等：已取消任务直接返回
+    if task.status == "cancelled":
+        return ApiResponse(
+            code=0,
+            message="任务已是取消状态",
+            data={
+                "task_id": task_id,
+                "status": "cancelled"
+            }
+        )
+
     # 状态校验：只有 pending 或 running 状态的任务才能取消
     if task.status not in ["pending", "running"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"任务状态为 {task.status}，无法取消"
         )
-    
+
+    # Revoke Celery 任务（硬取消）- 先尝试硬取消，再落库状态
+    revoke_ok = False
+    if task.celery_task_id:
+        try:
+            from app.celery_config import celery_app
+            celery_app.control.revoke(task.celery_task_id, terminate=True, signal='SIGTERM')
+            logger.info(f"[{trace_id}] Celery 任务已 revoke: celery_task_id={task.celery_task_id}")
+            revoke_ok = True
+        except Exception as e:
+            logger.warning(f"[{trace_id}] Revoke Celery 任务失败: {str(e)}")
+    else:
+        revoke_ok = True
+
     # 更新任务状态
     task.status = "cancelled"
     task.progress_message = "任务已取消"
     task.finished_at = datetime.now()
-    
+    if not task.statistics:
+        task.statistics = {}
+    task.statistics["cancel_revoke_ok"] = revoke_ok
     db.commit()
-    
+
     logger.info(f"[{trace_id}] 任务已取消: task_id={task_id}")
     
     return ApiResponse(
@@ -1008,6 +1091,88 @@ async def cancel_async_task(
             "status": "cancelled"
         }
     )
+
+
+@router.post("/async-tasks/{task_id}/replay-suggestions", response_model=ApiResponse)
+async def replay_suggestions_to_table(
+    task_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    从 task.result 重新写入建议表（恢复接口）
+    
+    用于修复"任务成功但建议表无数据"的问题
+    
+    Args:
+        task_id: 任务ID
+    
+    Returns:
+        操作结果
+    """
+    trace_id = get_trace_id()
+    
+    logger.info(f"[{trace_id}] 重放建议表: task_id={task_id}")
+    
+    # 查询任务
+    task = db.query(AsyncTask).filter(AsyncTask.id == task_id).first()
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"任务不存在：{task_id}"
+        )
+    
+    # 检查权限
+    if task.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="无权访问该任务"
+        )
+    
+    # 检查任务状态
+    if task.status not in ["completed", "partial_success"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"任务状态为 {task.status}，只有 completed/partial_success 状态的任务才能重放"
+        )
+    
+    # 检查是否有 result
+    if not task.result or not task.result.get("suggestions"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="任务没有 suggestions 数据"
+        )
+    
+    try:
+        # 调用保存函数
+        from app.celery.tasks import _save_suggestions_to_db
+        _save_suggestions_to_db(db, task_id, task.result)
+        
+        # 清除失败标记
+        if task.statistics:
+            task.statistics.pop("write_table_failed", None)
+            task.statistics.pop("write_table_error", None)
+        task.error_message = None
+        db.commit()
+        
+        logger.info(f"[{trace_id}] 重放成功: task_id={task_id}")
+        
+        return ApiResponse(
+            code=0,
+            message="重放成功",
+            data={
+                "task_id": task_id,
+                "suggestions_count": len(task.result.get("suggestions", []))
+            }
+        )
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"[{trace_id}] 重放失败: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"重放失败: {str(e)}"
+        )
 
 
 def _calculate_stage_description(stage_num: int, stage_result: Dict[str, Any], task: AsyncTask) -> Optional[str]:
