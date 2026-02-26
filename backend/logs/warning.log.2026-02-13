@@ -1,0 +1,1698 @@
+2026-02-13 10:51:25 | WARNING | [27bcf406c9b842f88adc789b3694ede5] | app.main | 向量索引预热失败: VectorIndexManager.build_index() missing 1 required positional argument: 'schema_snapshot'
+2026-02-13 10:57:01 | WARNING | [073de04e4faf442ab544a3857527223e] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
+2026-02-13 10:57:01 | WARNING | [073de04e4faf442ab544a3857527223e] | huggingface_hub.utils._http | Retrying in 1s [Retry 1/5].
+2026-02-13 10:57:23 | WARNING | [073de04e4faf442ab544a3857527223e] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
+2026-02-13 10:57:23 | WARNING | [073de04e4faf442ab544a3857527223e] | huggingface_hub.utils._http | Retrying in 2s [Retry 2/5].
+2026-02-13 10:57:46 | WARNING | [073de04e4faf442ab544a3857527223e] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
+2026-02-13 10:57:46 | WARNING | [073de04e4faf442ab544a3857527223e] | huggingface_hub.utils._http | Retrying in 4s [Retry 3/5].
+2026-02-13 10:58:11 | WARNING | [073de04e4faf442ab544a3857527223e] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
+2026-02-13 10:58:11 | WARNING | [073de04e4faf442ab544a3857527223e] | huggingface_hub.utils._http | Retrying in 8s [Retry 4/5].
+2026-02-13 10:58:40 | WARNING | [073de04e4faf442ab544a3857527223e] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
+2026-02-13 10:58:40 | WARNING | [073de04e4faf442ab544a3857527223e] | huggingface_hub.utils._http | Retrying in 8s [Retry 5/5].
+2026-02-13 10:59:09 | WARNING | [073de04e4faf442ab544a3857527223e] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
+2026-02-13 10:59:50 | WARNING | [073de04e4faf442ab544a3857527223e] | app.main | 向量索引预热失败: timed out
+2026-02-13 11:03:02 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:03:02 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 1s [Retry 1/5].
+2026-02-13 11:03:24 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:03:24 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 2s [Retry 2/5].
+2026-02-13 11:03:47 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:03:47 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 4s [Retry 3/5].
+2026-02-13 11:04:12 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:04:12 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 8s [Retry 4/5].
+2026-02-13 11:04:41 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:04:41 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 8s [Retry 5/5].
+2026-02-13 11:05:10 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:05:10 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | sentence_transformers.SentenceTransformer | No sentence-transformers model found with name sentence-transformers/all-MiniLM-L6-v2. Creating a new one with mean pooling.
+2026-02-13 11:05:41 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
+2026-02-13 11:05:41 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 1s [Retry 1/5].
+2026-02-13 11:06:03 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
+2026-02-13 11:06:03 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 2s [Retry 2/5].
+2026-02-13 11:06:26 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
+2026-02-13 11:06:26 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 4s [Retry 3/5].
+2026-02-13 11:06:51 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
+2026-02-13 11:06:51 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 8s [Retry 4/5].
+2026-02-13 11:07:21 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
+2026-02-13 11:07:21 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 8s [Retry 5/5].
+2026-02-13 11:07:50 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json
+2026-02-13 11:08:21 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json
+2026-02-13 11:08:21 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 1s [Retry 1/5].
+2026-02-13 11:08:43 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json
+2026-02-13 11:08:43 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 2s [Retry 2/5].
+2026-02-13 11:09:06 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json
+2026-02-13 11:09:06 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 4s [Retry 3/5].
+2026-02-13 11:09:31 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json
+2026-02-13 11:09:31 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 8s [Retry 4/5].
+2026-02-13 11:10:00 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json
+2026-02-13 11:10:00 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | Retrying in 8s [Retry 5/5].
+2026-02-13 11:10:29 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json
+2026-02-13 11:10:29 | WARNING | [45407fdf231f41f8b20e375f3f04b4cf] | app.main | 向量索引预热失败: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.
+Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.
+2026-02-13 11:17:35 | WARNING | [9ffdcc0a26d54eeab8af27673fe26d51] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:17:35 | WARNING | [9ffdcc0a26d54eeab8af27673fe26d51] | huggingface_hub.utils._http | Retrying in 1s [Retry 1/5].
+2026-02-13 11:17:57 | WARNING | [9ffdcc0a26d54eeab8af27673fe26d51] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:17:57 | WARNING | [9ffdcc0a26d54eeab8af27673fe26d51] | huggingface_hub.utils._http | Retrying in 2s [Retry 2/5].
+2026-02-13 11:18:20 | WARNING | [9ffdcc0a26d54eeab8af27673fe26d51] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:18:20 | WARNING | [9ffdcc0a26d54eeab8af27673fe26d51] | huggingface_hub.utils._http | Retrying in 4s [Retry 3/5].
+2026-02-13 11:18:45 | WARNING | [9ffdcc0a26d54eeab8af27673fe26d51] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:18:45 | WARNING | [9ffdcc0a26d54eeab8af27673fe26d51] | huggingface_hub.utils._http | Retrying in 8s [Retry 4/5].
+2026-02-13 11:20:34 | WARNING | [87484897fdf54e1787c1abc2408bfc0a] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:20:34 | WARNING | [87484897fdf54e1787c1abc2408bfc0a] | huggingface_hub.utils._http | Retrying in 1s [Retry 1/5].
+2026-02-13 11:20:56 | WARNING | [87484897fdf54e1787c1abc2408bfc0a] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:20:56 | WARNING | [87484897fdf54e1787c1abc2408bfc0a] | huggingface_hub.utils._http | Retrying in 2s [Retry 2/5].
+2026-02-13 11:21:19 | WARNING | [87484897fdf54e1787c1abc2408bfc0a] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:21:19 | WARNING | [87484897fdf54e1787c1abc2408bfc0a] | huggingface_hub.utils._http | Retrying in 4s [Retry 3/5].
+2026-02-13 11:21:44 | WARNING | [87484897fdf54e1787c1abc2408bfc0a] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:21:44 | WARNING | [87484897fdf54e1787c1abc2408bfc0a] | huggingface_hub.utils._http | Retrying in 8s [Retry 4/5].
+2026-02-13 11:22:13 | WARNING | [87484897fdf54e1787c1abc2408bfc0a] | huggingface_hub.utils._http | '[WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。' thrown while requesting HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/./modules.json
+2026-02-13 11:22:13 | WARNING | [87484897fdf54e1787c1abc2408bfc0a] | huggingface_hub.utils._http | Retrying in 8s [Retry 5/5].
+2026-02-13 14:03:20 | WARNING | [e3460679d50646e0809548c5c08921f0] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-13 14:03:20 | WARNING | [54b173561ddc4c87b9fc86b1a8f14fef] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-13 14:03:20 | WARNING | [9b2f8f72048a456bb699205e7403f6bc] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-13 14:03:20 | WARNING | [fdf656057d50416481605e8c7a621cc5] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-13 14:03:20 | WARNING | [31f7ce86205a46c9b353a8e8a04f20fd] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-13 14:03:20 | WARNING | [66a8b20379904921b98469fd58da407b] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-13 14:03:20 | ERROR | [66a8b20379904921b98469fd58da407b] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-13 14:03:20 | ERROR | [54b173561ddc4c87b9fc86b1a8f14fef] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-13 14:03:20 | ERROR | [9b2f8f72048a456bb699205e7403f6bc] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-13 14:03:20 | ERROR | [fdf656057d50416481605e8c7a621cc5] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-13 14:03:20 | ERROR | [31f7ce86205a46c9b353a8e8a04f20fd] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-13 14:03:20 | ERROR | [e3460679d50646e0809548c5c08921f0] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-13 14:03:20 | WARNING | [23c219bcdc3449d0b5ffa9d6d68043bc] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-13 14:03:20 | ERROR | [23c219bcdc3449d0b5ffa9d6d68043bc] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-13 14:03:20 | WARNING | [5d4c65b411e34cacaaa80fd3624b4293] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-02-13 14:03:20 | ERROR | [5d4c65b411e34cacaaa80fd3624b4293] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-13 14:20:08 | WARNING | [27d43b55b3a44de7a0e6fe70d348fe7b] | app.api.v1.auth | 注册失败: 用户名已存在 - testuser
+2026-02-13 14:20:08 | ERROR | [27d43b55b3a44de7a0e6fe70d348fe7b] | app.dependencies | 数据库会话异常: 400: 用户名已存在
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\auth.py", line 96, in register
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 400: 用户名已存在
+2026-02-13 14:27:02 | WARNING | [48ae8ee8f44e449880b40edcad611cc0] | app.api.v1.auth | 注册失败: 用户名已存在 - testuser
+2026-02-13 14:27:02 | ERROR | [48ae8ee8f44e449880b40edcad611cc0] | app.dependencies | 数据库会话异常: 400: 用户名已存在
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\auth.py", line 96, in register
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 400: 用户名已存在
+2026-02-13 14:34:26 | WARNING | [d0d6e8a89000437697ee0422fd57f2d6] | app.api.v1.auth | 注册失败: 用户名已存在 - testuser
+2026-02-13 14:34:26 | ERROR | [d0d6e8a89000437697ee0422fd57f2d6] | app.dependencies | 数据库会话异常: 400: 用户名已存在
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\auth.py", line 96, in register
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 400: 用户名已存在
+2026-02-13 14:34:32 | WARNING | [e5dca0af56d645e89343957b3bd17afd] | app.api.v1.auth | 注册失败: 用户名已存在 - testuser2
+2026-02-13 14:34:32 | ERROR | [e5dca0af56d645e89343957b3bd17afd] | app.dependencies | 数据库会话异常: 400: 用户名已存在
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\auth.py", line 96, in register
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 400: 用户名已存在
+2026-02-13 14:37:47 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates are related to the 'order_salesorderallocation' table."}
+```...
+2026-02-13 14:37:48 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns directly relate to the 'icon' field in the 'order_salesorderallocation' table. The closest match is 'common_notesimage.im...
+2026-02-13 14:37:49 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 0, "reason": "候选列 'quantity' 属于 'order_salesorderallocation' 表，与 'location_count' 的语义最相关。"}
+```...
+2026-02-13 14:37:50 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 2, "reason": "列 'id' 是 'part_part' 表中的主键，类型为 integer not null，符合主表的上下文和要求。"}
+```...
+2026-02-13 14:37:50 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选 1 中的 'id' 列与 'part_part' 表中的主键字段 'id' 相匹配，且类型为 integer not null，语义分较高，因此优先选择。"
+}
+```...
+2026-02-13 14:37:51 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有明确与 'part_part' 表相关的列，也没有列与 'tags' 字段的语义匹配。"
+}
+```...
+2026-02-13 14:37:52 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列中没有与'part_part'表相关的列，且没有候选列的语义分超过0.6。"
+}
+```...
+2026-02-13 14:37:52 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选 1 与 'part_part' 表相关，并且列 'id' 是整数类型，这与 'manufacturer' 字段的语义匹配较好。"}
+```...
+2026-02-13 14:37:53 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 5,
+  "reason": "候选列 'company_manufacturerpart' 的 'MPN' 列与 'manufacturer_detail' 字段的语义最匹配，且归属于 'part_part' 表。"
+}
+```...
+2026-02-13 14:37:54 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidate columns match the context of the 'order_salesorderallocation' table or the 'limit' field."}
+```...
+2026-02-13 14:37:54 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选列 'order_salesorderallocation' 的 'id' 列与 API 字段 'offset' 的上下文最不相关。"
+}
+```...
+2026-02-13 14:37:55 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选字段与 'common_projectcode' 表相关。"}
+```...
+2026-02-13 14:37:55 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates have a strong semantic association with the 'common_projectcode' table or the 'responsible' field."}
+```...
+2026-02-13 14:37:56 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有列与 'responsible_detail' 字段的语义和上下文匹配。"
+}
+```...
+2026-02-13 14:37:57 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 2, "reason": "候选 2 中的 'id' 列与 'part_part' 表的 'pk' 字段含义最为接近，通常是主键，语义分值较高。"}
+```...
+2026-02-13 14:37:58 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates match the 'bom_item' field in the 'part_part' table context."}
+```...
+2026-02-13 14:37:58 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields are related to the 'order_salesorderallocation' table."}
+```...
+2026-02-13 14:37:59 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields match the context and semantics of 'order_salesorderallocation'."}
+```...
+2026-02-13 14:38:00 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选列 'quantity' 与 'location_count' 的语义最为相关，均与销售订单分配中的数量有关。"}
+```...
+2026-02-13 14:38:01 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 2,
+  "reason": "候选 2 中的列 'id' 归属于 'part_part' 表，并且是该表的主键，因此最符合 'pk' 字段的映射。"
+}
+```...
+2026-02-13 14:38:01 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选字段与主表 'part_part' 的上下文和 'price' 字段相关。"}
+```...
+2026-02-13 14:38:02 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidate columns are directly related to the 'order_salesorderallocation' table. The 'pk' field typically represents the primary ...
+2026-02-13 14:38:03 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中没有字段与 'order_salesorderallocation' 表相关。"}
+```...
+2026-02-13 14:38:04 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选列 'quantity' 属于 'order_salesorderallocation' 表，且类型为 numeric，这与 'location_count' 字段可能表示的库存位置数量的语义相符。"
+}
+```...
+2026-02-13 14:38:04 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "字段 'limit' 在候选列表中没有找到与 'order_returnorder' 表相关的列。"}
+```...
+2026-02-13 14:38:05 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "待映射字段 'offset' 在候选列表中没有找到与 'order_returnorder' 表相关联的列。"}
+```...
+2026-02-13 14:38:06 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates are directly related to the 'order_returnorder' table or context. The field 'search' could potentially be related to a ...
+2026-02-13 14:38:07 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有合适的候选列匹配 'common_attachment' 表的 'pk' 字段。"}
+```...
+2026-02-13 14:38:07 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns directly relate to the 'merge' field in the context of the 'common_attachment' table."}
+```...
+2026-02-13 14:38:08 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'common_attachment' 表的上下文和 'enabled' 字段语义匹配。"
+}
+```...
+2026-02-13 14:38:09 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选字段与 'common_attachment' 表的上下文匹配。"}
+```...
+2026-02-13 14:38:09 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields match the context and semantics of the 'common_attachment' table."}
+```...
+2026-02-13 14:38:10 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates are directly related to the 'common_attachment' table. The 'template' field in the API does not match any of the provid...
+2026-02-13 14:38:11 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有与 'landscape' 字段语义匹配的列。"
+}
+```...
+2026-02-13 14:38:11 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 0, "reason": "候选 1 中的 'quantity' 列与 'page_size' 在语义上最为接近，且 'common_attachment' 表中没有其他候选列与 'page_size' 相匹配。"}
+```...
+2026-02-13 14:38:12 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选 1 是 'common_attachment' 表中的列，类型为 character varying，与 'filename_pattern' 的语义最相关。"}
+```...
+2026-02-13 14:38:13 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "The field 'limit' does not have a direct semantic match with any of the provided candidate columns in the 'order_returnorder' table. The candidates are eith...
+2026-02-13 14:38:14 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates directly relate to the 'order_returnorder' table or have a semantic meaning that matches the 'offset' field."}
+```...
+2026-02-13 14:38:14 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有与 'order_returnorder' 表相关的列。"
+}
+```...
+2026-02-13 14:38:16 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates directly relate to the 'users_owner' table or provide a clear semantic match for 'template_detail'. The highest semanti...
+2026-02-13 14:38:16 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidate columns are associated with the 'report_reportasset' table."}
+```...
+2026-02-13 14:38:17 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'pk' 字段的语义匹配。"
+}
+```...
+2026-02-13 14:38:17 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns have a strong semantic relationship with the 'typ' field in the 'plugin_pluginconfig' table."
+}
+```...
+2026-02-13 14:38:18 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "在候选列表中没有列与'plugin_pluginconfig'表中的'units'字段直接相关。"}
+```...
+2026-02-13 14:38:19 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates match the context of 'plugin_pluginconfig' and the field 'api_url'."}
+```...
+2026-02-13 14:38:19 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns have a strong enough semantic match with the 'choices' field in the context of the 'plugin_pluginconfig' table."
+}
+```...
+2026-02-13 14:38:21 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: 根据上下文和候选列表的分析，'required' 字段在 API 中通常表示某个配置项是否必须的布尔值或整数值。在候选列表中，'plugin_pluginconfig' 表的列中没有直接匹配的布尔值或整数值的列。因此，没有合适的列可以映射到 'required' 字段。
+
+最终答案是:
+```json
+{"selected_index": None, "reason": "No suitable ...
+2026-02-13 14:38:21 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns match the context of the 'model_name' field in the 'plugin_pluginconfig' table."
+}
+```...
+2026-02-13 14:38:22 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates match the context of the 'plugin_pluginconfig' table and the field 'model_filters'."}
+```...
+2026-02-13 14:38:22 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: {
+  "selected_index": None,
+  "reason": "字段 'limit' 通常用于表示限制或最大值，但候选列表中没有与之相关的列。"
+}...
+2026-02-13 14:38:23 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选 1 和 5 中的列 'quantity' 和 'reference_int' 分别与 'order_salesorderallocation' 表中的 'quantity' 和 'id' 列相关性较高，但 'quantity' 更符合 'offset' 的语义。"}
+```...
+2026-02-13 14:38:24 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns have a semantic relevance to the 'order_salesorderallocation' table."}
+```...
+2026-02-13 14:38:25 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "The API field 'pk' does not have a clear mapping to any of the provided candidate columns. The candidates are not related to the 'stock_stockitemtracki...
+2026-02-13 14:38:25 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选列表中的字段与 'stock_stockitemtracking' 表的上下文相关联。"}
+```...
+2026-02-13 14:38:26 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate fields directly relate to the 'stock_stockitemtracking' table. The most relevant fields are from the 'report' schema, but they do...
+2026-02-13 14:38:27 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates match the context and semantic requirements for the 'test_station' field."
+}
+```...
+2026-02-13 14:38:27 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "字段 'finished_datetime' 与候选列表中的 'stock_stockitemtracking' 表的 'date' 列在语义和类型上最为匹配。"
+}
+```...
+2026-02-13 14:38:28 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates are directly related to the 'users_owner' table or have a semantic meaning that aligns with the 'is_active' field."
+}
+`...
+2026-02-13 14:38:29 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns in the users_owner table match the 'is_staff' API field. The highest relevance candidates are all related to the users_ruleset...
+2026-02-13 14:38:30 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates have a semantic match with the 'limit' field in the context of the 'users_owner' table."}
+```...
+2026-02-13 14:38:30 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中没有字段与 'users_owner' 表的相关性。"}
+```...
+2026-02-13 14:38:31 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates match the context and requirements."}
+```...
+2026-02-13 14:38:31 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'users_owner' 表的上下文和 'search' 字段的语义匹配。"
+}
+```...
+2026-02-13 14:38:32 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates match the context of the 'usersessions_usersession' table or the 'assigned_to' field."}
+```...
+2026-02-13 14:38:34 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns have a high enough semantic relevance to the 'assigned_to_me' field in the 'usersessions_usersession' table. The highest relev...
+2026-02-13 14:38:34 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "last_seen_at 列的语义与 completed_after 字段的语义较为接近，都与用户会话完成时间相关，因此选择该列作为映射关系。"
+}
+```...
+2026-02-13 14:38:35 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns in the 'usersessions_usersession' table directly correspond to the 'completed_before' field. The provided candidates do not al...
+2026-02-13 14:38:36 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选列与 'usersessions_usersession' 表相关联。"}
+```...
+2026-02-13 14:38:36 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选字段与 'customer_detail' 字段在上下文中匹配。"
+}
+```...
+2026-02-13 14:38:37 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "创建时间戳与会话开始日期的逻辑关系最高"}
+```...
+2026-02-13 14:38:37 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates match the context and semantic requirements for the 'has_target_date' field in the 'usersessions_usersession' table."}
+```...
+2026-02-13 14:38:38 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "The field 'include_variants' does not have a clear match in the provided candidate list."}
+```...
+2026-02-13 14:38:38 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有与 'limit' 字段语义匹配的列。"
+}
+```...
+2026-02-13 14:38:39 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "last_seen_at 字段时间戳类型与 max_date 的时间语义匹配，且与 usersessions_usersession 表相关。"}
+```...
+2026-02-13 14:38:39 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选1 最接近 'min_date' 的含义，并且与 'usersessions_usersession' 表相关。"}
+```...
+2026-02-13 14:38:40 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有合适的候选列与 'usersessions_usersession' 表和 'offset' 字段匹配。"}
+```...
+2026-02-13 14:38:41 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns in the provided list are related to the 'usersessions_usersession' table."}
+```...
+2026-02-13 14:38:41 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates are relevant to the 'usersessions_usersession' table or the 'outstanding' field."}
+```...
+2026-02-13 14:38:42 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选1 'last_seen_at' 列与 'usersessions_usersession' 表相关，并且类型为 'timestamp with time zone'，这与 'overdue' 字段通常表示的过期时间概念相符。"
+}
+```...
+2026-02-13 14:38:43 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates are directly related to the 'usersessions_usersession' table or its fields. The 'part' field in the API does not match any o...
+2026-02-13 14:38:43 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选字段与 'search' 字段相关。"}
+```...
+2026-02-13 14:38:44 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选列 created_at 的语义与 start_date_after 最相关，且为 usersessions_usersession 表的一部分。"
+}
+```...
+2026-02-13 14:38:45 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "start_date_before 字段可能表示用户会话开始之前的日期，而 usersessions_usersession 表中的 created_at 列通常表示创建时间，这与 start_date_before 的语义最为接近。"
+}
+```...
+2026-02-13 14:38:45 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中没有与 'usersessions_usersession' 主表相关的列。"}
+```...
+2026-02-13 14:38:46 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选 1 的 'last_seen_at' 列与 'usersessions_usersession' 表相关性最高，且与 'target_date_after' 相匹配。"
+}
+```...
+2026-02-13 14:38:46 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: None...
+2026-02-13 14:38:47 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选字段与 'order_salesordershipment' 表的上下文匹配。"}
+```...
+2026-02-13 14:38:48 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns are relevant to the 'order_salesordershipment' table."}
+```...
+2026-02-13 14:38:48 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有找到与 'order_salesordershipment' 表相关的候选列。"}
+```...
+2026-02-13 14:38:49 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidate columns directly relate to the 'address' field in the context of 'order_salesordershipment'. The candidates are either n...
+2026-02-13 14:38:50 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns are directly related to the 'order_salesordershipment' table."}
+```...
+2026-02-13 14:38:51 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选列 'shipment_date' 与 'order_salesordershipment' 表直接相关，并且类型为 date，这使得它成为最符合 'overdue' 字段语义的候选。"}
+```...
+2026-02-13 14:38:52 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate fields directly relate to the 'customer' in the context of the 'order_salesordershipment' table."
+}
+```...
+2026-02-13 14:38:52 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "字段 'duplicate' 在上下文中没有找到与 'order_salesordershipment' 表相关联的候选列。"}
+```...
+2026-02-13 14:38:53 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns match the context and semantic of the 'created_by' field in the 'order_salesordershipment' table."
+}
+```...
+2026-02-13 14:38:54 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有与 'order_salesordershipment' 直接相关的列。"
+}
+```...
+2026-02-13 14:38:54 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'order_salesordershipment' 表的上下文和 'responsible' 字段语义匹配。"
+}
+```...
+2026-02-13 14:38:55 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates are related to the 'order_salesordershipment' table. The field 'status_text' in the API does not match any of the provided c...
+2026-02-13 14:38:56 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns have a semantic match with the 'total_price' field in the 'order_salesordershipment' table."
+}
+```...
+2026-02-13 14:38:56 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选列与 'order_salesordershipment' 表的上下文匹配。"}
+```...
+2026-02-13 14:38:58 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates match the context of the 'order_salesordershipment' table. The field 'address_detail' is most likely related to shipping add...
+2026-02-13 14:38:59 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidate fields match the context of the 'order_salesordershipment' table and the field 'contact_detail'. The candidates are eith...
+2026-02-13 14:38:59 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates are directly related to the 'order_salesordershipment' table. The closest match is 'common_dataoutput.complete', but it...
+2026-02-13 14:39:00 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates are directly related to the 'order_salesordershipment' table. The highest similarity is with 'common_notificationentry', but...
+2026-02-13 14:39:01 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选 1 中的 'reference' 列与 'order_salesordershipment' 表相关性最高，且与 'customer_reference' 字段的语义匹配较好。"}
+```...
+2026-02-13 14:39:02 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates have a strong semantic match to the 'project_code_label' field in the context of the 'order_salesordershipment' table. ...
+2026-02-13 14:39:03 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns are directly related to the 'order_salesordershipment' table or its context."}
+```...
+2026-02-13 14:39:03 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 2,
+  "reason": "候选列 'id' 属于 'part_part' 表，并且其类型为 'integer not null'，这通常用于作为主键或唯一标识符。"
+}
+```...
+2026-02-13 14:39:04 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate fields directly map to the 'price' field in the 'part_part' table. The highest relatedness is to field 5 in the 'part_partsellpri...
+2026-02-13 14:39:05 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选 1 拥有最高的语义分，并且与主表 'part_part' 相关。"
+}
+```...
+2026-02-13 14:39:06 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列直接与 'part_part' 表相关联，并且供应商信息通常不会与 SKU、MPN 或价格断层等字段直接对应。"
+}
+```...
+2026-02-13 14:39:07 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选列与'pk'字段的语义和'stock_stockitemtracking'主表上下文匹配。"}
+```...
+2026-02-13 14:39:07 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败:  ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中的所有字段与 'stock_stockitemtracking' 表的上下文不匹配。"
+}
+```...
+2026-02-13 14:39:08 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "无合适候选列匹配。"
+}
+```...
+2026-02-13 14:39:09 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields directly related to 'stock_stockitemtracking' match the context of 'test_station'."}
+```...
+2026-02-13 14:39:09 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选列 'stock_stockitemtracking.date' 的语义分最高，且与接口推测的主表 'stock_stockitemtracking' 直接相关。"}
+```...
+2026-02-13 14:39:10 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns match the context of the 'part_partcategorystar' table. The selected column has a low semantic correlation with the context pr...
+2026-02-13 14:39:11 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "The provided candidates do not directly map to the 'part_partcategorystar' table. The highest related candidate is option 1, which belongs to the 'part...
+2026-02-13 14:39:12 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns in the provided list are associated with the 'part_partcategorystar' table. The most relevant column in the list is from ...
+2026-02-13 14:39:13 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns have a semantic match with the 'price_breaks' field in the context of the 'part_partcategorystar' table."}
+```...
+2026-02-13 14:39:14 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates match the context of the 'part_part' table or the field 'limit'."}
+```...
+2026-02-13 14:39:15 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选 1 属于 'company_manufacturerpart' 表，并且列 'id' 的类型为 integer not null，这与 API 字段 'manufacturer' 的语义和上下文匹配。"
+}
+```...
+2026-02-13 14:39:15 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'manufacturer_active' 字段的语义匹配。"
+}
+```...
+2026-02-13 14:39:16 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "The 'manufacturer_detail' field does not have a direct match in the 'part_part' table or the top candidate tables. The closest match is in the 'company_manu...
+2026-02-13 14:39:17 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "The offset field does not have a clear mapping to the 'part_part' table or any of the provided candidates. None of the candidates seem to have a semant...
+2026-02-13 14:39:17 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns are related to the 'part_part' table or the 'ordering' field."}
+```...
+2026-02-13 14:39:18 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选 1 可能是 'part_part' 表中的一个列，但语义分较低。候选 2 是 'part_part' 表中的一个列，并且语义分最高，因此选择它。"}
+```...
+2026-02-13 14:39:19 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates match the context of the 'part_part' table well enough for the 'search' field."}
+```...
+2026-02-13 14:39:20 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中的字段与主表 'part_part' 的上下文不匹配。"
+}
+```...
+2026-02-13 14:39:20 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidate fields have a clear semantic match to the 'start_version' field in the 'build_build' table. The candidates are either no...
+2026-02-13 14:39:21 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates are directly related to the 'build_build' table or its context."
+}
+```...
+2026-02-13 14:39:22 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 2, "reason": "pk 字段在大多数数据库系统中通常用于主键，而 'part_part' 表的 'id' 列是一个整数主键，因此最符合语义。"}
+```...
+2026-02-13 14:39:23 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选1 'part_part.name' 与 'icon' 同为字符型，且 'icon' 通常用于表示图标或图片，与 'name' 的语义相近，因此优先选择。"}
+```...
+2026-02-13 14:39:24 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选列 'id' 属于 'part_part' 表，并且类型为 integer not null，这与 API 字段 'level' 在上下文中的推测主表 'part_part' 一致。"
+}
+```...
+2026-02-13 14:39:24 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中没有适用于 'part_part' 表的 'parent' 字段的匹配列。"}
+```...
+2026-02-13 14:39:25 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates are directly related to the 'part_part' table. The candidate with the highest relevance, 'part_partstar.part_id', might...
+2026-02-13 14:39:26 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选 1 是 'part_part' 表中的列 'id'，类型为 'integer not null'，与 'pathstring' 字段在上下文中的语义最为相关，并且是唯一一个直接归属于 'part_part' 表的列。"}
+```...
+2026-02-13 14:39:27 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns directly relate to the 'structural' field in the 'part_part' table. The closest match is column 'name', but it has a low ...
+2026-02-13 14:39:28 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 2, "reason": "候选 2 中的 'part_part' 表的 'name' 列与 'part_part' 主表上下文更相关，且语义明确。"}
+```...
+2026-02-13 14:39:28 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields directly relate to the 'part_part' table or its context."}
+```...
+2026-02-13 14:39:29 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidate columns directly relate to the 'part_part' table in the given context. The 'default_location' field likely refers to the...
+2026-02-13 14:39:30 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中没有列与 'part_part' 表的上下文和 'parent_default_location' 字段的语义匹配。"}
+```...
+2026-02-13 14:39:31 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields are directly related to the 'order_salesordershipment' table. The 'pk' field in the 'order_salesordershipment' table is typical...
+2026-02-13 14:39:32 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns are directly related to the 'order_salesordershipment' table or context."}
+```...
+2026-02-13 14:39:32 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns have a strong semantic relationship with the 'line1' field in the context of the 'order_salesordershipment' table."
+}
+```...
+2026-02-13 14:39:33 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'order_salesordershipment' 表的上下文和字段语义匹配。"
+}
+```...
+2026-02-13 14:39:34 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns are related to the 'order_salesordershipment' table and the field 'country'. The candidates are unrelated to the context."}
+``...
+2026-02-13 14:39:34 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates directly relate to the 'order_salesordershipment' table or have a strong semantic meaning in the context of the 'primar...
+2026-02-13 14:39:35 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidate fields directly relate to the 'order_salesordershipment' table and the context of 'province'. The fields are either unre...
+2026-02-13 14:39:36 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有与 'postal_city' 字段语义匹配的列。"
+}
+```...
+2026-02-13 14:39:36 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns in the list are related to the 'postal_code' field in the 'order_salesordershipment' table. The candidates provided do no...
+2026-02-13 14:39:38 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 4,
+  "reason": "候选列 common_notesimage.id 与 internal_shipping_notes 的关系最不相关，因此不考虑。候选列 stock_stockitemtracking.notes 与 internal_shipping_notes 有一定的相关性，但语义分较低。候选列 order_sale...
+2026-02-13 14:39:39 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选字段与 'order_purchaseorder' 表相关。"}
+```...
+2026-02-13 14:39:40 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates are directly related to the 'order_purchaseorder' table. The 'link' field does not have a clear semantic match with any...
+2026-02-13 14:39:40 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "在候选列表中没有找到与 'order_purchaseorder' 表相关的列。"
+}
+```...
+2026-02-13 14:39:41 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选1 'taggit_tag' 表的 'name' 列最符合 'tags' 字段的语义，且与主表 'order_purchaseorder' 相关性最高。"
+}
+```...
+2026-02-13 14:39:42 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates match the context of the 'order_purchaseorder' table or the field 'batch'."}
+```...
+2026-02-13 14:39:43 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns directly map to the field 'build' in the context of the 'order_purchaseorder' table."
+}
+```...
+2026-02-13 14:39:43 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 4,
+  "reason": "候选 4 是 order_purchaseorder 表中的列，且与 'owner' 字段有较高的相关性。"
+}
+```...
+2026-02-13 14:39:44 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'order_purchaseorder' 表的上下文相关。"
+}
+```...
+2026-02-13 14:39:45 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields match the context of the 'order_purchaseorder' table and the 'parent' API field."}
+```...
+2026-02-13 14:39:46 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'order_purchaseorder' 表的上下文匹配。"
+}
+```...
+2026-02-13 14:39:46 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选列 'expires_at' 属于 'socialaccount_socialtoken' 表，但根据上下文推测主表为 'order_purchaseorder'，并且候选 1 更加相关，因此选择候选 1。"
+}
+```...
+2026-02-13 14:39:47 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns match the context of the 'order_purchaseorder' table. The only column related to the 'order_purchaseorder' table is candi...
+2026-02-13 14:39:48 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'customer' 字段的语义匹配，并且优先选择归属于 'order_purchaseorder' 的列。"
+}
+```...
+2026-02-13 14:39:49 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'in_stock' 字段在 'order_purchaseorder' 表中相关联。"
+}
+```...
+2026-02-13 14:39:49 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields are directly related to the 'order_purchaseorder' table or its context."}
+```...
+2026-02-13 14:39:49 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+None
+```...
+2026-02-13 14:39:50 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": "None", "reason": "None of the provided candidates are directly related to the 'order_purchaseorder' table or have a semantic meaning that matches the 'packaging' field."}
+`...
+2026-02-13 14:39:50 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中的字段与 'order_purchaseorder' 表的上下文不匹配。"}
+```...
+2026-02-13 14:39:51 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 3,
+  "reason": "候选列 'order_salesorderlineitem.quantity' 与 'child_items' 在上下文中有较高的相关性，且属于 'order_purchaseorder' 的相关表。"
+}
+```...
+2026-02-13 14:39:52 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'consumed_by' 字段的语义匹配。"
+}
+```...
+2026-02-13 14:39:52 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选1的expires_at字段与order_purchaseorder表的expiry_date字段在语义和类型上最匹配。"
+}
+```...
+2026-02-13 14:39:53 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns have a meaningful relationship with the 'is_building' field in the context of the 'order_purchaseorder' table. The provid...
+2026-02-13 14:39:54 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidate columns are directly related to the 'order_purchaseorder' table or the 'status_text' field. The highest semantic scores ...
+2026-02-13 14:39:55 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "在候选列表中没有找到与 'order_purchaseorder' 表相关的列。"
+}
+```...
+2026-02-13 14:39:55 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 0, "reason": "候选 1-5 中没有直接与 'order_purchaseorder' 表相关的列，因此没有合适的映射关系。"}
+```...
+2026-02-13 14:39:56 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选列 'stock_stockitem' 的 'serial' 列与 'serial_numbers' 字段的语义最为匹配，且该列属于 'order_purchaseorder' 表。"}
+```...
+2026-02-13 14:39:57 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns have a strong semantic relationship with the 'order_purchaseorder' table and the 'tracking_items' field."
+}
+```...
+2026-02-13 14:39:58 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 3,
+  "reason": "候选列 'quantity' 属于 'build_builditem' 表，但根据上下文推测主表为 'order_purchaseorder'，因此选择 'order_purchaseorder' 表中的 'quantity' 列作为最匹配的映射关系。"
+}
+```...
+2026-02-13 14:39:58 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidate columns match the context of the 'order_purchaseorder' table or the semantics of the 'delete_on_deplete' field."}
+```...
+2026-02-13 14:39:59 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": null, "reason": "None of the provided candidates are directly related to the 'order_purchaseorder' table."}
+```...
+2026-02-13 14:40:00 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有与 'build_build' 主表相关的列。"
+}
+```...
+2026-02-13 14:40:01 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "在候选列表中没有找到与 'order_salesorderallocation' 主表相关的列。"}
+```...
+2026-02-13 14:40:01 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns from the part_part, part_partstar, and part_partpricing tables are directly relevant to the 'build_build' table in the gi...
+2026-02-13 14:40:02 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "在候选列表中没有找到与 'order_salesorderallocation' 表相关的字段。"
+}
+```...
+2026-02-13 14:40:02 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: None...
+2026-02-13 14:40:02 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": null,
+  "reason": "在候选列表中没有找到与 'build_build' 表相关的列。"
+}
+```...
+2026-02-13 14:40:03 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 2,
+  "reason": "候选列 'id' 在 'part_part' 表中，类型为 'integer not null'，是主键，最符合 API 字段 'pk' 的语义。"
+}
+```...
+2026-02-13 14:40:03 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields are directly related to the 'build_build' table or its context. The 'consumed' field is not a common term in the provided candi...
+2026-02-13 14:40:03 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates match the context and semantics of the 'link' field in the 'part_part' table."}
+```...
+2026-02-13 14:40:03 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidate fields match the context of the 'build_build' table or the 'on_order' field."}
+```...
+2026-02-13 14:40:04 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates are directly related to the 'build_build' table or have a semantic meaning that matches the 'optional' field in the API."}
+`...
+2026-02-13 14:40:04 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有合适的列与 'tags' 字段匹配。候选列表中没有列直接与 'part_part' 表相关，并且没有列与 'tags' 的概念直接匹配。"
+}
+```...
+2026-02-13 14:40:05 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns directly match the context of the 'build_build' table. The highest scoring candidate is 'part_parttesttemplate.test_name' with...
+2026-02-13 14:40:06 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns in the list are directly relevant to the 'allocated' field in the 'build_build' table. The 'allocated' field typically refers ...
+2026-02-13 14:40:07 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中的字段与 'inherited' 字段的语义和上下文不匹配。"}
+```...
+2026-02-13 14:40:07 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选字段与 'build_build' 主表的上下文不匹配。"}
+```...
+2026-02-13 14:40:08 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选列与 'build_build' 表相关联。"}
+```...
+2026-02-13 14:40:08 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: 根据提供的上下文和候选列表，我们可以分析以下几点：
+
+1. **主表上下文**：当前接口推测主表为 `part_part`。
+2. **待映射字段**：`barcode_hash`。
+3. **候选列表**：
+   - `common_barcodescanresult` 表中的 `id` 和 `data` 列。
+   - `common_projectcode` 表中的 `id` 和 `code...
+2026-02-13 14:40:08 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns have a high enough semantic similarity or are directly related to the 'build_build' table."}
+```...
+2026-02-13 14:40:09 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选列表中的字段与主表 'build_build' 相关。"}
+```...
+2026-02-13 14:40:09 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选1属于'company_manufacturerpart'表，与当前接口推测的主表'part_part'不匹配，且其语义分最高。"
+}
+```...
+2026-02-13 14:40:09 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中没有与 'allow_variants' 字段上下文相关的列。"}
+```...
+2026-02-13 14:40:09 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 4, "reason": "该列属于 'part_part' 表，并且其语义分最高，适合映射为 'manufacturer_detail' 字段。"}
+```...
+2026-02-13 14:40:10 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns match the context or semantics of the 'external_stock' field in the 'build_build' table."}
+```...
+2026-02-13 14:40:10 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'build_build' 表的上下文和 'assembly_detail' 字段的语义匹配。"
+}
+```...
+2026-02-13 14:40:10 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": null,
+  "reason": "The 'limit' field does not have a clear semantic match with any of the provided candidates. The candidates are unrelated to the 'order_salesorderalloca...
+2026-02-13 14:40:11 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选列 order_salesorderallocation.id 与主表上下文更相关，且是整数类型的主键，适合作为偏移量的映射。"}
+```...
+2026-02-13 14:40:11 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidate columns have a direct relationship with the 'available_stock' field in the 'build_build' table. The candidates appear to...
+2026-02-13 14:40:12 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields have a meaningful semantic relationship with the 'common_projectcode' table."}
+```...
+2026-02-13 14:40:12 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns directly map to the 'bom_item_detail' field in the 'build_build' table. The candidates are related to part BOM item subst...
+2026-02-13 14:40:13 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields are directly related to the 'build_build' table or the 'available_variant_stock' field. The closest match is candidate 1, but i...
+2026-02-13 14:40:14 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns match the context or semantic meaning of the API field 'available_substitute_stock'."
+}
+```...
+2026-02-13 14:40:14 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 0,
+  "reason": "候选1 (表:users_owner, 列:id)、候选2 (表:users_owner, 列:owner_id) 和候选3 (表:users_owner, 列:owner_type_id) 的语义分分别为0.28、0.28和0.26，这些值较低，且这些列与当前接口推测主表'common_projectco...
+2026-02-13 14:40:15 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns have a semantic relevance to the 'common_projectcode' table that justifies their mapping to the 'responsible_detail' field."}
+...
+2026-02-13 14:40:15 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 2,
+  "reason": "候选 2 (表:part_part, 列:id, 类型:integer not null) 与主表 'part_part' 的上下文最相关，且语义分最高。"
+}
+```...
+2026-02-13 14:40:15 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 2,
+  "reason": "候选列表中的列 'id' 在 'part_part' 表中，并且语义相关性最高。"
+}
+```...
+2026-02-13 14:40:15 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 0, "reason": "候选 1 是最相关的，因为它与 'part_part' 表相关，并且列名 'quantity' 与 'units' 的语义最为匹配。"}
+```...
+2026-02-13 14:40:16 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns are related to the 'part_part' table or the 'bom_item' field."
+}
+```...
+2026-02-13 14:40:16 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中没有列与 'part_part' 表的上下文和 'choices' 字段语义匹配。"}
+```...
+2026-02-13 14:40:17 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": null, "reason": "None of the candidate columns are related to the 'part_part' table or the 'checkbox' field."}
+```...
+2026-02-13 14:40:17 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates are directly related to the 'order_salesorderallocation' table. The highest relevance is to 'django_session' and 'users...
+2026-02-13 14:40:17 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates are directly related to the 'part_part' table and the 'selectionlist' field."
+}
+```...
+2026-02-13 14:40:18 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选字段与 'order_salesorderallocation' 表相关或匹配。"
+}
+```...
+2026-02-13 14:40:18 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 2, "reason": "候选列 'id' 属于 'part_part' 表，并且类型为 'integer not null'，这通常用作主键或唯一标识符。"}
+```...
+2026-02-13 14:40:18 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选 1 中的 'quantity' 列与 'order_salesorderallocation' 表相关性最高，且语义分最高。"}
+```...
+2026-02-13 14:40:19 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 2,
+  "reason": "列 'id' 是 'part_part' 表的主键，通常用作表的唯一标识符。"
+}
+```...
+2026-02-13 14:40:19 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates match the context of the 'part_part' table and the field 'location_detail'. The most relevant candidate is 'stock_stock...
+2026-02-13 14:40:20 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有与 'part_part' 表紧密相关的列来映射 'price' 字段。"
+}
+```...
+2026-02-13 14:40:20 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates accurately map to the 'path_detail' field based on the context and semantic analysis."}
+```...
+2026-02-13 14:40:20 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns directly relate to the 'part_part' table and the 'tests' field."
+}
+```...
+2026-02-13 14:40:21 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidate fields are directly related to the 'order_salesorderallocation' table. The closest matching field is 'session_key' from the '...
+2026-02-13 14:40:21 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 2,
+  "reason": "pk 字段通常用于表示主键，因此最匹配的候选是 part_part 表中的 id 列，其类型为 integer not null。"
+}
+```...
+2026-02-13 14:40:21 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields are directly related to the 'order_salesorderallocation' table and the 'icon' field. The highest relevant field is image in the...
+2026-02-13 14:40:22 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选 1 中的 'part_bomitem' 表的 'quantity' 列与 'part_part' 表相关性最高，且类型为 numeric，符合 'units' 字段的语义。"
+}
+```...
+2026-02-13 14:40:22 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选列 'quantity' 属于 'order_salesorderallocation' 表，并且与 'location_count' 的语义最接近，因此优先选择。"}
+```...
+2026-02-13 14:40:23 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选 1 的 'part_part' 表的 'name' 列与 'choices' 字段的语义最为相关。"
+}
+```...
+2026-02-13 14:40:23 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidate columns match the context of the 'order_returnorder' table or the 'limit' field."}
+```...
+2026-02-13 14:40:24 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidate fields are related to the 'part_part' table and none of them are suitable for mapping to the 'checkbox' API field."
+}
+``...
+2026-02-13 14:40:24 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "The 'offset' field does not match any of the provided candidate columns in the 'order_returnorder' table. The highest related candidate is column 'refe...
+2026-02-13 14:40:24 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidate columns directly relate to the 'selectionlist' field in the 'part_part' table. The candidates are either unrelated or be...
+2026-02-13 14:40:24 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中的列均与 'order_returnorder' 表无关，未找到匹配的列。"
+}
+```...
+2026-02-13 14:40:25 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 2, "reason": "候选列 'session_key' 属于 'django_session' 表，与主表 'part_part' 不匹配。"}
+```...
+2026-02-13 14:40:25 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "none of the candidate columns are associated with 'common_attachment' table"}
+```...
+2026-02-13 14:40:25 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns in the list directly relate to the 'roles' field and are not relevant to the 'part_part' table based on the provided context."...
+2026-02-13 14:40:26 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选 1 的序号为 1，对应的列 attachment 属于 'common_attachment' 表，并且类型为 character varying，这与 'merge' 字段的语义和上下文相匹配。"
+}
+```...
+2026-02-13 14:40:27 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate fields are related to 'order_purchaseorder'."
+}
+```...
+2026-02-13 14:40:27 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选字段与 'common_attachment' 表的 'enabled' 字段匹配。"}
+```...
+2026-02-13 14:40:27 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中的列与 'order_purchaseorder' 表的上下文不匹配。"}
+```...
+2026-02-13 14:40:27 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有列名或类型与 'filters' 字段的上下文相匹配。"
+}
+```...
+2026-02-13 14:40:28 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有合适的候选列与 'common_attachment' 表的上下文相关。"}
+```...
+2026-02-13 14:40:28 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选列与 'order_purchaseorder' 表直接相关，且候选列的语义分较低，无法准确映射 'part' 字段。"}
+```...
+2026-02-13 14:40:29 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate fields are directly related to the 'common_attachment' table. The highest semantic score is for 'report_reporttemplate' and 'repo...
+2026-02-13 14:40:29 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 3,
+  "reason": "候选列 'taggit_taggeditem.tag_id' 是与 'order_purchaseorder' 表相关的，同时它是一个外键，通常用于关联标签到其他表的记录。"
+}
+```...
+2026-02-13 14:40:29 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中没有与 'landscape' 字段相关的列。"}
+```...
+2026-02-13 14:40:29 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "在候选列表中没有找到与 'order_purchaseorder' 表相关的列。"
+}
+```...
+2026-02-13 14:40:30 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "在候选列表中没有找到与 'common_attachment' 表相关的字段。"
+}
+```...
+2026-02-13 14:40:30 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'order_purchaseorder' 表的上下文和字段 'build' 语义匹配。"
+}
+```...
+2026-02-13 14:40:30 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "filename_pattern 与 common_attachment 表中的 attachment 列的语义最相关。"
+}
+```...
+2026-02-13 14:40:31 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列直接与 'order_purchaseorder' 表相关联。"
+}
+```...
+2026-02-13 14:40:31 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有任何一个列与 'order_returnorder' 表有相关性，且没有列名为 'limit'。"
+}
+```...
+2026-02-13 14:40:32 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选列 'reference_int' 属于 'order_returnorder' 表，并且与 'offset' 字段的语义匹配度较高。"
+}
+```...
+2026-02-13 14:40:32 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns are directly related to the 'order_purchaseorder' table. The 'stale' field in the API might refer to a status or timestamp ind...
+2026-02-13 14:40:32 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选列与 'order_returnorder' 表的相关性。"
+}
+```...
+2026-02-13 14:40:33 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选列表中的列 'id' 属于 'order_purchaseorder' 表，并且其语义分最高，为 0.17，最符合父级关系的语义。"
+}
+```...
+2026-02-13 14:40:33 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 4, "reason": "候选表 'report_labeltemplate' 的 'name' 列与 'template_detail' 的语义最为接近，且优先选择归属于 'users_owner' 的列。"}
+```...
+2026-02-13 14:40:33 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates are related to the 'order_purchaseorder' table and the field 'status'. The candidates are unrelated to the context."}
+```...
+2026-02-13 14:40:34 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选列直接映射到 'report_reportasset' 表。"}
+```...
+2026-02-13 14:40:34 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选 1 的字段 'id' 不符合 'expired' 字段的语义，而候选 2 的 'expires_at' 字段与 'expired' 字段的语义最匹配，且归属于 'order_purchaseorder' 表。"
+}
+```...
+2026-02-13 14:40:35 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": null, "reason": "None of the provided candidates are related to the 'plugin_pluginconfig' table or its context."}
+```...
+2026-02-13 14:40:35 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: None...
+2026-02-13 14:40:35 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 0,
+  "reason": "候选 1 属于 'order_purchaseorder' 表，且其语义分最高，符合上下文要求。"
+}
+```...
+2026-02-13 14:40:36 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns are directly related to the 'units' field in the context of 'plugin_pluginconfig'. The candidates are either for 'quantity' in...
+2026-02-13 14:40:36 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: {{
+  "selected_index": None,
+  "reason": "没有合适的列与 'customer' 字段匹配。候选列表中的列要么不与 'order_purchaseorder' 表相关，要么不与 'customer' 语义匹配。"
+}}...
+2026-02-13 14:40:37 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates have a strong semantic match with the 'api_url' field in the 'plugin_pluginconfig' table. The highest semantic score is...
+2026-02-13 14:40:37 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates are directly related to the 'order_purchaseorder' table or the concept of in_stock. The highest related candidate is a ...
+2026-02-13 14:40:37 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选 2 (common_selectionlist.name) 与 'choices' 字段的语义最为相关。"
+}
+```...
+2026-02-13 14:40:38 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选列与 'order_purchaseorder' 表的上下文匹配。"}
+```...
+2026-02-13 14:40:38 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+None
+```...
+2026-02-13 14:40:38 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields directly match the context of the 'plugin_pluginconfig' table. The field 'required' is not found in the provided candidate list...
+2026-02-13 14:40:38 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "The field 'packaging' is not directly related to the 'order_purchaseorder' table based on the provided candidates."
+}
+```...
+2026-02-13 14:40:39 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns match the context of the 'model_name' field for the 'plugin_pluginconfig' table."
+}
+```...
+2026-02-13 14:40:39 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": null,
+  "reason": "None of the candidate fields directly relate to the 'order_purchaseorder' table."
+}
+```...
+2026-02-13 14:40:39 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有与 'model_filters' 相关的字段。"
+}
+```...
+2026-02-13 14:40:39 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 3,
+  "reason": "候选 3 属于 'order_purchaseorder' 表，且与 'child_items' 的语义匹配度较高。"
+}
+```...
+2026-02-13 14:40:40 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "The 'limit' field does not have a clear semantic match in the provided candidate list. None of the candidates are directly related to the 'order_saleso...
+2026-02-13 14:40:40 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns in the 'order_purchaseorder' table have a semantic relevance high enough to map to the 'consumed_by' field. The highest releva...
+2026-02-13 14:40:40 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中没有合适的列来映射 API 字段 'offset'。"}
+```...
+2026-02-13 14:40:41 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidate columns match the context of the 'order_salesorderallocation' table."}
+```...
+2026-02-13 14:40:41 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidate fields directly relate to the 'expiry_date' and are not associated with the 'order_purchaseorder' table."}
+```...
+2026-02-13 14:40:42 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidate fields match the context of the 'stock_stockitemtracking' table."}
+```...
+2026-02-13 14:40:42 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns have a semantic match with the field 'is_building' in the context of the 'order_purchaseorder' table."}
+```...
+2026-02-13 14:40:42 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中的所有字段与 'order_purchaseorder' 表的上下文不匹配。"
+}
+```...
+2026-02-13 14:40:43 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns are directly related to the 'stock_stockitemtracking' table or its context. The highest related column is 'users_owner.id' wit...
+2026-02-13 14:40:43 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有找到与 'order_purchaseorder' 表相关的候选字段。"}
+```...
+2026-02-13 14:40:43 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns directly match the context and requirements of the 'stock_stockitemtracking' table."}
+```...
+2026-02-13 14:40:43 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 3,
+  "reason": "候选列 order_purchaseorderextraline.quantity 的语义分最高，且与主表 order_purchaseorder 直接相关，因此是最合适的映射关系。"
+}
+```...
+2026-02-13 14:40:44 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate fields directly relate to the 'test_station' field in the context of the 'stock_stockitemtracking' table."
+}
+```...
+2026-02-13 14:40:44 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 2, "reason": "候选列表中，只有序号2属于order_purchaseorder表，并且列名'serial'与'serial_numbers'在语义上最为相关。"}
+```...
+2026-02-13 14:40:45 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 1, "reason": "候选列 'date' 在 'stock_stockitemtracking' 表中，且类型为 'timestamp with time zone not null'，与 'finished_datetime' 的字段语义和上下文最为匹配。"}
+```...
+2026-02-13 14:40:45 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": null,
+  "reason": "None of the provided candidate columns are directly related to the 'order_purchaseorder' table and the 'tracking_items' field. The closest match is col...
+2026-02-13 14:40:46 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns match the context of the 'users_owner' table or the 'is_active' field."
+}
+```...
+2026-02-13 14:40:46 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中的列与 'installed_items' 字段的语义和上下文不匹配。'order_purchaseorder' 表中没有与 'installed_items' 直接相关联的列。"
+}
+```...
+2026-02-13 14:40:46 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中没有与 'is_staff' 字段语义匹配的列。"
+}
+```...
+2026-02-13 14:40:46 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: None...
+2026-02-13 14:40:47 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the provided candidates have a semantic match with the 'delete_on_deplete' field in the context of the 'order_purchaseorder' table."
+}
+```...
+2026-02-13 14:40:47 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidate columns match the context of the 'users_owner' table and the field 'limit'. The candidate columns do not have any semantic re...
+2026-02-13 14:40:48 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "没有候选字段直接与 'order_purchaseorder' 表相关联。"
+}
+```...
+2026-02-13 14:40:48 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate fields are related to the 'users_owner' table or the concept of 'offset'."}
+```...
+2026-02-13 14:40:48 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有与 'exchange_rate' 表相关的候选列。"}
+```...
+2026-02-13 14:40:48 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns in the list 1-5 are related to the 'users_owner' table or its context. The 'ordering' field is not present in the provide...
+2026-02-13 14:40:49 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns directly relate to the 'exchange_rate' table or its context. The 'part' field in the API does not align with the provided...
+2026-02-13 14:40:49 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns are related to the 'users_owner' table or the 'search' field."
+}
+```...
+2026-02-13 14:40:50 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "候选列表中没有与'assigned_to'字段语义匹配的列。"}
+```...
+2026-02-13 14:40:50 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "候选列表中的所有字段都与 'exchange_rate' 表的上下文不相关。"
+}
+```...
+2026-02-13 14:40:51 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": 5, "reason": "候选 5 中的 'currency' 列与 'exchange_rate' 表相关，但没有 'cost_min' 字段的上下文信息。"}
+```...
+2026-02-13 14:40:51 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 4,
+  "reason": "候选列 'users_owner.owner_id' 与 'usersessions_usersession' 表中的 'assigned_to_me' 字段有较高的相关性，并且属于同一表。"
+}
+```...
+2026-02-13 14:40:51 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "没有候选列与 'exchange_rate' 主表上下文相关。"}
+```...
+2026-02-13 14:40:52 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 1,
+  "reason": "候选1中的'last_seen_at'列与'completed_after'的语义最为匹配，表示用户最后一次活动的时间。"
+}
+```...
+2026-02-13 14:40:52 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": None,
+  "reason": "None of the candidate columns are directly related to the 'shipment' field in the context of the 'order_salesorderlineitem' table. The candidates are e...
+2026-02-13 14:40:52 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the candidate columns have a semantic relationship with the 'completed_before' field as per the provided context. The closest matches are 'last_seen...
+2026-02-13 14:40:53 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates are directly related to the 'usersessions_usersession' table or the 'customer' field."}
+```...
+2026-02-13 14:40:53 | WARNING | [da2e6e2c9af4429393b3c8ed7282f79e] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{
+  "selected_index": 3,
+  "reason": "候选列 'common_barcodescanresult' 中的 'serial' 列与 'serial_numbers' 字段的语义最为相关，因为它直接涉及到序列号的存储。"
+}
+```...
+2026-02-13 14:40:54 | WARNING | [54d657148e1b4c59bf2bf8e02fb4e24c] | app.utils.vector_index | [1e29eccd8b944c05b6a6af3b33cbe217] AI 结果 JSON 解析失败: ```json
+{"selected_index": None, "reason": "None of the provided candidates are directly related to the 'usersessions_usersession' table or its expected context. The 'customer_detail' field does not m...

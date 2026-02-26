@@ -317,7 +317,7 @@ const MockService: React.FC<MockServiceProps> = ({ definition }) => {
 
             <div>
               <Text strong>示例请求</Text>
-              <div style={{ marginTop: 8, background: '#f5f5f5', padding: 12, borderRadius: 4 }}>
+              <div style={{ marginTop: 8, background: 'var(--bg-tertiary)', padding: 12, borderRadius: 4 }}>
                 <pre style={{ margin: 0 }}>
                   {`curl -X ${definition.method} "${window.location.origin}${mockUrl}"`}
                 </pre>

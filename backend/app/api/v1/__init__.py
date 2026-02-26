@@ -1,21 +1,14 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, api_integration, projects, versions, environments, variables, endpoints, context, scripts, test_types, script_executions, scenarios, modules, chains
-from app.api.v1 import api_definitions, api_cases, sync_tasks, version_snapshots, project_auth_config
+from app.api.v1 import auth, projects, versions, environments, variables, context
+from app.api.v1 import api_definitions, api_cases, sync_tasks, version_snapshots, db_schemas, field_mappings, field_mappings_async
+from app.api.v1 import auth_config, auth_config_append
+from app.api.v1 import health
 from app.ai import router as ai_router
 
 api_router = APIRouter()
 
 api_router.include_router(auth.router, prefix="/auth", tags=["认证"])
 api_router.include_router(context.router, prefix="/context", tags=["上下文管理"])
-# 将 endpoints.router 放在 api_integration.router 之前，确保路由匹配顺序正确
-api_router.include_router(endpoints.router, prefix="/api-integration", tags=["接口管理"])
-api_router.include_router(scripts.router, prefix="/api-integration", tags=["测试脚本"])
-api_router.include_router(test_types.router, prefix="/api-integration", tags=["测试类型"])
-api_router.include_router(script_executions.router, prefix="/api-integration", tags=["脚本执行"])
-api_router.include_router(scenarios.router, prefix="/api-integration", tags=["场景管理"])
-api_router.include_router(modules.router, prefix="/api-integration", tags=["模块依赖分析"])
-api_router.include_router(chains.router, prefix="/api-integration", tags=["链路管理"])
-api_router.include_router(api_integration.router, prefix="/api-integration", tags=["接口集成"])
 api_router.include_router(projects.router, tags=["项目管理"])
 api_router.include_router(versions.router, tags=["版本管理"])
 api_router.include_router(environments.router, tags=["环境管理"])
@@ -25,5 +18,12 @@ api_router.include_router(api_definitions.router, tags=["API定义管理"])
 api_router.include_router(api_cases.router, tags=["原子用例管理"])
 api_router.include_router(sync_tasks.router, tags=["同步任务管理"])
 api_router.include_router(version_snapshots.router, tags=["版本快照管理"])
-api_router.include_router(project_auth_config.router, tags=["项目鉴权配置"])
+api_router.include_router(db_schemas.router, tags=["数据库结构管理"])
+api_router.include_router(field_mappings.router, tags=["字段映射管理"])
+api_router.include_router(field_mappings_async.router, tags=["字段映射管理"])
 api_router.include_router(ai_router, tags=["AI服务"])
+# 鉴权配置路由
+api_router.include_router(auth_config.router, tags=["鉴权配置"])
+api_router.include_router(auth_config_append.router, tags=["鉴权配置V2"])
+# 健康检查路由
+api_router.include_router(health.router, tags=["系统监控"])

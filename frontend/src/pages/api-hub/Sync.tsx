@@ -336,7 +336,7 @@ const Sync: React.FC = () => {
         <div>
           <div style={{ fontWeight: 'bold' }}>{name}</div>
           {record.source_url && (
-            <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
               {record.source_url}
             </div>
           )}
@@ -649,30 +649,30 @@ const Sync: React.FC = () => {
                 <Col span={6}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{currentRecord.total_count}</div>
-                    <div style={{ color: '#999' }}>总数</div>
+                    <div style={{ color: 'var(--text-tertiary)' }}>总数</div>
                   </div>
                 </Col>
                 <Col span={6}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}>{currentRecord.added_count}</div>
-                    <div style={{ color: '#999' }}>新增</div>
+                    <div style={{ color: 'var(--text-tertiary)' }}>新增</div>
                   </div>
                 </Col>
                 <Col span={6}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff' }}>{currentRecord.updated_count}</div>
-                    <div style={{ color: '#999' }}>更新</div>
+                    <div style={{ color: 'var(--text-tertiary)' }}>更新</div>
                   </div>
                 </Col>
                 <Col span={6}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ff4d4f' }}>{currentRecord.deleted_count}</div>
-                    <div style={{ color: '#999' }}>删除</div>
+                    <div style={{ color: 'var(--text-tertiary)' }}>删除</div>
                   </div>
                 </Col>
               </Row>
               {currentRecord.conflict_count > 0 && (
-                <div style={{ marginTop: 16, padding: '12px', background: '#fffbe6', borderRadius: '4px' }}>
+                <div style={{ marginTop: 16, padding: '12px', background: 'var(--bg-elevated)'be6', borderRadius: '4px' }}>
                   <Badge count={currentRecord.conflict_count} style={{ backgroundColor: '#fa8c16', marginRight: 8 }} />
                   <span style={{ color: '#fa8c16' }}>接口存在冲突，需要手动处理</span>
                 </div>
@@ -689,8 +689,8 @@ const Sync: React.FC = () => {
               <Card title="执行日志">
                 <div style={{ maxHeight: '400px', overflow: 'auto' }}>
                   {currentRecord.execution_log.map((log: any, index: number) => (
-                    <div key={index} style={{ marginBottom: '8px', padding: '8px', background: '#f5f5f5', borderRadius: '4px' }}>
-                      <div style={{ fontSize: '12px', color: '#999', marginBottom: '4px' }}>
+                    <div key={index} style={{ marginBottom: '8px', padding: '8px', background: 'var(--bg-tertiary)', borderRadius: '4px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '4px' }}>
                         {log.timestamp && new Date(log.timestamp).toLocaleString('zh-CN')}
                       </div>
                       <div style={{ color: log.level === 'error' ? '#ff4d4f' : '#333' }}>
@@ -739,7 +739,7 @@ const Sync: React.FC = () => {
                   <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#52c41a' }}>
                     {currentRecord.diff_data.added?.length || 0}
                   </div>
-                  <div style={{ color: '#999' }}>新增</div>
+                  <div style={{ color: 'var(--text-tertiary)' }}>新增</div>
                 </Card>
               </Col>
               <Col span={6}>
@@ -747,7 +747,7 @@ const Sync: React.FC = () => {
                   <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#1890ff' }}>
                     {currentRecord.diff_data.changed?.length || 0}
                   </div>
-                  <div style={{ color: '#999' }}>更新</div>
+                  <div style={{ color: 'var(--text-tertiary)' }}>更新</div>
                 </Card>
               </Col>
               <Col span={6}>
@@ -755,17 +755,17 @@ const Sync: React.FC = () => {
                   <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ff4d4f' }}>
                     {currentRecord.diff_data.removed?.length || 0}
                   </div>
-                  <div style={{ color: '#999' }}>删除</div>
+                  <div style={{ color: 'var(--text-tertiary)' }}>删除</div>
                 </Card>
               </Col>
               <Col span={6}>
                 <Card size="small">
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#999' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-tertiary)' }}>
                     {(currentRecord.diff_data.added?.length || 0) +
                      (currentRecord.diff_data.changed?.length || 0) +
                      (currentRecord.diff_data.removed?.length || 0)}
                   </div>
-                  <div style={{ color: '#999' }}>总计</div>
+                  <div style={{ color: 'var(--text-tertiary)' }}>总计</div>
                 </Card>
               </Col>
             </Row>

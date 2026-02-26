@@ -460,7 +460,7 @@ const VersionSnapshots: React.FC = () => {
                   overflow: 'auto', 
                   fontSize: '12px', 
                   padding: '12px', 
-                  background: '#f5f5f5', 
+                  background: 'var(--bg-tertiary)', 
                   borderRadius: '4px' 
                 }}>
                   {JSON.stringify(currentSnapshot.schema_snapshot, null, 2)}
@@ -489,7 +489,7 @@ const VersionSnapshots: React.FC = () => {
               <Col span={12}>
                 <Card size="small" title="源版本">
                   <Tag color="blue">{compareData.source?.version_tag}</Tag>
-                  <div style={{ marginTop: 8, fontSize: '12px', color: '#999' }}>
+                  <div style={{ marginTop: 8, fontSize: '12px', color: 'var(--text-tertiary)' }}>
                     {compareData.source?.version_hash?.substring(0, 16)}...
                   </div>
                 </Card>
@@ -497,13 +497,13 @@ const VersionSnapshots: React.FC = () => {
               <Col span={12}>
                 <Card size="small" title="目标版本">
                   <Tag color="green">{compareData.target?.version_tag}</Tag>
-                  <div style={{ marginTop: 8, fontSize: '12px', color: '#999' }}>
+                  <div style={{ marginTop: 8, fontSize: '12px', color: 'var(--text-tertiary)' }}>
                     {compareData.target?.version_hash?.substring(0, 16)}...
                   </div>
                 </Card>
               </Col>
             </Row>
-            <p style={{ textAlign: 'center', color: '#999' }}>
+            <p style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
               版本对比功能开发中...
             </p>
           </div>

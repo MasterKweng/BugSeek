@@ -408,6 +408,7 @@ async def get_api_definition(
         "tags": definition.tags or [],
         "request_schema": definition.request_schema,
         "response_schema": definition.response_schema,
+        "schema_snapshot": definition.schema_snapshot,  # 添加完整的 schema 快照
         "mock_data": definition.mock_data,
         "status": definition.status,
         "sync_status": definition.sync_status,

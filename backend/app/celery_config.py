@@ -61,4 +61,7 @@ celery_app.conf.update(
 # 自动发现任务
 celery_app.autodiscover_tasks(['app.celery'])
 
+# 显式导入任务以确保注册
+from app.celery import tasks  # noqa: F401
+
 __all__ = ['celery_app']

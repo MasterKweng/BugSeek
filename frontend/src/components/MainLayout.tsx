@@ -56,9 +56,24 @@ const MainLayout: React.FC = () => {
           key: '/projects',
           label: '项目列表',
         },
+      ],
+    },
+    {
+      key: 'version-center',
+      icon: <BranchesOutlined />,
+      label: '版本中心',
+      children: [
         {
           key: 'versions',
           label: '版本管理',
+        },
+        {
+          key: '/version-center/db-schema',
+          label: '数据结构',
+        },
+        {
+          key: '/version-center/field-mapping',
+          label: '字段映射',
         },
       ],
     },
@@ -82,45 +97,6 @@ const MainLayout: React.FC = () => {
         {
           key: '/api-hub/snapshots',
           label: '版本快照',
-        },
-      ],
-    },
-    {
-      key: 'api-integration',
-      icon: <ApiOutlined />,
-      label: '接口集成',
-      children: [
-        {
-          key: '/api/documents',
-          label: '文档管理',
-        },
-        {
-          key: '/api/endpoints',
-          label: '接口定义',
-        },
-        {
-          key: '/api/scripts',
-          label: '测试脚本',
-        },
-        {
-          key: '/api/scenarios',
-          label: '场景组装',
-        },
-        {
-          key: '/api/mock',
-          label: 'Mock 服务',
-        },
-        {
-          key: '/api/suites',
-          label: '测试套件',
-        },
-        {
-          key: '/api/executions',
-          label: '执行记录',
-        },
-        {
-          key: '/api/reports',
-          label: '测试报告',
         },
       ],
     },
@@ -185,6 +161,12 @@ const MainLayout: React.FC = () => {
     if (path.startsWith('/projects/') && path.endsWith('/versions')) {
       return ['versions'];
     }
+    if (path.startsWith('/version-center/db-schema')) {
+      return ['/version-center/db-schema'];
+    }
+    if (path.startsWith('/version-center/field-mapping')) {
+      return ['/version-center/field-mapping'];
+    }
     return [path];
   };
 
@@ -207,11 +189,11 @@ const MainLayout: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header style={{
-        background: '#fff',
+        background: 'var(--bg-secondary)',
         padding: '0 24px',
         display: 'flex',
         alignItems: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.45)',
         height: 64,
       }}>
         {/* Logo */}
@@ -228,12 +210,12 @@ const MainLayout: React.FC = () => {
 
         {/* 顶部导航菜单 */}
         <Menu
-          theme="light"
+          theme="dark"
           mode="horizontal"
           selectedKeys={getSelectedKeys()}
           items={menuItems}
           onClick={handleMenuClick}
-          style={{ flex: 1, lineHeight: '64px', border: 'none' }}
+          style={{ flex: 1, lineHeight: '64px', border: 'none', background: 'transparent' }}
         />
 
         {/* 右侧工具栏 */}
@@ -269,7 +251,7 @@ const MainLayout: React.FC = () => {
         </Space>
       </Header>
       <Content style={{ margin: '24px', overflow: 'auto' }}>
-        <div style={{ padding: 24, minHeight: 'calc(100vh - 112px)', background: '#fff', borderRadius: 8 }}>
+        <div style={{ padding: 24, minHeight: 'calc(100vh - 112px)', background: 'var(--bg-secondary)', borderRadius: 8 }}>
           <Outlet />
         </div>
       </Content>

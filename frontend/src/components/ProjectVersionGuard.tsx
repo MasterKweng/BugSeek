@@ -51,7 +51,7 @@ const ProjectVersionGuard: React.FC<ProjectVersionGuardProps> = ({ children }) =
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
           <ProjectOutlined style={{ fontSize: '48px', color: '#1890ff', marginBottom: '16px' }} />
           <p style={{ fontSize: '16px', marginBottom: '8px' }}>请先选择一个项目</p>
-          <p style={{ color: '#999' }}>您需要先创建或选择一个项目，才能使用此功能</p>
+          <p style={{ color: 'var(--text-tertiary)' }}>您需要先创建或选择一个项目，才能使用此功能</p>
         </div>
       </Modal>
     )

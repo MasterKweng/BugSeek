@@ -13,10 +13,11 @@ from pydantic import BaseModel, Field
 import logging
 
 from app.dependencies import get_db
-from app.context import get_current_project_id
+from app.context import get_current_project_id, get_current_version_id
 from app.db.base import ApiDefinition, ApiCase, Environment, User
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
+from app.core.pre_sql_generator import generate_pre_sql
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -77,6 +78,8 @@ class ApiCaseCreate(BaseModel):
     extraction_rules: Optional[List[Dict[str, Any]]] = Field(None, description="变量提取规则")
     pre_sql: Optional[str] = Field(None, description="前置SQL")
     post_sql: Optional[str] = Field(None, description="后置SQL")
+    ai_generated: Optional[bool] = Field(None, description="是否AI生成")
+    ai_confidence: Optional[float] = Field(None, description="AI置信度")
 
 
 class ApiCaseUpdate(BaseModel):
@@ -93,6 +96,8 @@ class ApiCaseUpdate(BaseModel):
     post_sql: Optional[str] = Field(None, description="后置SQL")
     status: Optional[str] = Field(None, description="状态：active/archived")
     fix_status: Optional[str] = Field(None, description="修复状态：normal/fix_required/fixed")
+    ai_generated: Optional[bool] = Field(None, description="是否AI生成")
+    ai_confidence: Optional[float] = Field(None, description="AI置信度")
 
 
 class ApiCaseResponse(BaseModel):
@@ -153,7 +158,8 @@ async def create_api_case(
         )
 
     # IDOR 防御：检查资源归属
-    if definition.project_id != get_current_project_id(db, current_user):
+    project_id = get_current_project_id(db, current_user)
+    if definition.project_id != project_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="无权访问该资源"
@@ -173,6 +179,8 @@ async def create_api_case(
         extraction_rules=request.extraction_rules,
         pre_sql=request.pre_sql,
         post_sql=request.post_sql,
+        ai_generated=request.ai_generated if request.ai_generated is not None else False,
+        ai_confidence=request.ai_confidence,
         created_by=current_user.id,
         updated_by=current_user.id
     )
@@ -543,6 +551,61 @@ class AiGenerateAssertionsRequest(BaseModel):
     response_sample: Optional[Dict[str, Any]] = Field(None, description="参考响应数据")
 
 
+def _normalize_required_variables(raw_value: Any) -> List[str]:
+    if not raw_value:
+        return []
+    normalized: List[str] = []
+    if isinstance(raw_value, list):
+        for item in raw_value:
+            if isinstance(item, str):
+                normalized.append(item)
+            elif isinstance(item, dict):
+                name = item.get("name") or item.get("var_name") or item.get("variable")
+                if name:
+                    normalized.append(name)
+    elif isinstance(raw_value, str):
+        normalized.append(raw_value)
+    return sorted({v for v in normalized if isinstance(v, str) and v})
+
+
+def _apply_pre_sql_generation(
+    case_data: Dict[str, Any],
+    db: Session,
+    project_id: int,
+    version_id: Optional[int],
+    definition_id: int,
+    trace_id: str
+) -> Dict[str, Any]:
+    if not version_id:
+        logger.info(f"[{trace_id}] skip pre_sql generation: no version selected")
+        return case_data
+
+    required_vars = _normalize_required_variables(case_data.get("required_variables"))
+    pre_sql, data_prep, required_vars_from_mapping = generate_pre_sql(
+        db=db,
+        project_id=project_id,
+        version_id=version_id,
+        definition_id=definition_id,
+        request_data=case_data.get("request_data"),
+        required_variables=required_vars
+    )
+
+    merged_required = sorted(set(required_vars) | set(required_vars_from_mapping or []))
+    if merged_required:
+        case_data["required_variables"] = merged_required
+
+    if data_prep and not case_data.get("data_prep"):
+        case_data["data_prep"] = data_prep
+
+    if pre_sql and not case_data.get("pre_sql"):
+        case_data["pre_sql"] = pre_sql
+        logger.info(f"[{trace_id}] pre_sql generated from field mappings")
+    else:
+        logger.info(f"[{trace_id}] pre_sql not generated or already present")
+
+    return case_data
+
+
 @router.post("/api-definitions/{definition_id}/ai-generate-case", response_model=ApiResponse)
 async def ai_generate_base_case(
     definition_id: int,
@@ -568,7 +631,8 @@ async def ai_generate_base_case(
         )
 
     # IDOR 防御：检查资源归属
-    if definition.project_id != get_current_project_id(db, current_user):
+    project_id = get_current_project_id(db, current_user)
+    if definition.project_id != project_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="无权访问该资源"
@@ -579,7 +643,7 @@ async def ai_generate_base_case(
 
         # 调用 AI 服务生成基准用例
         ai_service = AIService()
-        result = ai_service.generate_base_case(
+        result = await ai_service.generate_base_case(
             method=definition.method,
             path=definition.path,
             summary=definition.summary,
@@ -587,6 +651,29 @@ async def ai_generate_base_case(
             request_schema=definition.request_schema,
             response_schema=definition.response_schema
         )
+
+        version_id = get_current_version_id(db, current_user)
+        if isinstance(result, dict):
+            result = _apply_pre_sql_generation(
+                case_data=result,
+                db=db,
+                project_id=project_id,
+                version_id=version_id,
+                definition_id=definition_id,
+                trace_id=trace_id
+            )
+        elif isinstance(result, list):
+            result = [
+                _apply_pre_sql_generation(
+                    case_data=item,
+                    db=db,
+                    project_id=project_id,
+                    version_id=version_id,
+                    definition_id=definition_id,
+                    trace_id=trace_id
+                ) if isinstance(item, dict) else item
+                for item in result
+            ]
 
         logger.info(f"[{trace_id}] AI 生成基准用例成功: result={result}")
 

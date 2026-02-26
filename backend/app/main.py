@@ -67,32 +67,75 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
-# 启动异步任务工作线程
+# 启动事件
 @app.on_event("startup")
 async def startup_event():
-    """应用启动事件"""
-    logger.info("启动异步任务工作线程...")
-
-    from app.core.async_task import get_task_manager
-    from app.db.session import get_db
-
-    # 获取数据库会话
-    db_gen = get_db()
-    db = next(db_gen)
-
+    """
+    应用启动事件
+    
+    遵循后端代码规范：
+    - 事务范围最小化：不在事务内执行长时间运行的操作
+    - 非核心异步化：Celery Worker 独立运行，不阻塞主服务
+    - 日志规范：记录关键启动信息
+    - 冷启动防御：预热向量索引，避免首个用户请求卡顿
+    """
+    logger.info("应用启动事件执行中...")
+    
     try:
-        # 获取任务管理器并启动工作线程
-        task_manager = get_task_manager(db)
-
-        # 在后台启动工作线程
+        # 检查 Celery 配置
+        from app.celery_config import celery_app
+        logger.info(f"Celery 实例: {celery_app.main}")
+        logger.info(f"Broker URL: {celery_app.conf.broker_url}")
+        logger.info(f"Result Backend: {celery_app.conf.result_backend}")
+        
+        # 检查字段映射任务是否注册
+        from app.celery.tasks import execute_field_mapping_task
+        logger.info(f"字段映射任务已注册: {execute_field_mapping_task.name}")
+        
+        # 预热向量索引（冷启动防御）
+        logger.info("开始预热向量索引...")
+        from app.utils.vector_index import get_vector_manager
+        from app.db.base import DbSchemaVersion
+        from app.db.session import SessionLocal
         import asyncio
-        asyncio.create_task(task_manager.start_worker())
-
-        logger.info("异步任务工作线程已启动")
+        
+        # 使用后台任务预热，不阻塞启动
+        async def warmup_vector_index():
+            try:
+                vector_manager = get_vector_manager()
+                if vector_manager.column_vectors is None:
+                    logger.info("向量索引缓存不存在，开始构建...")
+                    
+                    # 从数据库获取最新的 schema_snapshot
+                    db = SessionLocal()
+                    try:
+                        # 获取最新的一个 schema_snapshot（按创建时间倒序）
+                        latest_schema = db.query(DbSchemaVersion).order_by(
+                            DbSchemaVersion.created_at.desc()
+                        ).first()
+                        
+                        if latest_schema and latest_schema.schema_snapshot:
+                            vector_manager.build_index(latest_schema.schema_snapshot)
+                            logger.info(f"向量索引构建完成 (使用 schema_id={latest_schema.id})")
+                        else:
+                            logger.warning("数据库中没有找到可用的 schema_snapshot，跳过向量索引构建")
+                    finally:
+                        db.close()
+                else:
+                    logger.info("向量索引已从缓存加载")
+            except Exception as e:
+                logger.warning(f"向量索引预热失败: {str(e)}")
+        
+        # 创建后台任务（不等待完成）
+        asyncio.create_task(warmup_vector_index())
+        
+        logger.info("应用启动事件执行完成")
+        logger.info("提示: 请确保 Celery Worker 正在运行")
+        logger.info("启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo")
+        
     except Exception as e:
-        logger.error(f"启动异步任务工作线程失败: {str(e)}", exc_info=True)
-    finally:
-        db.close()
+        logger.error(f"应用启动事件执行失败: {str(e)}", exc_info=True)
+        # 不抛出异常，避免应用启动失败
 
 
 @app.get("/")

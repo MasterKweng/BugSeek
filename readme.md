@@ -52,6 +52,56 @@ docker run -d \
   postgres:15
 ```
 
+### 1.5 安装 pgvector 扩展（必需）
+
+pgvector 是 PostgreSQL 的向量相似度搜索扩展，用于优化方案 V2.0 的向量索引功能。
+
+#### 安装步骤：
+
+```bash
+# 1. 进入 PostgreSQL 容器
+docker exec -it bugseek-postgres bash
+
+# 2. 安装编译依赖
+apt-get update
+apt-get install -y git build-essential postgresql-server-dev-15
+
+# 3. 下载并编译 pgvector（版本 v0.5.1）
+cd /tmp
+git clone --branch v0.5.1 https://github.com/pgvector/pgvector.git
+cd pgvector
+make
+make install
+
+# 4. 验证安装
+ls /usr/lib/postgresql/15/lib/vector.so
+
+# 5. 启用扩展
+psql -U bugseek -d bugseek
+CREATE EXTENSION IF NOT EXISTS vector;
+\dx
+# 应该看到：vector | 0.5.1 | public
+\q
+
+# 6. 退出容器
+exit
+```
+
+#### 验证安装：
+
+```bash
+# 连接数据库测试
+docker exec -it bugseek-postgres psql -U bugseek -d bugseek
+
+# 创建测试表
+CREATE TABLE test_vector (id serial, embedding vector(3));
+INSERT INTO test_vector (embedding) VALUES ('[1,2,3]');
+SELECT * FROM test_vector;
+DROP TABLE test_vector;
+```
+
+**注意**：pgvector 扩展只需要安装一次，容器重启后仍然有效。
+
 ### 2. 启动 Redis（如果未启动）
 
 ```bash

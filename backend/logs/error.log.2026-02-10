@@ -1,0 +1,469 @@
+2026-02-10 13:41:32 | ERROR | [8026c920a990443da0633ee4e11146be] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 36, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 41, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-10 13:41:32 | ERROR | [973a63f17d03400f9bd45d002e9f4702] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 36, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 41, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-10 13:41:32 | ERROR | [448e9023c04e4459824494d2feea8b5e] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 36, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 41, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-10 13:41:32 | ERROR | [964998f106a04882b744434873a13375] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 36, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 41, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-10 13:41:32 | ERROR | [812c120f8e7d4f9792f871a9e13544e6] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 36, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 41, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-10 13:41:32 | ERROR | [fafc4da3e4d24799b77964b3af6ccbb4] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 36, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 41, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-10 16:06:49 | ERROR | [337d22c5ddde487883079044ce1ca6ab] | app.ai.service | JSON 解析失败: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
+2026-02-10 16:06:49 | ERROR | [337d22c5ddde487883079044ce1ca6ab] | app.ai.service | JSON 内容: {
+  "name": "基准用例 - /api/order/so-line/{id}/metadata/",
+  "description": "该接口的基准测试用例",
+  "priority": "P0",
+  "request_data": {
+    "path_params": {
+      "id": "{{order_id}}"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "metadata": {
+        "key1": "{{random_string(16)}}",
+        "key2": {{random_int(1, 100)}},
+        "key3": true,
+        "key4": "{{timestamp()}}",
+        "key5": "{{uuid()}}",
+        "key6": "test_{{random_string(6)}}@example.com"
+      }
+    }
+  },
+  "required_variables": [
+    "order_id"
+  ],
+  "data_prep": [
+    "order_id: 需从数据库查询或通过前置业务创建"
+  ],
+  "assertion_rules": [
+    {
+      "source": "status",
+      "property": null,
+      "operator": "in",
+      "value": [200, 201, 204],
+      "description": "状态码应为 2xx"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata",
+      "operator": "not_null",
+      "value": null,
+      "description": "metadata 字段应非空"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata.key1",
+      "operator": "not_null",
+      "value": null,
+      "description": "metadata.key1 字段应非空"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata.key2",
+      "operator": "type",
+      "value": "number",
+      "description": "metadata.key2 字段应为数字类型"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata.key3",
+      "operator": "type",
+      "value": "boolean",
+      "description": "metadata.key3 字段应为布尔类型"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata.key4",
+      "operator": "type",
+      "value": "string",
+      "description": "metadata.key4 字段应为字符串类型"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata.key5",
+      "operator": "type",
+      "value": "string",
+      "description": "metadata.key5 字段应为字符串类型"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata.key6",
+      "operator": "type",
+      "value": "string",
+      "description": "metadata.key6 字段应为字符串类型"
+    }
+  ],
+  "extraction_rules": [
+    {
+      "var_name": "updated_metadata",
+      "field": "$.metadata",
+      "description": "提取更新后的 metadata 字段"
+    }
+  ],
+  "ai_confidence": 0.9
+}
+2026-02-10 16:06:49 | ERROR | [337d22c5ddde487883079044ce1ca6ab] | app.ai.service | JSON 修复失败: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
+2026-02-10 16:06:49 | ERROR | [337d22c5ddde487883079044ce1ca6ab] | app.ai.service | AI 生成基准用例失败: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
+2026-02-10 16:06:49 | ERROR | [337d22c5ddde487883079044ce1ca6ab] | app.api.v1.api_cases | [337d22c5ddde487883079044ce1ca6ab] AI 生成基准用例失败: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
+2026-02-10 16:06:49 | ERROR | [337d22c5ddde487883079044ce1ca6ab] | app.dependencies | 数据库会话异常: 500: AI 生成失败：AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 170, in generate_base_case
+    parsed_result = json.loads(result_str)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 180, in generate_base_case
+    parsed_result = json.loads(fixed_str)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 646, in ai_generate_base_case
+    result = await ai_service.generate_base_case(
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 185, in generate_base_case
+    raise Exception(f"AI 返回的 JSON 格式错误: {str(e)}")
+Exception: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 688, in ai_generate_base_case
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 生成失败：AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 339)
+2026-02-10 16:08:44 | ERROR | [25f0950194b04d01a5b4d080d0533205] | app.ai.service | JSON 解析失败: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+2026-02-10 16:08:44 | ERROR | [25f0950194b04d01a5b4d080d0533205] | app.ai.service | JSON 内容: {
+  "name": "基准用例 - /api/order/so-line/{id}/metadata/",
+  "description": "该接口的基准测试用例",
+  "priority": "P0",
+  "request_data": {
+    "path_params": {
+      "id": "{{order_id}}"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "metadata": {
+        "key1": "{{random_string(8)}}",
+        "key2": {{random_int(1000, 9999)}},
+        "key3": true,
+        "key4": {{timestamp()}},
+        "key5": "{{uuid()}}",
+        "key6": "test_{{random_string(6)}}@example.com"
+      }
+    }
+  },
+  "required_variables": [
+    "order_id"
+  ],
+  "data_prep": [
+    "order_id: 需从数据库查询或通过前置业务创建"
+  ],
+  "assertion_rules": [
+    {
+      "source": "status",
+      "property": null,
+      "operator": "in",
+      "value": [200, 201, 204],
+      "description": "状态码应为 2xx"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata.key1",
+      "operator": "!=",
+      "value": null,
+      "description": "metadata.key1 应非空"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata.key2",
+      "operator": "number",
+      "description": "metadata.key2 应为数字"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata.key3",
+      "operator": "boolean",
+      "description": "metadata.key3 应为布尔值"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata.key4",
+      "operator": "timestamp",
+      "description": "metadata.key4 应为时间戳"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata.key5",
+      "operator": "uuid",
+      "description": "metadata.key5 应为 UUID"
+    },
+    {
+      "source": "body",
+      "property": "$.metadata.key6",
+      "operator": "email",
+      "description": "metadata.key6 应为邮箱格式"
+    }
+  ],
+  "extraction_rules": [
+    {
+      "var_name": "metadata",
+      "field": "$.metadata",
+      "description": "提取 metadata 字段"
+    }
+  ],
+  "ai_confidence": 0.9
+}
+2026-02-10 16:08:44 | ERROR | [25f0950194b04d01a5b4d080d0533205] | app.ai.service | JSON 修复失败: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+2026-02-10 16:08:44 | ERROR | [25f0950194b04d01a5b4d080d0533205] | app.ai.service | AI 生成基准用例失败: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+2026-02-10 16:08:44 | ERROR | [25f0950194b04d01a5b4d080d0533205] | app.api.v1.api_cases | [25f0950194b04d01a5b4d080d0533205] AI 生成基准用例失败: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+2026-02-10 16:08:44 | ERROR | [25f0950194b04d01a5b4d080d0533205] | app.dependencies | 数据库会话异常: 500: AI 生成失败：AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 170, in generate_base_case
+    parsed_result = json.loads(result_str)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 180, in generate_base_case
+    parsed_result = json.loads(fixed_str)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 646, in ai_generate_base_case
+    result = await ai_service.generate_base_case(
+  File "D:\code\BugSeek\backend\app\ai\service.py", line 185, in generate_base_case
+    raise Exception(f"AI 返回的 JSON 格式错误: {str(e)}")
+Exception: AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\api_cases.py", line 688, in ai_generate_base_case
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 生成失败：AI 返回的 JSON 格式错误: Expecting property name enclosed in double quotes: line 15 column 18 (char 338)
+2026-02-10 16:22:58 | ERROR | [b4891b6e0af8453bbe29382ff527981a] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 19, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 33, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
