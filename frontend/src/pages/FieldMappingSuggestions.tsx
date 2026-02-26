@@ -27,7 +27,8 @@ import {
   Slider,
   Select,
   Tabs,
-  Popconfirm
+  Popconfirm,
+  Input
 } from 'antd';
 import { 
   CheckCircleOutlined, 
@@ -53,7 +54,7 @@ import { FieldMappingStageProgress } from '../components/FieldMappingStageProgre
 const FieldMappingSuggestions: React.FC = () => {
   const { currentProject, currentVersion } = useProjectStore();
   
-  // ==================== 页面状态管理 ====================
+  // ==================== 页面状态管理（简化版 - 仅用于历史任务记录） ====================
   const [pageState, setPageState] = useState<PageState>('IDLE');
   const [taskId, setTaskId] = useState<number | null>(null);
   const [currentTask, setCurrentTask] = useState<AsyncTask | null>(null);
@@ -199,12 +200,21 @@ const FieldMappingSuggestions: React.FC = () => {
   const [useAiFallback, setUseAiFallback] = useState(true);  // 是否启用 AI 兜底
   const [aiConfidenceThreshold, setAiConfidenceThreshold] = useState(0.7);  // AI 触发阈值
   
-  // ==================== 新增：统计信息状态 ====================
-  const [mappingStatistics, setMappingStatistics] = useState<fieldMappingService.MappingStatistics | null>(null);
-  
   // ==================== 新增：筛选器状态 ====================
   const [typeFilter, setTypeFilter] = useState<'all' | 'manual' | 'auto'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'proposed' | 'confirmed' | 'rejected'>('all');
+  
+  // 新增：置信度筛选
+  const [confidenceFilter, setConfidenceFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+  
+  // 新增：API方法筛选
+  const [methodFilter, setMethodFilter] = useState<'all' | 'POST' | 'GET' | 'PUT' | 'DELETE' | 'PATCH'>('all');
+  
+  // 新增：字段类型筛选
+  const [fieldTypeFilter, setFieldTypeFilter] = useState<'all' | 'path' | 'query' | 'body'>('all');
+  
+  // 新增：搜索关键词
+  const [searchKeyword, setSearchKeyword] = useState('');
   
   // 高置信度阈值
   const HIGH_CONFIDENCE_THRESHOLD = 0.85;
@@ -418,28 +428,27 @@ const FieldMappingSuggestions: React.FC = () => {
   };
 
   // 加载任务结果（使用缓存优化 + 服务器分页）
-  const loadTaskResults = async (taskId: number, page: number = 1, size: number = 20) => {
-    try {
-      const response = await fieldMappingService.getFieldMappingSuggestions(taskId, {
-        page,
-        page_size: size
-      });
-      
-      if (response.code === 0 && response.data) {
-        setSuggestions(response.data.items || []);
-        setPagination({
-          current: page,
-          pageSize: size,
-          total: response.data.total || 0
+    const loadTaskResults = async (taskId: number, page: number = 1, size: number = 20) => {
+      try {
+        const response = await fieldMappingService.getFieldMappingSuggestions(taskId, {
+          page,
+          page_size: size
         });
+  
+        if (response.code === 0 && response.data) {
+          const items = response.data.items || [];
+          setSuggestions(items);
+          setPagination({
+            current: page,
+            pageSize: size,
+            total: response.data.total || 0
+          });
+        }
+      } catch (error: any) {
+        console.error('加载任务结果失败:', error);
+        message.error(error.message || '加载结果失败');
       }
-    } catch (error: any) {
-      console.error('加载任务结果失败:', error);
-      message.error(error.message || '加载结果失败');
-    }
-  };
-
-  /**
+    };  /**
    * 获取当前阶段索引
    */
   const getCurrentStageIndex = () => {
@@ -507,11 +516,6 @@ const FieldMappingSuggestions: React.FC = () => {
       if (response.code === 0) {
         const items = response.data?.items || [];
         setSuggestions(items);
-        
-        // 计算统计信息
-        const stats = calculateStatistics(items);
-        setMappingStatistics(stats);
-        
         message.success(`生成了 ${items.length} 个映射建议`);
       } else {
         message.error(response.message || '获取建议失败');
@@ -534,7 +538,22 @@ const FieldMappingSuggestions: React.FC = () => {
     let aiFallbackCount = 0;
     let autoConfirmedCount = 0;
     
+    // 新增：状态统计
+    let proposedCount = 0;
+    let confirmedCount = 0;
+    let rejectedCount = 0;
+    
     suggestions.forEach(suggestion => {
+      // 统计状态
+      const status = suggestion.status || fieldMappingService.MappingStatus.PROPOSED;
+      if (status === fieldMappingService.MappingStatus.PROPOSED) {
+        proposedCount++;
+      } else if (status === fieldMappingService.MappingStatus.CONFIRMED) {
+        confirmedCount++;
+      } else if (status === fieldMappingService.MappingStatus.REJECTED) {
+        rejectedCount++;
+      }
+      
       suggestion.candidates.forEach(candidate => {
         // 检查是否 AI 选择
         if (candidate.ai_selected) {
@@ -559,7 +578,11 @@ const FieldMappingSuggestions: React.FC = () => {
       high_confidence_count: highConfidenceCount,
       medium_confidence_count: mediumConfidenceCount,
       low_confidence_count: lowConfidenceCount,
-      auto_confirmed_count: autoConfirmedCount
+      auto_confirmed_count: autoConfirmedCount,
+      // 新增：状态统计
+      proposed_count: proposedCount,
+      confirmed_count: confirmedCount,
+      rejected_count: rejectedCount
     };
   };
 
@@ -871,7 +894,7 @@ const FieldMappingSuggestions: React.FC = () => {
       return;
     }
 
-    const selectedSuggestions = suggestions.filter(s => selectedRowKeys.includes(s.definition_id));
+    const selectedSuggestions = suggestions.filter(s => selectedRowKeys.includes(s.id!));
     
     if (selectedSuggestions.length === 0) {
       message.warning('请先选择要拒绝的映射');
@@ -882,7 +905,7 @@ const FieldMappingSuggestions: React.FC = () => {
       setLoading(true);
       // 将选中的建议标记为已拒绝
       const updatedSuggestions = suggestions.map(s => {
-        if (selectedRowKeys.includes(s.definition_id)) {
+        if (selectedRowKeys.includes(s.id!)) {
           return { ...s, status: fieldMappingService.MappingStatus.REJECTED };
         }
         return s;
@@ -905,7 +928,7 @@ const FieldMappingSuggestions: React.FC = () => {
       return;
     }
 
-    const selectedSuggestions = suggestions.filter(s => selectedRowKeys.includes(s.definition_id));
+    const selectedSuggestions = suggestions.filter(s => selectedRowKeys.includes(s.id!));
     
     if (selectedSuggestions.length === 0) {
       message.warning('请先选择要确认的映射');
@@ -1155,7 +1178,7 @@ const FieldMappingSuggestions: React.FC = () => {
     return colorMap[method] || 'default';
   };
 
-  // ==================== 筛选逻辑 ====================
+  // ==================== 筛选逻辑（增强版） ====================
   const filteredSuggestions = suggestions.filter(s => {
     // 类型筛选
     const isAi = s.candidates?.[0]?.ai_selected || false;
@@ -1171,8 +1194,49 @@ const FieldMappingSuggestions: React.FC = () => {
     if (statusFilter !== 'all') {
       statusMatch = s.status === statusFilter;
     }
+    
+    // 新增：置信度筛选
+    let confidenceMatch = true;
+    const score = s.candidates?.[0]?.score || 0;
+    if (confidenceFilter === 'high' && score < 0.85) {
+      confidenceMatch = false;
+    } else if (confidenceFilter === 'medium' && (score < 0.6 || score >= 0.85)) {
+      confidenceMatch = false;
+    } else if (confidenceFilter === 'low' && score >= 0.6) {
+      confidenceMatch = false;
+    }
+    
+    // 新增：API筛选
+    let methodMatch = true;
+    if (methodFilter !== 'all' && s.definition_method !== methodFilter) {
+      methodMatch = false;
+    }
+    
+    // 新增：字段类型筛选
+    let fieldTypeMatch = true;
+    if (fieldTypeFilter !== 'all') {
+      const prefix = s.api_field_path.split('.')[0];
+      if (prefix !== fieldTypeFilter) {
+        fieldTypeMatch = false;
+      }
+    }
+    
+    // 新增：搜索筛选
+    let searchMatch = true;
+    if (searchKeyword) {
+      const keyword = searchKeyword.toLowerCase();
+      const fieldName = s.api_field_path.split('.').pop()?.toLowerCase() || '';
+      const tableName = s.candidates?.[0]?.db_table?.toLowerCase() || '';
+      const columnName = s.candidates?.[0]?.db_column?.toLowerCase() || '';
+      
+      if (!fieldName.includes(keyword) && 
+          !tableName.includes(keyword) && 
+          !columnName.includes(keyword)) {
+        searchMatch = false;
+      }
+    }
 
-    return typeMatch && statusMatch;
+    return typeMatch && statusMatch && confidenceMatch && methodMatch && fieldTypeMatch && searchMatch;
   });
 
   // 选择行的配置
@@ -1185,6 +1249,8 @@ const FieldMappingSuggestions: React.FC = () => {
       disabled: !record.candidates || record.candidates.length === 0,
       name: record.api_field_path,
     }),
+    // 确保使用id作为key
+    columnWidth: '50px',
   };
 
   return (
@@ -1245,11 +1311,22 @@ const FieldMappingSuggestions: React.FC = () => {
         </Space>
       </div>
 
-      {/* ==================== 筛选器工具栏 ==================== */}
-      {pageState === 'IDLE' && suggestions.length > 0 && (
+      {/* ==================== 筛选器工具栏（增强版） ==================== */}
+      {suggestions.length > 0 && (
           <div style={{ marginBottom: 16 }}>
-            <Space>
+            <Space wrap>
               <span style={{ color: 'var(--text-tertiary)' }}>🔍</span>
+              
+              {/* 搜索框 */}
+              <Input.Search
+                placeholder="搜索字段名/表名/列名"
+                style={{ width: 200 }}
+                value={searchKeyword}
+                onChange={e => setSearchKeyword(e.target.value)}
+                allowClear
+              />
+              
+              {/* 类型筛选 */}
               <Select
                 style={{ width: 120 }}
                 value={typeFilter}
@@ -1260,6 +1337,8 @@ const FieldMappingSuggestions: React.FC = () => {
                   { label: '自动映射', value: 'auto' }
                 ]}
               />
+              
+              {/* 状态筛选 */}
               <Select
                 style={{ width: 120 }}
                 value={statusFilter}
@@ -1271,9 +1350,57 @@ const FieldMappingSuggestions: React.FC = () => {
                   { label: '已拒绝', value: 'rejected' }
                 ]}
               />
+              
+              {/* 置信度筛选 */}
+              <Select
+                style={{ width: 140 }}
+                value={confidenceFilter}
+                onChange={setConfidenceFilter}
+                options={[
+                  { label: '全部置信度', value: 'all' },
+                  { label: '高置信度（≥85%）', value: 'high' },
+                  { label: '中等置信度（60%-85%）', value: 'medium' },
+                  { label: '低置信度（<60%）', value: 'low' }
+                ]}
+              />
+              
+              {/* API筛选 */}
+              <Select
+                style={{ width: 120 }}
+                value={methodFilter}
+                onChange={setMethodFilter}
+                options={[
+                  { label: '全部API', value: 'all' },
+                  { label: 'POST接口', value: 'POST' },
+                  { label: 'GET接口', value: 'GET' },
+                  { label: 'PUT接口', value: 'PUT' },
+                  { label: 'DELETE接口', value: 'DELETE' },
+                  { label: 'PATCH接口', value: 'PATCH' }
+                ]}
+              />
+              
+              {/* 字段类型筛选 */}
+              <Select
+                style={{ width: 120 }}
+                value={fieldTypeFilter}
+                onChange={setFieldTypeFilter}
+                options={[
+                  { label: '全部字段', value: 'all' },
+                  { label: '路径参数', value: 'path' },
+                  { label: '查询参数', value: 'query' },
+                  { label: '请求体参数', value: 'body' }
+                ]}
+              />
+              
               <Button 
                 icon={<SyncOutlined />} 
-                onClick={fetchSuggestions}
+                onClick={() => {
+                  if (taskId) {
+                    loadTaskResults(taskId, pagination.current, pagination.pageSize);
+                  } else {
+                    message.info('没有正在进行的任务，请先生成映射建议');
+                  }
+                }}
                 size="small"
               >
                 刷新
@@ -1282,343 +1409,85 @@ const FieldMappingSuggestions: React.FC = () => {
           </div>
         )}
 
-        {/* ==================== 根据 pageState 渲染不同内容 ==================== */}
+        {/* ==================== 字段选择复选框 ==================== */}
         
-        {/* IDLE 态：显示空状态 */}
-        {pageState === 'IDLE' && (
-          <div style={{ marginBottom: 16 }}>
-            <Space>
-              <Checkbox 
-                checked={includePaths} 
-                onChange={e => setIncludePaths(e.target.checked)}
-              >
-                包含路径参数
-              </Checkbox>
-              <Checkbox 
-                checked={includeQuery} 
-                onChange={e => setIncludeQuery(e.target.checked)}
-              >
-                包含查询参数
-              </Checkbox>
-              <Checkbox 
-                checked={includeBody} 
-                onChange={e => setIncludeBody(e.target.checked)}
-              >
-                包含请求体参数
-              </Checkbox>
-            </Space>
-          </div>
-        )}
+        {/* 字段选择复选框 */}
+        <div style={{ marginBottom: 16 }}>
+          <Space>
+            <Checkbox 
+              checked={includePaths} 
+              onChange={e => setIncludePaths(e.target.checked)}
+            >
+              包含路径参数
+            </Checkbox>
+            <Checkbox 
+              checked={includeQuery} 
+              onChange={e => setIncludeQuery(e.target.checked)}
+            >
+              包含查询参数
+            </Checkbox>
+            <Checkbox 
+              checked={includeBody} 
+              onChange={e => setIncludeBody(e.target.checked)}
+            >
+              包含请求体参数
+            </Checkbox>
+          </Space>
+        </div>
 
-        {/* ==================== 新增：统计信息卡片 ==================== */}
-        {mappingStatistics && suggestions.length > 0 && (
-          <Row gutter={16} style={{ marginBottom: 16 }}>
-            <Col span={6}>
-              <Card size="small" hoverable>
-                <Statistic
-                  title="总字段数"
-                  value={mappingStatistics.total_fields}
-                  prefix={<ClockCircleOutlined />}
-                />
-              </Card>
-            </Col>
-            
-            <Col span={6}>
-              <Card size="small" hoverable>
-                <Statistic
-                  title="高置信度"
-                  value={mappingStatistics.high_confidence_count}
-                  valueStyle={{ color: '#3f8600' }}
-                  prefix={<CheckCircleOutlined />}
-                  suffix={
-                    <Tag color="green" style={{ marginLeft: 8 }}>
-                      ≥85%
-                    </Tag>
-                  }
-                />
-              </Card>
-            </Col>
-            
-            <Col span={6}>
-              <Card size="small" hoverable>
-                <Statistic
-                  title="AI 兜底"
-                  value={mappingStatistics.ai_fallback_count}
-                  valueStyle={{ color: '#722ed1' }}
-                  prefix={<SyncOutlined />}
-                />
-                {mappingStatistics.gravity_table && (
-                  <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 8 }}>
-                    重心表: {mappingStatistics.gravity_table}
-                  </div>
-                )}
-              </Card>
-            </Col>
-            
-            <Col span={6}>
-              <Card size="small" hoverable>
-                <Statistic
-                  title="低置信度"
-                  value={mappingStatistics.low_confidence_count}
-                  valueStyle={{ color: '#ff4d4f' }}
-                  prefix={<WarningOutlined />}
-                  suffix={
-                    <Tag color="red" style={{ marginLeft: 8 }}>
-                      &lt;60%
-                    </Tag>
-                  }
-                />
-              </Card>
-            </Col>
-          </Row>
-        )}
-
-        {pageState === 'IDLE' && suggestions.length === 0 && !loading ? (
-          <Table
-            rowSelection={rowSelection}
-            columns={columns}
-            dataSource={[]}
-            rowKey="definition_id"
-            loading={loading}
-            pagination={{
-              current: pagination.current,
-              pageSize: pagination.pageSize,
-              total: pagination.total,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total) => `共 ${total} 条`,
-              onChange: (page, pageSize) => {
-                loadTaskResults(taskId!, page, pageSize);
-              },
-              onShowSizeChange: (current, size) => {
-                loadTaskResults(taskId!, 1, size);
-              }
-            }}
-          />
-        ) : pageState === 'IDLE' && (
+        {/* ==================== 建议列表表格（简化版 - 移除pageState判断） ==================== */}
+        {suggestions.length === 0 && !loading ? (
+          <Empty
+            description="暂无映射建议"
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+          >
+            <Button type="primary" onClick={() => setTaskModalVisible(true)}>
+              生成映射建议
+            </Button>
+          </Empty>
+        ) : (
           <Table
             rowSelection={rowSelection}
             columns={columns}
             dataSource={filteredSuggestions}
-            rowKey="definition_id"
+            rowKey="id"
             loading={loading}
             pagination={{
               current: pagination.current,
               pageSize: pagination.pageSize,
-              total: pagination.total,
+              total: filteredSuggestions.length,
               showSizeChanger: true,
               showQuickJumper: true,
               showTotal: (total) => `共 ${total} 条`,
               onChange: (page, pageSize) => {
-                loadTaskResults(taskId!, page, pageSize);
+                // 重置筛选器状态，避免分页切换时出现重复数据
+                setTypeFilter('all');
+                setStatusFilter('all');
+                setConfidenceFilter('all');
+                setMethodFilter('all');
+                setFieldTypeFilter('all');
+                setPagination({ ...pagination, current: page, pageSize: size });
               },
               onShowSizeChange: (current, size) => {
-                loadTaskResults(taskId!, 1, size);
+                // 重置筛选器状态，避免分页切换时出现重复数据
+                setTypeFilter('all');
+                setStatusFilter('all');
+                setConfidenceFilter('all');
+                setMethodFilter('all');
+                setFieldTypeFilter('all');
+                setPagination({ ...pagination, current: 1, pageSize: size });
               }
             }}
           />
         )}
 
-        {/* RUNNING 态：显示进度面板 */}
-        {pageState === 'RUNNING' && (
-          <div>
-            {currentTask ? (
-              <>
-                {/* 顶部进度条 */}
-                <div style={{ marginBottom: 24 }}>
-                  <Progress 
-                    percent={currentTask.progress} 
-                    status={currentTask.status === 'failed' ? 'exception' : 'active'}
-                    format={(percent) => `${percent}% - ${currentTask.progress_message || '处理中...'}`}
-                  />
-                </div>
-
-                {/* 垂直步骤条 */}
-                <div style={{ marginBottom: 24 }}>
-                  <Steps 
-                    current={getCurrentStageIndex()} 
-                    direction="vertical"
-                    items={currentTask.stages?.map((stage) => ({
-                      title: stage.name,
-                      status: getStepStatus(stage.status),
-                      subTitle: (
-                        <div>
-                          {stage.description && <div style={{ marginBottom: 4 }}>{stage.description}</div>}
-                          {stage.status === 'running' && <Spin size="small" />}
-                          <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-                            进度: {stage.progress}%
-                          </div>
-                        </div>
-                      )
-                    })) || []}
-                  />
-                </div>
-
-                {/* 统计信息卡片 */}
-                {currentTask.statistics && (
-                  <Row gutter={16} style={{ marginBottom: 24 }}>
-                    <Col span={6}>
-                      <Statistic title="总字段数" value={currentTask.statistics.total_fields || 0} />
-                    </Col>
-                    <Col span={6}>
-                      <Statistic title="已处理" value={currentTask.statistics.processed || 0} />
-                    </Col>
-                    <Col span={6}>
-                      <Statistic title="AI增强" value={currentTask.statistics.ai_enhanced || 0} />
-                    </Col>
-                    <Col span={6}>
-                      <Statistic title="自动确认" value={currentTask.statistics.auto_confirmed || 0} />
-                    </Col>
-                  </Row>
-                )}
-
-                {/* 操作按钮 */}
-                <Space>
-                  <Button danger onClick={handleCancelTask}>
-                    取消任务
-                  </Button>
-                  <Button onClick={handleRefreshTask}>
-                    刷新状态
-                  </Button>
-                </Space>
-              </>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '60px 0' }}>
-                <Spin size="large" />
-                <div style={{ marginTop: 16, color: 'var(--text-tertiary)' }}>正在加载任务信息...</div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* COMPLETED 态：显示任务摘要和结果表格 */}
-        {pageState === 'COMPLETED' && currentTask && (
-          <div>
-            {/* 进度条：显示 100% 完成 */}
-            <div style={{ marginBottom: 24 }}>
-              <Progress 
-                percent={100} 
-                status="success"
-                format={() => `100% - ${currentTask.progress_message || '任务已完成'}`}
-              />
-            </div>
-
-            {/* 垂直步骤条：所有阶段显示为已完成 */}
-            <div style={{ marginBottom: 24 }}>
-              <Steps 
-                current={(currentTask.stages?.length || 0)}
-                direction="vertical"
-                items={currentTask.stages?.map((stage) => ({
-                  title: stage.name,
-                  status: 'finish',
-                  description: (
-                    <div>
-                      {stage.description && <div style={{ marginBottom: 4 }}>{stage.description}</div>}
-                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-                        进度: 100%
-                      </div>
-                    </div>
-                  )
-                })) || []}
-              />
-            </div>
-
-            {/* 统计信息卡片 */}
-            {currentTask.statistics && (
-              <Row gutter={16} style={{ marginBottom: 24 }}>
-                <Col span={6}>
-                  <Statistic title="总字段数" value={currentTask.statistics.total_fields || 0} />
-                </Col>
-                <Col span={6}>
-                  <Statistic title="已处理" value={currentTask.statistics.processed || 0} />
-                </Col>
-                <Col span={6}>
-                  <Statistic title="AI增强" value={currentTask.statistics.ai_enhanced || 0} />
-                </Col>
-                <Col span={6}>
-                  <Statistic title="自动确认" value={currentTask.statistics.auto_confirmed || 0} />
-                </Col>
-              </Row>
-            )}
-
-            {/* 任务摘要 */}
-            <Alert
-              message="任务完成"
-              description={
-                <div>
-                  <div>耗时: {Math.ceil((currentTask.finished_at ? new Date(currentTask.finished_at).getTime() - new Date(currentTask.started_at || '').getTime() : 0) / 1000)} 秒</div>
-                  <div>生成建议: {suggestions.length} 个</div>
-                </div>
-              }
-              type="success"
-              showIcon
-              style={{ marginBottom: 16 }}
-            />
-
-            {/* 结果表格 */}
-            <Table
-              rowSelection={rowSelection}
-              columns={columns}
-              dataSource={suggestions}
-              rowKey="definition_id"
-              loading={loading}
-              pagination={{
-                showSizeChanger: true,
-                showQuickJumper: true,
-                showTotal: (total) => `共 ${total} 条`,
-              }}
-            />
-          </div>
-        )}
-
-        {/* FAILED 态：显示错误信息 */}
-        {pageState === 'FAILED' && currentTask && (
-          <Result
-            status="error"
-            title="任务执行失败"
-            subTitle={currentTask.error_message || '未知错误'}
-            extra={[
-              <Button key="retry" type="primary" onClick={() => {
-                // TODO: 实现重试逻辑
-                message.info('重试功能待实现')
-              }}>
-                重试失败阶段
-              </Button>,
-              <Button key="new" onClick={() => {
-                setPageState('IDLE');
-                setTaskId(null);
-                setCurrentTask(null);
-              }}>
-                重新创建任务
-              </Button>
-            ]}
-          />
-        )}
-
-        {/* 兼容：如果 pageState 为空但 suggestions 有数据，显示表格 */}
-        {!pageState && suggestions.length > 0 && (
-          <Table
-            rowSelection={rowSelection}
-            columns={columns}
-            dataSource={suggestions}
-            rowKey="definition_id"
-            loading={loading}
-            pagination={{
-              current: pagination.current,
-              pageSize: pagination.pageSize,
-              total: pagination.total,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total) => `共 ${total} 条`,
-              onChange: (page, pageSize) => {
-                loadTaskResults(taskId!, page, pageSize);
-              },
-              onShowSizeChange: (current, size) => {
-                loadTaskResults(taskId!, 1, size);
-              }
-            }}
-          />
-        )}
+        {/* ==================== 以下内容已简化 - 移除任务进度相关渲染 ==================== */}
+        {/* RUNNING 态：显示进度面板 - 已移除 */}
+        {/* COMPLETED 态：显示任务摘要和结果表格 - 已移除 */}
+        {/* FAILED 态：显示错误信息 - 已移除 */}
+        {/* 兼容：如果 pageState 为空但 suggestions 有数据，显示表格 - 已简化到上方 */}
+        
+        {/* ==================== 简化完成 ==================== */}
 
       {/* 任务创建模态框 */}
       <Modal
@@ -1723,24 +1592,6 @@ const FieldMappingSuggestions: React.FC = () => {
                 <div style={{ marginTop: 8, color: 'var(--text-tertiary)' }}>{currentTask.progress_message}</div>
               )}
             </div>
-
-            {/* 统计信息 */}
-            {currentTask.statistics && (
-              <Row gutter={16}>
-                <Col span={6}>
-                  <Statistic title="总字段数" value={currentTask.statistics.total_fields || 0} />
-                </Col>
-                <Col span={6}>
-                  <Statistic title="已处理" value={currentTask.statistics.processed || 0} />
-                </Col>
-                <Col span={6}>
-                  <Statistic title="AI增强" value={currentTask.statistics.ai_enhanced || 0} />
-                </Col>
-                <Col span={6}>
-                  <Statistic title="自动确认" value={currentTask.statistics.auto_confirmed || 0} />
-                </Col>
-              </Row>
-            )}
 
             {/* 阶段进度 */}
             <div>
@@ -2049,40 +1900,6 @@ const FieldMappingSuggestions: React.FC = () => {
                         </div>
                       )}
 
-                      {/* 统计信息 */}
-                      {expandedTaskDetail.statistics && (
-                        <Row gutter={8} style={{ marginBottom: 12 }}>
-                          <Col span={12}>
-                            <Statistic 
-                              title="总字段数" 
-                              value={expandedTaskDetail.statistics.total_fields || 0}
-                              valueStyle={{ fontSize: 14 }}
-                            />
-                          </Col>
-                          <Col span={12}>
-                            <Statistic 
-                              title="已处理" 
-                              value={expandedTaskDetail.statistics.processed || 0}
-                              valueStyle={{ fontSize: 14 }}
-                            />
-                          </Col>
-                          <Col span={12}>
-                            <Statistic 
-                              title="AI增强" 
-                              value={expandedTaskDetail.statistics.ai_enhanced || 0}
-                              valueStyle={{ fontSize: 14 }}
-                            />
-                          </Col>
-                          <Col span={12}>
-                            <Statistic 
-                              title="自动确认" 
-                              value={expandedTaskDetail.statistics.auto_confirmed || 0}
-                              valueStyle={{ fontSize: 14 }}
-                            />
-                          </Col>
-                        </Row>
-                      )}
-
                       {/* 错误信息 */}
                       {expandedTaskDetail.error_message && (
                         <Alert
@@ -2187,7 +2004,7 @@ const FieldMappingSuggestions: React.FC = () => {
                             }
                           ]}
                           dataSource={expandedTaskSuggestions}
-                          rowKey="definition_id"
+                          rowKey="id"
                           pagination={{
                             pageSize: 5,
                             size: 'small',

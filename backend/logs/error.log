@@ -1,22 +1,80 @@
-2026-02-25 09:51:47 | ERROR | [88cb2a3518ac48938b45a4dffbe3d0a8] | app.dependencies | 数据库会话异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
-LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
-                                                             ^
-
-[SQL: SELECT count(*) AS count_1 
-FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
-FROM sync_tasks 
-WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
-[parameters: {'project_id_1': 1}]
-(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-26 10:36:41 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | app.dependencies | 数据库会话异常: 
+Retry limit exceeded while trying to reconnect to the Celery redis result store backend. The Celery application must be restarted.
 Traceback (most recent call last):
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
-    self.dialect.do_execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
-    cursor.execute(statement, parameters)
-psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
-LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
-                                                             ^
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 855, in connect_check_health
+    sock = self.retry.call_with_retry(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\retry.py", line 116, in call_with_retry
+    return do()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 856, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 1306, in _connect
+    raise err
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 1290, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
 
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 130, in reconnect_on_error
+    yield
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 180, in _consume_from
+    self._pubsub.subscribe(key)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\client.py", line 1090, in subscribe
+    ret_val = self.execute_command("SUBSCRIBE", *new_channels.keys())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\client.py", line 914, in execute_command
+    self.connection = self.connection_pool.get_connection()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\utils.py", line 196, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 2603, in get_connection
+    connection.connect()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 846, in connect
+    self.connect_check_health(check_health=True)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 863, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to 127.0.0.1:6380. 由于目标计算机积极拒绝，无法连接。.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 855, in connect_check_health
+    sock = self.retry.call_with_retry(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\retry.py", line 116, in call_with_retry
+    return do()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 856, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 1306, in _connect
+    raise err
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 1290, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 133, in reconnect_on_error
+    self._ensure(self._reconnect_pubsub, ())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 428, in ensure
+    return retry_over_time(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\utils\functional.py", line 318, in retry_over_time
+    return fun(*args, **kwargs)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 109, in _reconnect_pubsub
+    metas = self.backend.client.mget(self.subscribed_to)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\commands\core.py", line 2091, in mget
+    return self.execute_command("MGET", *args, **options)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\client.py", line 657, in execute_command
+    return self._execute_command(*args, **options)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\client.py", line 663, in _execute_command
+    conn = self.connection or pool.get_connection()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\utils.py", line 196, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 2603, in get_connection
+    connection.connect()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 846, in connect
+    self.connect_check_health(check_health=True)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 863, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to 127.0.0.1:6380. 由于目标计算机积极拒绝，无法连接。.
 
 The above exception was the direct cause of the following exception:
 
@@ -31,67 +89,105 @@ Traceback (most recent call last):
     raw_response = await run_endpoint_function(
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
     return await dependant.call(**values)
-  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
-    total = query.count()
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
-    self._legacy_from_self(col).enable_eagerloads(False).scalar()
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
-    ret = self.one()
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
-    return self._iter().one()  # type: ignore
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
-    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
-    return self._execute_internal(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
-    result: Result[Any] = compile_state_cls.orm_execute_statement(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
-    result = conn.execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
-    return meth(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
-    return connection._execute_clauseelement(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
-    ret = self._execute_context(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
-    return self._exec_single_context(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
-    self._handle_dbapi_exception(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
-    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
-    self.dialect.do_execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
-    cursor.execute(statement, parameters)
-sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
-LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
-                                                             ^
+  File "D:\code\BugSeek\backend\app\api\v1\field_mappings_async.py", line 163, in create_suggest_task
+    celery_task = execute_field_mapping_task.apply_async(args=[task.id])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\app\task.py", line 608, in apply_async
+    return app.send_task(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\app\base.py", line 946, in send_task
+    self.backend.on_task_call(P, task_id)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 417, in on_task_call
+    self.result_consumer.consume_from(task_id)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 172, in consume_from
+    return self.start(task_id)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 150, in start
+    self._consume_from(initial_task_id)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 179, in _consume_from
+    with self.reconnect_on_error():
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 136, in reconnect_on_error
+    raise RuntimeError(E_RETRY_LIMIT_EXCEEDED) from e
+RuntimeError: 
+Retry limit exceeded while trying to reconnect to the Celery redis result store backend. The Celery application must be restarted.
 
-[SQL: SELECT count(*) AS count_1 
-FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
-FROM sync_tasks 
-WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
-[parameters: {'project_id_1': 1}]
-(Background on this error at: https://sqlalche.me/e/20/f405)
-2026-02-25 09:51:47 | ERROR | [88cb2a3518ac48938b45a4dffbe3d0a8] | app.main | 未捕获的异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
-LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
-                                                             ^
-
-[SQL: SELECT count(*) AS count_1 
-FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
-FROM sync_tasks 
-WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
-[parameters: {'project_id_1': 1}]
-(Background on this error at: https://sqlalche.me/e/20/f405) | 路径: /api/v1/sync-tasks | 方法: GET
+2026-02-26 10:36:42 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | app.main | 未捕获的异常: 
+Retry limit exceeded while trying to reconnect to the Celery redis result store backend. The Celery application must be restarted.
+ | 路径: /api/v1/field-mappings/suggest-task | 方法: POST
 Traceback (most recent call last):
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
-    self.dialect.do_execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
-    cursor.execute(statement, parameters)
-psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
-LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
-                                                             ^
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 855, in connect_check_health
+    sock = self.retry.call_with_retry(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\retry.py", line 116, in call_with_retry
+    return do()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 856, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 1306, in _connect
+    raise err
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 1290, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
 
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 130, in reconnect_on_error
+    yield
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 180, in _consume_from
+    self._pubsub.subscribe(key)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\client.py", line 1090, in subscribe
+    ret_val = self.execute_command("SUBSCRIBE", *new_channels.keys())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\client.py", line 914, in execute_command
+    self.connection = self.connection_pool.get_connection()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\utils.py", line 196, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 2603, in get_connection
+    connection.connect()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 846, in connect
+    self.connect_check_health(check_health=True)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 863, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to 127.0.0.1:6380. 由于目标计算机积极拒绝，无法连接。.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 855, in connect_check_health
+    sock = self.retry.call_with_retry(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\retry.py", line 116, in call_with_retry
+    return do()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 856, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 1306, in _connect
+    raise err
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 1290, in _connect
+    sock.connect(socket_address)
+ConnectionRefusedError: [WinError 10061] 由于目标计算机积极拒绝，无法连接。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 133, in reconnect_on_error
+    self._ensure(self._reconnect_pubsub, ())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 428, in ensure
+    return retry_over_time(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\utils\functional.py", line 318, in retry_over_time
+    return fun(*args, **kwargs)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 109, in _reconnect_pubsub
+    metas = self.backend.client.mget(self.subscribed_to)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\commands\core.py", line 2091, in mget
+    return self.execute_command("MGET", *args, **options)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\client.py", line 657, in execute_command
+    return self._execute_command(*args, **options)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\client.py", line 663, in _execute_command
+    conn = self.connection or pool.get_connection()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\utils.py", line 196, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 2603, in get_connection
+    connection.connect()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 846, in connect
+    self.connect_check_health(check_health=True)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 863, in connect_check_health
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to 127.0.0.1:6380. 由于目标计算机积极拒绝，无法连接。.
 
 The above exception was the direct cause of the following exception:
 
@@ -112,7 +208,9 @@ Traceback (most recent call last):
     raise app_exc from app_exc.__cause__ or app_exc.__context__
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 144, in coro
     await self.app(scope, receive_or_disconnect, send_no_error)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 144, in simple_response
     await self.app(scope, receive, send)
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
@@ -140,69 +238,40 @@ Traceback (most recent call last):
     raw_response = await run_endpoint_function(
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
     return await dependant.call(**values)
-  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
-    total = query.count()
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
-    self._legacy_from_self(col).enable_eagerloads(False).scalar()
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
-    ret = self.one()
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
-    return self._iter().one()  # type: ignore
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
-    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
-    return self._execute_internal(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
-    result: Result[Any] = compile_state_cls.orm_execute_statement(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
-    result = conn.execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
-    return meth(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
-    return connection._execute_clauseelement(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
-    ret = self._execute_context(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
-    return self._exec_single_context(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
-    self._handle_dbapi_exception(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
-    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
-    self.dialect.do_execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
-    cursor.execute(statement, parameters)
-sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
-LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
-                                                             ^
+  File "D:\code\BugSeek\backend\app\api\v1\field_mappings_async.py", line 163, in create_suggest_task
+    celery_task = execute_field_mapping_task.apply_async(args=[task.id])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\app\task.py", line 608, in apply_async
+    return app.send_task(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\app\base.py", line 946, in send_task
+    self.backend.on_task_call(P, task_id)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 417, in on_task_call
+    self.result_consumer.consume_from(task_id)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 172, in consume_from
+    return self.start(task_id)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 150, in start
+    self._consume_from(initial_task_id)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 179, in _consume_from
+    with self.reconnect_on_error():
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\backends\redis.py", line 136, in reconnect_on_error
+    raise RuntimeError(E_RETRY_LIMIT_EXCEEDED) from e
+RuntimeError: 
+Retry limit exceeded while trying to reconnect to the Celery redis result store backend. The Celery application must be restarted.
 
-[SQL: SELECT count(*) AS count_1 
-FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
-FROM sync_tasks 
-WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
-[parameters: {'project_id_1': 1}]
-(Background on this error at: https://sqlalche.me/e/20/f405)
-2026-02-25 09:51:47 | ERROR | [38a5f4a745924db3b43b0ba873e45137] | app.dependencies | 数据库会话异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
-LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
-                                                             ^
-
-[SQL: SELECT count(*) AS count_1 
-FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
-FROM sync_tasks 
-WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
-[parameters: {'project_id_1': 1}]
-(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-26 15:02:24 | ERROR | [aa6fc04ff23c4eae8beb0da1e8d6a30b] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
 Traceback (most recent call last):
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
-    self.dialect.do_execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
-    cursor.execute(statement, parameters)
-psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
-LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
-                                                             ^
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
 
-
-The above exception was the direct cause of the following exception:
+During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
@@ -211,166 +280,326 @@ Traceback (most recent call last):
     yield await run_in_threadpool(cm.__enter__)
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
     response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
-    raw_response = await run_endpoint_function(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
-    return await dependant.call(**values)
-  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
-    total = query.count()
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
-    self._legacy_from_self(col).enable_eagerloads(False).scalar()
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
-    ret = self.one()
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
-    return self._iter().one()  # type: ignore
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
-    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
-    return self._execute_internal(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
-    result: Result[Any] = compile_state_cls.orm_execute_statement(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
-    result = conn.execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
-    return meth(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
-    return connection._execute_clauseelement(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
-    ret = self._execute_context(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
-    return self._exec_single_context(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
-    self._handle_dbapi_exception(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
-    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
-    self.dialect.do_execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
-    cursor.execute(statement, parameters)
-sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
-LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
-                                                             ^
-
-[SQL: SELECT count(*) AS count_1 
-FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
-FROM sync_tasks 
-WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
-[parameters: {'project_id_1': 1}]
-(Background on this error at: https://sqlalche.me/e/20/f405)
-2026-02-25 09:51:47 | ERROR | [38a5f4a745924db3b43b0ba873e45137] | app.main | 未捕获的异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
-LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
-                                                             ^
-
-[SQL: SELECT count(*) AS count_1 
-FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
-FROM sync_tasks 
-WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
-[parameters: {'project_id_1': 1}]
-(Background on this error at: https://sqlalche.me/e/20/f405) | 路径: /api/v1/sync-tasks | 方法: GET
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-26 15:02:24 | ERROR | [9a500f7041b1446f9a3ad87daba27293] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
 Traceback (most recent call last):
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
-    self.dialect.do_execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
-    cursor.execute(statement, parameters)
-psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
-LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
-                                                             ^
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
 
-
-The above exception was the direct cause of the following exception:
+During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
-    await self.app(scope, receive, _send)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 191, in __call__
-    with recv_stream, send_stream, collapse_excgroups():
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
-    self.gen.throw(typ, value, traceback)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_utils.py", line 85, in collapse_excgroups
-    raise exc
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 193, in __call__
-    response = await self.dispatch_func(request, call_next)
-  File "D:\code\BugSeek\backend\app\main.py", line 45, in trace_id_middleware
-    response = await call_next(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 168, in call_next
-    raise app_exc from app_exc.__cause__ or app_exc.__context__
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 144, in coro
-    await self.app(scope, receive_or_disconnect, send_no_error)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
-    await self.app(scope, receive, send)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
-    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    raise exc
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
-    await app(scope, receive, sender)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
-    await self.app(scope, receive, send)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 716, in __call__
-    await self.middleware_stack(scope, receive, send)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 736, in app
-    await route.handle(scope, receive, send)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 290, in handle
-    await self.app(scope, receive, send)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 115, in app
-    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
-    raise exc
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
-    await app(scope, receive, sender)
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
     response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
-    raw_response = await run_endpoint_function(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
-    return await dependant.call(**values)
-  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
-    total = query.count()
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
-    self._legacy_from_self(col).enable_eagerloads(False).scalar()
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
-    ret = self.one()
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
-    return self._iter().one()  # type: ignore
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
-    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
-    return self._execute_internal(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
-    result: Result[Any] = compile_state_cls.orm_execute_statement(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
-    result = conn.execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
-    return meth(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
-    return connection._execute_clauseelement(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
-    ret = self._execute_context(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
-    return self._exec_single_context(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
-    self._handle_dbapi_exception(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
-    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
-    self.dialect.do_execute(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
-    cursor.execute(statement, parameters)
-sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
-LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
-                                                             ^
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-26 15:02:24 | ERROR | [5607c5f46ba143f0af24564a48765961] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
 
-[SQL: SELECT count(*) AS count_1 
-FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
-FROM sync_tasks 
-WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
-[parameters: {'project_id_1': 1}]
-(Background on this error at: https://sqlalche.me/e/20/f405)
-2026-02-25 10:47:11 | ERROR | [f324d06affe54c72874d6e792fca5b42] | app.dependencies | 数据库会话异常: name '_generate_mapping_candidates' is not defined
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-26 15:02:24 | ERROR | [6d87ec6742d149f1a3ffb37bbe48b33f] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-26 15:02:24 | ERROR | [d5d72cc0b5f64f50bc1a9801bde49f51] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-26 15:02:24 | ERROR | [5303c4f7a1a9407fb68c063c094ad7e3] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-26 15:02:24 | ERROR | [a8c01c435e134ddbbc874a78159f8b9c] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-26 15:02:24 | ERROR | [7e47f03242664104a04ed6a0b989aa0d] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-26 15:02:24 | ERROR | [33a3870824754be2a39f9c6104e1c360] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-26 15:02:24 | ERROR | [cddb9be114004400a610aa4ef0904414] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-26 15:02:25 | ERROR | [cbddbbc6f22b4101ba43797fbca99c5c] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-26 15:02:25 | ERROR | [3d9be5f726ac406396eb53b893f5f698] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-02-26 18:42:49 | ERROR | [d83baca0607c436989aa7cb7a056df5c] | app.dependencies | 数据库会话异常: name '_generate_mapping_candidates' is not defined
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\field_mappings.py", line 197, in _generate_mapping_candidates_with_gravity
     result = await vector_manager.batch_search_with_gravity(
-  File "D:\code\BugSeek\backend\app\utils\vector_index.py", line 642, in batch_search_with_gravity
+  File "D:\code\BugSeek\backend\app\utils\vector_index.py", line 680, in batch_search_with_gravity
     candidates.remove(ai_selected)
 ValueError: list.remove(x): x not in list
 
@@ -387,16 +616,16 @@ Traceback (most recent call last):
     raw_response = await run_endpoint_function(
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
     return await dependant.call(**values)
-  File "D:\code\BugSeek\backend\app\api\v1\field_mappings.py", line 449, in suggest_field_mappings
+  File "D:\code\BugSeek\backend\app\api\v1\field_mappings.py", line 509, in suggest_field_mappings
     gravity_results = await _generate_mapping_candidates_with_gravity(
   File "D:\code\BugSeek\backend\app\api\v1\field_mappings.py", line 252, in _generate_mapping_candidates_with_gravity
     candidates = _generate_mapping_candidates(
 NameError: name '_generate_mapping_candidates' is not defined
-2026-02-25 10:47:11 | ERROR | [f324d06affe54c72874d6e792fca5b42] | app.main | 未捕获的异常: name '_generate_mapping_candidates' is not defined | 路径: /api/v1/field-mappings/suggest | 方法: POST
+2026-02-26 18:42:49 | ERROR | [d83baca0607c436989aa7cb7a056df5c] | app.main | 未捕获的异常: name '_generate_mapping_candidates' is not defined | 路径: /api/v1/field-mappings/suggest | 方法: POST
 Traceback (most recent call last):
   File "D:\code\BugSeek\backend\app\api\v1\field_mappings.py", line 197, in _generate_mapping_candidates_with_gravity
     result = await vector_manager.batch_search_with_gravity(
-  File "D:\code\BugSeek\backend\app\utils\vector_index.py", line 642, in batch_search_with_gravity
+  File "D:\code\BugSeek\backend\app\utils\vector_index.py", line 680, in batch_search_with_gravity
     candidates.remove(ai_selected)
 ValueError: list.remove(x): x not in list
 
@@ -449,344 +678,8 @@ Traceback (most recent call last):
     raw_response = await run_endpoint_function(
   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
     return await dependant.call(**values)
-  File "D:\code\BugSeek\backend\app\api\v1\field_mappings.py", line 449, in suggest_field_mappings
+  File "D:\code\BugSeek\backend\app\api\v1\field_mappings.py", line 509, in suggest_field_mappings
     gravity_results = await _generate_mapping_candidates_with_gravity(
   File "D:\code\BugSeek\backend\app\api\v1\field_mappings.py", line 252, in _generate_mapping_candidates_with_gravity
     candidates = _generate_mapping_candidates(
 NameError: name '_generate_mapping_candidates' is not defined
-2026-02-25 11:51:03 | ERROR | [a7d375b20cf040b6a300c1c913f2fa6a] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-25 11:51:03 | ERROR | [0713fc96e2934672b4c8170bb691f02b] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-25 11:51:03 | ERROR | [c4d5fe98c36a4eaa9909c92aa6d3ecaa] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-25 11:51:03 | ERROR | [79214498889d431eb5671207d1078168] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-25 11:51:03 | ERROR | [8bab9efbfbc3422091eb1a0f2b4c2a7e] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-25 11:51:03 | ERROR | [969c3ff908b340809a0cf2aad16545f4] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-25 11:51:04 | ERROR | [6d8948eba7fe4324a2289c4487413a82] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-25 11:51:04 | ERROR | [2bd0ba0e578c46d6bd0a1afbfd4b667d] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-25 11:51:04 | ERROR | [2f1683874b1143fc83d20a744d513d69] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-25 11:51:04 | ERROR | [3ce2025b24104cbaa479a7e0f113494f] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-25 11:51:04 | ERROR | [b82db3a64d114c0fb907cb24f385181b] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据
-2026-02-25 11:51:04 | ERROR | [5d24821e6b6346eeae0c1deb83f0f52f] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
-    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
-    _validate_claims(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
-    _validate_exp(claims, leeway=leeway)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
-    raise ExpiredSignatureError("Signature has expired.")
-jose.exceptions.ExpiredSignatureError: Signature has expired.
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
-    yield db
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
-    yield await run_in_threadpool(cm.__enter__)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
-    response = await f(request)
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
-    solved_result = await solve_dependencies(
-  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
-    solved = await call(**solved_result.values)
-  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
-    raise credentials_exception
-fastapi.exceptions.HTTPException: 401: 无法验证凭据

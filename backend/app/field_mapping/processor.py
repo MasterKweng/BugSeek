@@ -5,7 +5,7 @@ import json
 import logging
 import re
 from typing import Dict, List, Any, Optional, Callable, Tuple
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from sqlalchemy.orm import Session
@@ -119,6 +119,12 @@ class FieldInfo:
     # AI结果
     ai_candidates: List[FieldMappingCandidate] = None
 
+    # 合并结果
+    final_candidates: List[FieldMappingCandidate] = None
+
+    # 逻辑缓存键
+    logical_cache_key: str = field(init=False, default="")
+
 
 @dataclass
 class AIRequest:
@@ -138,6 +144,54 @@ class ScreeningResult:
     action: str
 
 
+@dataclass
+class APIContext:
+    """API上下文（用于兄弟节点查询，解决报错.md 问题3）"""
+    definition_id: int
+    method: str
+    path: str
+    all_fields: List[str]  # 该API的所有字段（用于兄弟节点查询）
+
+
+def _extract_recursive(schema: dict, path: str = "") -> List[Tuple[str, dict]]:
+    """
+    递归提取所有字段路径（V2版本）
+
+    解决报错.md 问题 #3：递归缺失
+
+    Args:
+        schema: JSON Schema
+        path: 当前路径（前缀）
+
+    Returns:
+        [(field_path, field_schema), ...]
+    """
+    fields = []
+
+    if not isinstance(schema, dict):
+        return fields
+
+    # 处理对象类型
+    if schema.get('type') == 'object' and 'properties' in schema:
+        for prop_name, prop_schema in schema['properties'].items():
+            new_path = f"{path}.{prop_name}" if path else prop_name
+            fields.extend(_extract_recursive(prop_schema, new_path))
+
+    # 处理数组类型
+    elif schema.get('type') == 'array' and 'items' in schema:
+        # 数组索引标记为 []
+        array_path = f"{path}[]" if path else "[]"
+        fields.extend(_extract_recursive(schema['items'], array_path))
+
+    # 处理基础类型（叶子节点）
+    else:
+        # 空路径时，不添加
+        if path:
+            fields.append((path, schema))
+
+    return fields
+
+
 class FieldMappingProcessor:
     """字段映射处理器"""
     
@@ -153,23 +207,27 @@ class FieldMappingProcessor:
         self.task = task
         self.trace_id = get_trace_id()
         self.ai_service = AIService()
-        
+
         # 配置
         self.max_workers = 4
         self.batch_size = 100
-        
+
         # 重试配置
         self.max_ai_retries = 3
         self.ai_retry_delay = 2  # 秒
         self.ai_timeout = 30  # 秒
         self.semantic_conflict_min_score_gap = 0.08
-        
+
         # 记录失败的字段
         self.failed_fields = set()
         self.retry_queue = []
-        
+
         # 任务取消标志
         self._cancelled = False
+
+        # V2优化：初始化词权重计算器（阶段3）
+        from app.field_mapping.scoring import TokenWeightCalculator
+        self.token_weight_calc = TokenWeightCalculator()
     
     def _refresh_db_connection(self):
         """
@@ -505,8 +563,13 @@ class FieldMappingProcessor:
                 self._update_stage_progress(stages, 1, "running", 0)
                 self._update_progress(15, "正在进行规则评分...")
                 db_schema = self._get_db_schema(project_id, version_id)
+                field_description_map = {
+                    info.field_path: info.field_description or ''
+                    for info in field_registry.values()
+                    if info.field_description is not None
+                }
                 rule_results = await self._batch_rule_scoring(
-                    field_registry, db_schema, stages
+                    field_registry, db_schema, stages, field_description_map
                 )
                 self._update_stage_progress(stages, 1, "completed", 100)
                 
@@ -780,7 +843,114 @@ class FieldMappingProcessor:
                 # 获取字段描述
                 field_description = field_descriptions.get(field_path, '')
 
-                field_registry[instance_key] = FieldInfo(
+                field_info = FieldInfo(
+                    field_name=field_name,
+                    field_path=field_path,
+                    field_description=field_description if field_description else None,
+                    has_description=bool(field_description and field_description.strip()),
+                    source_type=source_type,
+                    apis=[{
+                        'definition_id': definition.id,
+                        'method': definition.method,
+                        'path': definition.path,
+                        'field_path': field_path
+                    }],
+                    total_count=logical_occurrences[logical_key],
+                    first_seen=f"{definition.method} {definition.path}",
+                    appears_in_multiple_apis=False,
+                    field_name_common=field_name in common_names
+                )
+                field_info.logical_cache_key = logical_key
+                field_registry[instance_key] = field_info
+
+        # 基于逻辑键回填统计
+        for field_info in field_registry.values():
+            usage_count = logical_occurrences.get(field_info.logical_cache_key, 0)
+            field_info.total_count = usage_count
+            field_info.appears_in_multiple_apis = usage_count >= 3
+
+        total_fields = len(field_registry)
+        unique_fields = len(logical_occurrences)
+        
+        logger.info(f"[{self.trace_id}] 字段提取完成: 原始{total_fields}个, "
+                   f"去重后{unique_fields}个唯一字段")
+        
+        return field_registry
+
+    async def _extract_and_deduplicate_fields_v2(
+        self,
+        project_id: int,
+        version_id: int,
+        include_paths: bool = True,
+        include_query: bool = True,
+        include_body: bool = True
+    ) -> Dict[str, FieldInfo]:
+        """
+        V2版本的字段提取和去重（基于图谱和并发控制）
+
+        解决报错.md 问题：
+        - #1 批次重心：按API分组处理
+        - #13 并发打爆：使用Semaphore控制并发
+
+        Args:
+            project_id: 项目ID
+            version_id: 版本ID
+            include_paths: 是否包含路径参数
+            include_query: 是否包含Query参数
+            include_body: 是否包含Body字段
+
+        Returns:
+            字段注册表: {field_path: FieldInfo}
+        """
+        logger.info(f"[{self.trace_id}] 开始V2版本字段提取: "
+                   f"project_id={project_id}, version_id={version_id}")
+
+        field_registry: Dict[str, FieldInfo] = {}
+        logical_occurrences: Dict[str, int] = {}
+        common_names = {'data', 'info', 'result', 'content', 'item'}
+
+        # 1. 获取所有API定义
+        definitions = self.db.query(ApiDefinition).filter(
+            ApiDefinition.project_id == project_id
+        ).all()
+
+        logger.info(f"[{self.trace_id}] 找到 {len(definitions)} 个API定义")
+
+        # 2. 构建外键图（阶段2核心功能）
+        from app.field_mapping.graph_builder import ForeignKeyGraph
+        graph = ForeignKeyGraph(self.db)
+        db_schema = self._get_db_schema(project_id, version_id)
+        graph.build(db_schema)
+
+        # 3. 并发控制（解决 #13）
+        semaphore = asyncio.Semaphore(4)  # 限制为CPU核心数的一半
+
+        # 4. 按API分组处理（解决 #1 批次重心）
+        tasks = []
+        for definition in definitions:
+            task = self._process_api_with_semaphore(definition, semaphore, graph, db_schema)
+            tasks.append(task)
+
+        # 5. 并发执行
+        logger.info(f"[{self.trace_id}] 开始并发处理 {len(tasks)} 个API...")
+        results = await asyncio.gather(*tasks)
+
+        # 6. 合并结果
+        for definition, candidates_map in zip(definitions, results):
+            # 提取字段描述
+            from app.api.v1.field_mappings import _extract_field_descriptions
+            field_descriptions = _extract_field_descriptions(definition)
+
+            for field_path in candidates_map.keys():
+                source_type, field_name = self._parse_field_path(field_path)
+                logical_key = self._build_logical_cache_key(source_type, field_name)
+                instance_key = f"{definition.id}:{field_path}"
+                logical_occurrences[logical_key] = logical_occurrences.get(logical_key, 0) + 1
+
+                # 获取字段描述
+                field_description = field_descriptions.get(field_path, '')
+
+                field_info = FieldInfo(
                     field_name=field_name,
                     field_path=field_path,
                     field_description=field_description if field_description else None,
@@ -796,10 +966,12 @@ class FieldMappingProcessor:
                     first_seen=f"{definition.method} {definition.path}",
                     appears_in_multiple_apis=False,
                     field_name_common=field_name in common_names,
-                    logical_cache_key=logical_key
+                    rule_candidates=candidates_map.get(field_path, [])
                 )
+                field_info.logical_cache_key = logical_key
+                field_registry[instance_key] = field_info
 
-        # 基于逻辑键回填统计
+        # 7. 基于逻辑键回填统计
         for field_info in field_registry.values():
             usage_count = logical_occurrences.get(field_info.logical_cache_key, 0)
             field_info.total_count = usage_count
@@ -807,12 +979,12 @@ class FieldMappingProcessor:
 
         total_fields = len(field_registry)
         unique_fields = len(logical_occurrences)
-        
-        logger.info(f"[{self.trace_id}] 字段提取完成: 原始{total_fields}个, "
+
+        logger.info(f"[{self.trace_id}] V2版本字段提取完成: 原始{total_fields}个, "
                    f"去重后{unique_fields}个唯一字段")
-        
+
         return field_registry
-    
+
     def _parse_field_path(self, field_path: str) -> Tuple[str, str]:
         """
         解析字段路径
@@ -827,6 +999,27 @@ class FieldMappingProcessor:
 
     def _build_logical_cache_key(self, source_type: str, field_name: str) -> str:
         return f"{source_type}:{field_name}".lower()
+
+    def _build_logical_cache_key_v2(
+        self,
+        api_group: str,
+        method: str,
+        api_path: str,
+        field_path: str
+    ) -> str:
+        """
+        构建V2版本逻辑键：包含API完整上下文
+
+        解决报错.md 问题 #2：扁平键问题
+
+        格式：{api_group}::{method}::{path}::{json_path}
+        示例：part_api::POST::/part/::body.category.name
+        """
+        # 规范化路径（去除路径参数）
+        normalized_path = re.sub(r'\{[^}]+\}', ':', api_path)
+
+        # 组装键
+        return f"{api_group}::{method}::{normalized_path}::{field_path}".lower()
 
     def _clone_candidates(
         self,
@@ -882,7 +1075,152 @@ class FieldMappingProcessor:
             return round(total_score / total_count, 4)
         
         return 0.0
-    
+
+    def _extract_query_params_unified(self, definition: ApiDefinition) -> List[str]:
+        """
+        统一的Query参数提取方法（V2版本）
+
+        解决报错.md 问题 #3：统一Query参数处理
+
+        Args:
+            definition: API定义
+
+        Returns:
+            Query参数列表
+        """
+        query_params = []
+
+        # 检查 schema_snapshot 结构
+        schema_snapshot = definition.schema_snapshot
+        if schema_snapshot:
+            if isinstance(schema_snapshot, str):
+                try:
+                    schema_snapshot = json.loads(schema_snapshot)
+                except:
+                    schema_snapshot = {}
+
+            if isinstance(schema_snapshot, dict):
+                # 情况1: 直接在 schema_snapshot 顶层有 parameters
+                if 'parameters' in schema_snapshot:
+                    for param in schema_snapshot.get('parameters', []):
+                        if param.get('in') == 'query':
+                            query_params.append(param.get('name'))
+
+                # 情况2: 在 schema_snapshot.request_schema 中
+                request_schema = schema_snapshot.get('request_schema')
+                if not request_schema and hasattr(definition, 'request_schema') and definition.request_schema:
+                    request_schema = definition.request_schema
+                    if isinstance(request_schema, str):
+                        try:
+                            request_schema = json.loads(request_schema)
+                        except:
+                            request_schema = {}
+
+                if request_schema and isinstance(request_schema, dict):
+                    # YApi结构：{"type": "json", "schema": {...}}
+                    if 'type' in request_schema and 'schema' in request_schema:
+                        actual_schema = request_schema.get('schema', {})
+                        if isinstance(actual_schema, dict) and 'parameters' in actual_schema:
+                            for param in actual_schema['parameters']:
+                                if param.get('in') == 'query':
+                                    query_params.append(param.get('name'))
+
+        return query_params
+
+    def _extract_body_recursive(self, definition: ApiDefinition) -> List[str]:
+        """
+        递归提取Body字段（V2版本）
+
+        使用递归提取器处理嵌套对象和数组
+
+        Args:
+            definition: API定义
+
+        Returns:
+            Body字段路径列表
+        """
+        body_fields = []
+
+        # 检查 schema_snapshot 结构
+        schema_snapshot = definition.schema_snapshot
+        if schema_snapshot:
+            if isinstance(schema_snapshot, str):
+                try:
+                    schema_snapshot = json.loads(schema_snapshot)
+                except:
+                    schema_snapshot = {}
+
+            if isinstance(schema_snapshot, dict):
+                # 获取 request_schema
+                request_schema = schema_snapshot.get('request_schema')
+                if not request_schema and hasattr(definition, 'request_schema') and definition.request_schema:
+                    request_schema = definition.request_schema
+                    if isinstance(request_schema, str):
+                        try:
+                            request_schema = json.loads(request_schema)
+                        except:
+                            request_schema = {}
+
+                if request_schema and isinstance(request_schema, dict):
+                    # YApi结构：{"type": "json", "schema": {...}}
+                    if 'type' in request_schema and 'schema' in request_schema:
+                        actual_schema = request_schema.get('schema', {})
+                        if isinstance(actual_schema, dict):
+                            # 使用递归提取器
+                            extracted = _extract_recursive(actual_schema, "body")
+                            body_fields.extend([field_path for field_path, _ in extracted])
+                    # 直接有properties
+                    elif 'properties' in request_schema:
+                        extracted = _extract_recursive(request_schema, "body")
+                        body_fields.extend([field_path for field_path, _ in extracted])
+
+        return body_fields
+
+    def _extract_all_fields_v2(
+        self,
+        definition: ApiDefinition,
+        include_paths: bool = True,
+        include_query: bool = True,
+        include_body: bool = True
+    ) -> Tuple[List[str], APIContext]:
+        """
+        统一的字段提取方法（V2版本，修正版）
+
+        解决报错.md 问题 #3：兄弟节点查询优化
+
+        Returns:
+            (字段列表, API上下文)
+        """
+        all_fields = []
+
+        # 1. 路径参数
+        if include_paths:
+            path_params = self._extract_query_params_unified(definition)
+            # 从路径中提取参数
+            import re
+            path_params = re.findall(r'\{([^}]+)\}', definition.path)
+            all_fields.extend([f"path.{p}" for p in path_params])
+
+        # 2. Query参数（统一处理）
+        if include_query:
+            query_params = self._extract_query_params_unified(definition)
+            all_fields.extend([f"query.{p}" for p in query_params])
+
+        # 3. Body字段（递归提取）
+        if include_body:
+            body_fields = self._extract_body_recursive(definition)
+            all_fields.extend(body_fields)
+
+        # 4. 创建API上下文（新增，解决报错.md 问题3）
+        context = APIContext(
+            definition_id=definition.id,
+            method=definition.method,
+            path=definition.path,
+            all_fields=all_fields
+        )
+
+        return all_fields, context
+
     def _get_db_schema(self, project_id: int, version_id: int) -> Dict[str, Any]:
         """
         获取数据库结构
@@ -905,12 +1243,488 @@ class FieldMappingProcessor:
             logger.warning(f"[{self.trace_id}] 未找到数据库结构版本: project_id={project_id}, version_id={version_id}")
 
         return {}
-    
+
+    def _detect_anchor_table(
+        self,
+        all_candidates: List[List[Dict]],
+        graph: Any  # ForeignKeyGraph类型，避免循环导入
+    ) -> Optional[str]:
+        """
+        检测锚点表（Anchor Table，修正版，解决报错.md 问题2）
+
+        解决报错.md 问题 #2：_detect_anchor_table的"零结果"风险
+
+        算法：
+        1. 统计所有候选表的出现频次
+        2. 计算候选表的度中心性
+        3. 选择 频次*中心性 最高的表作为锚点
+        4. 增加置信度阈值，避免零结果风险
+        5. 检查分散度，避免候选表过于均匀
+
+        Args:
+            all_candidates: 所有候选结果列表
+            graph: 外键图实例
+
+        Returns:
+            锚点表名，如果置信度不足则返回None
+        """
+        table_freq = {}
+        table_scores = {}
+
+        # 1. 统计频次
+        for candidates in all_candidates:
+            for cand in candidates[:5]:  # 只看Top5
+                table = cand.get('db_table', '')
+                if table:
+                    table_freq[table] = table_freq.get(table, 0) + 1
+
+        if not table_freq:
+            logger.warning("没有候选表，跳过锚点检测")
+            return None
+
+        # 2. 计算度中心性
+        centrality = graph.get_degree_centrality()
+
+        # 3. 综合评分
+        for table, freq in table_freq.items():
+            degree = centrality.get(table, 0)
+            table_scores[table] = freq * (1 + degree * 10)  # 度中心性权重更高
+
+        # 4. 选择最高分
+        max_score = max(table_scores.values())
+        anchor_table = max(table_scores, key=table_scores.get)
+
+        # 5. 置信度检查（新增，解决报错.md 问题2）
+        confidence_threshold = 2.0  # 阈值可调整
+        if max_score < confidence_threshold:
+            logger.warning(f"锚点表置信度不足 ({max_score:.2f} < {confidence_threshold})，回退到纯向量匹配")
+            return None
+
+        # 6. 检查分散度（新增，解决报错.md 问题2）
+        scores_list = list(table_scores.values())
+        if len(scores_list) > 1:
+            avg_score = sum(scores_list) / len(scores_list)
+            if max_score / avg_score < 1.5:  # 最高分与平均分的比例
+                logger.warning(f"候选表过于分散 (max/avg={max_score/avg_score:.2f})，回退到纯向量匹配")
+                return None
+
+        logger.info(f"检测到锚点表: {anchor_table} (置信度={max_score:.2f})")
+        return anchor_table
+
+    def _build_graph_context(
+        self,
+        candidates_map: Dict[str, List],
+        graph
+    ) -> Dict[str, Any]:
+        """
+        构建图谱上下文（V2版本）
+
+        Args:
+            candidates_map: 候选映射 {field_path: [candidates]}
+            graph: 外键图实例
+
+        Returns:
+            图谱上下文字典
+        """
+        # 检测锚点表
+        all_candidates_list = list(candidates_map.values())
+        anchor_table = self._detect_anchor_table(all_candidates_list, graph)
+
+        # 获取有效表集合
+        if anchor_table:
+            valid_tables = graph.get_valid_tables(anchor_table)
+        else:
+            valid_tables = set(graph.nodes())
+
+        return {
+            'anchor_table': anchor_table,
+            'valid_tables': valid_tables,
+            'graph': graph
+        }
+
+    def _get_column_comment(
+        self,
+        db_schema: Dict[str, Any],
+        table_name: str,
+        column_name: str
+    ) -> str:
+        """
+        获取列注释
+
+        Args:
+            db_schema: 数据库结构
+            table_name: 表名
+            column_name: 列名
+
+        Returns:
+            列注释
+        """
+        try:
+            tables = db_schema.get('tables', {})
+
+            if table_name not in tables:
+                return ""
+
+            table_info = tables[table_name]
+            columns = table_info.get('columns', {})
+
+            if column_name not in columns:
+                return ""
+
+            column_info = columns[column_name]
+            comment = column_info.get('comment', '')
+
+            return comment or ""
+
+        except Exception as e:
+            logger.warning(f"获取列注释失败: {e}")
+            return ""
+
+    def _calculate_v2_score(
+        self,
+        candidate: Dict[str, Any],
+        field_info: FieldInfo,
+        graph_context: Dict[str, Any]
+    ) -> float:
+        """
+        计算V2版本评分
+
+        解决报错.md 问题：
+        - #5 score混用
+        - #6 强行加分
+        - #7 粗暴Stopword
+        - #10 高频字段
+
+        Args:
+            candidate: 候选字段信息
+            field_info: 字段信息
+            graph_context: 图谱上下文
+
+        Returns:
+            最终评分 (0.0 - 1.0)
+        """
+        from app.field_mapping.scoring import calculate_final_score_v2
+
+        return calculate_final_score_v2(
+            candidate,
+            field_info,
+            graph_context,
+            self.token_weight_calc
+        )
+
+    def _should_auto_confirm_v2(
+        self,
+        field_info: FieldInfo,
+        top_candidate: Dict[str, Any],
+        graph_context: Dict[str, Any]
+    ) -> bool:
+        """
+        V2版本自动确认条件（收紧版）
+
+        解决报错.md 问题 #8：自动确认危险
+
+        条件：
+        1. final_score > 0.9
+        2. s_graph == 1.0（必须在连通子图中）
+        3. 非通用字段
+
+        Args:
+            field_info: 字段信息
+            top_candidate: 最高分候选
+            graph_context: 图谱上下文
+
+        Returns:
+            是否自动确认
+        """
+        final_score = top_candidate.get('final_score', 0.0)
+        candidate_table = top_candidate.get('db_table', '')
+
+        # 条件1：分数高
+        if final_score <= 0.9:
+            return False
+
+        # 条件2：在图谱中
+        is_in_graph = candidate_table in graph_context.get('valid_tables', set())
+        if not is_in_graph:
+            return False
+
+        # 条件3：非通用字段
+        common_names = {'data', 'info', 'result', 'content', 'item',
+                       'id', 'name', 'code', 'type', 'status', 'time', 'date',
+                       'user', 'created', 'updated', 'deleted', 'description'}
+        if field_info.field_name.lower() in common_names:
+            return False
+
+        return True
+
+    def _get_sibling_fields(
+        self,
+        field_info: FieldInfo,
+        api_context: Optional[APIContext] = None
+    ) -> List[str]:
+        """
+        获取兄弟字段（修正版，解决报错.md 问题3）
+
+        直接从API上下文获取，避免遍历注册表
+
+        Args:
+            field_info: 字段信息
+            api_context: API上下文（可选）
+
+        Returns:
+            兄弟字段列表
+        """
+        if not api_context:
+            logger.warning("缺少API上下文，无法获取兄弟字段")
+            return []
+
+        # 获取同一级别的字段
+        base_path = field_info.field_path.rsplit('.', 1)[0]
+
+        siblings = []
+        for field in api_context.all_fields:
+            if field.startswith(base_path) and field != field_info.field_path:
+                siblings.append(field)
+
+        return siblings
+
+    def _build_ai_prompt_v2(
+        self,
+        field_info: FieldInfo,
+        graph_context: Dict[str, Any],
+        api_context: Optional[APIContext] = None
+    ) -> Dict[str, Any]:
+        """
+        V2版本AI Prompt构建
+
+        解决报错.md 问题：
+        - AI-2：去除锚定（不发送Top3候选）
+        - AI-3：兄弟节点上下文
+
+        Args:
+            field_info: 字段信息
+            graph_context: 图谱上下文
+            api_context: API上下文（可选）
+
+        Returns:
+            AI Prompt字典
+        """
+        # 获取兄弟字段
+        sibling_fields = self._get_sibling_fields(field_info, api_context)
+
+        # 获取图簇范围
+        potential_tables = list(graph_context.get('valid_tables', set()))
+
+        return {
+            "target_field": {
+                "name": field_info.field_name,
+                "path": field_info.field_path,
+                "description": field_info.field_description or "",
+                "source_type": field_info.source_type
+            },
+            "api_context": {
+                "method": field_info.apis[0]['method'] if field_info.apis else '',
+                "path": field_info.apis[0]['path'] if field_info.apis else ''
+            },
+            "sibling_fields": sibling_fields,  # 新增：兄弟字段上下文
+            "potential_tables": potential_tables,  # 只发送图计算出的表
+            # 注意：不发送Top3候选，让AI独立思考
+            "business_domain": graph_context.get('anchor_table', 'unknown'),
+            "graph_context": {
+                "anchor_table": graph_context.get('anchor_table'),
+                "valid_tables_count": len(potential_tables)
+            }
+        }
+
+    async def _process_api_with_semaphore(
+        self,
+        definition,
+        semaphore: asyncio.Semaphore,
+        graph: Any,
+        db_schema: Dict[str, Any]
+    ) -> Dict[str, List]:
+        """
+        带并发控制的API处理（V2版本）
+
+        解决报错.md 问题 #13：并发打爆
+
+        Args:
+            definition: API定义
+            semaphore: 并发控制信号量
+
+        Returns:
+            {field_path: candidates}
+        """
+        async with semaphore:
+            logger.info(f"[{self.trace_id}] 处理API: {definition.method} {definition.path}")
+
+            # 1. 提取该API的所有字段（使用V2版本）
+            all_fields, api_context = self._extract_all_fields_v2(definition)
+
+            # 2. 为每个字段创建FieldInfo（临时）
+            field_infos = {}
+            for field_path in all_fields:
+                source_type, field_name = self._parse_field_path(field_path)
+
+                # 提取字段描述
+                from app.api.v1.field_mappings import _extract_field_descriptions
+                field_descriptions = _extract_field_descriptions(definition)
+                field_description = field_descriptions.get(field_path, '')
+
+                field_info = FieldInfo(
+                    field_name=field_name,
+                    field_path=field_path,
+                    field_description=field_description if field_description else None,
+                    has_description=bool(field_description and field_description.strip()),
+                    source_type=source_type,
+                    apis=[{
+                        'definition_id': definition.id,
+                        'method': definition.method,
+                        'path': definition.path,
+                        'field_path': field_path
+                    }],
+                    total_count=1,
+                    first_seen=f"{definition.method} {definition.path}",
+                    appears_in_multiple_apis=False,
+                    field_name_common=field_name in {'data', 'info', 'result', 'content', 'item'}
+                )
+                field_infos[field_path] = field_info
+
+            # 3. 向量搜索（使用批量搜索，性能优化）
+            candidates_map = {}
+            vector_manager = get_vector_manager()
+
+            # 批量向量搜索
+            field_names = [info.field_name for info in field_infos.values()]
+            batch_candidates = vector_manager.batch_search(field_names, top_k=10)
+
+            # 分发批量搜索结果
+            for i, (field_path, field_info) in enumerate(field_infos.items()):
+                if i < len(batch_candidates):
+                    candidates = batch_candidates[i]
+
+                    # 转换为字典格式
+                    candidate_dicts = []
+                    for cand in candidates:
+                        candidate_dicts.append({
+                            'db_table': cand['table'],
+                            'db_column': cand['column'],
+                            'score': cand['score'],
+                            'reasons': ['向量相似度']
+                        })
+
+                    candidates_map[field_path] = candidate_dicts
+                else:
+                    candidates_map[field_path] = []
+
+            # 4. 构建图谱上下文（使用传入的graph，避免重复构建）
+            graph_context = self._build_graph_context(candidates_map, graph)
+
+            # 5. V2评分
+            scored_candidates_map = {}
+            for field_path, candidates in candidates_map.items():
+                field_info = field_infos[field_path]
+
+                # 计算每个候选的V2评分
+                scored_candidates = []
+                for cand in candidates:
+                    final_score = self._calculate_v2_score(cand, field_info, graph_context)
+                    cand_copy = cand.copy()
+                    cand_copy['final_score'] = final_score
+                    scored_candidates.append(cand_copy)
+
+                # 按final_score排序
+                scored_candidates.sort(key=lambda x: x.get('final_score', 0.0), reverse=True)
+
+                scored_candidates_map[field_path] = scored_candidates
+
+            # 6. AI优化（阶段4）
+            ai_optimized_candidates_map = {}
+            for field_path, scored_candidates in scored_candidates_map.items():
+                field_info = field_infos[field_path]
+
+                if not scored_candidates:
+                    ai_optimized_candidates_map[field_path] = []
+                    continue
+
+                # 获取最高分候选
+                top_candidate = scored_candidates[0]
+
+                # 检查是否自动确认
+                should_auto_confirm = self._should_auto_confirm_v2(
+                    field_info,
+                    top_candidate,
+                    graph_context
+                )
+
+                if should_auto_confirm:
+                    # 自动确认：直接使用最高分候选
+                    logger.debug(f"[{self.trace_id}] 字段 {field_path} 自动确认: "
+                               f"{top_candidate['db_table']}.{top_candidate['db_column']} "
+                               f"(score={top_candidate['final_score']:.3f})")
+                    ai_optimized_candidates_map[field_path] = scored_candidates[:1]
+                else:
+                    # 需要AI优化：构建AI Prompt
+                    ai_prompt = self._build_ai_prompt_v2(
+                        field_info,
+                        graph_context,
+                        api_context
+                    )
+
+                    # 调用AI服务（这里暂时保留原有候选，实际应该调用AI）
+                    # TODO: 实现AI调用逻辑
+                    logger.debug(f"[{self.trace_id}] 字段 {field_path} 需要AI优化")
+
+                    # 暂时返回原有候选，等待AI优化实现
+                    ai_optimized_candidates_map[field_path] = scored_candidates[:3]
+
+            # 7. 语义验证（阶段5）
+            validated_candidates_map = {}
+            vector_manager = get_vector_manager()
+
+            for field_path, candidates in ai_optimized_candidates_map.items():
+                field_info = field_infos[field_path]
+
+                if not candidates:
+                    validated_candidates_map[field_path] = []
+                    continue
+
+                # 对每个候选进行语义验证
+                validated_candidates = []
+                for cand in candidates:
+                    # 获取列注释
+                    column_comment = self._get_column_comment(
+                        db_schema,
+                        cand.get('db_table', ''),
+                        cand.get('db_column', '')
+                    )
+
+                    # 向量相似度验证
+                    from app.field_mapping.validation import validate_with_vector_similarity
+                    is_valid = validate_with_vector_similarity(
+                        field_info.field_description or "",
+                        column_comment,
+                        vector_manager,
+                        threshold=0.75
+                    )
+
+                    if is_valid:
+                        validated_candidates.append(cand)
+                    else:
+                        logger.debug(f"[{self.trace_id}] 候选 {cand.get('db_table')}.{cand.get('db_column')} "
+                                   f"未通过向量验证")
+
+                validated_candidates_map[field_path] = validated_candidates
+
+            # 8. 返回结果
+            return validated_candidates_map
+
     async def _batch_rule_scoring(
         self,
         field_registry: Dict[str, FieldInfo],
         db_schema: Dict[str, Any],
-        stages: List[Dict[str, Any]]
+        stages: List[Dict[str, Any]],
+        field_description_map: Optional[Dict[str, str]] = None
     ) -> Dict[str, List[FieldMappingCandidate]]:
         """
         批量规则评分
@@ -947,7 +1761,7 @@ class FieldMappingProcessor:
         batch_tasks = []
         for idx, batch in enumerate(batches):
             batch_task = asyncio.create_task(
-                self._process_rule_scoring_batch_async(batch, db_schema, idx)
+                self._process_rule_scoring_batch_async(batch, db_schema, idx, field_description_map)
             )
             batch_tasks.append(batch_task)
         
@@ -980,7 +1794,8 @@ class FieldMappingProcessor:
         self,
         batch: List[Tuple[str, FieldInfo]],
         db_schema: Dict[str, Any],
-        batch_idx: int = 0
+        batch_idx: int = 0,
+        field_description_map: Optional[Dict[str, str]] = None
     ) -> Dict[str, List[FieldMappingCandidate]]:
         """
         异步处理一批字段的规则评分（使用向量搜索 + 重心算法）
@@ -1011,7 +1826,8 @@ class FieldMappingProcessor:
             vector_results = await vector_manager.batch_search_with_gravity(
                 api_fields=api_fields,
                 top_k=20,
-                use_ai_fallback=False  # 阶段2禁用 AI，阶段4才用
+                use_ai_fallback=False,  # 阶段2禁用 AI，阶段4才用
+                field_description_map=field_description_map
             )
 
             path_results = vector_results.get("results", {})
@@ -1045,9 +1861,12 @@ class FieldMappingProcessor:
     async def _process_rule_scoring_batch(
         self,
         batch: List[Tuple[str, FieldInfo]],
-        db_schema: Dict[str, Any]
+        db_schema: Dict[str, Any],
+        field_description_map: Optional[Dict[str, str]] = None
     ) -> Dict[str, List[FieldMappingCandidate]]:
-        return await self._process_rule_scoring_batch_async(batch, db_schema, batch_idx=-1)
+        return await self._process_rule_scoring_batch_async(
+            batch, db_schema, batch_idx=-1, field_description_map=field_description_map
+        )
 
     def _intelligent_screening(
         self,
@@ -1666,7 +2485,7 @@ class FieldMappingProcessor:
                 final_candidates = rule_candidates
             elif ai_candidates:
                 merged = self._merge_candidates(
-                    rule_candidates, 
+                    rule_candidates,
                     ai_candidates,
                     field_info.field_description,  # 传递字段描述
                     db_schema  # 传递数据库结构
@@ -1674,6 +2493,8 @@ class FieldMappingProcessor:
                 final_candidates = merged
             else:
                 final_candidates = rule_candidates
+
+            field_info.final_candidates = final_candidates
 
             decision_trace = self._build_decision_trace(
                 field_key=field_key,
