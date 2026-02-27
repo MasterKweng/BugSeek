@@ -315,10 +315,18 @@ export const cancelAsyncTask = async (
 
 export const getFieldMappingSuggestions = async (
   taskId: number,
-  params?: { page?: number; page_size?: number }
+  params?: {
+    page?: number;
+    page_size?: number;
+    search?: string;
+    status_filter?: string;
+    method_filter?: string;
+    field_type_filter?: string;
+    definition_path_filter?: string;
+  }
 ): Promise<ApiResponse<FieldMappingSuggestionResponse>> => {
-  return api.get('/field-mappings/suggestions', { 
-    params: { task_id: taskId, ...params } 
+  return api.get('/field-mappings/suggestions', {
+    params: { task_id: taskId, ...params }
   })
 }
 

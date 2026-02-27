@@ -186,6 +186,10 @@ async def create_suggest_task(
 async def get_suggestions(
     task_id: int,
     status_filter: Optional[str] = Query(None, description="状态筛选"),
+    search: Optional[str] = Query(None, description="搜索关键词（字段名/表名/列名）"),
+    method_filter: Optional[str] = Query(None, description="API方法筛选（GET/POST/PUT/DELETE/PATCH）"),
+    field_type_filter: Optional[str] = Query(None, description="字段类型筛选（path/query/body）"),
+    definition_path_filter: Optional[str] = Query(None, description="API路径精确筛选"),
     page: int = Query(1, ge=1, description="页码"),
     size: int = Query(20, ge=1, le=100, description="每页数量"),
     db: Session = Depends(get_db),
@@ -197,6 +201,10 @@ async def get_suggestions(
     遵循后端代码规范：
     - 真分页：数据库层面分页
     - 状态筛选：支持 status_filter 参数（避免与 fastapi.status 冲突）
+    - 搜索功能：支持按字段名/表名/列名模糊搜索
+    - API筛选：支持按HTTP方法筛选（需要JOIN api_definitions表）
+    - 字段类型筛选：支持按字段位置类型筛选（path/query/body）
+    - API路径筛选：支持按API路径精确筛选
     - 水平越权校验（IDOR）：检查资源归属人
     - 全链路 TraceID：使用 get_trace_id()
     - 向后兼容：如果建议表为空，尝试从 JSON 读取
@@ -204,6 +212,9 @@ async def get_suggestions(
     Args:
         task_id: 任务ID
         status_filter: 状态筛选
+        search: 搜索关键词（字段名/表名/列名）
+        method_filter: API方法筛选（GET/POST/PUT/DELETE/PATCH）
+        field_type_filter: 字段类型筛选（path/query/body）
         page: 页码
         size: 每页数量
 
@@ -213,7 +224,7 @@ async def get_suggestions(
     trace_id = get_trace_id()
     from app.db.base import FieldMappingSuggestion
 
-    logger.info(f"[{trace_id}] 获取字段映射建议结果: task_id={task_id}, status_filter={status_filter}, page={page}, size={size}")
+    logger.info(f"[{trace_id}] 获取字段映射建议结果: task_id={task_id}, status_filter={status_filter}, search={search}, page={page}, size={size}")
 
     # 查询任务
     task = db.query(AsyncTask).filter(AsyncTask.id == task_id).first()
@@ -295,6 +306,51 @@ async def get_suggestions(
         mapped_status = status_mapping.get(status_filter, status_filter)
         query = query.filter(FieldMappingSuggestion.status == mapped_status)
     
+    # API方法筛选（需要JOIN api_definitions表）
+    if method_filter:
+        from app.db.base import ApiDefinition
+        query = query.join(
+            ApiDefinition,
+            FieldMappingSuggestion.definition_id == ApiDefinition.id
+        ).filter(ApiDefinition.method == method_filter)
+    
+    # 字段类型筛选（基于api_field_path前缀）
+    if field_type_filter:
+        if field_type_filter == 'path':
+            query = query.filter(FieldMappingSuggestion.api_field_path.like('path.%'))
+        elif field_type_filter == 'query':
+            query = query.filter(FieldMappingSuggestion.api_field_path.like('query.%'))
+        elif field_type_filter == 'body':
+            query = query.filter(FieldMappingSuggestion.api_field_path.like('body.%'))
+
+    # API路径筛选（需要JOIN api_definitions表）
+    if definition_path_filter:
+        from app.db.base import ApiDefinition
+        # 如果之前没有JOIN,需要先JOIN
+        if not method_filter:
+            query = query.join(
+                ApiDefinition,
+                FieldMappingSuggestion.definition_id == ApiDefinition.id
+            )
+        query = query.filter(ApiDefinition.path == definition_path_filter)
+
+    # 搜索功能：按字段名/表名/列名模糊搜索
+    if search:
+        from sqlalchemy import or_
+        from sqlalchemy.sql.expression import cast
+        search_pattern = f"%{search.lower()}%"
+        
+        # 使用 PostgreSQL 的 JSONB 操作符查询数组第一个元素
+        # candidates -> 0 获取数组第一个元素
+        # ->> 'db_table' 获取字段值并转换为文本
+        query = query.filter(
+            or_(
+                db.func.lower(FieldMappingSuggestion.api_field_path).like(search_pattern),
+                db.func.lower(FieldMappingSuggestion.candidates[0].op('->>')('db_table')).like(search_pattern),
+                db.func.lower(FieldMappingSuggestion.candidates[0].op('->>')('db_column')).like(search_pattern)
+            )
+        )
+    
     # 获取总数
     total = query.count()
     
@@ -303,6 +359,41 @@ async def get_suggestions(
         logger.info(f"[{trace_id}] 建议表为空，尝试从 JSON 读取")
         result = task.result or {}
         suggestions = result.get("suggestions", [])
+        
+        # 状态过滤（JSON 数据）
+        if status_filter:
+            # 状态映射：前端状态 -> 数据库状态
+            status_mapping = {
+                'proposed': 'pending',
+                'confirmed': 'accepted', 
+                'rejected': 'ignored'
+            }
+            mapped_status = status_mapping.get(status_filter, status_filter)
+            suggestions = [s for s in suggestions if s.get('status') == mapped_status]
+        
+        # API方法过滤（JSON 数据）
+        if method_filter:
+            suggestions = [s for s in suggestions if s.get('definition_method') == method_filter]
+        
+        # API路径过滤（JSON 数据）
+        if definition_path_filter:
+            suggestions = [s for s in suggestions if s.get('definition_path') == definition_path_filter]
+        
+        # 字段类型过滤（JSON 数据）
+        if field_type_filter:
+            suggestions = [s for s in suggestions if s.get('api_field_path', '').startswith(f'{field_type_filter}.')]
+        
+        # 搜索过滤（JSON 数据）
+        if search:
+            search_lower = search.lower()
+            suggestions = [
+                s for s in suggestions
+                if any([
+                    s.get('api_field_path', '').lower().find(search_lower) != -1,
+                    s.get('candidates', [{}])[0].get('db_table', '').lower().find(search_lower) != -1 if s.get('candidates') else False,
+                    s.get('candidates', [{}])[0].get('db_column', '').lower().find(search_lower) != -1 if s.get('candidates') else False
+                ])
+            ]
         
         # 临时分页（客户端分页）
         start = (page - 1) * size

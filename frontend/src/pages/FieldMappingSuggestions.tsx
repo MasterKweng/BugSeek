@@ -33,7 +33,7 @@ import {
 import { 
   CheckCircleOutlined, 
   PlayCircleOutlined,
-  SyncOutlined,
+  SearchOutlined,
   ClockCircleOutlined,
   WarningOutlined,
   CloseCircleOutlined
@@ -68,6 +68,8 @@ const FieldMappingSuggestions: React.FC = () => {
   const [selectedCandidates] = useState<Record<number, FieldMappingCandidate | null>>({});
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<FieldMappingSuggestion | null>(null);
+  
+  // 包含参数类型配置
   const [includePaths, setIncludePaths] = useState(true);
   const [includeQuery, setIncludeQuery] = useState(true);
   const [includeBody, setIncludeBody] = useState(true);
@@ -201,24 +203,22 @@ const FieldMappingSuggestions: React.FC = () => {
   const [aiConfidenceThreshold, setAiConfidenceThreshold] = useState(0.7);  // AI 触发阈值
   
   // ==================== 新增：筛选器状态 ====================
-  const [typeFilter, setTypeFilter] = useState<'all' | 'manual' | 'auto'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'proposed' | 'confirmed' | 'rejected'>('all');
-  
-  // 新增：置信度筛选
-  const [confidenceFilter, setConfidenceFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
-  
+
   // 新增：API方法筛选
   const [methodFilter, setMethodFilter] = useState<'all' | 'POST' | 'GET' | 'PUT' | 'DELETE' | 'PATCH'>('all');
-  
+
   // 新增：字段类型筛选
   const [fieldTypeFilter, setFieldTypeFilter] = useState<'all' | 'path' | 'query' | 'body'>('all');
-  
+
+  // 新增：API路径筛选
+  const [definitionPathFilter, setDefinitionPathFilter] = useState('');
+
   // 新增：搜索关键词
   const [searchKeyword, setSearchKeyword] = useState('');
-  
-  // 高置信度阈值
+
+  // 置信度阈值常量 (用于显示和逻辑判断)
   const HIGH_CONFIDENCE_THRESHOLD = 0.85;
-  // 中等置信度阈值
   const MEDIUM_CONFIDENCE_THRESHOLD = 0.60;
 
   // 获取数据结构列表
@@ -432,9 +432,14 @@ const FieldMappingSuggestions: React.FC = () => {
       try {
         const response = await fieldMappingService.getFieldMappingSuggestions(taskId, {
           page,
-          page_size: size
+          page_size: size,
+          search: searchKeyword || undefined,
+          status_filter: statusFilter !== 'all' ? statusFilter : undefined,
+          method_filter: methodFilter !== 'all' ? methodFilter : undefined,
+          field_type_filter: fieldTypeFilter !== 'all' ? fieldTypeFilter : undefined,
+          definition_path_filter: definitionPathFilter || undefined
         });
-  
+
         if (response.code === 0 && response.data) {
           const items = response.data.items || [];
           setSuggestions(items);
@@ -1066,7 +1071,7 @@ const FieldMappingSuggestions: React.FC = () => {
               {/* 新增：AI 标识 */}
               {topCandidate.ai_selected && (
                 <div style={{ marginTop: 4 }}>
-                  <Tag color="purple" icon={<SyncOutlined />} style={{ fontSize: 11 }}>
+                  <Tag color="purple" icon={<SearchOutlined />} style={{ fontSize: 11 }}>
                     AI 确认
                   </Tag>
                 </div>
@@ -1140,7 +1145,7 @@ const FieldMappingSuggestions: React.FC = () => {
               ))}
               {/* 新增：AI 选择原因 */}
               {topCandidate.ai_reason && (
-                <Tag key="ai-reason" color="purple" icon={<SyncOutlined />}>
+                <Tag key="ai-reason" color="purple" icon={<SearchOutlined />}>
                   {topCandidate.ai_reason}
                 </Tag>
               )}
@@ -1178,66 +1183,8 @@ const FieldMappingSuggestions: React.FC = () => {
     return colorMap[method] || 'default';
   };
 
-  // ==================== 筛选逻辑（增强版） ====================
-  const filteredSuggestions = suggestions.filter(s => {
-    // 类型筛选
-    const isAi = s.candidates?.[0]?.ai_selected || false;
-    let typeMatch = true;
-    if (typeFilter === 'manual') {
-      typeMatch = !isAi;
-    } else if (typeFilter === 'auto') {
-      typeMatch = isAi;
-    }
-
-    // 状态筛选
-    let statusMatch = true;
-    if (statusFilter !== 'all') {
-      statusMatch = s.status === statusFilter;
-    }
-    
-    // 新增：置信度筛选
-    let confidenceMatch = true;
-    const score = s.candidates?.[0]?.score || 0;
-    if (confidenceFilter === 'high' && score < 0.85) {
-      confidenceMatch = false;
-    } else if (confidenceFilter === 'medium' && (score < 0.6 || score >= 0.85)) {
-      confidenceMatch = false;
-    } else if (confidenceFilter === 'low' && score >= 0.6) {
-      confidenceMatch = false;
-    }
-    
-    // 新增：API筛选
-    let methodMatch = true;
-    if (methodFilter !== 'all' && s.definition_method !== methodFilter) {
-      methodMatch = false;
-    }
-    
-    // 新增：字段类型筛选
-    let fieldTypeMatch = true;
-    if (fieldTypeFilter !== 'all') {
-      const prefix = s.api_field_path.split('.')[0];
-      if (prefix !== fieldTypeFilter) {
-        fieldTypeMatch = false;
-      }
-    }
-    
-    // 新增：搜索筛选
-    let searchMatch = true;
-    if (searchKeyword) {
-      const keyword = searchKeyword.toLowerCase();
-      const fieldName = s.api_field_path.split('.').pop()?.toLowerCase() || '';
-      const tableName = s.candidates?.[0]?.db_table?.toLowerCase() || '';
-      const columnName = s.candidates?.[0]?.db_column?.toLowerCase() || '';
-      
-      if (!fieldName.includes(keyword) && 
-          !tableName.includes(keyword) && 
-          !columnName.includes(keyword)) {
-        searchMatch = false;
-      }
-    }
-
-    return typeMatch && statusMatch && confidenceMatch && methodMatch && fieldTypeMatch && searchMatch;
-  });
+  // ==================== 筛选逻辑 ====================
+  // 所有筛选逻辑已移至服务器端,前端直接使用返回的数据
 
   // 选择行的配置
   const rowSelection = {
@@ -1275,7 +1222,7 @@ const FieldMappingSuggestions: React.FC = () => {
         <h2 style={{ margin: 0, fontSize: 20, fontWeight: 500 }}>字段映射建议</h2>
         <Space>
           <Button 
-            icon={<SyncOutlined />} 
+            icon={<SearchOutlined />} 
             onClick={() => setTaskModalVisible(true)}
             loading={loading}
             type="primary"
@@ -1289,7 +1236,7 @@ const FieldMappingSuggestions: React.FC = () => {
             执行记录
           </Button>
           <Button
-            icon={<SyncOutlined />}
+            icon={<SearchOutlined />}
             onClick={handleCloneFromVersion}
           >
             从其他版本集成
@@ -1312,32 +1259,30 @@ const FieldMappingSuggestions: React.FC = () => {
       </div>
 
       {/* ==================== 筛选器工具栏（增强版） ==================== */}
-      {suggestions.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16 }}>
             <Space wrap>
               <span style={{ color: 'var(--text-tertiary)' }}>🔍</span>
-              
+
               {/* 搜索框 */}
               <Input.Search
                 placeholder="搜索字段名/表名/列名"
                 style={{ width: 200 }}
                 value={searchKeyword}
                 onChange={e => setSearchKeyword(e.target.value)}
+                onSearch={() => {
+                  if (taskId) {
+                    loadTaskResults(taskId, 1, pagination.pageSize);
+                  }
+                }}
                 allowClear
+                onClear={() => {
+                  setSearchKeyword('');
+                  if (taskId) {
+                    loadTaskResults(taskId, 1, pagination.pageSize);
+                  }
+                }}
               />
-              
-              {/* 类型筛选 */}
-              <Select
-                style={{ width: 120 }}
-                value={typeFilter}
-                onChange={setTypeFilter}
-                options={[
-                  { label: '全部类型', value: 'all' },
-                  { label: '手动映射', value: 'manual' },
-                  { label: '自动映射', value: 'auto' }
-                ]}
-              />
-              
+
               {/* 状态筛选 */}
               <Select
                 style={{ width: 120 }}
@@ -1348,19 +1293,6 @@ const FieldMappingSuggestions: React.FC = () => {
                   { label: '待审核', value: 'proposed' },
                   { label: '已确认', value: 'confirmed' },
                   { label: '已拒绝', value: 'rejected' }
-                ]}
-              />
-              
-              {/* 置信度筛选 */}
-              <Select
-                style={{ width: 140 }}
-                value={confidenceFilter}
-                onChange={setConfidenceFilter}
-                options={[
-                  { label: '全部置信度', value: 'all' },
-                  { label: '高置信度（≥85%）', value: 'high' },
-                  { label: '中等置信度（60%-85%）', value: 'medium' },
-                  { label: '低置信度（<60%）', value: 'low' }
                 ]}
               />
               
@@ -1391,9 +1323,30 @@ const FieldMappingSuggestions: React.FC = () => {
                   { label: '请求体参数', value: 'body' }
                 ]}
               />
-              
+
+              {/* API路径筛选 */}
+              <Input
+                placeholder="API路径 (如: /users)"
+                style={{ width: 200 }}
+                value={definitionPathFilter}
+                onChange={e => setDefinitionPathFilter(e.target.value)}
+                onPressEnter={() => {
+                  if (taskId) {
+                    loadTaskResults(taskId, 1, pagination.pageSize);
+                  }
+                }}
+                allowClear
+                onClear={() => {
+                  setDefinitionPathFilter('');
+                  if (taskId) {
+                    loadTaskResults(taskId, 1, pagination.pageSize);
+                  }
+                }}
+                size="small"
+              />
+
               <Button 
-                icon={<SyncOutlined />} 
+                icon={<SearchOutlined />} 
                 onClick={() => {
                   if (taskId) {
                     loadTaskResults(taskId, pagination.current, pagination.pageSize);
@@ -1403,38 +1356,28 @@ const FieldMappingSuggestions: React.FC = () => {
                 }}
                 size="small"
               >
-                刷新
+                搜索
+              </Button>
+              <Button 
+                onClick={() => {
+                  setSearchKeyword('');
+                  setStatusFilter('all');
+                  setMethodFilter('all');
+                  setFieldTypeFilter('all');
+                  setDefinitionPathFilter('');
+                  if (taskId) {
+                    loadTaskResults(taskId, 1, pagination.pageSize);
+                  }
+                }}
+                size="small"
+              >
+                重置
               </Button>
             </Space>
           </div>
-        )}
 
         {/* ==================== 字段选择复选框 ==================== */}
         
-        {/* 字段选择复选框 */}
-        <div style={{ marginBottom: 16 }}>
-          <Space>
-            <Checkbox 
-              checked={includePaths} 
-              onChange={e => setIncludePaths(e.target.checked)}
-            >
-              包含路径参数
-            </Checkbox>
-            <Checkbox 
-              checked={includeQuery} 
-              onChange={e => setIncludeQuery(e.target.checked)}
-            >
-              包含查询参数
-            </Checkbox>
-            <Checkbox 
-              checked={includeBody} 
-              onChange={e => setIncludeBody(e.target.checked)}
-            >
-              包含请求体参数
-            </Checkbox>
-          </Space>
-        </div>
-
         {/* ==================== 建议列表表格（简化版 - 移除pageState判断） ==================== */}
         {suggestions.length === 0 && !loading ? (
           <Empty
@@ -1449,33 +1392,21 @@ const FieldMappingSuggestions: React.FC = () => {
           <Table
             rowSelection={rowSelection}
             columns={columns}
-            dataSource={filteredSuggestions}
+            dataSource={suggestions}
             rowKey="id"
             loading={loading}
             pagination={{
               current: pagination.current,
               pageSize: pagination.pageSize,
-              total: filteredSuggestions.length,
+              total: pagination.total,
               showSizeChanger: true,
               showQuickJumper: true,
               showTotal: (total) => `共 ${total} 条`,
               onChange: (page, pageSize) => {
-                // 重置筛选器状态，避免分页切换时出现重复数据
-                setTypeFilter('all');
-                setStatusFilter('all');
-                setConfidenceFilter('all');
-                setMethodFilter('all');
-                setFieldTypeFilter('all');
-                setPagination({ ...pagination, current: page, pageSize: size });
+                loadTaskResults(taskId!, page, pageSize);
               },
               onShowSizeChange: (current, size) => {
-                // 重置筛选器状态，避免分页切换时出现重复数据
-                setTypeFilter('all');
-                setStatusFilter('all');
-                setConfidenceFilter('all');
-                setMethodFilter('all');
-                setFieldTypeFilter('all');
-                setPagination({ ...pagination, current: 1, pageSize: size });
+                loadTaskResults(taskId!, 1, size);
               }
             }}
           />
@@ -1503,15 +1434,16 @@ const FieldMappingSuggestions: React.FC = () => {
         <Form layout="vertical">
           <Form.Item label="包含参数类型">
             <Space direction="vertical">
-              <Checkbox checked={includePaths} onChange={e => setIncludePaths(e.target.checked)}>
-                路径参数
-              </Checkbox>
-              <Checkbox checked={includeQuery} onChange={e => setIncludeQuery(e.target.checked)}>
-                查询参数
-              </Checkbox>
-              <Checkbox checked={includeBody} onChange={e => setIncludeBody(e.target.checked)}>
-                请求体参数
-              </Checkbox>
+                <Checkbox checked={includePaths} onChange={e => setIncludePaths(e.target.checked)}>
+                  路径参数
+                </Checkbox>
+                <Checkbox checked={includeQuery} onChange={e => setIncludeQuery(e.target.checked)}>
+                  查询参数
+                </Checkbox>
+                <Checkbox checked={includeBody} onChange={e => setIncludeBody(e.target.checked)}>
+                  请求体参数
+                </Checkbox>
+
             </Space>
           </Form.Item>
 
@@ -1774,7 +1706,7 @@ const FieldMappingSuggestions: React.FC = () => {
           body: { paddingBottom: 80 }
         }}
         extra={
-          <Button onClick={() => fetchHistoryList()} icon={<SyncOutlined />}>
+          <Button onClick={() => fetchHistoryList()} icon={<SearchOutlined />}>
             刷新
           </Button>
         }
@@ -2044,7 +1976,7 @@ const FieldMappingSuggestions: React.FC = () => {
                       <Select.Option value="proposed">待审核</Select.Option>
                     </Select>
                     <Button 
-                      icon={<SyncOutlined />} 
+                      icon={<SearchOutlined />} 
                       onClick={fetchMappings}
                       size="small"
                     >
