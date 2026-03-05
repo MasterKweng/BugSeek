@@ -27,8 +27,10 @@ def test_merge_results_contains_decision_trace():
         apis=[{"definition_id": 1, "method": "POST", "path": "/orders", "field_path": "body.order_id"}],
         total_count=1,
         first_seen="POST /orders",
-        logical_cache_key="body:order_id",
+        appears_in_multiple_apis=False,
+        field_name_common=False,
     )
+    field_info.logical_cache_key = "body:order_id"
     field_info.rule_candidates = [
         FieldMappingCandidate(db_table="orders", db_column="id", score=0.81, reasons=["rule"])
     ]
@@ -42,7 +44,7 @@ def test_merge_results_contains_decision_trace():
         ]
     }
 
-    merged = processor._merge_results(field_registry, ai_results)
+    merged = processor._merge_results(field_registry, ai_results, db_schema={})
     assert len(merged) == 1
     trace = merged[0].decision_trace
     assert isinstance(trace, dict)

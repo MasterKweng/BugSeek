@@ -558,6 +558,37 @@ class FieldMappingSuggestion(Base, TimestampMixin):
     )
 
 
+class FieldMappingTrace(Base, TimestampMixin):
+    """字段映射决策追踪表。"""
+    __tablename__ = "field_mapping_traces"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    task_id = Column(Integer, ForeignKey("async_tasks.id", ondelete="CASCADE"), nullable=False, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    definition_id = Column(Integer, ForeignKey("api_definitions.id", ondelete="CASCADE"), nullable=False, index=True)
+    trace_id = Column(String(100), nullable=True, index=True)
+
+    field_key = Column(String(255), nullable=False, index=True)
+    candidate = Column(String(255), nullable=False)
+    stage = Column(String(50), nullable=False)
+    decision_source = Column(String(20), nullable=False, index=True)
+    in_allowed_tables = Column(Boolean, nullable=True, index=True)
+    is_anchor_table = Column(Boolean, nullable=True)
+    s_vector = Column(Float, nullable=True)
+    s_exact = Column(Float, nullable=True)
+    s_graph = Column(Float, nullable=True)
+    final_score = Column(Float, nullable=True)
+
+    task = relationship("AsyncTask", foreign_keys=[task_id], backref="mapping_traces")
+    project = relationship("Project", foreign_keys=[project_id])
+    definition = relationship("ApiDefinition", foreign_keys=[definition_id])
+
+    __table_args__ = (
+        Index("ix_field_mapping_traces_task_field", "task_id", "field_key"),
+        Index("ix_field_mapping_traces_stage_source", "stage", "decision_source"),
+    )
+
+
 class AsyncTask(Base, TimestampMixin):
     """异步任务表"""
     __tablename__ = "async_tasks"

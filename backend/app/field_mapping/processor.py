@@ -10,7 +10,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.db.base import ApiDefinition, DbSchemaVersion, ApiFieldMapping, User, AsyncTask
+from app.db.base import ApiDefinition, DbSchemaVersion, ApiFieldMapping, User, AsyncTask, FieldMappingTrace
 from app.api.v1.field_mappings import (
     _extract_api_fields,
     _extract_field_descriptions,
@@ -20,6 +20,7 @@ from app.api.v1.field_mappings import (
 from app.utils.vector_index import get_vector_manager
 from app.core.trace import get_trace_id
 from app.ai.service import AIService
+from app.field_mapping.domain_inferer import DomainInferer
 from app.field_mapping.constants import (
     Stage,
     StageStatus,
@@ -32,6 +33,43 @@ from app.field_mapping.constants import (
 from app.field_mapping.exceptions import TaskCancelledException
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_confidence_value(value: Any, default: float = 0.5) -> float:
+    """将置信度规范化到 [0.0, 1.0] 区间。"""
+    try:
+        confidence = float(value)
+    except (TypeError, ValueError):
+        confidence = default
+    return max(0.0, min(1.0, confidence))
+
+
+def _normalize_confidence_fields(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    规范化 AI 响应中的 confidence 字段：
+    - 顶层缺失 confidence 时补默认 0.5
+    - field_mappings[].candidates[] 缺失 confidence 时补默认 0.5
+    """
+    payload["confidence"] = _normalize_confidence_value(payload.get("confidence", 0.5))
+
+    candidates = payload.get("candidates")
+    if isinstance(candidates, list):
+        for cand in candidates:
+            if isinstance(cand, dict):
+                cand["confidence"] = _normalize_confidence_value(cand.get("confidence", 0.5))
+
+    field_mappings = payload.get("field_mappings")
+    if isinstance(field_mappings, list):
+        for mapping in field_mappings:
+            if not isinstance(mapping, dict):
+                continue
+            mapping_candidates = mapping.get("candidates")
+            if isinstance(mapping_candidates, list):
+                for cand in mapping_candidates:
+                    if isinstance(cand, dict):
+                        cand["confidence"] = _normalize_confidence_value(cand.get("confidence", 0.5))
+
+    return payload
 
 
 def parse_json_safely(text: str) -> Optional[Dict]:
@@ -52,7 +90,10 @@ def parse_json_safely(text: str) -> Optional[Dict]:
     
     # 1. 尝试直接解析
     try:
-        return json.loads(text)
+        parsed = json.loads(text)
+        if isinstance(parsed, dict):
+            return _normalize_confidence_fields(parsed)
+        return parsed
     except json.JSONDecodeError:
         pass
     
@@ -60,7 +101,10 @@ def parse_json_safely(text: str) -> Optional[Dict]:
     match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
     if match:
         try:
-            return json.loads(match.group(1).strip())
+            parsed = json.loads(match.group(1).strip())
+            if isinstance(parsed, dict):
+                return _normalize_confidence_fields(parsed)
+            return parsed
         except json.JSONDecodeError:
             pass
     
@@ -68,7 +112,10 @@ def parse_json_safely(text: str) -> Optional[Dict]:
     match = re.search(r"```\s*(.*?)\s*```", text, re.DOTALL)
     if match:
         try:
-            return json.loads(match.group(1).strip())
+            parsed = json.loads(match.group(1).strip())
+            if isinstance(parsed, dict):
+                return _normalize_confidence_fields(parsed)
+            return parsed
         except json.JSONDecodeError:
             pass
     
@@ -76,7 +123,10 @@ def parse_json_safely(text: str) -> Optional[Dict]:
     match = re.search(r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", text, re.DOTALL)
     if match:
         try:
-            return json.loads(match.group(0))
+            parsed = json.loads(match.group(0))
+            if isinstance(parsed, dict):
+                return _normalize_confidence_fields(parsed)
+            return parsed
         except json.JSONDecodeError:
             pass
     
@@ -84,7 +134,10 @@ def parse_json_safely(text: str) -> Optional[Dict]:
     match = re.search(r"\[[^\[\]]*(?:\[[^\[\]]*\][^\[\]]*)*\]", text, re.DOTALL)
     if match:
         try:
-            return json.loads(match.group(0))
+            parsed = json.loads(match.group(0))
+            if isinstance(parsed, dict):
+                return _normalize_confidence_fields(parsed)
+            return parsed
         except json.JSONDecodeError:
             pass
     
@@ -121,6 +174,9 @@ class FieldInfo:
 
     # 合并结果
     final_candidates: List[FieldMappingCandidate] = None
+
+    # 域约束（Step4）
+    allowed_tables: Optional[List[str]] = None
 
     # 逻辑缓存键
     logical_cache_key: str = field(init=False, default="")
@@ -626,7 +682,7 @@ class FieldMappingProcessor:
                     self._update_stage_progress(stages, 3, "running", 0)
                     self._update_progress(45, "正在进行AI优化...")
                     ai_results = await self._priority_ai_calling(
-                        field_registry, categories, stages
+                        field_registry, categories, stages, db_schema
                     )
                     self._update_stage_progress(stages, 3, "completed", 100)
                     
@@ -822,6 +878,8 @@ class FieldMappingProcessor:
         definitions = self.db.query(ApiDefinition).filter(
             ApiDefinition.project_id == project_id
         ).all()
+        db_schema = self._get_db_schema(project_id, version_id)
+        domain_inferer = DomainInferer(db_schema)
         
         logger.info(f"[{self.trace_id}] 找到 {len(definitions)} 个API定义")
         
@@ -830,6 +888,15 @@ class FieldMappingProcessor:
             api_fields = _extract_api_fields(
                 definition, include_paths, include_query, include_body
             )
+            allowed_tables = domain_inferer.infer(
+                api_path=definition.path,
+                fields=[field.split('.')[-1] for field in api_fields]
+            )
+            if not allowed_tables:
+                allowed_tables = list((db_schema.get("tables") or {}).keys())
+                logger.warning(
+                    f"[{self.trace_id}] 域推断为空，降级全库搜索: {definition.method} {definition.path}"
+                )
             
             # 提取字段描述
             field_descriptions = _extract_field_descriptions(definition)
@@ -858,7 +925,8 @@ class FieldMappingProcessor:
                     total_count=logical_occurrences[logical_key],
                     first_seen=f"{definition.method} {definition.path}",
                     appears_in_multiple_apis=False,
-                    field_name_common=field_name in common_names
+                    field_name_common=field_name in common_names,
+                    allowed_tables=allowed_tables
                 )
                 field_info.logical_cache_key = logical_key
                 field_registry[instance_key] = field_info
@@ -920,6 +988,7 @@ class FieldMappingProcessor:
         from app.field_mapping.graph_builder import ForeignKeyGraph
         graph = ForeignKeyGraph(self.db)
         db_schema = self._get_db_schema(project_id, version_id)
+        domain_inferer = DomainInferer(db_schema)
         graph.build(db_schema)
 
         # 3. 并发控制（解决 #13）
@@ -937,6 +1006,16 @@ class FieldMappingProcessor:
 
         # 6. 合并结果
         for definition, candidates_map in zip(definitions, results):
+            api_fields_for_domain = _extract_api_fields(
+                definition, include_paths, include_query, include_body
+            )
+            allowed_tables = domain_inferer.infer(
+                api_path=definition.path,
+                fields=[field.split('.')[-1] for field in api_fields_for_domain]
+            )
+            if not allowed_tables:
+                allowed_tables = list((db_schema.get("tables") or {}).keys())
+
             # 提取字段描述
             from app.api.v1.field_mappings import _extract_field_descriptions
             field_descriptions = _extract_field_descriptions(definition)
@@ -966,6 +1045,7 @@ class FieldMappingProcessor:
                     first_seen=f"{definition.method} {definition.path}",
                     appears_in_multiple_apis=False,
                     field_name_common=field_name in common_names,
+                    allowed_tables=allowed_tables,
                     rule_candidates=candidates_map.get(field_path, [])
                 )
                 field_info.logical_cache_key = logical_key
@@ -1561,7 +1641,18 @@ class FieldMappingProcessor:
             # 1. 提取该API的所有字段（使用V2版本）
             all_fields, api_context = self._extract_all_fields_v2(definition)
 
-            # 2. 为每个字段创建FieldInfo（临时）
+            # 2. 域推断（修正调用时机：在API内部）
+            domain_inferer = DomainInferer(db_schema)
+            allowed_tables = domain_inferer.infer(
+                api_path=definition.path,
+                fields=[f.split('.')[-1] for f in all_fields]
+            )
+            if not allowed_tables:
+                logger.warning(f"[{self.trace_id}] 域推断失败，降级为全库搜索: {definition.method} {definition.path}")
+                allowed_tables = list((db_schema.get("tables") or {}).keys())
+            allowed_table_set = set(allowed_tables)
+
+            # 3. 为每个字段创建FieldInfo（临时）
             field_infos = {}
             for field_path in all_fields:
                 source_type, field_name = self._parse_field_path(field_path)
@@ -1586,11 +1677,12 @@ class FieldMappingProcessor:
                     total_count=1,
                     first_seen=f"{definition.method} {definition.path}",
                     appears_in_multiple_apis=False,
-                    field_name_common=field_name in {'data', 'info', 'result', 'content', 'item'}
+                    field_name_common=field_name in {'data', 'info', 'result', 'content', 'item'},
+                    allowed_tables=allowed_tables
                 )
                 field_infos[field_path] = field_info
 
-            # 3. 向量搜索（使用批量搜索，性能优化）
+            # 4. 向量搜索（使用批量搜索，性能优化）
             candidates_map = {}
             vector_manager = get_vector_manager()
 
@@ -1602,6 +1694,7 @@ class FieldMappingProcessor:
             for i, (field_path, field_info) in enumerate(field_infos.items()):
                 if i < len(batch_candidates):
                     candidates = batch_candidates[i]
+                    candidates = [cand for cand in candidates if cand.get('table') in allowed_table_set]
 
                     # 转换为字典格式
                     candidate_dicts = []
@@ -1617,10 +1710,11 @@ class FieldMappingProcessor:
                 else:
                     candidates_map[field_path] = []
 
-            # 4. 构建图谱上下文（使用传入的graph，避免重复构建）
+            # 5. 构建图谱上下文（使用传入的graph，避免重复构建）
             graph_context = self._build_graph_context(candidates_map, graph)
+            graph_context['allowed_tables'] = allowed_tables
 
-            # 5. V2评分
+            # 6. V2评分
             scored_candidates_map = {}
             for field_path, candidates in candidates_map.items():
                 field_info = field_infos[field_path]
@@ -1638,7 +1732,7 @@ class FieldMappingProcessor:
 
                 scored_candidates_map[field_path] = scored_candidates
 
-            # 6. AI优化（阶段4）
+            # 7. AI优化（阶段4）
             ai_optimized_candidates_map = {}
             for field_path, scored_candidates in scored_candidates_map.items():
                 field_info = field_infos[field_path]
@@ -1678,7 +1772,7 @@ class FieldMappingProcessor:
                     # 暂时返回原有候选，等待AI优化实现
                     ai_optimized_candidates_map[field_path] = scored_candidates[:3]
 
-            # 7. 语义验证（阶段5）
+            # 8. 语义验证（阶段5）
             validated_candidates_map = {}
             vector_manager = get_vector_manager()
 
@@ -1716,7 +1810,7 @@ class FieldMappingProcessor:
 
                 validated_candidates_map[field_path] = validated_candidates
 
-            # 8. 返回结果
+            # 9. 返回结果
             return validated_candidates_map
 
     async def _batch_rule_scoring(
@@ -1786,6 +1880,21 @@ class FieldMappingProcessor:
                     processed_fields,
                     total_fields
                 )
+
+        rule_trace_rows = []
+        for field_key, candidates in all_results.items():
+            field_info = field_registry.get(field_key)
+            if not field_info:
+                continue
+            rule_trace_rows.extend(
+                self._write_rule_traces(
+                    field_key=field_key,
+                    candidates=candidates,
+                    graph_context={},
+                    allowed_tables=field_info.allowed_tables
+                )
+            )
+        self._bulk_write_traces(rule_trace_rows)
         
         logger.info(f"[{self.trace_id}] 批量规则评分完成")
         return all_results
@@ -1809,15 +1918,20 @@ class FieldMappingProcessor:
         try:
             cache_key_to_instances: Dict[str, List[Tuple[str, FieldInfo]]] = {}
             cache_key_to_path: Dict[str, str] = {}
+            cache_key_to_allowed_tables: Dict[str, Optional[List[str]]] = {}
 
             for instance_key, field_info in batch:
                 cache_key = field_info.logical_cache_key or self._build_logical_cache_key(
                     field_info.source_type,
                     field_info.field_name
                 )
+                allowed_tables = sorted(set(field_info.allowed_tables or []))
+                if allowed_tables:
+                    cache_key = f"{cache_key}|{','.join(allowed_tables)}"
                 cache_key_to_instances.setdefault(cache_key, []).append((instance_key, field_info))
                 if cache_key not in cache_key_to_path:
                     cache_key_to_path[cache_key] = field_info.field_path
+                    cache_key_to_allowed_tables[cache_key] = allowed_tables if allowed_tables else None
 
             api_fields = list(cache_key_to_path.values())
 
@@ -1833,7 +1947,13 @@ class FieldMappingProcessor:
             path_results = vector_results.get("results", {})
             cache_key_candidates: Dict[str, List[FieldMappingCandidate]] = {}
             for cache_key, field_path in cache_key_to_path.items():
+                allowed_tables = set(cache_key_to_allowed_tables.get(cache_key) or [])
                 candidates_dicts = path_results.get(field_path, [])
+                if allowed_tables:
+                    candidates_dicts = [
+                        cand for cand in candidates_dicts
+                        if cand.get("db_table", "") in allowed_tables
+                    ]
                 cache_key_candidates[cache_key] = [
                     FieldMappingCandidate(
                         db_table=cand.get("db_table", ""),
@@ -2187,7 +2307,8 @@ class FieldMappingProcessor:
         self,
         field_registry: Dict[str, FieldInfo],
         categories: Dict[str, List[str]],
-        stages: List[Dict[str, Any]]
+        stages: List[Dict[str, Any]],
+        db_schema: Dict[str, Any]
     ) -> Dict[str, List[FieldMappingCandidate]]:
         """
         优先级AI调用
@@ -2238,6 +2359,11 @@ class FieldMappingProcessor:
             
             try:
                 batch_results = await self._call_ai_batch(batch)
+                batch_results = self._apply_ai_safety_validation(
+                    batch_results=batch_results,
+                    field_registry=field_registry,
+                    db_schema=db_schema
+                )
                 all_results.update(batch_results)
                 
                 completed_batches += 1
@@ -2261,6 +2387,209 @@ class FieldMappingProcessor:
         
         logger.info(f"[{self.trace_id}] 优先级AI调用完成")
         return all_results
+
+    def _column_exists(self, db_schema: Dict[str, Any], table: str, column: str) -> bool:
+        """校验 AI 推荐的表字段是否在物理 schema 中真实存在。"""
+        if not db_schema or not isinstance(db_schema, dict):
+            return False
+        if not table or not column:
+            return False
+
+        tables = db_schema.get("tables", {})
+        table_info = tables.get(table)
+        if not isinstance(table_info, dict):
+            return False
+
+        columns = table_info.get("columns", {})
+        if isinstance(columns, dict):
+            return column in columns
+        if isinstance(columns, list):
+            return column in columns
+        return False
+
+    def _build_valid_tables_for_field(self, field_info: FieldInfo) -> set:
+        """
+        Step1 的域合理性校验数据来源：
+        Step4 使用 DomainInferer 的 allowed_tables，缺失时回退规则候选集合。
+        """
+        if field_info.allowed_tables:
+            return set(field_info.allowed_tables)
+
+        valid_tables = set()
+        for candidate in field_info.rule_candidates or []:
+            if candidate and candidate.db_table:
+                valid_tables.add(candidate.db_table)
+        return valid_tables
+
+    def _apply_ai_safety_validation(
+        self,
+        batch_results: Dict[str, List[FieldMappingCandidate]],
+        field_registry: Dict[str, FieldInfo],
+        db_schema: Dict[str, Any]
+    ) -> Dict[str, List[FieldMappingCandidate]]:
+        """
+        双层 AI 防护：
+        1) 物理存在校验（硬拒绝）
+        2) 域合理性校验（软打折，*0.8）
+        """
+        sanitized_results: Dict[str, List[FieldMappingCandidate]] = {}
+        ai_trace_rows: List[FieldMappingTrace] = []
+
+        for field_name, ai_candidates in batch_results.items():
+            field_info = field_registry.get(field_name)
+            rule_fallback = (field_info.rule_candidates or [])[:1] if field_info else []
+
+            if not ai_candidates:
+                sanitized_results[field_name] = []
+                continue
+
+            for cand in ai_candidates:
+                cand.score = _normalize_confidence_value(cand.score, default=0.5)
+
+            top_candidate = ai_candidates[0]
+
+            if not self._column_exists(db_schema, top_candidate.db_table, top_candidate.db_column):
+                logger.error(
+                    f"[{self.trace_id}] AI_HALLUCINATION field={field_name} "
+                    f"candidate={top_candidate.db_table}.{top_candidate.db_column} "
+                    f"action=fallback_rule_top1"
+                )
+                sanitized_results[field_name] = rule_fallback
+                ai_trace_rows.extend(
+                    self._write_ai_traces(
+                        field_key=field_name,
+                        ai_candidate=top_candidate,
+                        is_hallucination=True,
+                        in_valid_tables=False
+                    )
+                )
+                continue
+
+            valid_tables = self._build_valid_tables_for_field(field_info) if field_info else set()
+            in_valid_tables = True
+            if valid_tables and top_candidate.db_table not in valid_tables:
+                in_valid_tables = False
+                original_score = top_candidate.score
+                top_candidate.score = _normalize_confidence_value(original_score * 0.8, default=0.5)
+                top_candidate.reasons = list(top_candidate.reasons or [])
+                top_candidate.reasons.append("域外软校验置信度折扣(0.8)")
+                logger.warning(
+                    f"[{self.trace_id}] AI_SOFT_PENALTY field={field_name} "
+                    f"table={top_candidate.db_table} "
+                    f"confidence={original_score:.3f}->{top_candidate.score:.3f}"
+                )
+
+            sanitized_results[field_name] = ai_candidates
+            ai_trace_rows.extend(
+                self._write_ai_traces(
+                    field_key=field_name,
+                    ai_candidate=top_candidate,
+                    is_hallucination=False,
+                    in_valid_tables=in_valid_tables
+                )
+            )
+
+        self._bulk_write_traces(ai_trace_rows)
+
+        return sanitized_results
+
+    def _bulk_write_traces(self, trace_rows: List[FieldMappingTrace]) -> None:
+        """批量写入 traces，失败时只记录日志不影响主流程。"""
+        if not trace_rows:
+            return
+
+        try:
+            self.db.bulk_save_objects(trace_rows)
+            self._commit_with_retry()
+            logger.info(f"[{self.trace_id}] traces写入完成: {len(trace_rows)}条")
+        except Exception as e:
+            self.db.rollback()
+            logger.warning(f"[{self.trace_id}] traces写入失败，已降级忽略: {str(e)}")
+
+    def _write_rule_traces(
+        self,
+        field_key: str,
+        candidates: List[FieldMappingCandidate],
+        graph_context: Optional[Dict[str, Any]],
+        allowed_tables: Optional[List[str]]
+    ) -> List[FieldMappingTrace]:
+        """
+        构建规则评分 traces（Step2 默认 in_allowed_tables=True，Step4 再接入真实值）。
+        """
+        rows: List[FieldMappingTrace] = []
+        candidate_list = candidates or []
+        if not candidate_list:
+            return rows
+
+        # field_key 形如 "definition_id:body.order_id"
+        definition_id = 0
+        try:
+            definition_id = int(str(field_key).split(":", 1)[0])
+        except Exception:
+            return rows
+
+        anchor_table = (graph_context or {}).get("anchor_table")
+        allowed_set = set(allowed_tables) if allowed_tables else None
+
+        for candidate in candidate_list[:10]:
+            candidate_name = f"{candidate.db_table}.{candidate.db_column}"
+            in_allowed = True if allowed_set is None else candidate.db_table in allowed_set
+            rows.append(
+                FieldMappingTrace(
+                    task_id=self.task.id,
+                    project_id=self.task.project_id,
+                    definition_id=definition_id,
+                    trace_id=self.trace_id,
+                    field_key=field_key,
+                    candidate=candidate_name,
+                    stage="rule_scoring",
+                    decision_source="rule",
+                    in_allowed_tables=in_allowed,
+                    is_anchor_table=(candidate.db_table == anchor_table) if anchor_table else None,
+                    s_vector=None,
+                    s_exact=None,
+                    s_graph=None,
+                    final_score=candidate.score
+                )
+            )
+        return rows
+
+    def _write_ai_traces(
+        self,
+        field_key: str,
+        ai_candidate: FieldMappingCandidate,
+        is_hallucination: bool,
+        in_valid_tables: bool
+    ) -> List[FieldMappingTrace]:
+        """构建 AI traces，含 ai/fallback 决策来源。"""
+        if not ai_candidate:
+            return []
+
+        try:
+            definition_id = int(str(field_key).split(":", 1)[0])
+        except Exception:
+            return []
+
+        decision_source = "fallback" if is_hallucination else "ai"
+        candidate_name = f"{ai_candidate.db_table}.{ai_candidate.db_column}"
+        return [
+            FieldMappingTrace(
+                task_id=self.task.id,
+                project_id=self.task.project_id,
+                definition_id=definition_id,
+                trace_id=self.trace_id,
+                field_key=field_key,
+                candidate=candidate_name,
+                stage="ai_optimization",
+                decision_source=decision_source,
+                in_allowed_tables=in_valid_tables,
+                is_anchor_table=None,
+                s_vector=None,
+                s_exact=None,
+                s_graph=None,
+                final_score=ai_candidate.score
+            )
+        ]
     
     async def _call_ai_batch(
         self,
@@ -2407,7 +2736,7 @@ class FieldMappingProcessor:
                     candidates.append(FieldMappingCandidate(
                         db_table=cand.get("db_table", ""),
                         db_column=cand.get("db_column", ""),
-                        score=cand.get("confidence", 0.0),
+                        score=_normalize_confidence_value(cand.get("confidence", 0.5), default=0.5),
                         reasons=cand.get("reasons", [])
                     ))
 
@@ -2479,18 +2808,24 @@ class FieldMappingProcessor:
         for field_key, field_info in field_registry.items():
             ai_candidates = ai_results.get(field_key, [])
             rule_candidates = field_info.rule_candidates or []  # 确保 rule_candidates 不为 None
-            
-            # 合并策略
-            if field_info.ai_priority == "none":
-                final_candidates = rule_candidates
-            elif ai_candidates:
-                merged = self._merge_candidates(
-                    rule_candidates,
-                    ai_candidates,
-                    field_info.field_description,  # 传递字段描述
-                    db_schema  # 传递数据库结构
-                )
-                final_candidates = merged
+
+            # Step4: AI 与规则同台竞技，避免无脑覆盖
+            decision_source = "rule"
+            if ai_candidates:
+                ai_top = ai_candidates[0]
+                rule_top = rule_candidates[0] if rule_candidates else None
+                ai_score = ai_top.score or 0.0
+                rule_score = (rule_top.score or 0.0) if rule_top else 0.0
+
+                if rule_top and ai_score < rule_score:
+                    final_candidates = rule_candidates
+                    decision_source = "fallback"
+                    logger.info(
+                        f"[{self.trace_id}] AI置信度({ai_score:.3f})低于规则({rule_score:.3f})，回退规则: {field_key}"
+                    )
+                else:
+                    final_candidates = ai_candidates
+                    decision_source = "ai"
             else:
                 final_candidates = rule_candidates
 
@@ -2503,6 +2838,7 @@ class FieldMappingProcessor:
                 ai_candidates=ai_candidates,
                 final_candidates=final_candidates
             )
+            decision_trace["decision_source"] = decision_source
             
             # 为每个API生成建议
             for api_ref in field_info.apis:

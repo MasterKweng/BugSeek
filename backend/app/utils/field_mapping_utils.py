@@ -2,6 +2,7 @@
 import re
 from typing import List, Dict, Set
 from difflib import SequenceMatcher
+from app.utils.name_normalizer import normalize_name
 
 
 def normalize_field_name(field_name: str) -> str:
@@ -131,7 +132,8 @@ def table_similarity_score(api_field: str, table_name: str) -> float:
     计算表名相似度评分
     """
     tokens_api = set(tokenize_field(api_field))
-    tokens_table = set(tokenize_field(table_name))
+    normalized_table_name = normalize_name(table_name)
+    tokens_table = set(tokenize_field(normalized_table_name or table_name))
     
     return jaccard_similarity(tokens_api, tokens_table)
 
@@ -183,8 +185,9 @@ def path_semantic_score(api_field: str, path: str, table_name: str) -> float:
                                'export', 'import', 'login', 'logout', 'register'}
                 if segment.lower() not in verb_segments:
                     # 检查路径段与表名的匹配
-                    path_segment = segment.rstrip('s')  # 去除复数s
-                    if path_segment == table_name.rstrip('s'):
+                    path_segment = normalize_name(segment)
+                    normalized_table = normalize_name(table_name)
+                    if path_segment and normalized_table and path_segment == normalized_table:
                         # 距离越近权重越高
                         distance_weight = 1.0 - min(param_idx - resource_idx, 2) * 0.1
                         return 0.8 * distance_weight
