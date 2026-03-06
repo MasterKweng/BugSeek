@@ -126,16 +126,38 @@ def get_column_comment(
     try:
         tables = db_schema.get('tables', {})
 
-        if table_name not in tables:
+        # 兼容两种格式：列表格式 [{"name": "table1", "columns": [...]}, ...] 和字典格式 {"table1": {"columns": [...]}, ...}
+        table_info = None
+        if isinstance(tables, list):
+            # 列表格式：查找匹配的表
+            for table in tables:
+                if isinstance(table, dict) and table.get("name") == table_name:
+                    table_info = table
+                    break
+        elif isinstance(tables, dict) and table_name in tables:
+            # 字典格式：直接获取
+            table_info = tables[table_name]
+
+        if not table_info:
             return ""
 
-        table_info = tables[table_name]
-        columns = table_info.get('columns', {})
+        columns = table_info.get('columns', [])
 
-        if column_name not in columns:
+        # 兼容两种格式：列表格式 [{"name": "col1", ...}, ...] 和字典格式 {"col1": {...}, ...}
+        column_info = None
+        if isinstance(columns, list):
+            # 列表格式：查找匹配的列
+            for col in columns:
+                if isinstance(col, dict) and col.get("name") == column_name:
+                    column_info = col
+                    break
+        elif isinstance(columns, dict) and column_name in columns:
+            # 字典格式：直接获取
+            column_info = columns[column_name]
+
+        if not column_info:
             return ""
 
-        column_info = columns[column_name]
         comment = column_info.get('comment', '')
 
         return comment or ""

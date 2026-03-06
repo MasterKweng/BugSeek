@@ -253,7 +253,12 @@ class VectorIndexManager:
         # 保存到缓存
         self._save_to_cache()
     
-    def search(self, query: str, top_k: int = 10) -> List[Dict[str, Any]]:
+    def search(
+        self,
+        query: str,
+        top_k: int = 10,
+        allowed_tables: Optional[List[str]] = None
+    ) -> List[Dict[str, Any]]:
         """
         基于向量搜索找到最相似的列
         
@@ -281,8 +286,21 @@ class VectorIndexManager:
         # 归一化查询向量
         query_vec = query_vec / (np.linalg.norm(query_vec) + 1e-10)
         
-        # 使用点积计算相似度（因为向量已归一化，点积 = 余弦相似度）
-        scores = np.dot(self.column_vectors, query_vec.T).flatten()
+        allowed_table_set = set(allowed_tables) if allowed_tables else None
+        if allowed_table_set is not None:
+            allowed_indices = [
+                idx for idx, meta in enumerate(self.column_meta)
+                if meta.table in allowed_table_set
+            ]
+            if not allowed_indices:
+                logger.debug(f"[{self.trace_id}] allowed_tables 为空命中，返回空结果: {query}")
+                return []
+            candidate_vectors = self.column_vectors[allowed_indices]
+            scores = np.dot(candidate_vectors, query_vec.T).flatten()
+        else:
+            allowed_indices = None
+            # 使用点积计算相似度（因为向量已归一化，点积 = 余弦相似度）
+            scores = np.dot(self.column_vectors, query_vec.T).flatten()
         
         # Top-K 选择（处理 top_k 大于实际列数的情况）
         actual_top_k = min(top_k, len(scores))
@@ -295,7 +313,8 @@ class VectorIndexManager:
         # 构建结果
         results = []
         for idx in top_indices:
-            meta = self.column_meta[idx]
+            meta_idx = allowed_indices[idx] if allowed_indices is not None else idx
+            meta = self.column_meta[meta_idx]
             score = float(scores[idx])
             
             results.append({
@@ -307,8 +326,33 @@ class VectorIndexManager:
                 "comment": meta.comment
             })
         
-        logger.debug(f"[{self.trace_id}] 向量搜索: query='{query}', found {len(results)} candidates")
+        logger.debug(
+            f"[{self.trace_id}] 向量搜索: query='{query}', found {len(results)} candidates, "
+            f"allowed_tables={len(allowed_table_set) if allowed_table_set is not None else 'ALL'}"
+        )
         return results
+
+    def batch_search(
+        self,
+        queries: List[str],
+        top_k: int = 10,
+        allowed_tables: Optional[List[str]] = None
+    ) -> List[List[Dict[str, Any]]]:
+        """
+        批量向量搜索（可选限定 allowed_tables）。
+
+        Args:
+            queries: 查询词列表
+            top_k: 每个查询返回的候选数
+            allowed_tables: 允许搜索的表名列表
+
+        Returns:
+            与 queries 一一对应的候选列表
+        """
+        return [
+            self.search(query=q, top_k=top_k, allowed_tables=allowed_tables)
+            for q in queries
+        ]
     
     def _save_to_cache(self):
         """保存向量索引到缓存文件"""
@@ -618,7 +662,8 @@ class VectorIndexManager:
         top_k: int = 10,
         use_ai_fallback: bool = True,
         ai_confidence_threshold: float = 0.7,
-        field_description_map: Optional[Dict[str, str]] = None  # 新增可选参数
+        field_description_map: Optional[Dict[str, str]] = None,  # 新增可选参数
+        allowed_tables: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
         批量搜索字段映射，使用重心算法优化 + AI 兜底（支持字段描述）
@@ -629,6 +674,7 @@ class VectorIndexManager:
             use_ai_fallback: 是否启用 AI 兜底
             ai_confidence_threshold: AI 触发阈值
             field_description_map: 字段描述映射（可选），格式: {field_path: description}
+            allowed_tables: 允许检索的表名列表（可选）
             
         Returns:
             包含重心表、重排序结果和 AI 兜底统计的字典
@@ -651,7 +697,7 @@ class VectorIndexManager:
             field_description = field_description_map.get(api_fields[i], '') if field_description_map else None
             # 使用包含描述的查询文本进行搜索
             query_text = self._build_query_text(field_name, field_description)
-            candidates = self.search(query_text, top_k=top_k)
+            candidates = self.search(query_text, top_k=top_k, allowed_tables=allowed_tables)
             all_candidates.append(candidates)
         
         # 步骤B: 计算重心表（带噪音过滤）
@@ -689,6 +735,97 @@ class VectorIndexManager:
             f"重心表={gravity_table}, AI兜底={ai_fallback_count}"
         )
         
+        return {
+            "gravity_table": gravity_table,
+            "results": results,
+            "ai_fallback_count": ai_fallback_count
+        }
+
+    async def batch_search_with_gravity_by_key(
+        self,
+        queries: Dict[str, Dict[str, Any]],
+        top_k: int = 10,
+        use_ai_fallback: bool = False,
+        ai_confidence_threshold: float = 0.7
+    ) -> Dict[str, Any]:
+        """
+        按业务唯一 key 进行批量搜索，避免相同 field_path 造成结果覆盖。
+
+        Args:
+            queries: 查询字典，格式:
+                {
+                    query_key: {
+                        "field_name": str,
+                        "field_description": str,
+                        "allowed_tables": List[str] | None
+                    }
+                }
+            top_k: 每个字段返回的候选数量
+            use_ai_fallback: 是否启用 AI 兜底
+            ai_confidence_threshold: AI 触发阈值
+
+        Returns:
+            {
+                "gravity_table": str | None,
+                "results": {query_key: [candidates]},
+                "ai_fallback_count": int
+            }
+        """
+        if self.column_vectors is None or self.column_meta is None:
+            logger.error(f"[{self.trace_id}] 向量索引未构建，无法进行按key批量搜索")
+            return {
+                "gravity_table": None,
+                "results": {query_key: [] for query_key in queries.keys()},
+                "ai_fallback_count": 0
+            }
+
+        query_keys = list(queries.keys())
+        field_names: List[str] = []
+        all_candidates: List[List[Dict[str, Any]]] = []
+
+        for query_key in query_keys:
+            query_spec = queries.get(query_key) or {}
+            field_name = str(query_spec.get("field_name", "") or "")
+            field_description = str(query_spec.get("field_description", "") or "")
+            allowed_tables = query_spec.get("allowed_tables")
+
+            field_names.append(field_name)
+            query_text = self._build_query_text(field_name, field_description)
+            candidates = self.search(
+                query=query_text,
+                top_k=top_k,
+                allowed_tables=allowed_tables
+            )
+            all_candidates.append(candidates)
+
+        gravity_table = self.calculate_gravity_table(all_candidates, field_names)
+
+        results: Dict[str, List[Dict[str, Any]]] = {}
+        ai_fallback_count = 0
+        for idx, query_key in enumerate(query_keys):
+            field_name = field_names[idx]
+            candidates = all_candidates[idx]
+
+            if gravity_table:
+                candidates = self.re_rank_candidates(candidates, gravity_table, field_name)
+
+            if use_ai_fallback and candidates:
+                top_score = candidates[0].get("final_score", 0)
+                if top_score < ai_confidence_threshold:
+                    ai_selected = await self.call_ai_for_ambiguous_mapping(
+                        field_name, gravity_table, candidates
+                    )
+                    if ai_selected:
+                        candidates.remove(ai_selected)
+                        candidates.insert(0, ai_selected)
+                        ai_fallback_count += 1
+
+            results[query_key] = candidates
+
+        logger.info(
+            f"[{self.trace_id}] 按key批量向量搜索完成: 查询数={len(query_keys)}, "
+            f"重心表={gravity_table}, AI兜底={ai_fallback_count}"
+        )
         return {
             "gravity_table": gravity_table,
             "results": results,

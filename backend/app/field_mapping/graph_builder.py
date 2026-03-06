@@ -45,7 +45,14 @@ class ForeignKeyGraph:
         # 2. 如果没有外键，推断软外键（解决报错.md 问题1）
         if not self.foreign_keys:
             logger.warning("未找到物理外键，启用软外键推断")
-            all_tables = list(db_schema.get('tables', {}).keys())
+            # 兼容两种格式：列表格式 [{"name": "table1", ...}, ...] 和字典格式 {"table1": {...}, ...}
+            tables_data = db_schema.get('tables')
+            if isinstance(tables_data, list):
+                all_tables = [table.get("name", "") for table in tables_data if isinstance(table, dict) and table.get("name")]
+            elif isinstance(tables_data, dict):
+                all_tables = list(tables_data.keys())
+            else:
+                all_tables = []
             self._infer_soft_foreign_keys(all_tables)
 
         # 3. 构建图

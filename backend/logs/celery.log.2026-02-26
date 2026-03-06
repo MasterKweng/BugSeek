@@ -1,0 +1,23 @@
+2026-02-26 10:35:42 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (0/20) now.
+2026-02-26 10:35:44 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (1/20) in 1.00 second.
+2026-02-26 10:35:47 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (2/20) in 1.00 second.
+2026-02-26 10:35:50 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (3/20) in 1.00 second.
+2026-02-26 10:35:53 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (4/20) in 1.00 second.
+2026-02-26 10:35:56 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (5/20) in 1.00 second.
+2026-02-26 10:35:59 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (6/20) in 1.00 second.
+2026-02-26 10:36:02 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (7/20) in 1.00 second.
+2026-02-26 10:36:05 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (8/20) in 1.00 second.
+2026-02-26 10:36:08 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (9/20) in 1.00 second.
+2026-02-26 10:36:11 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (10/20) in 1.00 second.
+2026-02-26 10:36:14 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (11/20) in 1.00 second.
+2026-02-26 10:36:17 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (12/20) in 1.00 second.
+2026-02-26 10:36:20 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (13/20) in 1.00 second.
+2026-02-26 10:36:23 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (14/20) in 1.00 second.
+2026-02-26 10:36:26 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (15/20) in 1.00 second.
+2026-02-26 10:36:29 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (16/20) in 1.00 second.
+2026-02-26 10:36:32 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (17/20) in 1.00 second.
+2026-02-26 10:36:35 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (18/20) in 1.00 second.
+2026-02-26 10:36:38 | ERROR | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | Connection to Redis lost: Retry (19/20) in 1.00 second.
+2026-02-26 10:36:41 | CRITICAL | [bb2648f5f7264b3ca2c155333152845b] | celery.backends.redis | 
+Retry limit exceeded while trying to reconnect to the Celery redis result store backend. The Celery application must be restarted.
+

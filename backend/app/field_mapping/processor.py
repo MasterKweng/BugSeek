@@ -277,6 +277,7 @@ class FieldMappingProcessor:
         # 记录失败的字段
         self.failed_fields = set()
         self.retry_queue = []
+        self._rule_scoring_debug: Dict[str, Any] = {}
 
         # 任务取消标志
         self._cancelled = False
@@ -636,7 +637,11 @@ class FieldMappingProcessor:
                         "processed_fields": len(rule_results),
                         "success_fields": len([r for r in rule_results.values() if r]),
                         "failed_fields": len([r for r in rule_results.values() if not r]),
-                        "avg_score": self._calculate_avg_score(rule_results)
+                        "avg_score": self._calculate_avg_score(rule_results),
+                        "non_empty_cache_keys": self._rule_scoring_debug.get("non_empty_cache_keys", 0),
+                        "total_cache_keys": self._rule_scoring_debug.get("total_cache_keys", 0),
+                        "non_empty_ratio": self._rule_scoring_debug.get("non_empty_ratio", 0.0),
+                        "sample_empty_cache_keys": self._rule_scoring_debug.get("sample_empty_cache_keys", [])
                     }
                 )
             else:
@@ -893,7 +898,14 @@ class FieldMappingProcessor:
                 fields=[field.split('.')[-1] for field in api_fields]
             )
             if not allowed_tables:
-                allowed_tables = list((db_schema.get("tables") or {}).keys())
+                # 兼容两种格式：列表格式 [{"name": "table1", ...}, ...] 和字典格式 {"table1": {...}, ...}
+                tables_data = db_schema.get("tables")
+                if isinstance(tables_data, list):
+                    allowed_tables = [table.get("name", "") for table in tables_data if isinstance(table, dict) and table.get("name")]
+                elif isinstance(tables_data, dict):
+                    allowed_tables = list(tables_data.keys())
+                else:
+                    allowed_tables = []
                 logger.warning(
                     f"[{self.trace_id}] 域推断为空，降级全库搜索: {definition.method} {definition.path}"
                 )
@@ -1014,7 +1026,14 @@ class FieldMappingProcessor:
                 fields=[field.split('.')[-1] for field in api_fields_for_domain]
             )
             if not allowed_tables:
-                allowed_tables = list((db_schema.get("tables") or {}).keys())
+                # 兼容两种格式：列表格式 [{"name": "table1", ...}, ...] 和字典格式 {"table1": {...}, ...}
+                tables_data = db_schema.get("tables")
+                if isinstance(tables_data, list):
+                    allowed_tables = [table.get("name", "") for table in tables_data if isinstance(table, dict) and table.get("name")]
+                elif isinstance(tables_data, dict):
+                    allowed_tables = list(tables_data.keys())
+                else:
+                    allowed_tables = []
 
             # 提取字段描述
             from app.api.v1.field_mappings import _extract_field_descriptions
@@ -1315,7 +1334,36 @@ class FieldMappingProcessor:
 
         if schema_version:
             if schema_version.schema_snapshot:
-                logger.info(f"[{self.trace_id}] 获取数据库结构成功: {len(schema_version.schema_snapshot)}个表")
+                snapshot = schema_version.schema_snapshot or {}
+                tables_data = snapshot.get("tables", {})
+                if isinstance(tables_data, list):
+                    table_count = len([t for t in tables_data if isinstance(t, dict)])
+                    column_count = 0
+                    for table in tables_data:
+                        if not isinstance(table, dict):
+                            continue
+                        columns = table.get("columns", [])
+                        if isinstance(columns, list):
+                            column_count += len(columns)
+                        elif isinstance(columns, dict):
+                            column_count += len(columns.keys())
+                elif isinstance(tables_data, dict):
+                    table_count = len(tables_data.keys())
+                    column_count = 0
+                    for table_info in tables_data.values():
+                        if not isinstance(table_info, dict):
+                            continue
+                        columns = table_info.get("columns", [])
+                        if isinstance(columns, list):
+                            column_count += len(columns)
+                        elif isinstance(columns, dict):
+                            column_count += len(columns.keys())
+                else:
+                    table_count = 0
+                    column_count = 0
+                logger.info(
+                    f"[{self.trace_id}] 获取数据库结构成功: 表={table_count}, 列={column_count}"
+                )
                 return schema_version.schema_snapshot
             else:
                 logger.warning(f"[{self.trace_id}] 数据库结构版本存在但 schema_snapshot 为空: schema_version_id={schema_version.id}")
@@ -1442,16 +1490,38 @@ class FieldMappingProcessor:
         try:
             tables = db_schema.get('tables', {})
 
-            if table_name not in tables:
+            # 兼容两种格式：列表格式 [{"name": "table1", "columns": [...]}, ...] 和字典格式 {"table1": {"columns": [...]}, ...}
+            table_info = None
+            if isinstance(tables, list):
+                # 列表格式：查找匹配的表
+                for table in tables:
+                    if isinstance(table, dict) and table.get("name") == table_name:
+                        table_info = table
+                        break
+            elif isinstance(tables, dict) and table_name in tables:
+                # 字典格式：直接获取
+                table_info = tables[table_name]
+
+            if not table_info:
                 return ""
 
-            table_info = tables[table_name]
-            columns = table_info.get('columns', {})
+            columns = table_info.get('columns', [])
 
-            if column_name not in columns:
+            # 兼容两种格式：列表格式 [{"name": "col1", ...}, ...] 和字典格式 {"col1": {...}, ...}
+            column_info = None
+            if isinstance(columns, list):
+                # 列表格式：查找匹配的列
+                for col in columns:
+                    if isinstance(col, dict) and col.get("name") == column_name:
+                        column_info = col
+                        break
+            elif isinstance(columns, dict) and column_name in columns:
+                # 字典格式：直接获取
+                column_info = columns[column_name]
+
+            if not column_info:
                 return ""
 
-            column_info = columns[column_name]
             comment = column_info.get('comment', '')
 
             return comment or ""
@@ -1649,8 +1719,14 @@ class FieldMappingProcessor:
             )
             if not allowed_tables:
                 logger.warning(f"[{self.trace_id}] 域推断失败，降级为全库搜索: {definition.method} {definition.path}")
-                allowed_tables = list((db_schema.get("tables") or {}).keys())
-            allowed_table_set = set(allowed_tables)
+                # 兼容两种格式：列表格式 [{"name": "table1", ...}, ...] 和字典格式 {"table1": {...}, ...}
+                tables_data = db_schema.get("tables")
+                if isinstance(tables_data, list):
+                    allowed_tables = [table.get("name", "") for table in tables_data if isinstance(table, dict) and table.get("name")]
+                elif isinstance(tables_data, dict):
+                    allowed_tables = list(tables_data.keys())
+                else:
+                    allowed_tables = []
 
             # 3. 为每个字段创建FieldInfo（临时）
             field_infos = {}
@@ -1688,20 +1764,23 @@ class FieldMappingProcessor:
 
             # 批量向量搜索
             field_names = [info.field_name for info in field_infos.values()]
-            batch_candidates = vector_manager.batch_search(field_names, top_k=10)
+            batch_candidates = vector_manager.batch_search(
+                field_names,
+                top_k=10,
+                allowed_tables=allowed_tables
+            )
 
             # 分发批量搜索结果
             for i, (field_path, field_info) in enumerate(field_infos.items()):
                 if i < len(batch_candidates):
                     candidates = batch_candidates[i]
-                    candidates = [cand for cand in candidates if cand.get('table') in allowed_table_set]
 
                     # 转换为字典格式
                     candidate_dicts = []
                     for cand in candidates:
                         candidate_dicts.append({
-                            'db_table': cand['table'],
-                            'db_column': cand['column'],
+                            'db_table': cand['db_table'],
+                            'db_column': cand['db_column'],
                             'score': cand['score'],
                             'reasons': ['向量相似度']
                         })
@@ -1808,7 +1887,16 @@ class FieldMappingProcessor:
                         logger.debug(f"[{self.trace_id}] 候选 {cand.get('db_table')}.{cand.get('db_column')} "
                                    f"未通过向量验证")
 
-                validated_candidates_map[field_path] = validated_candidates
+                if validated_candidates:
+                    validated_candidates_map[field_path] = validated_candidates
+                elif candidates:
+                    fallback_candidate = candidates[0].copy()
+                    fallback_reasons = list(fallback_candidate.get("reasons", []))
+                    fallback_reasons.append("semantic_validation_fallback_top1")
+                    fallback_candidate["reasons"] = fallback_reasons
+                    validated_candidates_map[field_path] = [fallback_candidate]
+                else:
+                    validated_candidates_map[field_path] = []
 
             # 9. 返回结果
             return validated_candidates_map
@@ -1881,6 +1969,42 @@ class FieldMappingProcessor:
                     total_fields
                 )
 
+        expected_instances = set(field_registry.keys())
+        actual_instances = set(all_results.keys())
+        missing_instances = sorted(expected_instances - actual_instances)
+        if missing_instances:
+            logger.warning(
+                f"[{self.trace_id}] 规则评分结果缺失: expected={len(expected_instances)}, "
+                f"actual={len(actual_instances)}, missing={len(missing_instances)}, "
+                f"samples={missing_instances[:10]}"
+            )
+
+        cache_key_to_has_candidates: Dict[str, bool] = {}
+        for instance_key, candidates in all_results.items():
+            field_info = field_registry.get(instance_key)
+            if not field_info:
+                continue
+            cache_key = field_info.logical_cache_key or self._build_logical_cache_key(
+                field_info.source_type,
+                field_info.field_name
+            )
+            allowed_tables = sorted(set(field_info.allowed_tables or []))
+            if allowed_tables:
+                cache_key = f"{cache_key}|{','.join(allowed_tables)}"
+            cache_key_to_has_candidates[cache_key] = (
+                cache_key_to_has_candidates.get(cache_key, False) or bool(candidates)
+            )
+
+        total_cache_keys = len(cache_key_to_has_candidates)
+        non_empty_cache_keys = sum(1 for has in cache_key_to_has_candidates.values() if has)
+        empty_cache_keys = [key for key, has in cache_key_to_has_candidates.items() if not has]
+        self._rule_scoring_debug = {
+            "total_cache_keys": total_cache_keys,
+            "non_empty_cache_keys": non_empty_cache_keys,
+            "non_empty_ratio": round(non_empty_cache_keys / total_cache_keys, 4) if total_cache_keys else 0.0,
+            "sample_empty_cache_keys": empty_cache_keys[:10]
+        }
+
         rule_trace_rows = []
         for field_key, candidates in all_results.items():
             field_info = field_registry.get(field_key)
@@ -1917,8 +2041,7 @@ class FieldMappingProcessor:
         
         try:
             cache_key_to_instances: Dict[str, List[Tuple[str, FieldInfo]]] = {}
-            cache_key_to_path: Dict[str, str] = {}
-            cache_key_to_allowed_tables: Dict[str, Optional[List[str]]] = {}
+            cache_key_to_query: Dict[str, Dict[str, Any]] = {}
 
             for instance_key, field_info in batch:
                 cache_key = field_info.logical_cache_key or self._build_logical_cache_key(
@@ -1929,31 +2052,29 @@ class FieldMappingProcessor:
                 if allowed_tables:
                     cache_key = f"{cache_key}|{','.join(allowed_tables)}"
                 cache_key_to_instances.setdefault(cache_key, []).append((instance_key, field_info))
-                if cache_key not in cache_key_to_path:
-                    cache_key_to_path[cache_key] = field_info.field_path
-                    cache_key_to_allowed_tables[cache_key] = allowed_tables if allowed_tables else None
+                if cache_key not in cache_key_to_query:
+                    field_description = ""
+                    if field_description_map:
+                        field_description = field_description_map.get(field_info.field_path, "") or ""
+                    cache_key_to_query[cache_key] = {
+                        "field_name": field_info.field_name,
+                        "field_description": field_description,
+                        "allowed_tables": allowed_tables if allowed_tables else None
+                    }
 
-            api_fields = list(cache_key_to_path.values())
-
-            # 使用向量搜索批量生成候选（禁用 AI 兜底，阶段2只做规则评分）
+            # 使用向量搜索批量生成候选（禁用 AI 兜底，阶段2只做规则评分）。
+            # 关键修复：按 cache_key 检索和回填，避免相同 field_path 被覆盖。
             vector_manager = get_vector_manager()
-            vector_results = await vector_manager.batch_search_with_gravity(
-                api_fields=api_fields,
+            vector_results = await vector_manager.batch_search_with_gravity_by_key(
+                queries=cache_key_to_query,
                 top_k=20,
-                use_ai_fallback=False,  # 阶段2禁用 AI，阶段4才用
-                field_description_map=field_description_map
+                use_ai_fallback=False
             )
+            key_results: Dict[str, List[Dict[str, Any]]] = vector_results.get("results", {})
 
-            path_results = vector_results.get("results", {})
             cache_key_candidates: Dict[str, List[FieldMappingCandidate]] = {}
-            for cache_key, field_path in cache_key_to_path.items():
-                allowed_tables = set(cache_key_to_allowed_tables.get(cache_key) or [])
-                candidates_dicts = path_results.get(field_path, [])
-                if allowed_tables:
-                    candidates_dicts = [
-                        cand for cand in candidates_dicts
-                        if cand.get("db_table", "") in allowed_tables
-                    ]
+            for cache_key in cache_key_to_instances.keys():
+                candidates_dicts = key_results.get(cache_key, [])
                 cache_key_candidates[cache_key] = [
                     FieldMappingCandidate(
                         db_table=cand.get("db_table", ""),
@@ -2396,15 +2517,28 @@ class FieldMappingProcessor:
             return False
 
         tables = db_schema.get("tables", {})
-        table_info = tables.get(table)
+
+        # 兼容两种格式：列表格式 [{"name": "table1", "columns": [...]}, ...] 和字典格式 {"table1": {"columns": [...]}, ...}
+        table_info = None
+        if isinstance(tables, list):
+            # 列表格式：查找匹配的表
+            for t in tables:
+                if isinstance(t, dict) and t.get("name") == table:
+                    table_info = t
+                    break
+        elif isinstance(tables, dict):
+            # 字典格式：直接获取
+            table_info = tables.get(table)
+
         if not isinstance(table_info, dict):
             return False
 
-        columns = table_info.get("columns", {})
+        columns = table_info.get("columns", [])
         if isinstance(columns, dict):
             return column in columns
         if isinstance(columns, list):
-            return column in columns
+            # 列表格式：检查列名是否存在
+            return any(col.get("name") == column for col in columns if isinstance(col, dict))
         return False
 
     def _build_valid_tables_for_field(self, field_info: FieldInfo) -> set:
@@ -2858,27 +2992,53 @@ class FieldMappingProcessor:
     def _get_column_comment(self, db_schema: Dict[str, Any], table_name: str, column_name: str) -> str:
         """
         获取数据库列的注释
-        
+
         Args:
             db_schema: 数据库结构
             table_name: 表名
             column_name: 列名
-            
+
         Returns:
             列注释，如果不存在则返回空字符串
         """
         if not db_schema or not isinstance(db_schema, dict):
             return ""
-        
+
         tables = db_schema.get("tables", {})
-        if table_name not in tables:
+
+        # 兼容两种格式：列表格式 [{"name": "table1", "columns": [...]}, ...] 和字典格式 {"table1": {"columns": [...]}, ...}
+        table_info = None
+        if isinstance(tables, list):
+            # 列表格式：查找匹配的表
+            for table in tables:
+                if isinstance(table, dict) and table.get("name") == table_name:
+                    table_info = table
+                    break
+        elif isinstance(tables, dict) and table_name in tables:
+            # 字典格式：直接获取
+            table_info = tables[table_name]
+
+        if not table_info:
             return ""
-        
-        columns = tables[table_name].get("columns", {})
-        if column_name not in columns:
+
+        columns = table_info.get('columns', [])
+
+        # 兼容两种格式：列表格式 [{"name": "col1", ...}, ...] 和字典格式 {"col1": {...}, ...}
+        column_info = None
+        if isinstance(columns, list):
+            # 列表格式：查找匹配的列
+            for col in columns:
+                if isinstance(col, dict) and col.get("name") == column_name:
+                    column_info = col
+                    break
+        elif isinstance(columns, dict) and column_name in columns:
+            # 字典格式：直接获取
+            column_info = columns[column_name]
+
+        if not column_info:
             return ""
-        
-        return columns[column_name].get("comment", "")
+
+        return column_info.get("comment", "")
     
     def _calculate_text_similarity(self, text1: str, text2: str) -> float:
         """

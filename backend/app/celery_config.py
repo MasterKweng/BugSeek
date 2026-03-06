@@ -1,4 +1,9 @@
 """Celery 配置文件"""
+from dotenv import load_dotenv
+
+# 加载环境变量（必须在导入其他模块之前）
+load_dotenv()
+
 from celery import Celery
 
 # 创建 Celery 实例

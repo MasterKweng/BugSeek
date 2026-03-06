@@ -19,7 +19,19 @@ class DomainInferer:
 
     def __init__(self, db_schema: Dict):
         self.db_schema = db_schema or {}
-        self.tables = list((self.db_schema.get("tables") or {}).keys())
+        tables_data = self.db_schema.get("tables")
+
+        # 兼容两种格式：列表格式 [{"name": "table1", ...}, ...] 和字典格式 {"table1": {...}, ...}
+        if isinstance(tables_data, list):
+            # 列表格式：提取表名
+            self.tables = [table.get("name", "") for table in tables_data if isinstance(table, dict) and table.get("name")]
+        elif isinstance(tables_data, dict):
+            # 字典格式：提取键名
+            self.tables = list(tables_data.keys())
+        else:
+            # 其他格式：空列表
+            self.tables = []
+
         self.normalized_tables = {table: normalize_name(table) for table in self.tables}
 
     def infer(self, api_path: str, fields: List[str]) -> List[str]:
