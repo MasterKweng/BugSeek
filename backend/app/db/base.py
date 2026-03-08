@@ -338,6 +338,92 @@ class ApiCase(Base, TimestampMixin):
     )
 
 
+class ApiScenario(Base, TimestampMixin):
+    """API 场景表（Scenario V1）"""
+    __tablename__ = "api_scenarios"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    version_id = Column(Integer, ForeignKey("versions.id", ondelete="SET NULL"), nullable=True)
+    environment_id = Column(Integer, ForeignKey("environments.id", ondelete="SET NULL"), nullable=True)
+
+    # 基本信息
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    scenario_type = Column(String(50), nullable=False, default="business_flow")
+    source_type = Column(String(50), nullable=False, default="manual")  # manual | intent | module_chain
+    source_ref_id = Column(Integer, nullable=True)
+
+    # 执行配置
+    context_init = Column(JSON, nullable=True)
+    execution_mode = Column(String(20), nullable=False, default="sequential")  # sequential | dag
+    timeout_seconds = Column(Integer, nullable=False, default=600)
+    retry_count = Column(Integer, nullable=False, default=0)
+    continue_on_failure = Column(Boolean, nullable=False, default=False)
+
+    # 状态与审计
+    status = Column(String(20), nullable=False, default="draft")  # draft | active | archived
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    updated_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    # 关系
+    project = relationship("Project", backref="api_scenarios")
+    version = relationship("Version", backref="api_scenarios")
+    environment = relationship("Environment", backref="api_scenarios")
+    creator = relationship("User", foreign_keys=[created_by])
+    updater = relationship("User", foreign_keys=[updated_by])
+    nodes = relationship("ScenarioNode", back_populates="scenario", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        Index("ix_api_scenarios_project_id", "project_id"),
+        Index("ix_api_scenarios_project_status", "project_id", "status"),
+        Index("ix_api_scenarios_source_type", "source_type"),
+        Index("ix_api_scenarios_version_id", "version_id"),
+        Index("ix_api_scenarios_updated_at", "updated_at"),
+    )
+
+
+class ScenarioNode(Base, TimestampMixin):
+    """场景节点表（Scenario V1）"""
+    __tablename__ = "scenario_nodes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    scenario_id = Column(Integer, ForeignKey("api_scenarios.id", ondelete="CASCADE"), nullable=False)
+
+    # 节点标识
+    node_key = Column(String(64), nullable=False)
+    node_name = Column(String(255), nullable=True)
+    node_type = Column(String(20), nullable=False, default="api_call")
+
+    # 目标引用：api_case 或 api_definition
+    ref_type = Column(String(20), nullable=False, default="api_case")
+    ref_id = Column(Integer, nullable=False)
+    step_order = Column(Integer, nullable=False, default=0)
+
+    # DAG 依赖与映射
+    depends_on = Column(JSON, nullable=True)
+    input_mapping = Column(JSON, nullable=True)
+    extract_rules = Column(JSON, nullable=True)
+    assertion_overrides = Column(JSON, nullable=True)
+
+    # 节点执行配置
+    timeout_seconds = Column(Integer, nullable=True)
+    retry_count = Column(Integer, nullable=False, default=0)
+    continue_on_failure = Column(Boolean, nullable=False, default=False)
+    is_enabled = Column(Boolean, nullable=False, default=True)
+    extra_config = Column(JSON, nullable=True)
+
+    # 关系
+    scenario = relationship("ApiScenario", back_populates="nodes")
+
+    __table_args__ = (
+        UniqueConstraint("scenario_id", "node_key", name="uq_scenario_node_key"),
+        Index("ix_scenario_nodes_scenario_id", "scenario_id"),
+        Index("ix_scenario_nodes_scenario_step", "scenario_id", "step_order"),
+        Index("ix_scenario_nodes_ref_type_ref_id", "ref_type", "ref_id"),
+    )
+
+
 class SyncTask(Base, TimestampMixin):
     """文档同步任务表（V2.0 层级一 - API 资产库）"""
     __tablename__ = "sync_tasks"
