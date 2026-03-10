@@ -1,12 +1,35 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+from typing import Optional, List
 
 
 class Settings(BaseSettings):
     # 项目配置
     PROJECT_NAME: str = "BugSeek"
-    VERSION: str = "1.0.0"
+    VERSION: str = "2.0.0"
     API_V1_STR: str = "/api/v1"
+    
+    # 环境配置
+    ENVIRONMENT: str = "development"  # development, staging, production
+
+    # ========== Feature Flags ==========
+    
+    # V2.0 场景功能开关
+    SCENARIO_V2_ENABLED: bool = False
+    SCENARIO_V2_ROLLOUT_PERCENTAGE: int = 0  # 0-100，灰度发布百分比
+    SCENARIO_V2_WHITELIST_PROJECTS: str = ""  # 逗号分隔的项目ID列表，如 "1,2,3"
+    
+    # 意图工作台开关
+    INTENT_WORKBENCH_ENABLED: bool = False
+    INTENT_WORKBENCH_WHITELIST_PROJECTS: str = ""
+    
+    # JIT 字段映射开关
+    JIT_MAPPING_ENABLED: bool = False
+    
+    # 报告 RCA 开关
+    RCA_IN_REPORT_ENABLED: bool = False
+    
+    # CI/CD 集成开关
+    CI_CD_INTEGRATION_ENABLED: bool = True
 
     # 数据库配置
     DATABASE_URL: str = "postgresql://bugseek:bugseek@localhost:5432/bugseek"
@@ -48,6 +71,35 @@ class Settings(BaseSettings):
 
     # Hugging Face 配置
     HF_ENDPOINT: str = "https://hf-mirror.com"  # 国内镜像加速
+
+    def get_scenario_v2_whitelist_projects(self) -> List[int]:
+        """获取 V2.0 场景白名单项目ID列表"""
+        if not self.SCENARIO_V2_WHITELIST_PROJECTS:
+            return []
+        return [int(pid.strip()) for pid in self.SCENARIO_V2_WHITELIST_PROJECTS.split(",")]
+
+    def get_intent_workbench_whitelist_projects(self) -> List[int]:
+        """获取意图工作台白名单项目ID列表"""
+        if not self.INTENT_WORKBENCH_WHITELIST_PROJECTS:
+            return []
+        return [int(pid.strip()) for pid in self.INTENT_WORKBENCH_WHITELIST_PROJECTS.split(",")]
+
+    def is_project_in_scenario_v2_whitelist(self, project_id: int) -> bool:
+        """检查项目是否在 V2.0 场景白名单中"""
+        return project_id in self.get_scenario_v2_whitelist_projects()
+
+    def is_project_in_intent_workbench_whitelist(self, project_id: int) -> bool:
+        """检查项目是否在意图工作台白名单中"""
+        return project_id in self.get_intent_workbench_whitelist_projects()
+
+    def is_user_in_scenario_v2_rollout(self, user_id: int) -> bool:
+        """检查用户是否在 V2.0 场景灰度范围内"""
+        if self.SCENARIO_V2_ROLLOUT_PERCENTAGE == 0:
+            return False
+        if self.SCENARIO_V2_ROLLOUT_PERCENTAGE == 100:
+            return True
+        # 使用用户ID的最后两位数字作为随机种子
+        return (user_id % 100) < self.SCENARIO_V2_ROLLOUT_PERCENTAGE
 
     class Config:
         env_file = ".env"

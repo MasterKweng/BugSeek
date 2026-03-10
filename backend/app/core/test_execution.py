@@ -1628,6 +1628,24 @@ class ScenarioExecutor:
         }
 
     def _validate_graph(self, nodes: List[Dict[str, Any]]) -> None:
+        """
+        验证场景图的合法性
+
+        检查项：
+        1. node_key 必须存在且唯一
+        2. depends_on 必须是列表
+        3. 依赖的节点必须存在
+        4. 不允许自环（节点不能依赖自己）
+        5. 检测环（Cycle Detection）
+        6. 检测孤立节点（可选，发出警告）
+
+        Args:
+            nodes: 节点列表
+
+        Raises:
+            ValueError: 图结构不合法时抛出异常
+        """
+        # 检查 1: node_key 必须存在且唯一
         node_keys = [n.get("node_key") for n in nodes]
         if any(not key for key in node_keys):
             raise ValueError("Node key is required for all scenario nodes")
@@ -1637,19 +1655,33 @@ class ScenarioExecutor:
 
         node_key_set = set(node_keys)
         indegree: Dict[str, int] = {key: 0 for key in node_keys}
+        outdegree: Dict[str, int] = {key: 0 for key in node_keys}
         adjacency: Dict[str, List[str]] = defaultdict(list)
 
+        # 检查 2, 3, 4: depends_on 格式、依赖存在性、自环检测
         for node in nodes:
             key = node["node_key"]
             deps = node.get("depends_on") or []
+            
+            # 检查 depends_on 必须是列表
             if not isinstance(deps, list):
                 raise ValueError(f"depends_on must be list: node={key}")
+            
             for dep in deps:
+                # 检查依赖的节点必须存在
                 if dep not in node_key_set:
                     raise ValueError(f"Unknown dependency '{dep}' referenced by node '{key}'")
+                
+                # 检查 4: 不允许自环
+                if dep == key:
+                    raise ValueError(f"Self-dependency detected: node '{key}' cannot depend on itself")
+                
+                # 构建邻接表和度数
                 adjacency[dep].append(key)
                 indegree[key] += 1
+                outdegree[dep] += 1
 
+        # 检查 5: 检测环（使用拓扑排序）
         queue = [k for k, d in indegree.items() if d == 0]
         visited = 0
         while queue:
@@ -1662,6 +1694,18 @@ class ScenarioExecutor:
 
         if visited != len(nodes):
             raise ValueError("Cycle detected in scenario graph")
+
+        # 检查 6: 检测孤立节点（可选，发出警告）
+        isolated_nodes = [
+            key for key in node_key_set 
+            if indegree.get(key, 0) == 0 and outdegree.get(key, 0) == 0
+        ]
+        
+        if isolated_nodes:
+            logger.warning(
+                f"[{self.trace_id}] Detected isolated nodes (no dependencies and no dependents): "
+                f"{isolated_nodes}. These nodes will execute independently."
+            )
 
     def _build_execution_levels(self, nodes: List[Dict[str, Any]]) -> List[List[Dict[str, Any]]]:
         node_map = {node["node_key"]: node for node in nodes}

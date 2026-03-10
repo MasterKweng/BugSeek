@@ -101,6 +101,21 @@ const MainLayout: React.FC = () => {
       ],
     },
     {
+      key: 'scenario',
+      icon: <ThunderboltOutlined />,
+      label: '场景工作室',
+      children: [
+        {
+          key: '/scenario/intent-workbench',
+          label: '意图工作台',
+        },
+        {
+          key: '/scenario/list',
+          label: '场景管理',
+        },
+      ],
+    },
+    {
       key: 'ui-automation',
       icon: <RobotOutlined />,
       label: 'UI 自动化',

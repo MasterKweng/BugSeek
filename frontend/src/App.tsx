@@ -22,6 +22,14 @@ const ApiHubCases = lazy(() => import('./pages/api-hub/CasesList'))
 const ApiHubSync = lazy(() => import('./pages/api-hub/SyncTasksList'))
 const ApiHubSnapshots = lazy(() => import('./pages/api-hub/VersionSnapshots'))
 
+// 场景工作室模块 (V2.0)
+const IntentWorkbench = lazy(() => import('./pages/scenario/IntentWorkbench'))
+const ScenarioList = lazy(() => import('./pages/scenario/ScenarioList'))
+const ScenarioDetail = lazy(() => import('./pages/scenario/ScenarioDetail'))
+const ScenarioDesigner = lazy(() => import('./pages/scenario/ScenarioDesigner'))
+const ScenarioExecution = lazy(() => import('./pages/scenario/ScenarioExecution'))
+const ScenarioFieldMapping = lazy(() => import('./pages/scenario/ScenarioFieldMapping'))
+
 // 鉴权配置模块
 const AuthConfig = lazy(() => import('./pages/AuthConfig'))
 
@@ -63,6 +71,13 @@ function App() {
           <Route path="api-hub/cases" element={<ProjectVersionGuard><ApiHubCases /></ProjectVersionGuard>} />
           <Route path="api-hub/sync" element={<ProjectVersionGuard><ApiHubSync /></ProjectVersionGuard>} />
           <Route path="api-hub/snapshots" element={<ProjectVersionGuard><ApiHubSnapshots /></ProjectVersionGuard>} />
+          {/* 场景工作室模块 (V2.0) - BSK-SC-020 */}
+          <Route path="scenario/intent-workbench" element={<ProjectVersionGuard><IntentWorkbench /></ProjectVersionGuard>} />
+          <Route path="scenario/list" element={<ProjectVersionGuard><ScenarioList /></ProjectVersionGuard>} />
+          <Route path="scenario/:scenarioId" element={<ProjectVersionGuard><ScenarioDetail /></ProjectVersionGuard>} />
+          <Route path="scenario/:scenarioId/design" element={<ProjectVersionGuard><ScenarioDesigner /></ProjectVersionGuard>} />
+          <Route path="scenario/:scenarioId/execution/:executionId" element={<ProjectVersionGuard><ScenarioExecution /></ProjectVersionGuard>} />
+          <Route path="scenario/:scenarioId/field-mapping" element={<ProjectVersionGuard><ScenarioFieldMapping /></ProjectVersionGuard>} />
           {/* 鉴权配置模块 */}
           <Route path="projects/:projectId/auth-config" element={<ProjectVersionGuard><AuthConfig /></ProjectVersionGuard>} />
           {/* UI 自动化模块 */}

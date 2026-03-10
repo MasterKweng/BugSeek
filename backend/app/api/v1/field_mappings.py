@@ -474,7 +474,24 @@ async def suggest_field_mappings(
     current_user: User = Depends(get_current_user)
 ):
     """
-    生成字段映射建议
+    生成字段映射建议（全局映射模式 - 高级功能）
+    
+    BSK-SC-019: 全局映射入口降级策略
+    - 本接口为全局映射模式，会处理项目中的所有接口定义
+    - 推荐使用场景级 JIT 映射（POST /field-mappings/suggest-task + definition_ids）
+    - 全局映射适用于：
+      * 项目级字段映射维护
+      * 批量映射质量检查
+      * 历史数据追溯
+    - JIT 映射适用于：
+      * 场景生成后的即时映射
+      * 快速验证场景配置
+      * 减少不必要的计算开销
+    
+    注意事项：
+    - 全局映射耗时较长，建议使用异步任务接口
+    - 大型项目建议分批处理或使用场景级映射
+    - 返回结果为实时计算，不持久化到数据库
     """
     
     trace_id = get_trace_id()

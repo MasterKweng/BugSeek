@@ -102998,3 +102998,5 @@ TypeError: object of type 'int' has no len()
     "fie
 [2026-03-06 18:01:07,066: INFO/MainProcess] 调用 AI 模型: model=OpenAIAdapter
 [2026-03-06 18:01:07,068: INFO/MainProcess] Retrying request to /chat/completions in 0.403846 seconds
+[2026-03-10 19:18:28,186: INFO/MainProcess] Connected to redis://127.0.0.1:6380/0
+[2026-03-10 19:18:28,221: INFO/MainProcess] celery@yukwengRu ready.

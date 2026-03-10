@@ -1,0 +1,44 @@
+.scenario-designer {
+  padding: 24px;
+}
+
+.nodes-section {
+  margin-top: 24px;
+}
+
+.nodes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.nodes-header h3 {
+  margin: 0;
+}
+
+.nodes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.node-card {
+  border-left: 4px solid #1890ff;
+}
+
+.node-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.node-details {
+  color: #666;
+  font-size: 14px;
+}
+
+.node-details > div {
+  margin-bottom: 4px;
+}

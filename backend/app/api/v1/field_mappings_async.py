@@ -42,6 +42,9 @@ class FieldMappingSuggestTaskRequest(BaseModel):
     high_priority_enabled: Optional[bool] = Field(True, description="是否启用高优先级字段")
     medium_priority_enabled: Optional[bool] = Field(True, description="是否启用中优先级字段")
     low_priority_enabled: Optional[bool] = Field(True, description="是否启用低优先级字段")
+    # BSK-SC-018: 支持场景子集（JIT 映射）
+    definition_ids: Optional[List[int]] = Field(None, description="指定处理的接口ID列表（JIT映射模式）")
+    scenario_id: Optional[int] = Field(None, description="关联的场景ID（用于追溯场景级映射）")
 
 
 class AsyncTaskSummary(BaseModel):
@@ -110,19 +113,52 @@ async def create_suggest_task(
 ):
     """
     创建字段映射建议任务（异步）
+    
+    BSK-SC-018: 支持场景子集（JIT 映射）
+    - 如果提供 definition_ids，则只处理指定的接口（JIT 映射模式）
+    - 如果提供 scenario_id，则关联到场景用于追溯
+    - 否则处理所有接口（全局映射模式）
     """
     trace_id = get_trace_id()
     ctx = _get_project_and_version(db, current_user, project_id, version_id)
 
+    # BSK-SC-018: 判断映射模式
+    is_jit_mapping = request.definition_ids is not None and len(request.definition_ids) > 0
+    mapping_mode = "JIT映射" if is_jit_mapping else "全局映射"
+    
     logger.info(
         f"[{trace_id}] 创建字段映射建议任务: project_id={ctx['project_id']}, "
-        f"version_id={ctx['version_id']}, use_ai={request.use_ai}"
+        f"version_id={ctx['version_id']}, use_ai={request.use_ai}, "
+        f"mapping_mode={mapping_mode}, scenario_id={request.scenario_id}"
     )
 
-    # 获取API定义数量以预估处理时间
-    api_count = db.query(ApiDefinition).filter(
-        ApiDefinition.project_id == ctx["project_id"]
-    ).count()
+    # BSK-SC-018: JIT 映射模式下的验证
+    if is_jit_mapping:
+        # 验证 definition_ids 是否有效
+        valid_definitions = db.query(ApiDefinition).filter(
+            ApiDefinition.project_id == ctx["project_id"],
+            ApiDefinition.id.in_(request.definition_ids)
+        ).all()
+        valid_definition_ids = [d.id for d in valid_definitions]
+        
+        if len(valid_definition_ids) != len(request.definition_ids):
+            invalid_ids = set(request.definition_ids) - set(valid_definition_ids)
+            logger.warning(f"[{trace_id}] 发现无效的 definition_ids: {invalid_ids}")
+        
+        if not valid_definition_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="没有找到有效的接口定义，请检查 definition_ids"
+            )
+        
+        api_count = len(valid_definition_ids)
+        logger.info(f"[{trace_id}] JIT 映射模式: 处理 {api_count} 个指定接口")
+    else:
+        # 全局映射模式：获取所有API定义
+        api_count = db.query(ApiDefinition).filter(
+            ApiDefinition.project_id == ctx["project_id"]
+        ).count()
+        logger.info(f"[{trace_id}] 全局映射模式: 处理所有 {api_count} 个接口")
 
     # 估算处理时间和字段数量
     estimated_fields = int(api_count * 3 * 0.5)  # 去重后约50%
@@ -131,25 +167,34 @@ async def create_suggest_task(
     else:
         estimated_duration = int(estimated_fields * 0.05)  # 约0.05秒/字段
 
+    # 构建任务参数
+    task_params = {
+        "project_id": ctx["project_id"],
+        "version_id": ctx["version_id"],
+        "include_paths": request.include_paths,
+        "include_query": request.include_query,
+        "include_body": request.include_body,
+        "use_ai": request.use_ai,
+        "high_priority_enabled": request.high_priority_enabled,
+        "medium_priority_enabled": request.medium_priority_enabled,
+        "low_priority_enabled": request.low_priority_enabled,
+    }
+    
+    # BSK-SC-018: 添加 JIT 映射参数
+    if is_jit_mapping:
+        task_params["definition_ids"] = valid_definition_ids
+    if request.scenario_id:
+        task_params["scenario_id"] = request.scenario_id
+
     # 创建异步任务记录
     task = AsyncTask(
         project_id=ctx["project_id"],
         user_id=current_user.id,
         task_type="field_mapping_suggest",
-        task_params={
-            "project_id": ctx["project_id"],
-            "version_id": ctx["version_id"],
-            "include_paths": request.include_paths,
-            "include_query": request.include_query,
-            "include_body": request.include_body,
-            "use_ai": request.use_ai,
-            "high_priority_enabled": request.high_priority_enabled,
-            "medium_priority_enabled": request.medium_priority_enabled,
-            "low_priority_enabled": request.low_priority_enabled
-        },
+        task_params=task_params,
         status="pending",
         progress=0,
-        progress_message="任务已创建，等待执行",
+        progress_message=f"任务已创建，等待执行（{mapping_mode}模式）",
         stages=[],
         statistics={}
     )
@@ -172,12 +217,14 @@ async def create_suggest_task(
 
     return ApiResponse(
         code=0,
-        message="任务创建成功",
+        message=f"任务创建成功（{mapping_mode}模式）",
         data={
             "task_id": task.id,
             "status": task.status,
+            "mapping_mode": mapping_mode,
             "estimated_duration": estimated_duration,
-            "estimated_fields": estimated_fields
+            "estimated_fields": estimated_fields,
+            "processed_definition_count": api_count
         }
     )
 

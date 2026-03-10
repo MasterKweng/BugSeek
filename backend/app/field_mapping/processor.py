@@ -285,6 +285,15 @@ class FieldMappingProcessor:
         # V2优化：初始化词权重计算器（阶段3）
         from app.field_mapping.scoring import TokenWeightCalculator
         self.token_weight_calc = TokenWeightCalculator()
+
+        # BSK-SC-017: 支持场景子集（JIT 映射）
+        # 从 task_params 中获取 definition_ids，如果提供则只处理这些接口
+        params = self.task.task_params or {}
+        self.definition_ids = params.get('definition_ids')
+        if self.definition_ids:
+            logger.info(f"[{self.trace_id}] JIT 映射模式: 仅处理 {len(self.definition_ids)} 个接口")
+        else:
+            logger.info(f"[{self.trace_id}] 全局映射模式: 处理所有接口")
     
     def _refresh_db_connection(self):
         """
@@ -868,7 +877,11 @@ class FieldMappingProcessor:
     ) -> Dict[str, FieldInfo]:
         """
         提取字段并进行全局去重
-        
+
+        BSK-SC-017: 支持场景子集（JIT 映射）
+        - 如果 self.definition_ids 存在，只处理指定的接口定义
+        - 否则处理所有接口定义（全局映射模式）
+
         Returns:
             字段注册表: {field_name: FieldInfo}
         """
@@ -879,10 +892,21 @@ class FieldMappingProcessor:
         logical_occurrences: Dict[str, int] = {}
         common_names = {'data', 'info', 'result', 'content', 'item'}
         
-        # 获取所有API定义
-        definitions = self.db.query(ApiDefinition).filter(
-            ApiDefinition.project_id == project_id
-        ).all()
+        # BSK-SC-017: 支持 JIT 映射，根据 definition_ids 过滤
+        if self.definition_ids:
+            # JIT 映射模式：只处理指定的接口定义
+            logger.info(f"[{self.trace_id}] JIT 映射模式: 查询 {len(self.definition_ids)} 个指定接口")
+            definitions = self.db.query(ApiDefinition).filter(
+                ApiDefinition.project_id == project_id,
+                ApiDefinition.id.in_(self.definition_ids)
+            ).all()
+        else:
+            # 全局映射模式：处理所有接口定义
+            logger.info(f"[{self.trace_id}] 全局映射模式: 查询所有接口")
+            definitions = self.db.query(ApiDefinition).filter(
+                ApiDefinition.project_id == project_id
+            ).all()
+        
         db_schema = self._get_db_schema(project_id, version_id)
         domain_inferer = DomainInferer(db_schema)
         

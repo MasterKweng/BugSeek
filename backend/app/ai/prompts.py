@@ -551,6 +551,291 @@ API 信息：
 - 如果都不匹配，返回 None。
 只返回 JSON 格式: {{"selected_index": 0, "reason": "..."}}
 """
+        },
+
+        # ========== 意图生成场景 - BSK-SC-014 ==========
+        "intent_scenario_generation": {
+            "system": "你是一个专业的 API 测试架构师，擅长将自然语言业务意图转化为可执行的 API 测试场景。你能够理解业务流程，识别相关 API，并设计合理的执行顺序和变量传递机制。",
+            "user": """
+请根据用户的业务意图，生成一个完整的 API 测试场景。
+
+用户意图：
+{user_intent}
+
+项目信息：
+- 项目名称：{project_name}
+- 业务领域：{business_domain}
+- 技术栈：{tech_stack}
+
+候选 API 列表（已通过向量检索和关键词匹配筛选）：
+{candidate_apis}
+
+请分析用户意图，执行以下两个阶段：
+
+阶段一：业务步骤识别
+1. 将用户意图分解为具体的业务步骤
+2. 识别每个步骤对应的 API 调用
+3. 确定步骤之间的执行顺序（依赖关系）
+
+阶段二：场景生成
+基于业务步骤，生成可直接落库的场景数据结构：
+
+返回格式（JSON）：
+{{
+  "scenario": {{
+    "name": "场景名称（基于意图自动生成）",
+    "description": "场景描述",
+    "scenario_type": "business_flow",
+    "source_type": "intent",
+    "execution_mode": "dag",
+    "timeout_seconds": 600,
+    "retry_count": 0,
+    "continue_on_failure": false
+  }},
+  "nodes": [
+    {{
+      "node_key": "step1",
+      "node_name": "第一步：创建用户",
+      "node_type": "api_call",
+      "ref_type": "api_definition",
+      "ref_id": 123,
+      "step_order": 1,
+      "depends_on": [],
+      "input_mapping": {{
+        // 从环境变量或全局变量映射
+        "body.name": "{{random_string(8)}}",
+        "body.email": "test_{{random_string(6)}}@example.com"
+      }},
+      "extract_rules": {{
+        // 提取响应变量
+        "user_id": "$.data.id"
+      }},
+      "assertion_overrides": [
+        {{"field": "status", "operator": "equals", "value": 201}}
+      ],
+      "timeout_seconds": 30,
+      "retry_count": 0,
+      "continue_on_failure": false,
+      "is_enabled": true
+    }},
+    {{
+      "node_key": "step2",
+      "node_name": "第二步：查询用户",
+      "node_type": "api_call",
+      "ref_type": "api_definition",
+      "ref_id": 456,
+      "step_order": 2,
+      "depends_on": ["step1"],
+      "input_mapping": {{
+        // 使用上一步提取的变量
+        "path_params.user_id": "{{user_id}}"
+      }},
+      "extract_rules": {},
+      "assertion_overrides": [
+        {{"field": "status", "operator": "equals", "value": 200}},
+        {{"field": "body.data.id", "operator": "equals", "value": "{{user_id}}"}}
+      ],
+      "timeout_seconds": 30,
+      "retry_count": 0,
+      "continue_on_failure": false,
+      "is_enabled": true
+    }}
+  ],
+  "reasoning": "解释为什么选择这些 API 和这个执行顺序"
+}}
+
+要求：
+1. 从候选 API 中选择最匹配的 API，不要凭空捏造
+2. 确保 ref_id 与候选 API 列表中的 id 一致
+3. 正确设置 depends_on 以建立节点依赖关系
+4. 在 input_mapping 中使用变量占位符（如 {{user_id}}）来表示跨节点变量传递
+5. 在 extract_rules 中提取响应中的关键字段
+6. 提供清晰的 reasoning 说明选择理由
+"""
+        },
+
+        # ========== API 检索重排 - BSK-SC-015 ==========
+        "api_retrieval_ranking": {
+            "system": "你是一个专业的 API 知识库检索专家，擅长根据用户意图对候选 API 进行智能排序和筛选。你能够理解 API 的语义、功能和上下文，判断其与用户意图的相关性。",
+            "user": """
+请根据用户意图，对候选 API 列表进行排序和筛选。
+
+用户意图：
+{user_intent}
+
+项目信息：
+- 项目名称：{project_name}
+- 业务领域：{business_domain}
+
+候选 API 列表（已通过向量检索初步筛选）：
+{candidate_apis}
+
+请执行以下任务：
+
+1. **相关性评分**：对每个候选 API 进行 0-10 分的相关性评分
+   - 10 分：完全匹配，直接使用
+   - 8-9 分：高度相关，可能需要调整参数
+   - 5-7 分：部分相关，可能需要组合使用
+   - 0-4 分：不相关，应该排除
+
+2. **排序**：按相关性评分从高到低排序
+
+3. **筛选**：剔除相关性评分低于 5 分的 API
+
+4. **补充说明**：对每个 API 提供评分理由
+
+返回格式（JSON）：
+{{
+  "ranked_apis": [
+    {{
+      "id": 123,
+      "method": "POST",
+      "path": "/api/users",
+      "summary": "创建用户",
+      "relevance_score": 10,
+      "reason": "完全匹配用户意图中的'创建用户'步骤"
+    }},
+    {{
+      "id": 456,
+      "method": "GET",
+      "path": "/api/users/{id}",
+      "summary": "获取用户详情",
+      "relevance_score": 9,
+      "reason": "高度相关，可用于验证用户创建结果"
+    }}
+  ],
+  "excluded_apis": [
+    {{
+      "id": 789,
+      "method": "DELETE",
+      "path": "/api/users/{id}",
+      "summary": "删除用户",
+      "relevance_score": 3,
+      "reason": "不相关，用户意图中未提及删除操作"
+    }}
+  ],
+  "summary": {{
+    "total_candidates": 10,
+    "relevant_count": 7,
+    "excluded_count": 3
+  }}
+}}
+
+要求：
+1. 评分要客观公正，基于 API 的 method、path、summary 和 description
+2. 排序要准确，确保最相关的 API 排在前面
+3. 理由要清晰，说明为什么给这个分数
+4. 如果没有足够相关的 API，返回空列表并在 summary 中说明
+"""
+        },
+
+        # ========== 场景执行根因分析 - BSK-SC-030 ==========
+        "scenario_failure_rca": {
+            "system": "你是一个专业的测试根因分析专家，擅长分析 API 场景执行失败的根本原因，提供详细的诊断和修复建议。",
+            "user": """
+请分析以下场景执行失败的原因，提供详细的根因分析和修复建议。
+
+场景信息：
+- 场景名称：{scenario_name}
+- 场景描述：{scenario_description}
+
+环境信息：
+- 环境名称：{environment_name}
+- 执行时间：{execution_time}
+
+失败节点详情：
+{failure_details}
+
+整体执行结果：
+- 总节点数：{total_nodes}
+- 成功节点：{passed_nodes}
+- 失败节点：{failed_nodes}
+- 总耗时：{total_duration_ms}ms
+
+请执行以下分析：
+
+1. **失败原因分类**：
+   - 请求发送失败（连接错误、超时等）
+   - 响应状态码不匹配（4xx、5xx 等）
+   - 断言失败（预期值不匹配）
+   - 变量提取失败（响应格式不符合预期）
+   - 其他（请说明）
+
+2. **根本原因定位**：
+   - 分析失败节点的请求参数是否正确
+   - 分析响应结果是否符合预期
+   - 检查是否有前置依赖节点的问题
+   - 检查数据准备是否充分
+
+3. **修复建议**：
+   - 提供具体的修复步骤
+   - 如果是配置问题，指出需要修改的配置项
+   - 如果是数据问题，指出需要准备的数据
+   - 如果是场景逻辑问题，指出需要调整的步骤
+
+4. **优先级评估**：
+   - 高优先级：导致整个场景失败的致命问题
+   - 中优先级：影响部分功能的重要问题
+   - 低优先级：优化建议
+
+返回格式（JSON）：
+{{
+  "summary": {{
+    "failure_type": "请求发送失败/响应状态码不匹配/断言失败/变量提取失败/其他",
+    "failed_nodes_count": {failed_nodes_count},
+    "root_cause": "根本原因简述",
+    "priority": "high/medium/low"
+  }},
+  "node_analysis": [
+    {{
+      "node_key": "node_1",
+      "node_name": "创建用户",
+      "failure_type": "响应状态码不匹配",
+      "root_cause": "用户名已存在，返回 409 状态码",
+      "evidence": {{
+        "expected_status": 200,
+        "actual_status": 409,
+        "response_body": {{"error": "username already exists"}}
+      }},
+      "fix_suggestion": "在创建用户前，先检查用户名是否已存在，或者使用随机用户名"
+    }}
+  ],
+  "data_issues": [
+    {{
+      "issue": "缺少必需的测试数据",
+      "affected_nodes": ["node_1", "node_3"],
+      "suggestion": "在场景开始前准备测试用户数据"
+    }}
+  ],
+  "environment_issues": [
+    {{
+      "issue": "环境配置问题",
+      "description": "测试环境的认证服务不可用",
+      "suggestion": "检查认证服务状态，或使用 Mock 服务"
+    }}
+  ],
+  "action_plan": [
+    {{
+      "step": 1,
+      "action": "修复数据准备逻辑",
+      "details": "在场景开始前添加数据清理步骤",
+      "priority": "high"
+    }},
+    {{
+      "step": 2,
+      "action": "调整断言逻辑",
+      "details": "对可能出现的 409 状态码添加特殊处理",
+      "priority": "medium"
+    }}
+  ]
+}}
+
+要求：
+1. 分析要深入，不能只停留在表面现象
+2. 修复建议要具体可行，能够指导实际操作
+3. 优先级评估要准确，帮助用户快速定位关键问题
+4. 如果失败原因复杂，可以提供多个可能的原因并给出验证方法
+"""
         }
     }
     

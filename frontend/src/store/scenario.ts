@@ -285,9 +285,10 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
 
     set({ loadingScenarios: true })
     try {
-      const response = await api.get(`/api-integration/scenarios?project_id=${currentProject.id}`)
+      // BSK-SC-021: 更新为新的 API 路径
+      const response = await api.get(`/api/v1/scenarios?project_id=${currentProject.id}`)
       if (response.code === 0) {
-        set({ scenarios: response.data.scenarios || [] })
+        set({ scenarios: response.data.items || [] })
       } else {
         message.error(response.message || '加载场景列表失败')
       }
@@ -300,7 +301,8 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
 
   loadScenarioDetail: async (scenarioId: number) => {
     try {
-      const response = await api.get(`/api-integration/scenarios/${scenarioId}`)
+      // BSK-SC-021: 更新为新的 API 路径
+      const response = await api.get(`/api/v1/scenarios/${scenarioId}`)
       if (response.code === 0) {
         set({ currentScenario: response.data })
       } else {
@@ -313,8 +315,8 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
 
   executeScenario: async (scenarioId: number, environmentId: number) => {
     try {
-      const response = await api.post('/api-integration/scenarios/execute', {
-        scenario_id: scenarioId,
+      // BSK-SC-021: 更新为新的 API 路径
+      const response = await api.post(`/api/v1/scenarios/${scenarioId}/execute`, {
         environment_id: environmentId,
       })
       return response.data
@@ -326,7 +328,8 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
 
   updateScenario: async (scenarioId: number, data: Partial<ScenarioDetail>) => {
     try {
-      const response = await api.put(`/api-integration/scenarios/${scenarioId}`, data)
+      // BSK-SC-021: 更新为新的 API 路径
+      const response = await api.put(`/api/v1/scenarios/${scenarioId}`, data)
       if (response.code === 0) {
         message.success('场景保存成功')
         get().loadScenarios()
@@ -341,7 +344,8 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
 
   deleteScenario: async (scenarioId: number) => {
     try {
-      const response = await api.delete(`/api-integration/scenarios/${scenarioId}`)
+      // BSK-SC-021: 更新为新的 API 路径
+      const response = await api.delete(`/api/v1/scenarios/${scenarioId}`)
       if (response.code === 0) {
         message.success('场景删除成功')
         get().loadScenarios()
@@ -356,7 +360,8 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
 
   loadScenarioExecutions: async (scenarioId: number, page: number = 1, pageSize: number = 20, status?: string) => {
     try {
-      let url = `/api-integration/scenarios/${scenarioId}/executions?page=${page}&page_size=${pageSize}`
+      // BSK-SC-021: 更新为新的 API 路径
+      let url = `/api/v1/scenarios/${scenarioId}/executions?page=${page}&page_size=${pageSize}`
       if (status) {
         url += `&status=${status}`
       }
@@ -375,7 +380,8 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
 
   loadScenarioExecutionDetail: async (scenarioId: number, executionId: number) => {
     try {
-      const response = await api.get(`/api-integration/scenarios/${scenarioId}/executions/${executionId}`)
+      // BSK-SC-021: 更新为新的 API 路径
+      const response = await api.get(`/api/v1/scenarios/${scenarioId}/executions/${executionId}`)
       if (response.code === 0) {
         return response.data
       } else {
