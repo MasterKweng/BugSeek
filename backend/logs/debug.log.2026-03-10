@@ -1,0 +1,334 @@
+2026-03-10 19:14:45 | INFO | [135bfccc2fc94c018e3a9917883e4609] | root | 日志系统初始化完成
+2026-03-10 19:14:45 | INFO | [135bfccc2fc94c018e3a9917883e4609] | app.main | 应用启动事件执行中...
+2026-03-10 19:14:45 | ERROR | [135bfccc2fc94c018e3a9917883e4609] | app.main | 应用启动事件执行失败: name 'Optional' is not defined
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\main.py", line 86, in startup_event
+    from app.celery_config import celery_app
+  File "D:\code\BugSeek\backend\app\celery_config.py", line 70, in <module>
+    from app.celery import tasks  # noqa: F401
+  File "D:\code\BugSeek\backend\app\celery\tasks.py", line 487, in <module>
+    def execute_scenario_task(self, execution_id: int, scenario_id: int, environment_id: int, callback_url: Optional[str] = None):
+NameError: name 'Optional' is not defined
+2026-03-10 19:15:10 | INFO | [cd9db1268f494f41af1cc641f2d273cd] | root | 日志系统初始化完成
+2026-03-10 19:15:11 | INFO | [cd9db1268f494f41af1cc641f2d273cd] | app.main | 应用启动事件执行中...
+2026-03-10 19:15:11 | ERROR | [cd9db1268f494f41af1cc641f2d273cd] | app.main | 应用启动事件执行失败: name 'Optional' is not defined
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\main.py", line 86, in startup_event
+    from app.celery_config import celery_app
+  File "D:\code\BugSeek\backend\app\celery_config.py", line 70, in <module>
+    from app.celery import tasks  # noqa: F401
+  File "D:\code\BugSeek\backend\app\celery\tasks.py", line 487, in <module>
+    def execute_scenario_task(self, execution_id: int, scenario_id: int, environment_id: int, callback_url: Optional[str] = None):
+NameError: name 'Optional' is not defined
+2026-03-10 19:15:55 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | root | 日志系统初始化完成
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.main | 应用启动事件执行中...
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.main | Celery 实例: bugseek
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.main | Broker URL: redis://127.0.0.1:6380/0
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.main | Result Backend: redis://127.0.0.1:6380/1
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.main | 字段映射任务已注册: app.celery.tasks.execute_field_mapping_task
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.main | 开始预热向量索引...
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.main | 应用启动事件执行完成
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.main | 提示: 请确保 Celery Worker 正在运行
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.main | 启动命令: celery -A app.celery_config worker --loglevel=info --pool=solo
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.utils.vector_index | VectorIndexManager 单例初始化完成
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.utils.vector_index | [aa7bb0219c824a478b4eb8a08fa97719] 从缓存加载向量索引成功: 289 个列
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.utils.vector_index | VectorIndexManager 缓存加载成功: 289 个列
+2026-03-10 19:15:56 | INFO | [aa7bb0219c824a478b4eb8a08fa97719] | app.main | 向量索引已从缓存加载
+2026-03-10 19:15:56 | WARNING | [4ecd47dbf184459bb7888b36064f422a] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-03-10 19:15:56 | WARNING | [0e82039d710e4bb4a8a5c1db2a2edbd0] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-03-10 19:15:56 | WARNING | [ab3b22a8d3b3431ab9e8147837d8fde6] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-03-10 19:15:56 | ERROR | [4ecd47dbf184459bb7888b36064f422a] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-03-10 19:15:56 | ERROR | [0e82039d710e4bb4a8a5c1db2a2edbd0] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-03-10 19:15:56 | ERROR | [ab3b22a8d3b3431ab9e8147837d8fde6] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-03-10 19:15:56 | WARNING | [1c88404afd6d469bafce497e0d422cc3] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-03-10 19:15:56 | ERROR | [1c88404afd6d469bafce497e0d422cc3] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-03-10 19:15:56 | WARNING | [397843d950e44ccfafde547b6760bb60] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-03-10 19:15:56 | WARNING | [496a4dee67cb442d9e9d7dc58f9d3ba9] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-03-10 19:15:56 | ERROR | [397843d950e44ccfafde547b6760bb60] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-03-10 19:15:56 | ERROR | [496a4dee67cb442d9e9d7dc58f9d3ba9] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-03-10 19:15:56 | WARNING | [5d514c202ad34df79856c6058edb44df] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-03-10 19:15:56 | ERROR | [5d514c202ad34df79856c6058edb44df] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-03-10 19:15:56 | WARNING | [9847c622139c44db845c19864e8d2b75] | app.api.v1.deps | JWT解码失败: Signature has expired.
+2026-03-10 19:15:56 | ERROR | [9847c622139c44db845c19864e8d2b75] | app.dependencies | 数据库会话异常: 401: 无法验证凭据
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 68, in get_current_user
+    payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 174, in decode
+    _validate_claims(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 497, in _validate_claims
+    _validate_exp(claims, leeway=leeway)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\jose\jwt.py", line 331, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired.")
+jose.exceptions.ExpiredSignatureError: Signature has expired.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 345, in app
+    solved_result = await solve_dependencies(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\dependencies\utils.py", line 643, in solve_dependencies
+    solved = await call(**solved_result.values)
+  File "D:\code\BugSeek\backend\app\api\v1\deps.py", line 74, in get_current_user
+    raise credentials_exception
+fastapi.exceptions.HTTPException: 401: 无法验证凭据
+2026-03-10 19:15:59 | INFO | [7709fb6e831040c6a6e43e385aaf3c99] | app.api.v1.auth | 用户登录请求: username=admin
+2026-03-10 19:15:59 | INFO | [7709fb6e831040c6a6e43e385aaf3c99] | app.api.v1.auth | 用户登录成功: user_id=1, username=admin
+2026-03-10 19:15:59 | INFO | [fb4954bc671844f9b342021eca574eaa] | app.api.v1.projects | [fb4954bc671844f9b342021eca574eaa] 用户 admin 获取项目列表: page=1, page_size=10
+2026-03-10 19:15:59 | INFO | [fb4954bc671844f9b342021eca574eaa] | app.api.v1.projects | [fb4954bc671844f9b342021eca574eaa] 获取项目列表成功: total=3
+2026-03-10 19:15:59 | INFO | [9a09e2619be542c7b8e98b9186249350] | app.api.v1.versions | [9a09e2619be542c7b8e98b9186249350] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-03-10 19:15:59 | INFO | [a2fe187b559c452f99cbdb2ca75791d8] | app.api.v1.projects | [a2fe187b559c452f99cbdb2ca75791d8] 用户 admin 获取项目列表: page=1, page_size=100
+2026-03-10 19:15:59 | INFO | [a2fe187b559c452f99cbdb2ca75791d8] | app.api.v1.projects | [a2fe187b559c452f99cbdb2ca75791d8] 获取项目列表成功: total=3
+2026-03-10 19:15:59 | INFO | [ba0e6d820a76490f9aa0aaa5e8ac280c] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -17, 已检出: 1, 空闲: 19, 统计 - 创建: 6, 检出: 10, 检入: 8, 溢出: 0, 错误: 0, 最大并发: 1
+2026-03-10 19:15:59 | INFO | [ba0e6d820a76490f9aa0aaa5e8ac280c] | app.api.v1.projects | [ba0e6d820a76490f9aa0aaa5e8ac280c] 用户 admin 获取项目列表: page=1, page_size=10
+2026-03-10 19:15:59 | INFO | [ba0e6d820a76490f9aa0aaa5e8ac280c] | app.api.v1.projects | [ba0e6d820a76490f9aa0aaa5e8ac280c] 获取项目列表成功: total=3
+2026-03-10 19:15:59 | INFO | [16a67a29f8a64fe1887f3edf34b4f4f3] | app.api.v1.versions | [16a67a29f8a64fe1887f3edf34b4f4f3] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-03-10 19:15:59 | INFO | [a7d9ff2945664e3dbaae4ad098775501] | app.api.v1.projects | [a7d9ff2945664e3dbaae4ad098775501] 用户 admin 获取项目列表: page=1, page_size=100
+2026-03-10 19:15:59 | INFO | [a7d9ff2945664e3dbaae4ad098775501] | app.api.v1.projects | [a7d9ff2945664e3dbaae4ad098775501] 获取项目列表成功: total=3
+2026-03-10 19:15:59 | INFO | [9db69a5d57504b32a4577b3ce4f1de0c] | app.api.v1.projects | [9db69a5d57504b32a4577b3ce4f1de0c] 用户 admin 获取项目列表: page=1, page_size=100
+2026-03-10 19:15:59 | INFO | [9db69a5d57504b32a4577b3ce4f1de0c] | app.api.v1.projects | [9db69a5d57504b32a4577b3ce4f1de0c] 获取项目列表成功: total=3
+2026-03-10 19:15:59 | INFO | [ffb1045d11974c0ab13b3a3721b55cb7] | app.api.v1.projects | [ffb1045d11974c0ab13b3a3721b55cb7] 用户 admin 获取项目列表: page=1, page_size=100
+2026-03-10 19:15:59 | INFO | [ffb1045d11974c0ab13b3a3721b55cb7] | app.api.v1.projects | [ffb1045d11974c0ab13b3a3721b55cb7] 获取项目列表成功: total=3
+2026-03-10 19:16:02 | INFO | [c753f0fe380d43e58b1a0ec326f1c7db] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -17, 已检出: 1, 空闲: 19, 统计 - 创建: 6, 检出: 20, 检入: 18, 溢出: 0, 错误: 0, 最大并发: 1
+2026-03-10 19:16:02 | INFO | [c753f0fe380d43e58b1a0ec326f1c7db] | app.api.v1.versions | [c753f0fe380d43e58b1a0ec326f1c7db] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-03-10 19:16:02 | INFO | [2468a3525f354e8cb04df6b2d0ccdf95] | app.api.v1.projects | [2468a3525f354e8cb04df6b2d0ccdf95] 用户 admin 获取项目详情: project_id=1
+2026-03-10 19:16:02 | INFO | [2468a3525f354e8cb04df6b2d0ccdf95] | app.api.v1.projects | [2468a3525f354e8cb04df6b2d0ccdf95] 用户 admin 查看 项目 InvenTree (id=1)
+2026-03-10 19:16:02 | INFO | [2468a3525f354e8cb04df6b2d0ccdf95] | app.api.v1.projects | [2468a3525f354e8cb04df6b2d0ccdf95] 获取项目详情成功: project_id=1, environments_count=2
+2026-03-10 19:16:02 | INFO | [5f1d9f7480964882be2b961fd60d75ab] | app.api.v1.versions | [5f1d9f7480964882be2b961fd60d75ab] 查询版本列表: project_id=1, page=1, page_size=10, user=admin
+2026-03-10 19:16:02 | INFO | [fba8afaa27e04380aa4c1abd7d573c1c] | app.api.v1.projects | [fba8afaa27e04380aa4c1abd7d573c1c] 用户 admin 获取项目详情: project_id=1
+2026-03-10 19:16:02 | INFO | [fba8afaa27e04380aa4c1abd7d573c1c] | app.api.v1.projects | [fba8afaa27e04380aa4c1abd7d573c1c] 用户 admin 查看 项目 InvenTree (id=1)
+2026-03-10 19:16:02 | INFO | [fba8afaa27e04380aa4c1abd7d573c1c] | app.api.v1.projects | [fba8afaa27e04380aa4c1abd7d573c1c] 获取项目详情成功: project_id=1, environments_count=2
+2026-03-10 19:16:03 | INFO | [6486d3356d184d4a945c1f5011b1c226] | app.api.v1.db_schemas | [6486d3356d184d4a945c1f5011b1c226] 查询数据库结构列表: project_id=1, version_id=1
+2026-03-10 19:16:03 | INFO | [43826db7b86d4b80a3c998c2c5edab58] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -17, 已检出: 1, 空闲: 19, 统计 - 创建: 6, 检出: 30, 检入: 28, 溢出: 0, 错误: 0, 最大并发: 1
+2026-03-10 19:16:03 | INFO | [43826db7b86d4b80a3c998c2c5edab58] | app.api.v1.db_schemas | [43826db7b86d4b80a3c998c2c5edab58] 查询数据库结构列表: project_id=1, version_id=1
+2026-03-10 19:16:05 | INFO | [77ff3aa02ea14db6a3bcafe0a17af167] | app.api.v1.db_schemas | [77ff3aa02ea14db6a3bcafe0a17af167] 查询数据库结构列表: project_id=1, version_id=1
+2026-03-10 19:16:05 | INFO | [a91f69bd23f64515a8076c966d4a087e] | app.api.v1.field_mappings_async | [a91f69bd23f64515a8076c966d4a087e] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=None, status_filter=None, limit=20, offset=0
+2026-03-10 19:16:05 | INFO | [a91f69bd23f64515a8076c966d4a087e] | app.api.v1.field_mappings_async | [a91f69bd23f64515a8076c966d4a087e] 查询任务列表完成: total=1, returned=1
+2026-03-10 19:16:05 | INFO | [ab2f3c8633424daabbd1bf503ec53c9d] | app.api.v1.field_mappings | [ab2f3c8633424daabbd1bf503ec53c9d] 查询字段映射列表: project_id=1, version_id=1
+2026-03-10 19:16:05 | INFO | [a3d0c1bebc8640a887e54080aeb90dac] | app.api.v1.db_schemas | [a3d0c1bebc8640a887e54080aeb90dac] 查询数据库结构列表: project_id=1, version_id=1
+2026-03-10 19:16:05 | INFO | [dd6a980d67b64865980bb9c4c539816d] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -17, 已检出: 2, 空闲: 18, 统计 - 创建: 6, 检出: 40, 检入: 36, 溢出: 0, 错误: 0, 最大并发: 2
+2026-03-10 19:16:05 | INFO | [dd6a980d67b64865980bb9c4c539816d] | app.api.v1.field_mappings_async | [dd6a980d67b64865980bb9c4c539816d] 查询任务列表: task_type=field_mapping_suggest, project_id=1, version_id=None, status_filter=None, limit=20, offset=0
+2026-03-10 19:16:05 | INFO | [dd6a980d67b64865980bb9c4c539816d] | app.api.v1.field_mappings_async | [dd6a980d67b64865980bb9c4c539816d] 查询任务列表完成: total=1, returned=1
+2026-03-10 19:16:05 | INFO | [ffaa105a67de4153a23960faee4871b0] | app.api.v1.field_mappings_async | [ffaa105a67de4153a23960faee4871b0] 获取字段映射建议结果: task_id=8, status_filter=None, search=None, page=1, size=20
+2026-03-10 19:16:05 | INFO | [58580af8c8cb4cc69f5d5a7929f2b797] | app.api.v1.field_mappings | [58580af8c8cb4cc69f5d5a7929f2b797] 查询字段映射列表: project_id=1, version_id=1
+2026-03-10 19:16:05 | INFO | [45e9880f729e4fd6805518caa839dc47] | app.api.v1.field_mappings_async | [45e9880f729e4fd6805518caa839dc47] 获取字段映射建议结果: task_id=8, status_filter=None, search=None, page=1, size=20
+2026-03-10 19:16:07 | INFO | [deaa5f55d8b04a029839748405d11818] | app.api.v1.api_definitions | [deaa5f55d8b04a029839748405d11818] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-03-10 19:16:07 | INFO | [51de08ef811742cb85d96c24381538e1] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -17, 已检出: 1, 空闲: 19, 统计 - 创建: 6, 检出: 50, 检入: 48, 溢出: 0, 错误: 0, 最大并发: 2
+2026-03-10 19:16:07 | INFO | [51de08ef811742cb85d96c24381538e1] | app.api.v1.api_definitions | [51de08ef811742cb85d96c24381538e1] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-03-10 19:16:07 | INFO | [0076adc71caf4e448dd343e8c9b58827] | app.api.v1.api_definitions | [0076adc71caf4e448dd343e8c9b58827] 查询 API 定义列表: skip=0, limit=20, user=admin, project_id=1, version_id=1
+2026-03-10 19:16:09 | INFO | [85e1d42f888748269365b68f944fde19] | app.api.v1.api_cases | [85e1d42f888748269365b68f944fde19] 查询 API 用例列表: skip=0, limit=20, user=admin, project_id=1
+2026-03-10 19:16:09 | INFO | [7178b08f30384d0398e2debeee7a38c1] | app.api.v1.api_definitions | [7178b08f30384d0398e2debeee7a38c1] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-03-10 19:16:10 | INFO | [68f865afbaee49eb8008540429bed45a] | app.api.v1.environments | [68f865afbaee49eb8008540429bed45a] 用户 admin 获取环境列表: project_id=1
+2026-03-10 19:16:10 | INFO | [68f865afbaee49eb8008540429bed45a] | app.api.v1.environments | [68f865afbaee49eb8008540429bed45a] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-03-10 19:16:10 | INFO | [68f865afbaee49eb8008540429bed45a] | app.api.v1.environments | [68f865afbaee49eb8008540429bed45a] 获取环境列表成功: total=2
+2026-03-10 19:16:10 | INFO | [91965653872e4a70a4e575589c760beb] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -17, 已检出: 1, 空闲: 19, 统计 - 创建: 6, 检出: 60, 检入: 58, 溢出: 0, 错误: 0, 最大并发: 2
+2026-03-10 19:16:10 | INFO | [91965653872e4a70a4e575589c760beb] | app.api.v1.api_definitions | [91965653872e4a70a4e575589c760beb] 查询 API 定义列表: skip=0, limit=200, user=admin, project_id=1, version_id=1
+2026-03-10 19:16:10 | INFO | [a1c3c001be5e41cbb215eecad0f8b5f3] | app.api.v1.api_cases | [a1c3c001be5e41cbb215eecad0f8b5f3] 查询 API 用例列表: skip=0, limit=20, user=admin, project_id=1
+2026-03-10 19:16:10 | INFO | [fda26f459c744de58f13e14f169e62a9] | app.api.v1.environments | [fda26f459c744de58f13e14f169e62a9] 用户 admin 获取环境列表: project_id=1
+2026-03-10 19:16:10 | INFO | [fda26f459c744de58f13e14f169e62a9] | app.api.v1.environments | [fda26f459c744de58f13e14f169e62a9] 用户 admin 查看环境 项目 InvenTree (id=1) 的环境
+2026-03-10 19:16:10 | INFO | [fda26f459c744de58f13e14f169e62a9] | app.api.v1.environments | [fda26f459c744de58f13e14f169e62a9] 获取环境列表成功: total=2
+2026-03-10 19:17:01 | INFO | [6e393287781e4f69bf607066d91da5e9] | app.api.v1.projects | [6e393287781e4f69bf607066d91da5e9] 用户 admin 获取项目列表: page=1, page_size=100
+2026-03-10 19:17:01 | INFO | [6e393287781e4f69bf607066d91da5e9] | app.api.v1.projects | [6e393287781e4f69bf607066d91da5e9] 获取项目列表成功: total=3
+2026-03-10 19:17:01 | INFO | [91f2c4b230274b8bb859d60b50e672af] | app.api.v1.versions | [91f2c4b230274b8bb859d60b50e672af] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-03-10 19:17:01 | INFO | [2437b6ab04e44832901c2b9d5d33b0e3] | app.dependencies | 连接池状态 - 大小: 20, 溢出: -17, 已检出: 1, 空闲: 19, 统计 - 创建: 6, 检出: 70, 检入: 68, 溢出: 0, 错误: 0, 最大并发: 2
+2026-03-10 19:17:01 | INFO | [2437b6ab04e44832901c2b9d5d33b0e3] | app.api.v1.projects | [2437b6ab04e44832901c2b9d5d33b0e3] 用户 admin 获取项目列表: page=1, page_size=100
+2026-03-10 19:17:01 | INFO | [2437b6ab04e44832901c2b9d5d33b0e3] | app.api.v1.projects | [2437b6ab04e44832901c2b9d5d33b0e3] 获取项目列表成功: total=3
+2026-03-10 19:17:01 | INFO | [6dd136d883094fbfbb8a74144b762d2d] | app.api.v1.versions | [6dd136d883094fbfbb8a74144b762d2d] 查询版本列表: project_id=1, page=1, page_size=100, user=admin
+2026-03-10 19:17:01 | INFO | [473418339a2d49d9a26e4ed9c3e3941d] | app.api.v1.projects | [473418339a2d49d9a26e4ed9c3e3941d] 用户 admin 获取项目列表: page=1, page_size=100
+2026-03-10 19:17:01 | INFO | [473418339a2d49d9a26e4ed9c3e3941d] | app.api.v1.projects | [473418339a2d49d9a26e4ed9c3e3941d] 获取项目列表成功: total=3
+2026-03-10 19:17:01 | INFO | [e05b778435de432195af98df955f74ed] | app.api.v1.projects | [e05b778435de432195af98df955f74ed] 用户 admin 获取项目列表: page=1, page_size=100
+2026-03-10 19:17:01 | INFO | [e05b778435de432195af98df955f74ed] | app.api.v1.projects | [e05b778435de432195af98df955f74ed] 获取项目列表成功: total=3

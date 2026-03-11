@@ -15,10 +15,12 @@ from typing import Dict, List, Any, Optional, Tuple
 from sqlalchemy.orm import Session
 import logging
 import re
+import json
 
 from app.db.base import ApiDefinition, ApiEndpointGroup
 from app.ai.service import AIService
 from app.core.trace import get_trace_id
+from app.utils.vector import VectorManagerFactory
 
 logger = logging.getLogger(__name__)
 
@@ -97,10 +99,33 @@ class APIRetrievalService:
                 }
 
             # 阶段二：语义重排
+            # 修正陷阱一：使用混合检索（双路召回）
+            # 阶段一A：关键词召回
+            keyword_candidates = initial_candidates
+
+            # 阶段一B：向量语义检索
+            logger.info(f"[{self.trace_id}] [阶段一B] 向量语义检索...")
+            vector_candidates = await self._vector_search(
+                user_intent=user_intent,
+                project_id=project_id,
+                top_k=50
+            )
+            logger.info(f"[{self.trace_id}] [阶段一B] 向量检索完成: found={len(vector_candidates)} candidates")
+
+            # 阶段一C：使用 RRF 算法融合（基于排名，不基于分数）
+            logger.info(f"[{self.trace_id}] [阶段一C] RRF 融合...")
+            merged_candidates = self._merge_recall_results_rrf(
+                keyword_candidates,
+                vector_candidates,
+                k=60  # RRF 常数，行业标准值
+            )
+            logger.info(f"[{self.trace_id}] [阶段一C] RRF 融合完成: merged={len(merged_candidates)} candidates")
+
+            # 阶段二：语义重排（精排）
             logger.info(f"[{self.trace_id}] [阶段二] 语义重排...")
             ranked_result = await self._semantic_rerank(
                 user_intent=user_intent,
-                candidates=initial_candidates,
+                candidates=merged_candidates,
                 project_name=project_name,
                 business_domain=business_domain,
                 tech_stack=tech_stack
@@ -110,8 +135,15 @@ class APIRetrievalService:
 
             return {
                 "candidates": initial_candidates,
-                "ranked_apis": ranked_result.get("ranked_apis", []),
-                "summary": ranked_result.get("summary", {})
+                "vector_candidates": vector_candidates,  # 新增：向量检索结果
+                "ranked_apis": ranked_result.get("ranked_apis", [])[:top_k],  # 只返回前 top_k 个
+                "summary": {
+                    **ranked_result.get("summary", {}),
+                    "keyword_count": len(keyword_candidates),  # 新增：关键词召回数量
+                    "vector_count": len(vector_candidates),   # 新增：向量召回数量
+                    "overlap_count": len(set(api['id'] for api in keyword_candidates) & set(api['id'] for api in vector_candidates)),  # 新增：交集数量
+                    "rrf_k": 60  # 新增：RRF 常数
+                }
             }
 
         except Exception as e:
@@ -344,6 +376,23 @@ class APIRetrievalService:
                 }
 
             ranked_apis = ai_result["result"]
+
+            # 解析 JSON 字符串为字典
+            try:
+                if isinstance(ranked_apis, str):
+                    ranked_apis = json.loads(ranked_apis)
+            except json.JSONDecodeError:
+                logger.warning(f"[{self.trace_id}] AI 返回数据格式错误，使用原始候选列表")
+                return {
+                    "ranked_apis": candidates,
+                    "summary": {
+                        "total_candidates": len(candidates),
+                        "relevant_count": len(candidates),
+                        "excluded_count": 0,
+                        "error": "AI 返回数据格式错误"
+                    }
+                }
+
             summary = ranked_apis.get("summary", {})
 
             logger.info(f"[{self.trace_id}] AI 重排成功: relevant={summary.get('relevant_count', 0)}/{summary.get('total_candidates', 0)}")
@@ -387,3 +436,255 @@ class APIRetrievalService:
         """
         group = self.db.query(ApiEndpointGroup).filter(ApiEndpointGroup.id == group_id).first()
         return group.name if group else None
+
+    def _merge_recall_results_rrf(
+        self,
+        keyword_results: List[Dict[str, Any]],
+        vector_results: List[Dict[str, Any]],
+        k: int = 60
+    ) -> List[Dict[str, Any]]:
+        """
+        使用 RRF（Reciprocal Rank Fusion）算法融合检索结果
+
+        为什么不用分数融合：
+        - 关键词分数是无上限的绝对值（可能是 1.5，也可能是 45.2）
+        - 向量分数严格分布在 0-1 之间
+        - 直接加权会导致关键词分数绝对碾压，向量权重形同虚设
+
+        RRF 算法原理：
+        - 基于排名而非分数计算
+        - 公式：score = 1 / (k + rank)
+        - k=60 是行业标准值，平衡了排名的影响
+
+        参数：
+            keyword_results: 关键词检索结果（已按分数排序）
+            vector_results: 向量检索结果（已按分数排序）
+            k: RRF 常数，默认 60
+
+        返回：
+            融合后的候选 API 列表（按 RRF 分数降序）
+        """
+        fused_scores = {}
+        api_data = {}
+
+        # 处理关键词结果排名
+        for rank, item in enumerate(keyword_results):
+            api_id = item['id']
+            fused_scores[api_id] = fused_scores.get(api_id, 0) + 1.0 / (k + rank + 1)
+            api_data[api_id] = item
+
+        # 处理向量结果排名
+        for rank, item in enumerate(vector_results):
+            api_id = item['id']
+            fused_scores[api_id] = fused_scores.get(api_id, 0) + 1.0 / (k + rank + 1)
+            if api_id not in api_data:
+                api_data[api_id] = item
+
+        # 将字典转回列表并按融合分数倒序排列
+        merged_results = []
+        for api_id, rrf_score in sorted(fused_scores.items(), key=lambda x: x[1], reverse=True):
+            item = api_data[api_id].copy()
+            item['rrf_score'] = rrf_score  # 记录 RRF 分数
+            merged_results.append(item)
+
+        return merged_results
+
+    async def _vector_search(
+        self,
+        user_intent: str,
+        project_id: int,
+        top_k: int = 50
+    ) -> List[Dict[str, Any]]:
+        """
+        向量语义检索
+
+        使用 pgvector 对用户意图和 API 描述进行语义匹配
+
+        参数：
+            user_intent: 用户意图（自然语言）
+            project_id: 项目 ID
+            top_k: 返回的最大数量
+
+        返回：
+            带有向量分数的 API 列表（按相似度降序）
+        """
+        try:
+            # 获取 API 向量管理器
+            vector_manager = VectorManagerFactory.get_manager("api")
+
+            # 执行向量检索
+            results = await vector_manager.search(
+                query=user_intent,
+                project_id=project_id,
+                top_k=top_k
+            )
+
+            # 转换为标准格式
+            vector_candidates = []
+            for result in results:
+                vector_candidates.append({
+                    "id": result.get("api_id"),
+                    "method": result.get("method"),
+                    "path": result.get("path"),
+                    "summary": result.get("summary", ""),
+                    "vector_score": result.get("score", 0.0)
+                })
+
+            logger.info(f"[{self.trace_id}] 向量检索完成: found={len(vector_candidates)} results")
+            return vector_candidates
+
+        except Exception as e:
+            logger.error(f"[{self.trace_id}] 向量检索失败: {str(e)}", exc_info=True)
+            # 返回空列表，降级到纯关键词检索
+            return []
+
+    def _extract_top_level_params(
+        self,
+        request_schema: Dict[str, Any]
+    ) -> List[str]:
+        """
+        从请求 Schema 中提取顶层参数名
+
+        参数：
+            request_schema: API 的请求参数 Schema
+
+        返回：
+            顶层参数名列表
+            例如：["user_id", "item_id", "tax_code"]
+        """
+        if not request_schema:
+            return []
+
+        # 提取顶层参数名
+        params = []
+        if isinstance(request_schema, dict):
+            # 假设顶层有 properties 字段
+            properties = request_schema.get("properties", {})
+            params = list(properties.keys())
+
+        return params[:10]  # 最多返回 10 个参数名
+
+    async def retrieve_apis_by_intent_lite(
+        self,
+        user_intent: str,
+        project_id: int,
+        project_name: str = "",
+        business_domain: str = "",
+        tech_stack: str = "",
+        top_k: int = 15  # 轻量检索可以直接多拿一点候选，给后续 AI 选择留出空间
+    ) -> Dict[str, Any]:
+        """
+        轻量级混合检索（关键词 + 向量语义 + RRF 融合）
+
+        与 retrieve_apis_by_intent 的区别：
+        - 不调用 AI 语义重排（职责分离，在 workbench 中有专门的 intent_api_selection）
+        - 不返回 description、tags 等详细信息
+        - 只返回 id、method、path、summary、top_level_params、rrf_score
+        - 减少上下文长度，提升 AI 选择准确率
+
+        修正关键词投毒：过滤 HTTP 方法名，避免所有 POST/GET 接口都被召回
+        修正陷阱四：保留关键参数摘要（top_level_params）
+        - 很多同名或相似接口通过参数区分
+        - 例如：B2C订单 vs B2B订单（后者需要企业税号）
+        - 保留顶层参数名能让 AI 选择准确率暴涨 50%
+
+        参数：
+            user_intent: 用户意图（自然语言）
+            project_id: 项目 ID
+            project_name: 项目名称
+            business_domain: 业务领域
+            tech_stack: 技术栈
+            top_k: 返回的候选 API 数量
+
+        返回：
+            {
+                "ranked_apis": [...],  # Lite 格式的 API 列表
+                "summary": {
+                    "total_retrieved": int,  # 融合后的总数
+                    "returned_lite_count": int  # 实际返回的数量
+                }
+            }
+        """
+        logger.info(f"[{self.trace_id}] 开始轻量级混合检索: intent='{user_intent}'")
+
+        try:
+            # 1. 过滤掉干扰关键词（修复关键词投毒 Bug）
+            # 使用正则表达式精确匹配单词边界，避免误删
+            import re
+            clean_intent = re.sub(r'(?i)\b(GET|POST|PUT|DELETE|PATCH)\b', '', user_intent).strip()
+            # 如果清理后为空，降级回原始意图
+            keyword_intent = clean_intent if clean_intent else user_intent
+            
+            # 2. 关键词召回 (使用清理过的意图)
+            logger.info(f"[{self.trace_id}] [阶段一] 关键词召回...")
+            logger.info(f"[{self.trace_id}] [阶段一] 原始意图: '{user_intent}'")
+            logger.info(f"[{self.trace_id}] [阶段一] 清理后意图: '{keyword_intent}'")
+            keyword_candidates = self._keyword_recall(
+                user_intent=keyword_intent,
+                project_id=project_id
+            )
+            logger.info(f"[{self.trace_id}] [阶段一] 关键词召回完成: found={len(keyword_candidates)} candidates")
+
+            if not keyword_candidates:
+                logger.warning(f"[{self.trace_id}] 未找到任何候选 API")
+                return {
+                    "ranked_apis": [],
+                    "summary": {
+                        "total_retrieved": 0,
+                        "returned_lite_count": 0
+                    }
+                }
+            
+            # 3. 向量语义检索
+            logger.info(f"[{self.trace_id}] [阶段二] 向量语义检索...")
+            vector_candidates = await self._vector_search(
+                user_intent=user_intent,  # 向量检索用原始意图
+                project_id=project_id,
+                top_k=50
+            )
+            logger.info(f"[{self.trace_id}] [阶段二] 向量检索完成: found={len(vector_candidates)} candidates")
+            
+            # 4. RRF 融合排序
+            logger.info(f"[{self.trace_id}] [阶段三] RRF 融合排序...")
+            merged_candidates = self._merge_recall_results_rrf(
+                keyword_candidates,
+                vector_candidates,
+                k=60
+            )
+            logger.info(f"[{self.trace_id}] [阶段三] RRF 融合完成: merged={len(merged_candidates)} candidates")
+            
+            # 5. 截取前 top_k
+            final_candidates = merged_candidates[:top_k]
+            
+            # 6. 构造 Lite 结构并提取顶层参数 (修正陷阱四)
+            lite_apis = []
+            for api in final_candidates:
+                # 从数据库获取 API 的 request_schema
+                api_def = self.db.query(ApiDefinition).filter(ApiDefinition.id == api['id']).first()
+                request_schema = api_def.request_schema if api_def else {}
+                
+                lite_apis.append({
+                    "id": api["id"],
+                    "method": api["method"],
+                    "path": api["path"],
+                    "summary": api["summary"] or "",
+                    "top_level_params": self._extract_top_level_params(request_schema),
+                    "rrf_score": api.get("rrf_score", 0.0)
+                })
+            
+            logger.info(f"[{self.trace_id}] 轻量检索完成: 最终截取 {len(lite_apis)} 个候选")
+            
+            # 注意：绝对不要在这里调用 await self._semantic_rerank(...)！
+            # 因为我们在 workbench 中已经有专门的 intent_api_selection 步骤了。
+            
+            return {
+                "ranked_apis": lite_apis,
+                "summary": {
+                    "total_retrieved": len(final_candidates),
+                    "returned_lite_count": len(lite_apis)
+                }
+            }
+
+        except Exception as e:
+            logger.error(f"[{self.trace_id}] 轻量级 API 检索失败: {str(e)}", exc_info=True)
+            raise

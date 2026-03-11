@@ -708,7 +708,7 @@ const SyncTasksList: React.FC = () => {
                     </Tabs.TabPane>
                     <Tabs.TabPane tab={`删除 (${currentRecord.diff_data.summary?.removed_count || 0})`} key="removed">
                       {currentRecord.diff_data.removed?.map((item: any, index: number) => (
-                        <div key={index} style={{ padding: '8px', background: 'var(--bg-elevated)'1f0', marginBottom: '4px', borderRadius: '4px' }}>
+                        <div key={index} style={{ padding: '8px', background: 'var(--bg-elevated)', marginBottom: '4px', borderRadius: '4px' }}>
                           <Tag color="red">{item.method}</Tag>
                           <span style={{ fontWeight: 'bold' }}>{item.path}</span>
                           <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
@@ -719,7 +719,7 @@ const SyncTasksList: React.FC = () => {
                     </Tabs.TabPane>
                     <Tabs.TabPane tab={`变更 (${currentRecord.diff_data.summary?.changed_count || 0})`} key="changed">
                       {currentRecord.diff_data.changed?.map((item: any, index: number) => (
-                        <div key={index} style={{ padding: '8px', background: 'var(--bg-elevated)'7e6', marginBottom: '4px', borderRadius: '4px' }}>
+                        <div key={index} style={{ padding: '8px', background: 'var(--bg-elevated)', marginBottom: '4px', borderRadius: '4px' }}>
                           <Tag color="orange">{item.method}</Tag>
                           <span style={{ fontWeight: 'bold' }}>{item.path}</span>
                           <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>

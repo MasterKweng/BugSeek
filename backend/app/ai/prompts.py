@@ -555,7 +555,22 @@ API 信息：
 
         # ========== 意图生成场景 - BSK-SC-014 ==========
         "intent_scenario_generation": {
-            "system": "你是一个专业的 API 测试架构师，擅长将自然语言业务意图转化为可执行的 API 测试场景。你能够理解业务流程，识别相关 API，并设计合理的执行顺序和变量传递机制。",
+            "system": """你是一个专业的 API 测试架构师，擅长将自然语言业务意图转化为可执行的 API 测试场景。
+
+【严格约束】：
+1. 你只能从我提供的【候选 API 列表】中选择接口，绝对不允许凭空捏造或编造不存在的 API
+2. ref_id 必须严格等于候选 API 列表中的 id，不允许创建虚拟的 ref_id
+3. 如果用户的某个业务步骤在候选列表中找不到对应的 API，请生成一个占位符节点（修正陷阱三）：
+   - ref_id: -1
+   - node_type: "missing_api"
+   - node_name: "待补齐：[步骤名称]"
+   - 在 reasoning 中明确说明：缺少该接口，需要用户手动选择
+4. 必须在 reasoning 中明确指出选择了哪些 API、缺少哪些接口
+
+【违规处理】：
+如果检测到你捏造了不在候选列表中的 API，整个回答将被视为无效。
+
+请基于以上约束，分析用户意图，识别相关 API，并设计合理的执行顺序和变量传递机制。""",
             "user": """
 请根据用户的业务意图，生成一个完整的 API 测试场景。
 
@@ -645,12 +660,16 @@ API 信息：
 }}
 
 要求：
-1. 从候选 API 中选择最匹配的 API，不要凭空捏造
-2. 确保 ref_id 与候选 API 列表中的 id 一致
-3. 正确设置 depends_on 以建立节点依赖关系
-4. 在 input_mapping 中使用变量占位符（如 {{user_id}}）来表示跨节点变量传递
-5. 在 extract_rules 中提取响应中的关键字段
-6. 提供清晰的 reasoning 说明选择理由
+1. 【核心】只能从候选 API 列表中选择，ref_id 必须等于候选 API 的 id，禁止创建任何 ref_id（除了占位符）
+2. 【占位符机制】如果某个业务步骤在候选列表中找不到对应的 API，必须生成占位符节点：
+   - ref_id: -1
+   - node_type: "missing_api"
+   - node_name: "待补齐：[步骤名称]"
+3. 【reasoning】必须说明：选择了哪些 API、缺少哪些接口以及原因
+4. 确保 depends_on 引用的 node_key 存在于当前场景中
+5. 在 input_mapping 中使用 {{变量名}} 格式引用变量
+6. 在 extract_rules 中使用 JSONPath 语法提取字段
+7. ref_type 必须固定为 "api_definition"（占位符节点除外）
 """
         },
 
@@ -726,6 +745,39 @@ API 信息：
 2. 排序要准确，确保最相关的 API 排在前面
 3. 理由要清晰，说明为什么给这个分数
 4. 如果没有足够相关的 API，返回空列表并在 summary 中说明
+"""
+        },
+
+        # ========== 意图 API 选择 - BSK-SC-014 ==========
+        "intent_api_selection": {
+            "system": "你是一个专业的 API 选择专家，擅长根据用户意图从候选 API 列表中筛选出最相关的核心 API。",
+            "user": """
+请根据用户意图，从候选 API 列表中选择 3-5 个最相关的 API。
+
+用户意图：
+{user_intent}
+
+候选 API 列表（包含签名信息 + 关键参数）：
+{candidate_apis}
+
+任务：
+1. 分析用户意图，识别需要的业务步骤
+2. 从候选列表中选择最匹配的 API（3-5个）
+3. 排除不相关或冗余的 API
+4. 注意：同名或相似接口可能通过参数区分（如 B2C vs B2B 订单）
+
+返回格式（JSON）：
+{{
+  "selected_ids": [123, 456, 789],  // 选中 API 的 ID 列表
+  "rejected_ids": [111, 222],  // 排除的 API ID 列表
+  "reasoning": "解释为什么选择这些 API，为什么排除其他 API"
+}}
+
+要求：
+1. selected_ids 必须严格来源于候选列表
+2. 优先选择核心业务流程的 API
+3. 排除过于笼统或不相关的 API
+4. 考虑参数差异，选择最匹配用户意图的接口
 """
         },
 
@@ -888,7 +940,8 @@ API 信息：
                             'old_definition', 'new_definition', 'diff_data', 'affected_cases', 'git_diff',
                             'test_cases', 'error_message', 'logs', 'code', 'language', 'framework', 'input',
                             'api_field_path', 'schema_snapshot', 'field_dictionary', 'field_mappings',
-                            'gravity_table', 'api_field_name', 'candidates_text', 'num_candidates']
+                            'gravity_table', 'api_field_name', 'candidates_text', 'num_candidates',
+                            'user_intent', 'candidate_apis', 'business_domain']
 
         # 使用简单的字符串替换来替换真正的占位符
         # 只替换已定义的占位符，避免替换示例代码中的 {}

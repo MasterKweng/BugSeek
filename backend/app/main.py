@@ -95,16 +95,20 @@ async def startup_event():
         # 预热向量索引（冷启动防御）
         logger.info("开始预热向量索引...")
         from app.utils.vector_index import get_vector_manager
-        from app.db.base import DbSchemaVersion
+        from app.db.base import DbSchemaVersion, Project
         from app.db.session import SessionLocal
+        from app.utils.vector import VectorManagerFactory
         import asyncio
         
         # 使用后台任务预热，不阻塞启动
         async def warmup_vector_index():
             try:
+                # ========== 数据库列向量索引预热 ==========
                 vector_manager = get_vector_manager()
+                
+                # 阶段一：检查缓存状态
                 if vector_manager.column_vectors is None:
-                    logger.info("向量索引缓存不存在，开始构建...")
+                    logger.info("数据库列向量索引缓存不存在，开始构建...")
                     
                     # 从数据库获取最新的 schema_snapshot
                     db = SessionLocal()
@@ -116,15 +120,68 @@ async def startup_event():
                         
                         if latest_schema and latest_schema.schema_snapshot:
                             vector_manager.build_index(latest_schema.schema_snapshot)
-                            logger.info(f"向量索引构建完成 (使用 schema_id={latest_schema.id})")
+                            logger.info(f"数据库列向量索引构建完成 (使用 schema_id={latest_schema.id})")
                         else:
-                            logger.warning("数据库中没有找到可用的 schema_snapshot，跳过向量索引构建")
+                            logger.warning("数据库中没有找到可用的 schema_snapshot，跳过数据库列向量索引构建")
                     finally:
                         db.close()
                 else:
-                    logger.info("向量索引已从缓存加载")
+                    logger.info("数据库列向量索引已从缓存加载")
+                    
+                    # 阶段二：验证 schema_hash（如果缓存有 schema_hash）
+                    if vector_manager.schema_hash:
+                        db = SessionLocal()
+                        try:
+                            # 获取最新的 schema_snapshot
+                            latest_schema = db.query(DbSchemaVersion).order_by(
+                                DbSchemaVersion.created_at.desc()
+                            ).first()
+                            
+                            if latest_schema and latest_schema.schema_snapshot:
+                                # 计算当前 schema 的 hash
+                                import hashlib
+                                import json
+                                schema_str = json.dumps(latest_schema.schema_snapshot, sort_keys=True)
+                                current_hash = hashlib.md5(schema_str.encode()).hexdigest()
+                                
+                                # 验证是否匹配
+                                if not vector_manager._validate_schema_hash(current_hash):
+                                    logger.warning("检测到数据库结构变更，触发数据库列向量索引重建...")
+                                    vector_manager.build_index(latest_schema.schema_snapshot)
+                                    logger.info("数据库列向量索引重建完成")
+                        finally:
+                            db.close()
+                
+                # ========== API 向量索引预热 ==========
+                logger.info("开始 API 向量索引预热...")
+                db = SessionLocal()
+                try:
+                    # 获取所有项目（未删除的）
+                    projects = db.query(Project).filter(Project.is_deleted == False).all()
+                    logger.info(f"找到 {len(projects)} 个活跃项目")
+                    
+                    api_vector_manager = VectorManagerFactory.get_manager("api")
+                    
+                    for project in projects:
+                        try:
+                            logger.info(f"为项目 {project.id} ({project.name}) 构建 API 向量索引...")
+                            success = api_vector_manager.build_index(project.id)
+                            if success:
+                                logger.info(f"✅ 项目 {project.id} ({project.name}) API 向量索引构建成功")
+                            else:
+                                logger.warning(f"⚠️  项目 {project.id} ({project.name}) 没有数据，跳过构建")
+                        except Exception as e:
+                            logger.error(f"❌ 项目 {project.id} ({project.name}) API 向量索引构建失败: {str(e)}")
+                
+                finally:
+                    db.close()
+                
+                # 阶段三：预热成功
+                logger.info("✅ 向量索引预热任务完成，系统语义检索功能就绪")
+                
             except Exception as e:
-                logger.warning(f"向量索引预热失败: {str(e)}")
+                # 预热失败，明确记录错误信息
+                logger.error(f"❌ 向量索引预热失败，语义检索功能降级: {str(e)}")
         
         # 创建后台任务（不等待完成）
         asyncio.create_task(warmup_vector_index())

@@ -77,6 +77,7 @@ class VectorIndexManager:
         self.column_vectors: Optional[np.ndarray] = None
         self.column_meta: List[ColumnMeta] = None
         self.model: Optional[SentenceTransformer] = None
+        self.schema_hash: Optional[str] = None
         
         logger.debug(f"[{self.trace_id}] VectorIndexManager 初始化完成, cache_dir={self.cache_dir}")
     
@@ -203,6 +204,13 @@ class VectorIndexManager:
                 return
             
             logger.info(f"[{self.trace_id}] 开始构建向量索引")
+        
+        # 计算 schema_hash（用于版本校验）
+        import hashlib
+        import json
+        schema_str = json.dumps(schema_snapshot, sort_keys=True)
+        self.schema_hash = hashlib.md5(schema_str.encode()).hexdigest()
+        logger.info(f"[{self.trace_id}] schema_hash 计算: {self.schema_hash}")
         
         # 加载模型
         self._load_model()
@@ -360,7 +368,8 @@ class VectorIndexManager:
             cache_data = {
                 "column_vectors": self.column_vectors,
                 "column_meta": self.column_meta,
-                "schema_version": "v1"
+                "schema_version": "v1",
+                "schema_hash": self.schema_hash
             }
             
             with open(self.cache_file, 'wb') as f:
@@ -386,15 +395,41 @@ class VectorIndexManager:
             
             self.column_vectors = cache_data.get("column_vectors")
             self.column_meta = cache_data.get("column_meta")
+            self.schema_hash = cache_data.get("schema_hash")
             
             if self.column_vectors is None or self.column_meta is None:
                 logger.warning(f"[{self.trace_id}] 缓存文件格式不正确")
                 return False
             
             logger.info(f"[{self.trace_id}] 从缓存加载向量索引成功: {len(self.column_meta)} 个列")
+            if self.schema_hash:
+                logger.info(f"[{self.trace_id}] 缓存 schema_hash: {self.schema_hash}")
             return True
         except Exception as e:
             logger.error(f"[{self.trace_id}] 加载向量索引缓存失败: {str(e)}")
+            return False
+    
+    def _validate_schema_hash(self, current_schema_hash: str) -> bool:
+        """
+        验证缓存的 schema_hash 是否与当前的 schema_hash 一致
+        
+        Args:
+            current_schema_hash: 当前的 schema_hash
+            
+        Returns:
+            是否一致（True 表示一致，False 表示不一致或缓存无 schema_hash）
+        """
+        if self.schema_hash is None:
+            logger.warning(f"[{self.trace_id}] 缓存中没有 schema_hash，无法验证")
+            return False
+        
+        if self.schema_hash == current_schema_hash:
+            logger.info(f"[{self.trace_id}] schema_hash 验证通过: {self.schema_hash}")
+            return True
+        else:
+            logger.warning(f"[{self.trace_id}] schema_hash 不匹配")
+            logger.warning(f"[{self.trace_id}]   缓存: {self.schema_hash}")
+            logger.warning(f"[{self.trace_id}]   当前: {current_schema_hash}")
             return False
     
     def _build_query_text(self, query: str, field_description: Optional[str] = None) -> str:
