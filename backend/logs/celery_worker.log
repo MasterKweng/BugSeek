@@ -103002,3 +103002,30 @@ TypeError: object of type 'int' has no len()
 [2026-03-10 19:18:28,221: INFO/MainProcess] celery@yukwengRu ready.
 [2026-03-11 08:19:09,164: INFO/MainProcess] Connected to redis://127.0.0.1:6380/0
 [2026-03-11 08:19:09,184: INFO/MainProcess] celery@yukwengRu ready.
+[2026-03-11 18:38:27,267: WARNING/MainProcess] Exception ignored in atexit callback
+[2026-03-11 18:38:27,268: WARNING/MainProcess] : 
+[2026-03-11 18:38:27,268: WARNING/MainProcess] <bound method finalize._exitfunc of <class 'weakref.finalize'>>
+[2026-03-11 18:38:27,268: WARNING/MainProcess] Traceback (most recent call last):
+[2026-03-11 18:38:27,268: WARNING/MainProcess]   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\weakref.py", line 667, in _exitfunc
+[2026-03-11 18:38:27,325: WARNING/MainProcess]     
+[2026-03-11 18:38:27,326: WARNING/MainProcess] f()
+[2026-03-11 18:38:27,326: WARNING/MainProcess]   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\weakref.py", line 591, in __call__
+[2026-03-11 18:38:27,326: WARNING/MainProcess]     
+[2026-03-11 18:38:27,326: WARNING/MainProcess] return info.func(*info.args, **(info.kwargs or {}))
+[2026-03-11 18:38:27,328: WARNING/MainProcess]   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\torch\_dynamo\decorators.py", line 194, in deregister
+[2026-03-11 18:38:27,349: WARNING/MainProcess]     
+[2026-03-11 18:38:27,349: WARNING/MainProcess] trace_rules._allowed_callable_ids.remove(fn_id)
+[2026-03-11 18:38:27,350: WARNING/MainProcess]   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\torch\_dynamo\trace_rules.py", line 3131, in remove
+[2026-03-11 18:38:27,378: WARNING/MainProcess]     
+[2026-03-11 18:38:27,379: WARNING/MainProcess] def remove(self, idx: int) -> None:
+[2026-03-11 18:38:27,379: WARNING/MainProcess]   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\apps\worker.py", line 300, in _handle_request
+[2026-03-11 18:38:27,398: WARNING/MainProcess]     
+[2026-03-11 18:38:27,398: WARNING/MainProcess] callback(worker)
+[2026-03-11 18:38:27,398: WARNING/MainProcess]   File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\apps\worker.py", line 329, in on_hard_shutdown
+[2026-03-11 18:38:27,398: WARNING/MainProcess]     
+[2026-03-11 18:38:27,398: WARNING/MainProcess] raise WorkerTerminate(EX_FAILURE)
+[2026-03-11 18:38:27,398: WARNING/MainProcess] celery.exceptions
+[2026-03-11 18:38:27,399: WARNING/MainProcess] .
+[2026-03-11 18:38:27,399: WARNING/MainProcess] WorkerTerminate
+[2026-03-11 18:38:27,399: WARNING/MainProcess] : 
+[2026-03-11 18:38:27,399: WARNING/MainProcess] 1
