@@ -2,7 +2,7 @@
 from typing import Optional
 from sqlalchemy.orm import Session
 import logging
-from app.db.base import User, UserContext, Project, Version
+from app.platform.db.base import User, UserContext, Project, Version
 from app.core.trace import get_trace_id
 
 logger = logging.getLogger(__name__)

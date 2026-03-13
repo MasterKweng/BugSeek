@@ -3,7 +3,7 @@ from typing import Dict, List, Any, Optional, Set
 from sqlalchemy.orm import Session
 import logging
 
-from app.db.base import ApiDefinition, ApiCase, ApiScenario, User
+from app.platform.db.base import ApiDefinition, ApiCase, ApiScenario, User
 from app.core.sync.schema_comparator import SchemaComparator, DiffType
 from app.core.trace import get_trace_id
 

@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.api.v1 import api_router
 from app.core.trace import generate_trace_id, set_trace_id
-from app.core.logging_config import setup_logging
+from app.platform.logging.logger import setup_logging
 import logging
 
 logger = logging.getLogger(__name__)
@@ -94,10 +94,10 @@ async def startup_event():
         
         # 预热向量索引（冷启动防御）
         logger.info("开始预热向量索引...")
-        from app.utils.vector_index import get_vector_manager
-        from app.db.base import DbSchemaVersion, Project
-        from app.db.session import SessionLocal
-        from app.utils.vector import VectorManagerFactory
+        from app.platform.vector.vector_index import get_vector_manager
+        from app.platform.db.base import DbSchemaVersion, Project
+        from app.platform.db.session import SessionLocal
+        from app.platform.vector import VectorManagerFactory
         import asyncio
         
         # 使用后台任务预热，不阻塞启动

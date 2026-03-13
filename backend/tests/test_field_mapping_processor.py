@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch, MagicMock
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from app.field_mapping.processor import (
+from app.domains.data_mapping.processor import (
     FieldMappingProcessor,
     FieldInfo,
     AIRequest,
@@ -20,7 +20,7 @@ from app.field_mapping.processor import (
     TaskCancelledException,
     PriorityAIQueue
 )
-from app.db.base import AsyncTask, ApiDefinition, DbSchemaVersion, ApiFieldMapping
+from app.platform.db.base import AsyncTask, ApiDefinition, DbSchemaVersion, ApiFieldMapping
 from app.api.v1.field_mappings import FieldMappingCandidate, FieldMappingSuggestion
 
 
@@ -525,7 +525,7 @@ class TestFieldDescriptionFeatures:
     
     def test_extract_field_name_from_path(self):
         """测试从路径中提取字段名"""
-        from app.utils.vector_index import VectorIndexManager
+        from app.platform.vector.vector_index import VectorIndexManager
         manager = VectorIndexManager()
         
         # 测试各种路径格式
@@ -536,7 +536,7 @@ class TestFieldDescriptionFeatures:
     
     def test_build_query_text(self):
         """测试构建查询文本"""
-        from app.utils.vector_index import VectorIndexManager
+        from app.platform.vector.vector_index import VectorIndexManager
         manager = VectorIndexManager()
         
         # 无描述
@@ -550,7 +550,7 @@ class TestFieldDescriptionFeatures:
     def test_calculate_text_similarity(self):
         """测试文本相似度计算"""
         import re
-        from app.field_mapping.processor import FieldMappingProcessor
+        from app.domains.data_mapping.processor import FieldMappingProcessor
         
         def calculate_similarity(text1: str, text2: str) -> float:
             """直接使用方法实现进行测试"""
@@ -587,7 +587,7 @@ class TestFieldDescriptionFeatures:
     def test_get_column_comment(self):
         """测试获取列注释"""
         import re
-        from app.field_mapping.processor import FieldMappingProcessor
+        from app.domains.data_mapping.processor import FieldMappingProcessor
         
         def get_column_comment(db_schema, table_name, column_name) -> str:
             """直接使用方法实现进行测试"""
@@ -635,7 +635,7 @@ class TestFieldDescriptionFeatures:
     def test_is_id_type_by_description(self):
         """测试根据描述判断是否为ID类型（简化版）"""
         import re
-        from app.field_mapping.processor import FieldMappingProcessor
+        from app.domains.data_mapping.processor import FieldMappingProcessor
         
         def is_id_type_by_description(field_description) -> bool:
             """直接使用方法实现进行测试"""

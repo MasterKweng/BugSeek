@@ -15,8 +15,8 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 import asyncio
 
-from app.core.test_execution import ScenarioExecutor
-from app.db.base import ApiScenario, ApiCase, TestExecution, Environment, Project
+from app.execution.engine import ScenarioExecutor
+from app.platform.db.base import ApiScenario, ApiCase, TestExecution, Environment, Project
 
 
 class TestScenarioExecutorDAGValidation:

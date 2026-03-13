@@ -14,12 +14,12 @@ import os
 from unittest.mock import Mock, patch
 from sqlalchemy.orm import Session
 
-from app.field_mapping.processor import (
+from app.domains.data_mapping.processor import (
     FieldMappingProcessor,
     FieldInfo,
     PriorityAIQueue
 )
-from app.db.base import AsyncTask
+from app.platform.db.base import AsyncTask
 from app.api.v1.field_mappings import FieldMappingCandidate
 
 

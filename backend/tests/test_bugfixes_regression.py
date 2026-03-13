@@ -27,9 +27,9 @@ if backend_path not in sys.path:
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.db.base import Base, AsyncTask, User, Project, Version, FieldMappingSuggestion, ApiDefinition
-from app.field_mapping.processor import FieldMappingProcessor, FieldInfo, FieldMappingCandidate, FieldMappingSuggestion as FMSuggestion
-from app.field_mapping.constants import Stage, StageStatus
+from app.platform.db.base import Base, AsyncTask, User, Project, Version, FieldMappingSuggestion, ApiDefinition
+from app.domains.data_mapping.processor import FieldMappingProcessor, FieldInfo, FieldMappingCandidate, FieldMappingSuggestion as FMSuggestion
+from app.domains.data_mapping.constants import Stage, StageStatus
 import logging
 
 logging.basicConfig(level=logging.INFO)

@@ -2,7 +2,7 @@ from typing import Generator
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool
-from app.config import settings
+from app.platform.config.settings import settings
 import logging
 import threading
 

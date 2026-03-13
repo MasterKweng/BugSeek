@@ -16,7 +16,7 @@ import json
 
 from app.dependencies import get_db
 from app.context import get_current_project_id
-from app.db.base import VersionSnapshot, ApiDefinition, User
+from app.platform.db.base import VersionSnapshot, ApiDefinition, User
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
 

@@ -14,7 +14,7 @@ import logging
 
 from app.dependencies import get_db
 from app.context import get_current_project_id
-from app.db.base import SyncTask, User, ApiDefinition
+from app.platform.db.base import SyncTask, User, ApiDefinition
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
 
@@ -525,7 +525,7 @@ def _apply_changes_impl(
     Returns:
         ApplyChangesResponse: 应用结果
     """
-    from app.db.base import ApiDefinition, ApiEndpointGroup
+    from app.platform.db.base import ApiDefinition, ApiEndpointGroup
 
     result = ApplyChangesResponse(
         applied_count=0,
@@ -761,7 +761,41 @@ def _apply_changes_impl(
 
         logger.info(f"[{trace_id}] 变更应用完成: {result.applied_count} 个变更已应用, 创建了 {len(groups_map)} 个分组")
 
-        return result
+    return result
+
+
+def _sync_knowledge_graph_from_openapi(db: Session, project_id: int, diff_data: dict) -> None:
+    """Build or update graph nodes based on API sync diff data."""
+    from app.platform.db.base import ApiDefinition
+    from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
+
+    candidates = []
+    for item in diff_data.get("added", []) + diff_data.get("changed", []):
+        method = item.get("method")
+        path = item.get("path")
+        if not method or not path:
+            continue
+        definition = db.query(ApiDefinition).filter(
+            ApiDefinition.project_id == project_id,
+            ApiDefinition.method == method.upper(),
+            ApiDefinition.path == path
+        ).first()
+        if not definition:
+            continue
+
+        candidates.append({
+            "id": definition.id,
+            "method": definition.method,
+            "path": definition.path,
+            "summary": definition.summary,
+            "tags": definition.tags or [],
+        })
+
+    if not candidates:
+        return
+
+    service = KnowledgeGraphService(db)
+    service.build_from_openapi(candidates)
 
     except Exception as e:
         db.rollback()
@@ -823,6 +857,11 @@ async def apply_changes(
     try:
         # 应用变更
         result = _apply_changes_impl(db, task, request.operations, trace_id)
+
+        try:
+            _sync_knowledge_graph_from_openapi(db, task.project_id, task.diff_data or {})
+        except Exception as graph_error:
+            logger.warning(f"[{trace_id}] Graph 同步失败（不影响主流程）: {graph_error}")
 
         logger.info(f"[{trace_id}] 变更应用成功: {result.applied_count} 个变更")
 

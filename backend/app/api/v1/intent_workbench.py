@@ -16,10 +16,10 @@ import json
 
 from app.dependencies import get_db
 from app.context import get_current_project_id
-from app.db.base import Project, User
+from app.platform.db.base import Project, User
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
-from app.services.api_retrieval import APIRetrievalService
+from app.domains.api_hub.retrieval.service import APIRetrievalService
 from app.ai.service import AIService
 
 router = APIRouter()
@@ -389,7 +389,7 @@ async def confirm_scenario_draft(
     logger.info(f"[{trace_id}] 确认场景草案: user={current_user.username}, project_id={project_id}")
 
     try:
-        from app.db.base import ApiScenario, ScenarioNode
+        from app.platform.db.base import ApiScenario, ScenarioNode
 
         # 创建场景
         scenario_info = scenario_data.get("scenario", {})
@@ -604,7 +604,7 @@ def _load_api_schemas(
     返回：
         包含完整 Schema 的 API 列表
     """
-    from app.db.base import ApiDefinition
+    from app.platform.db.base import ApiDefinition
 
     # 从数据库查询指定 API 的 request_schema 和 response_schema
     apis = db.query(ApiDefinition).filter(

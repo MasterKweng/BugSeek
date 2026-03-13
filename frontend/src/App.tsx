@@ -15,6 +15,7 @@ const Projects = lazy(() => import('./pages/Projects'))
 const Versions = lazy(() => import('./pages/Versions'))
 const DbSchema = lazy(() => import('./pages/version-center/DbSchema'))
 const FieldMapping = lazy(() => import('./pages/version-center/FieldMapping'))
+const KnowledgeGraph = lazy(() => import('./pages/KnowledgeGraph'))
 
 // API Hub 模块 (V2.0)
 const ApiHubDefinitions = lazy(() => import('./pages/api-hub/DefinitionsList'))
@@ -61,6 +62,7 @@ function App() {
           <Route path="projects/:projectId/versions" element={<Versions />} />
           <Route path="version-center/db-schema" element={<ProjectVersionGuard><DbSchema /></ProjectVersionGuard>} />
           <Route path="version-center/field-mapping" element={<ProjectVersionGuard><FieldMapping /></ProjectVersionGuard>} />
+          <Route path="knowledge-graph" element={<ProjectVersionGuard><KnowledgeGraph /></ProjectVersionGuard>} />
           {/* 需求洞察模块 */}
           <Route path="requirements" element={<ComingSoon />} />
           {/* 代码质量模块 */}

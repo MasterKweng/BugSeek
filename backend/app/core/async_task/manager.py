@@ -5,7 +5,7 @@ from datetime import datetime
 import logging
 from sqlalchemy.orm import Session
 
-from app.db.base import AsyncTask, User
+from app.platform.db.base import AsyncTask, User
 from app.core.trace import get_trace_id
 
 logger = logging.getLogger(__name__)

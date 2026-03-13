@@ -13,11 +13,11 @@ from sqlalchemy.orm import Session
 from typing import Optional, List, Any
 import logging
 
-from app.db.base import AuthConfig, AuthInputMapping, AuthExtractRule, Project
+from app.platform.db.base import AuthConfig, AuthInputMapping, AuthExtractRule, Project
 from app.dependencies import get_db
 from app.core.trace import get_trace_id
 from app.api.v1.deps import get_current_user
-from app.api.v1.auth_config_schemas import (
+from app.domains.auth.schemas import (
     AuthConfigCreate,
     AuthConfigUpdate,
     AuthConfigResponse,

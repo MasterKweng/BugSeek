@@ -17,7 +17,7 @@ from datetime import datetime
 import logging
 
 from app.dependencies import get_db
-from app.db.base import TestExecution, ApiScenario, Environment
+from app.platform.db.base import TestExecution, ApiScenario, Environment
 from app.core.trace import get_trace_id
 from app.core.reporting.aggregator import ReportAggregator
 from app.core.reporting.generator import ReportGenerator

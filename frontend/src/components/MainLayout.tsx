@@ -75,6 +75,10 @@ const MainLayout: React.FC = () => {
           key: '/version-center/field-mapping',
           label: '字段映射',
         },
+        {
+          key: '/knowledge-graph',
+          label: 'Knowledge Graph',
+        },
       ],
     },
     {
@@ -181,6 +185,9 @@ const MainLayout: React.FC = () => {
     }
     if (path.startsWith('/version-center/field-mapping')) {
       return ['/version-center/field-mapping'];
+    }
+    if (path.startsWith('/knowledge-graph')) {
+      return ['/knowledge-graph'];
     }
     return [path];
   };

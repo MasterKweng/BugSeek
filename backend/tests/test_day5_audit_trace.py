@@ -1,9 +1,9 @@
 from unittest.mock import Mock
 
 from app.api.v1.field_mappings import FieldMappingCandidate
-from app.celery.tasks import _save_suggestions_to_db
-from app.db.base import AsyncTask
-from app.field_mapping.processor import FieldInfo, FieldMappingProcessor
+from app.celery.tasks._common import _save_suggestions_to_db
+from app.platform.db.base import AsyncTask
+from app.domains.data_mapping.processor import FieldInfo, FieldMappingProcessor
 
 
 def _build_processor():

@@ -14,7 +14,7 @@ import logging
 
 from app.dependencies import get_db
 from app.context import get_current_project_id, get_current_version_id
-from app.db.base import ApiDefinition, ApiCase, Environment, User
+from app.platform.db.base import ApiDefinition, ApiCase, Environment, User
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
 from app.core.pre_sql_generator import generate_pre_sql
@@ -798,7 +798,7 @@ async def execute_case(
         )
 
     try:
-        from app.core.test_execution import CaseExecutor
+        from app.execution.worker import CaseExecutor
 
         # 创建执行器
         executor = CaseExecutor()
@@ -894,7 +894,7 @@ async def batch_execute_cases(
         )
 
     try:
-        from app.core.test_execution import CaseExecutor
+        from app.execution.worker import CaseExecutor
 
         # 创建执行器
         executor = CaseExecutor()

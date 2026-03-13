@@ -2,7 +2,7 @@
 from typing import Dict, Any, Optional
 from sqlalchemy.orm import Session
 from app.dependencies import get_db
-from app.db.base import Project
+from app.platform.db.base import Project
 import logging
 
 logger = logging.getLogger(__name__)

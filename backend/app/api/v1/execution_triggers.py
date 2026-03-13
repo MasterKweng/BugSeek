@@ -17,9 +17,9 @@ from datetime import datetime
 import logging
 
 from app.dependencies import get_db
-from app.db.base import ApiScenario, Environment, TestExecution, User
+from app.platform.db.base import ApiScenario, Environment, TestExecution, User
 from app.core.trace import get_trace_id
-from app.core.test_execution import ScenarioExecutor
+from app.execution.engine import ScenarioExecutor
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

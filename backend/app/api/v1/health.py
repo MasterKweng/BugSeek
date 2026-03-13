@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.dependencies import get_db, engine, get_pool_stats
-from app.config import settings
+from app.platform.config.settings import settings
 from typing import Dict, Any
 import logging
 import time

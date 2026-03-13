@@ -5,7 +5,7 @@ from typing import Optional, List
 from pydantic import BaseModel
 import logging
 from app.dependencies import get_db
-from app.db.base import Project, Version, User, VersionEndpoint
+from app.platform.db.base import Project, Version, User, VersionEndpoint
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
 
@@ -717,7 +717,7 @@ async def get_version_endpoints(
             )
 
         # 查询该版本的所有接口
-        from app.db.base import ApiEndpoint
+        from app.platform.db.base import ApiEndpoint
         endpoints = db.query(ApiEndpoint).join(
             VersionEndpoint,
             ApiEndpoint.id == VersionEndpoint.endpoint_id
@@ -779,7 +779,7 @@ async def add_endpoint_to_version(
             )
 
         # 检查接口是否存在
-        from app.db.base import ApiEndpoint
+        from app.platform.db.base import ApiEndpoint
         endpoint = db.query(ApiEndpoint).filter(
             ApiEndpoint.id == endpoint_id
         ).first()

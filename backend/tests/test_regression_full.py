@@ -76,8 +76,8 @@ class RegressionTestSuite:
         logger.info("测试1: 取消后不再执行后续阶段")
         
         try:
-            from app.field_mapping.processor import FieldMappingProcessor
-            from app.db.base import AsyncTask
+            from app.domains.data_mapping.processor import FieldMappingProcessor
+            from app.platform.db.base import AsyncTask
             
             # 模拟任务取消检查逻辑
             class MockTask:
@@ -129,7 +129,7 @@ class RegressionTestSuite:
         logger.info("测试3: 写表失败后可重放修复")
         
         try:
-            from app.celery.tasks import _save_suggestions_to_db
+            from app.celery.tasks._common import _save_suggestions_to_db
             
             # 验证函数存在
             logger.info("  ✅ _save_suggestions_to_db 函数存在")
@@ -154,7 +154,7 @@ class RegressionTestSuite:
             # 检查 processor.py 中的去重逻辑
             import re
             
-            with open("backend/app/field_mapping/processor.py", "r", encoding="utf-8") as f:
+            with open("backend/app/domains/data_mapping/processor.py", "r", encoding="utf-8") as f:
                 content = f.read()
             
             # 验证使用 field_path 而不是 field_name 作为去重键
@@ -177,7 +177,7 @@ class RegressionTestSuite:
         logger.info("测试5: stage resume 在各阶段可恢复")
         
         try:
-            from app.field_mapping.constants import SCHEMA_VERSION, STAGE_DATA_SCHEMAS
+            from app.domains.data_mapping.constants import SCHEMA_VERSION, STAGE_DATA_SCHEMAS
             
             # 验证 SCHEMA_VERSION 常量存在
             logger.info(f"  ✅ SCHEMA_VERSION = {SCHEMA_VERSION}")

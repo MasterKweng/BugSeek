@@ -16,7 +16,7 @@ import hashlib
 
 from app.dependencies import get_db
 from app.context import get_current_project_id, get_current_version_id
-from app.db.base import (
+from app.platform.db.base import (
     ApiDefinition, ApiCase, VersionSnapshot,
     ApiEndpointGroup, Environment, User, Version, VersionApiDefinition
 )

@@ -2,9 +2,9 @@ from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.dependencies import get_db
-from app.db.base import User
+from app.platform.db.base import User
 from jose import JWTError, jwt
-from app.config import settings
+from app.platform.config.settings import settings
 import logging
 import threading
 from functools import lru_cache

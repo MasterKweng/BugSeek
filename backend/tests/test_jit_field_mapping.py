@@ -15,8 +15,8 @@ from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from app.field_mapping.processor import FieldMappingProcessor
-from app.db.base import AsyncTask, ApiDefinition, ApiFieldMapping, DbSchemaVersion
+from app.domains.data_mapping.processor import FieldMappingProcessor
+from app.platform.db.base import AsyncTask, ApiDefinition, ApiFieldMapping, DbSchemaVersion
 from app.api.v1.field_mappings_async import FieldMappingSuggestTaskRequest
 
 
@@ -64,52 +64,52 @@ class TestJITFieldMappingSubset:
         """模拟已有的字段映射"""
         return []
 
+    def _build_task(self, task_id=1, params=None):
+        task = Mock(spec=AsyncTask)
+        task.id = task_id
+        task.task_type = "field_mapping_suggest"
+        task.task_params = params or {}
+        return task
+
     @pytest.fixture
     def processor(self):
         """创建 FieldMappingProcessor 实例"""
-        return FieldMappingProcessor(
-            db=Mock(spec=Session),
+        task = self._build_task(
             task_id=1,
-            project_id=1,
-            definition_ids=[1, 2, 3, 4],  # 仅处理这 4 个接口
-            scenario_id=10,
-            task_type="suggest",
-            config={},
-            cancel_event=None
+            params={
+                "definition_ids": [1, 2, 3, 4],
+                "scenario_id": 10,
+            },
         )
+        return FieldMappingProcessor(db=Mock(spec=Session), task=task)
 
     def test_processor_with_definition_ids(self, mock_db):
         """测试创建带 definition_ids 的处理器"""
         definition_ids = [1, 2, 3]
         
-        processor = FieldMappingProcessor(
-            db=mock_db,
+        task = self._build_task(
             task_id=1,
-            project_id=1,
-            definition_ids=definition_ids,
-            scenario_id=10,
-            task_type="suggest",
-            config={},
-            cancel_event=None
+            params={
+                "definition_ids": definition_ids,
+                "scenario_id": 10,
+            },
         )
+        processor = FieldMappingProcessor(db=mock_db, task=task)
         
         assert processor.definition_ids == definition_ids
-        assert processor.scenario_id == 10
 
     def test_extract_fields_with_subset(self, mock_db, mock_definitions):
         """测试从子集接口中提取字段"""
         definition_ids = [1, 2]  # 只处理前两个接口
         
-        processor = FieldMappingProcessor(
-            db=mock_db,
+        task = self._build_task(
             task_id=1,
-            project_id=1,
-            definition_ids=definition_ids,
-            scenario_id=10,
-            task_type="suggest",
-            config={},
-            cancel_event=None
+            params={
+                "definition_ids": definition_ids,
+                "scenario_id": 10,
+            },
         )
+        processor = FieldMappingProcessor(db=mock_db, task=task)
         
         # Mock 查询
         mock_db.query.return_value.filter.return_value.all.return_value = [
@@ -148,7 +148,7 @@ class TestJITFieldMappingSubset:
         }
         
         # Mock API 查询
-        with patch.object(processor, '_extract_fields_from_schema', return_value=[]):
+        with patch('app.domains.data_mapping.processor._extract_api_fields', return_value=[]):
             definitions = mock_db.query.return_value.filter.return_value.all()
             
             # 验证只查询了指定的 definition_ids
@@ -159,28 +159,24 @@ class TestJITFieldMappingSubset:
     def test_subset_vs_full_scope_comparison(self, mock_db, mock_definitions):
         """测试子集与全量范围的对比"""
         # 全量：处理所有 4 个接口
-        full_processor = FieldMappingProcessor(
-            db=mock_db,
+        full_task = self._build_task(
             task_id=1,
-            project_id=1,
-            definition_ids=None,  # None 表示全量
-            scenario_id=None,
-            task_type="suggest",
-            config={},
-            cancel_event=None
+            params={
+                "definition_ids": None,
+                "scenario_id": None,
+            },
         )
+        full_processor = FieldMappingProcessor(db=mock_db, task=full_task)
         
         # 子集：只处理 2 个接口
-        subset_processor = FieldMappingProcessor(
-            db=mock_db,
+        subset_task = self._build_task(
             task_id=2,
-            project_id=1,
-            definition_ids=[1, 2],
-            scenario_id=10,
-            task_type="suggest",
-            config={},
-            cancel_event=None
+            params={
+                "definition_ids": [1, 2],
+                "scenario_id": 10,
+            },
         )
+        subset_processor = FieldMappingProcessor(db=mock_db, task=subset_task)
         
         # 全量处理器应该处理所有接口
         assert full_processor.definition_ids is None
@@ -192,16 +188,14 @@ class TestJITFieldMappingSubset:
         """测试结果与输入接口集合一致"""
         definition_ids = [1, 2, 3]
         
-        processor = FieldMappingProcessor(
-            db=mock_db,
+        task = self._build_task(
             task_id=1,
-            project_id=1,
-            definition_ids=definition_ids,
-            scenario_id=10,
-            task_type="suggest",
-            config={},
-            cancel_event=None
+            params={
+                "definition_ids": definition_ids,
+                "scenario_id": 10,
+            },
         )
+        processor = FieldMappingProcessor(db=mock_db, task=task)
         
         # 模拟结果
         mock_results = [
@@ -255,19 +249,16 @@ class TestJITFieldMappingSubset:
         scenario_id = 10
         definition_ids = [1, 2]
         
-        processor = FieldMappingProcessor(
-            db=mock_db,
+        task = self._build_task(
             task_id=1,
-            project_id=1,
-            definition_ids=definition_ids,
-            scenario_id=scenario_id,
-            task_type="suggest",
-            config={},
-            cancel_event=None
+            params={
+                "definition_ids": definition_ids,
+                "scenario_id": scenario_id,
+            },
         )
+        processor = FieldMappingProcessor(db=mock_db, task=task)
         
         # 验证处理器绑定了 scenario_id
-        assert processor.scenario_id == scenario_id
         
         # 模拟生成建议时的场景绑定
         mock_suggestion = {
@@ -349,28 +340,20 @@ class TestFieldMappingSuggestTaskRequest:
     def test_request_with_definition_ids(self):
         """测试带 definition_ids 的请求"""
         request = FieldMappingSuggestTaskRequest(
-            project_id=1,
-            version_id=1,
             definition_ids=[1, 2, 3],
             scenario_id=10
         )
         
-        assert request.project_id == 1
-        assert request.version_id == 1
         assert request.definition_ids == [1, 2, 3]
         assert request.scenario_id == 10
 
     def test_request_without_definition_ids(self):
         """测试不带 definition_ids 的请求（全量模式）"""
         request = FieldMappingSuggestTaskRequest(
-            project_id=1,
-            version_id=1,
             definition_ids=None,
             scenario_id=None
         )
         
-        assert request.project_id == 1
-        assert request.version_id == 1
         assert request.definition_ids is None
         assert request.scenario_id is None
 
@@ -382,8 +365,6 @@ class TestFieldMappingSuggestTaskRequest:
         # definition_ids 必须是列表或 None
         with pytest.raises(ValidationError):
             FieldMappingSuggestTaskRequest(
-                project_id=1,
-                version_id=1,
                 definition_ids="invalid",  # 应该是列表
                 scenario_id=10
             )

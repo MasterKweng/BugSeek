@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from typing import Optional, Any
 import logging
 
-from app.db.base import (
+from app.platform.db.base import (
     Project, Environment, User,
     ProjectAuthTemplate, ProjectAuthTemplateMapping, ProjectAuthTemplateRule,
     AuthConfig, AuthInputMapping, AuthExtractRule
@@ -21,7 +21,7 @@ from app.db.base import (
 from app.dependencies import get_db
 from app.core.trace import get_trace_id
 from app.api.v1.deps import get_current_user
-from app.api.v1.auth_config_schemas import (
+from app.domains.auth.schemas import (
     ProjectAuthTemplateCreate,
     ProjectAuthTemplateUpdate,
     ProjectAuthTemplateResponse,
@@ -87,6 +87,53 @@ def _project_template_to_response(template: ProjectAuthTemplate, db: Session) ->
         ],
         "created_at": template.created_at.isoformat() if template.created_at else None,
         "updated_at": template.updated_at.isoformat() if template.updated_at else None
+    }
+
+
+def _auth_config_to_response(auth_config: AuthConfig, db: Session) -> dict:
+    """将环境级鉴权配置 ORM 模型转换为响应模型"""
+    mappings = db.query(AuthInputMapping).filter(
+        AuthInputMapping.auth_config_id == auth_config.id
+    ).all()
+
+    rules = db.query(AuthExtractRule).filter(
+        AuthExtractRule.auth_config_id == auth_config.id
+    ).all()
+
+    return {
+        "id": auth_config.id,
+        "project_id": auth_config.project_id,
+        "environment_id": auth_config.environment_id,
+        "enabled": auth_config.enabled,
+        "auth_type": auth_config.auth_type,
+        "inherit_from_project": auth_config.inherit_from_project,
+        "injection": {
+            "target": auth_config.injection_target,
+            "key": auth_config.injection_key,
+            "value_template": auth_config.injection_template
+        },
+        "source_mode": auth_config.source_mode,
+        "static_value": auth_config.static_value,
+        "login_api_id": auth_config.login_api_id,
+        "login_auth_type": auth_config.login_auth_type,
+        "input_mappings": [
+            {
+                "location": m.param_location,
+                "key": m.param_key,
+                "value": m.param_value
+            }
+            for m in mappings
+        ],
+        "extract_rules": [
+            {
+                "name": r.rule_name,
+                "source": r.extract_source,
+                "expression": r.extract_expression
+            }
+            for r in rules
+        ],
+        "created_at": auth_config.created_at.isoformat() if auth_config.created_at else None,
+        "updated_at": auth_config.updated_at.isoformat() if auth_config.updated_at else None
     }
 
 

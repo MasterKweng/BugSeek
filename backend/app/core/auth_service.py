@@ -17,13 +17,13 @@ from httpx import AsyncClient, Request, Response
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 
-from app.db.base import (
+from app.platform.db.base import (
     AuthConfig, AuthInputMapping, AuthExtractRule, Project,
     ProjectAuthTemplate, ProjectAuthTemplateMapping, ProjectAuthTemplateRule,
     ApiDefinition
 )
 from app.core.trace import get_trace_id
-from app.api.v1.auth_config_schemas import (
+from app.domains.auth.schemas import (
     AuthTypeEnum,
     InjectionTargetEnum,
     SourceModeEnum,
@@ -465,7 +465,7 @@ class AuthMiddleware:
             }
 
         # 获取环境的 base_url
-        from app.db.base import Environment
+        from app.platform.db.base import Environment
         env = None
         if self.environment_id:
             env = self.db.query(Environment).filter(Environment.id == self.environment_id).first()
@@ -564,7 +564,7 @@ class AuthMiddleware:
         Returns:
             Optional[Dict[str, Any]]: API 定义
         """
-        from app.db.base import ApiDefinition
+        from app.platform.db.base import ApiDefinition
 
         api_def = self.db.query(ApiDefinition).filter(ApiDefinition.id == api_id).first()
 
@@ -897,7 +897,7 @@ class AuthMiddleware:
                 extract_rules = env_rules
             else:
                 # 如果环境配置没有规则，尝试从项目模板获取
-                from app.db.base import ProjectAuthTemplateRule
+                from app.platform.db.base import ProjectAuthTemplateRule
                 template_rules = self.db.query(ProjectAuthTemplateRule).filter(
                     ProjectAuthTemplateRule.template_id == auth_config.id
                 ).all()

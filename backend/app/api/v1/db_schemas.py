@@ -7,7 +7,7 @@ import logging
 
 from app.dependencies import get_db
 from app.context import get_current_project_id, get_current_version_id
-from app.db.base import DbSchemaVersion, Version, User
+from app.platform.db.base import DbSchemaVersion, Version, User
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
 from app.utils.sql_parser import parse_sql_file
@@ -123,7 +123,7 @@ async def import_db_schema(
 
     # 异步构建向量索引
     try:
-        from app.utils.vector_index import VectorIndexManager
+        from app.platform.vector.vector_index import VectorIndexManager
         import concurrent.futures
         
         def build_vector_index():
@@ -140,6 +140,63 @@ async def import_db_schema(
             executor.submit(build_vector_index)
     except Exception as e:
         logger.warning(f"[{trace_id}] 启动向量索引构建失败（不影响主流程）: {str(e)}")
+    # Sync Knowledge Graph (DB Schema -> Table/Field Nodes)
+    try:
+        from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
+
+        schema_snapshot = request.schema_snapshot or {}
+        tables = []
+        fields = []
+
+        raw_tables = schema_snapshot.get("tables") if isinstance(schema_snapshot, dict) else None
+        if isinstance(raw_tables, dict):
+            for table_name, table_data in raw_tables.items():
+                tables.append({
+                    "name": table_name,
+                    "comment": table_data.get("comment") if isinstance(table_data, dict) else None,
+                    "schema": table_data.get("schema") if isinstance(table_data, dict) else None,
+                })
+                columns = table_data.get("columns", {}) if isinstance(table_data, dict) else {}
+                if isinstance(columns, dict):
+                    for col_name, col_info in columns.items():
+                        fields.append({
+                            "name": col_name,
+                            "comment": col_info.get("comment") if isinstance(col_info, dict) else None,
+                            "type": col_info.get("type") if isinstance(col_info, dict) else None,
+                            "table": table_name,
+                            "full_name": f"{table_name}.{col_name}",
+                        })
+        elif isinstance(raw_tables, list):
+            for table in raw_tables:
+                if not isinstance(table, dict):
+                    continue
+                table_name = table.get("name")
+                if not table_name:
+                    continue
+                tables.append({
+                    "name": table_name,
+                    "comment": table.get("comment"),
+                    "schema": table.get("schema"),
+                })
+                for col in table.get("columns", []) or []:
+                    if not isinstance(col, dict):
+                        continue
+                    col_name = col.get("name")
+                    if not col_name:
+                        continue
+                    fields.append({
+                        "name": col_name,
+                        "comment": col.get("comment"),
+                        "type": col.get("type"),
+                        "table": table_name,
+                        "full_name": f"{table_name}.{col_name}",
+                    })
+
+        if tables or fields:
+            KnowledgeGraphService(db).build_from_db_schema(tables=tables, fields=fields)
+    except Exception as e:
+        logger.warning(f"[{trace_id}] Graph sync failed (ignored): {str(e)}")
+
 
     return ApiResponse(
         code=0,
@@ -300,7 +357,7 @@ async def import_sql_schema(
 
         # 异步构建向量索引
         try:
-            from app.utils.vector_index import VectorIndexManager
+            from app.platform.vector.vector_index import VectorIndexManager
             import concurrent.futures
             
             def build_vector_index():

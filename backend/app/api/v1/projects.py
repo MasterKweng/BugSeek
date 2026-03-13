@@ -5,7 +5,7 @@ from typing import Optional, List
 from pydantic import BaseModel
 import logging
 from app.dependencies import get_db
-from app.db.base import Project, User, Environment
+from app.platform.db.base import Project, User, Environment
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id, generate_trace_id
 

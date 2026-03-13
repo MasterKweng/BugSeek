@@ -10,7 +10,7 @@ import concurrent.futures
 
 from app.dependencies import get_db
 from app.context import get_current_project_id, get_current_version_id
-from app.db.base import ApiFieldMapping, ApiDefinition, Version, User, DbSchemaVersion
+from app.platform.db.base import ApiFieldMapping, ApiDefinition, Version, User, DbSchemaVersion
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
 from app.utils.field_mapping_utils import (
@@ -184,7 +184,7 @@ async def _generate_mapping_candidates_with_gravity(
     
     # 使用向量索引管理器的批量搜索（带重心算法 + AI 兜底）
     try:
-        from app.utils.vector_index import get_vector_manager
+        from app.platform.vector.vector_index import get_vector_manager
         
         # 使用单例获取函数，避免每次请求都重新加载模型
         vector_manager = get_vector_manager()
@@ -572,7 +572,7 @@ async def batch_apply_field_mappings(
     """
     trace_id = get_trace_id()
     ctx = _get_project_and_version(db, current_user, project_id, version_id)
-    from app.db.base import FieldMappingSuggestion
+    from app.platform.db.base import FieldMappingSuggestion
 
     logger.info(
         f"[{trace_id}] 批量应用字段映射: project_id={ctx['project_id']}, version_id={ctx['version_id']}, "
@@ -674,6 +674,15 @@ async def batch_apply_field_mappings(
         
         # 提交事务（原子性保证）
         db.commit()
+
+        # 同步 Knowledge Graph（Field Mapping -> MAPS_TO）
+        try:
+            from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
+            mapping_items = [item.model_dump() for item in request.items]
+            if mapping_items:
+                KnowledgeGraphService(db).build_from_field_mapping_items(mapping_items)
+        except Exception as graph_error:
+            logger.warning(f"[{trace_id}] Graph 同步失败（不影响主流程）: {graph_error}")
         
         logger.info(
             f"[{trace_id}] 批量应用字段映射成功: "
@@ -763,7 +772,7 @@ async def batch_reject_suggestions(
     将选中的建议记录状态从pending更新为ignored
     """
     trace_id = get_trace_id()
-    from app.db.base import FieldMappingSuggestion
+    from app.platform.db.base import FieldMappingSuggestion
     
     ctx = _get_project_and_version(db, current_user, project_id, version_id)
 

@@ -7,9 +7,9 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr
 import logging
 from app.dependencies import get_db
-from app.db.base import User
+from app.platform.db.base import User
 from app.api.v1.deps import get_current_user
-from app.config import settings
+from app.platform.config.settings import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

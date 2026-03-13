@@ -16,10 +16,10 @@ import logging
 
 from app.dependencies import get_db
 from app.context import get_current_project_id
-from app.db.base import ApiScenario, ScenarioNode, ApiCase, ApiDefinition, Environment, User
+from app.platform.db.base import ApiScenario, ScenarioNode, ApiCase, ApiDefinition, Environment, User
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
-from app.core.test_execution import ScenarioExecutor
+from app.execution.engine import ScenarioExecutor
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -666,7 +666,7 @@ async def get_scenario_executions(
         )
 
     # 查询执行记录
-    from app.db.base import TestExecution
+    from app.platform.db.base import TestExecution
 
     query = db.query(TestExecution).filter(TestExecution.scenario_id == scenario_id)
 
@@ -736,7 +736,7 @@ async def get_scenario_execution_detail(
     )
 
     # 查询执行记录
-    from app.db.base import TestExecution, TestExecutionResult
+    from app.platform.db.base import TestExecution, TestExecutionResult
 
     execution = db.query(TestExecution).filter(
         TestExecution.id == execution_id,

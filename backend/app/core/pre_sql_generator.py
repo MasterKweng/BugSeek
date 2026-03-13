@@ -4,7 +4,7 @@ import re
 import logging
 from sqlalchemy.orm import Session
 
-from app.db.base import ApiFieldMapping, DbSchemaVersion
+from app.platform.db.base import ApiFieldMapping, DbSchemaVersion
 
 logger = logging.getLogger(__name__)
 

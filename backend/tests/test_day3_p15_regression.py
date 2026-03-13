@@ -3,8 +3,8 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 from app.api.v1.field_mappings import FieldMappingCandidate
-from app.field_mapping import processor as processor_module
-from app.field_mapping.processor import FieldMappingProcessor
+from app.domains.data_mapping import processor as processor_module
+from app.domains.data_mapping.processor import FieldMappingProcessor
 
 
 class _QueryStub:
@@ -17,12 +17,19 @@ class _QueryStub:
     def all(self):
         return self._definitions
 
+    def first(self):
+        return self._definitions[0] if self._definitions else None
+
 
 class _DBStub:
-    def __init__(self, definitions):
+    def __init__(self, definitions, db_schema_snapshot=None):
         self._definitions = definitions
+        self._db_schema_snapshot = db_schema_snapshot or {}
 
     def query(self, *args, **kwargs):
+        # 检查是否是 DbSchemaVersion 查询
+        if args and "DbSchemaVersion" in str(args[0]):
+            return _QueryStub([SimpleNamespace(schema_snapshot=self._db_schema_snapshot)])
         return _QueryStub(self._definitions)
 
     def commit(self):
@@ -51,6 +58,23 @@ class _VectorManagerStub:
                 for path in api_fields
             }
         }
+    async def batch_search_with_gravity_by_key(self, queries, top_k, use_ai_fallback):
+        keys = list(queries.keys())
+        self.calls.append(keys)
+        return {
+            "results": {
+                key: [
+                    {
+                        "db_table": "orders",
+                        "db_column": "id",
+                        "score": 0.9,
+                        "reasons": ["matched"],
+                    }
+                ]
+                for key in keys
+            }
+        }
+
 
 
 def _build_task():
@@ -68,10 +92,11 @@ def _build_task():
 
 def test_stage1_instance_key_and_logical_stats():
     definitions = [
-        SimpleNamespace(id=10, method="POST", path="/a"),
-        SimpleNamespace(id=11, method="POST", path="/b"),
+        SimpleNamespace(id=10, method="POST", path="/a", schema_snapshot={}),
+        SimpleNamespace(id=11, method="POST", path="/b", schema_snapshot={}),
     ]
-    processor = FieldMappingProcessor(_DBStub(definitions), _build_task())
+    db_schema_snapshot = {"tables": {"orders": {"columns": {"id": {"type": "int"}}}}}
+    processor = FieldMappingProcessor(_DBStub(definitions, db_schema_snapshot), _build_task())
 
     old_extract = processor_module._extract_api_fields
     processor_module._extract_api_fields = (
@@ -95,7 +120,8 @@ def test_stage1_instance_key_and_logical_stats():
 
 
 def test_stage2_logical_dedup_and_clone_isolation():
-    processor = FieldMappingProcessor(_DBStub([]), _build_task())
+    db_schema_snapshot = {"tables": {"orders": {"columns": {"id": {"type": "int"}}}}}
+    processor = FieldMappingProcessor(_DBStub([], db_schema_snapshot), _build_task())
     field_a = SimpleNamespace(
         field_name="order_id",
         field_path="body.order_id",
@@ -115,8 +141,9 @@ def test_stage2_logical_dedup_and_clone_isolation():
     processor_module.get_vector_manager = lambda: vm
 
     try:
+        db_schema = {"allowed_tables": ["orders"]}
         results = asyncio.run(
-            processor._process_rule_scoring_batch_async(batch, db_schema={}, batch_idx=0)
+            processor._process_rule_scoring_batch_async(batch, db_schema=db_schema, batch_idx=0)
         )
     finally:
         processor_module.get_vector_manager = old_vm

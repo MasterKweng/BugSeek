@@ -9,13 +9,13 @@ import logging
 
 from app.dependencies import get_db
 from app.context import get_current_project_id, get_current_version_id
-from app.db.base import AsyncTask, ApiDefinition, Version, User
+from app.platform.db.base import AsyncTask, ApiDefinition, Version, User
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
 # 导入旧的异步任务管理器（向后兼容，用于任务重试等操作）
 # 注意：主要任务执行已迁移到 Celery
 from app.core.async_task.manager import get_task_manager
-from app.field_mapping.constants import (
+from app.domains.data_mapping.constants import (
     StageStatus,
     Stage,
     get_stage_result_key,
@@ -269,7 +269,7 @@ async def get_suggestions(
         建议列表
     """
     trace_id = get_trace_id()
-    from app.db.base import FieldMappingSuggestion
+    from app.platform.db.base import FieldMappingSuggestion
 
     logger.info(f"[{trace_id}] 获取字段映射建议结果: task_id={task_id}, status_filter={status_filter}, search={search}, page={page}, size={size}")
 
@@ -355,7 +355,7 @@ async def get_suggestions(
     
     # API方法筛选（需要JOIN api_definitions表）
     if method_filter:
-        from app.db.base import ApiDefinition
+        from app.platform.db.base import ApiDefinition
         query = query.join(
             ApiDefinition,
             FieldMappingSuggestion.definition_id == ApiDefinition.id
@@ -372,7 +372,7 @@ async def get_suggestions(
 
     # API路径筛选（需要JOIN api_definitions表）
     if definition_path_filter:
-        from app.db.base import ApiDefinition
+        from app.platform.db.base import ApiDefinition
         # 如果之前没有JOIN,需要先JOIN
         if not method_filter:
             query = query.join(
@@ -640,7 +640,7 @@ async def get_field_mapping_stage_result(
         阶段结果数据
     """
     trace_id = get_trace_id()
-    from app.field_mapping.constants import (
+    from app.domains.data_mapping.constants import (
         Stage,
         get_stage_result_key,
         StageResultKey
@@ -801,7 +801,7 @@ async def retry_field_mapping_stage(
         操作结果
     """
     trace_id = get_trace_id()
-    from app.field_mapping.constants import (
+    from app.domains.data_mapping.constants import (
         Stage,
         StageStatus
     )
@@ -851,7 +851,7 @@ async def retry_field_mapping_stage(
         )
     
     # 检查当前阶段是否已超过要重试的阶段
-    from app.field_mapping.constants import get_stage_result_key
+    from app.domains.data_mapping.constants import get_stage_result_key
     
     stage_key = get_stage_result_key(stage_num)
     stage_results = task.stage_results or {}

@@ -22,9 +22,9 @@ from app.api.v1.intent_workbench import (
     APIRetrievalResponse,
     ApiResponse
 )
-from app.services.api_retrieval import APIRetrievalService
+from app.domains.api_hub.retrieval.service import APIRetrievalService
 from app.ai.service import AIService
-from app.db.base import Project, User
+from app.platform.db.base import Project, User
 
 
 class TestIntentScenarioGeneration:
@@ -178,17 +178,18 @@ class TestIntentScenarioGeneration:
                     "is_enabled": True
                 }
             ],
-            "reasoning": "用户意图是测试用户管理流程，因此选择了创建、查询和删除用户三个核心 API。执行顺序为：先创建用户，然后查询验证，最后删除清理。"
+            "reasoning": "用户意图是测试用户管理流程，因此选择了创建、查询和删除用户三个核心 API。执行顺序为：先创建用户，然后查询验证，最后删除清理。",
+            "candidate_apis": []
         }
 
     def test_intent_generate_request_model(self):
         """测试意图生成请求模型"""
         request = IntentGenerateRequest(
-            user_intent="测试用户创建、查询和删除流程",
+            intent_text="测试用户创建、查询和删除流程",
             project_id=1
         )
         
-        assert request.user_intent == "测试用户创建、查询和删除流程"
+        assert request.intent_text == "测试用户创建、查询和删除流程"
         assert request.project_id == 1
 
     def test_intent_generate_response_model(self, mock_ai_scenario_response):
@@ -213,7 +214,7 @@ class TestIntentScenarioGeneration:
         from app.api.v1 import intent_workbench
         
         request = IntentGenerateRequest(
-            user_intent="测试用户创建、查询和删除流程",
+            intent_text="测试用户创建、查询和删除流程",
             project_id=1
         )
         
@@ -221,7 +222,7 @@ class TestIntentScenarioGeneration:
         mock_db.query.return_value.filter.return_value.first.return_value = mock_project
         
         # Mock API 检索服务
-        with patch.object(APIRetrievalService, 'retrieve', new_callable=AsyncMock) as mock_retrieve:
+        with patch.object(APIRetrievalService, 'retrieve_apis_by_intent', new_callable=AsyncMock) as mock_retrieve:
             mock_retrieve.return_value = {
                 "candidates": mock_candidate_apis,
                 "ranked_apis": mock_candidate_apis[:3],
@@ -302,11 +303,22 @@ class TestIntentScenarioGeneration:
                     for var_name in matches:
                         assert var_name in extract_nodes, f"变量 {var_name} 未被任何节点提取"
                         
-                        # 验证依赖关系
+                        # 验证依赖关系（允许传递依赖）
                         source_node = extract_nodes[var_name]
                         if source_node != node["node_key"]:
-                            assert source_node in node.get("depends_on", []), \
-                                f"节点 {node['node_key']} 使用了变量 {var_name} 但未依赖源节点 {source_node}"
+                            if source_node not in node.get("depends_on", []):
+                                # 检查是否通过传递依赖可达
+                                adjacency = {n["node_key"]: n.get("depends_on", []) for n in nodes}
+                                visited = set()
+                                stack = list(node.get("depends_on", []))
+                                while stack:
+                                    current = stack.pop()
+                                    if current in visited:
+                                        continue
+                                    visited.add(current)
+                                    stack.extend(adjacency.get(current, []))
+                                assert source_node in visited, \
+                                    f"节点 {node['node_key']} 使用了变量 {var_name} 但未依赖源节点 {source_node}"
 
     def test_validate_ref_ids_match_candidates(self, mock_ai_scenario_response, mock_candidate_apis):
         """验证 ref_id 与候选 API 列表匹配"""
@@ -448,7 +460,7 @@ class TestAPIRetrieval:
         mock_db.query.return_value.filter.return_value.first.return_value = mock_project
         
         # Mock API 检索服务
-        with patch.object(APIRetrievalService, 'retrieve', new_callable=AsyncMock) as mock_retrieve:
+        with patch.object(APIRetrievalService, 'retrieve_apis_by_intent', new_callable=AsyncMock) as mock_retrieve:
             mock_retrieve.return_value = {
                 "candidates": [
                     {

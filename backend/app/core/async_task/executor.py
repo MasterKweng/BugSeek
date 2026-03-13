@@ -6,9 +6,9 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
 
-from app.db.base import AsyncTask
+from app.platform.db.base import AsyncTask
 from app.core.trace import get_trace_id
-from app.field_mapping.exceptions import TaskCancelledException
+from app.domains.data_mapping.exceptions import TaskCancelledException
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +108,7 @@ class AsyncTaskExecutor:
         Returns:
             执行结果
         """
-        from app.field_mapping.processor import FieldMappingProcessor
+        from app.domains.data_mapping.processor import FieldMappingProcessor
         
         logger.info(f"[{self.trace_id}] 开始执行字段映射任务: task_id={task.id}")
         

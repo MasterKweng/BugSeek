@@ -3,7 +3,7 @@ from app.api.v1 import auth, projects, versions, environments, variables, contex
 from app.api.v1 import api_definitions, api_cases, sync_tasks, version_snapshots, db_schemas, field_mappings, field_mappings_async
 from app.api.v1 import auth_config, auth_config_append
 from app.api.v1 import scenarios, intent_workbench, reports
-from app.api.v1 import health, execution_triggers
+from app.api.v1 import health, execution_triggers, knowledge_graph
 from app.ai import router as ai_router
 
 api_router = APIRouter()
@@ -27,6 +27,7 @@ api_router.include_router(ai_router, tags=["AI服务"])
 api_router.include_router(scenarios.router, tags=["场景管理"])
 api_router.include_router(intent_workbench.router, prefix="/intent-workbench", tags=["意图工作台"])
 api_router.include_router(execution_triggers.router, tags=["CI/CD触发"])
+api_router.include_router(knowledge_graph.router, tags=["Knowledge Graph"])
 api_router.include_router(reports.router, tags=["报告管理"])
 # 鉴权配置路由
 api_router.include_router(auth_config.router, tags=["鉴权配置"])
