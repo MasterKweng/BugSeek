@@ -1,0 +1,404 @@
+2026-03-13 23:04:19 | ERROR | [e21afbf09c434fb0ae2e8ec83fd1d14d] | app.main | 应用启动事件执行失败: No module named 'app.celery.celery_app'
+Traceback (most recent call last):
+  File "D:\code\bugseek\backend\app\main.py", line 86, in startup_event
+    from app.celery_config import celery_app
+  File "D:\code\bugseek\backend\app\celery_config.py", line 70, in <module>
+    from app.celery import tasks  # noqa: F401
+  File "D:\code\bugseek\backend\app\celery\tasks\__init__.py", line 5, in <module>
+    from .knowledge_graph_tasks import build_graph_from_api, build_graph_from_schema, update_graph_from_execution
+  File "D:\code\bugseek\backend\app\celery\tasks\knowledge_graph_tasks.py", line 4, in <module>
+    from app.celery.celery_app import celery_app
+ModuleNotFoundError: No module named 'app.celery.celery_app'
+2026-03-13 23:04:50 | ERROR | [39e88a60ce0f4aebb9c62f538af96d79] | app.main | 应用启动事件执行失败: No module named 'app.celery.celery_app'
+Traceback (most recent call last):
+  File "D:\code\bugseek\backend\app\main.py", line 86, in startup_event
+    from app.celery_config import celery_app
+  File "D:\code\bugseek\backend\app\celery_config.py", line 70, in <module>
+    from app.celery import tasks  # noqa: F401
+  File "D:\code\bugseek\backend\app\celery\tasks\__init__.py", line 5, in <module>
+    from .knowledge_graph_tasks import build_graph_from_api, build_graph_from_schema, update_graph_from_execution
+  File "D:\code\bugseek\backend\app\celery\tasks\knowledge_graph_tasks.py", line 4, in <module>
+    from app.celery.celery_app import celery_app
+ModuleNotFoundError: No module named 'app.celery.celery_app'
+2026-03-13 23:07:22 | ERROR | [e151ecd73485493393d3ac84e7b6d84d] | app.main | ❌ 向量索引预热失败，语义检索功能降级: (psycopg2.OperationalError) connection to server at "172.23.113.132", port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-03-13 23:07:52 | ERROR | [9748fa659ce049e89f2bf61f444d50c4] | app.main | ❌ 向量索引预热失败，语义检索功能降级: (psycopg2.OperationalError) connection to server at "172.23.113.132", port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-03-13 23:07:52 | ERROR | [6956b71bd4ef4b239d9bdcb416fb588c] | asyncio | Task was destroyed but it is pending!
+task: <Task pending name='Task-10' coro=<<async_generator_athrow without __name__>()>>
+2026-03-13 23:08:32 | ERROR | [12951637eedb416885d104d8e05c9256] | app.main | ❌ 向量索引预热失败，语义检索功能降级: (psycopg2.OperationalError) connection to server at "172.23.113.132", port 5432 failed: Connection timed out (0x0000274C/10060)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-03-13 23:23:13 | ERROR | [ad6e6b870035454393073d9f766d2824] | app.main | ❌ 向量索引预热失败，语义检索功能降级: (psycopg2.errors.UndefinedTable) relation "db_schema_versions" does not exist
+LINE 2: FROM db_schema_versions ORDER BY db_schema_versions.created_...
+             ^
+
+[SQL: SELECT db_schema_versions.id AS db_schema_versions_id, db_schema_versions.project_id AS db_schema_versions_project_id, db_schema_versions.version_id AS db_schema_versions_version_id, db_schema_versions.name AS db_schema_versions_name, db_schema_versions.source_type AS db_schema_versions_source_type, db_schema_versions.source_version AS db_schema_versions_source_version, db_schema_versions.schema_snapshot AS db_schema_versions_schema_snapshot, db_schema_versions.created_by AS db_schema_versions_created_by, db_schema_versions.updated_by AS db_schema_versions_updated_by, db_schema_versions.created_at AS db_schema_versions_created_at, db_schema_versions.updated_at AS db_schema_versions_updated_at 
+FROM db_schema_versions ORDER BY db_schema_versions.created_at DESC 
+ LIMIT %(param_1)s]
+[parameters: {'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-03-13 23:26:30 | ERROR | [4adc9cfe2790420ba9452305afe9b713] | app.main | ❌ 向量索引预热失败，语义检索功能降级: (psycopg2.errors.UndefinedTable) relation "db_schema_versions" does not exist
+LINE 2: FROM db_schema_versions ORDER BY db_schema_versions.created_...
+             ^
+
+[SQL: SELECT db_schema_versions.id AS db_schema_versions_id, db_schema_versions.project_id AS db_schema_versions_project_id, db_schema_versions.version_id AS db_schema_versions_version_id, db_schema_versions.name AS db_schema_versions_name, db_schema_versions.source_type AS db_schema_versions_source_type, db_schema_versions.source_version AS db_schema_versions_source_version, db_schema_versions.schema_snapshot AS db_schema_versions_schema_snapshot, db_schema_versions.created_by AS db_schema_versions_created_by, db_schema_versions.updated_by AS db_schema_versions_updated_by, db_schema_versions.created_at AS db_schema_versions_created_at, db_schema_versions.updated_at AS db_schema_versions_updated_at 
+FROM db_schema_versions ORDER BY db_schema_versions.created_at DESC 
+ LIMIT %(param_1)s]
+[parameters: {'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-03-13 23:49:14 | WARNING | [8b8f1c1a55a444c5bec2ab98336f03e9] | app.main | 数据库中没有找到可用的 schema_snapshot，跳过数据库列向量索引构建
+2026-03-13 23:51:29 | WARNING | [03bf5bb3cf9844e0aebac331ad9918e8] | app.main | 数据库中没有找到可用的 schema_snapshot，跳过数据库列向量索引构建
+2026-03-13 23:51:36 | WARNING | [5f7aefe7df29405a8828b33e5179894b] | app.api.v1.auth | 登录失败: 用户名或密码错误 - admin
+2026-03-13 23:51:36 | ERROR | [5f7aefe7df29405a8828b33e5179894b] | app.dependencies | 数据库会话异常: 401: 用户名或密码错误
+Traceback (most recent call last):
+  File "D:\code\bugseek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\dev\python\lib\site-packages\fastapi\concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\bugseek\backend\app\api\v1\auth.py", line 136, in login
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 401: 用户名或密码错误
+2026-03-13 23:51:40 | WARNING | [6f1c49a88a614c968d5323ba13e923a3] | app.api.v1.auth | 登录失败: 用户名或密码错误 - admin
+2026-03-13 23:51:40 | ERROR | [6f1c49a88a614c968d5323ba13e923a3] | app.dependencies | 数据库会话异常: 401: 用户名或密码错误
+Traceback (most recent call last):
+  File "D:\code\bugseek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\dev\python\lib\site-packages\fastapi\concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\bugseek\backend\app\api\v1\auth.py", line 136, in login
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 401: 用户名或密码错误
+2026-03-13 23:51:53 | WARNING | [4ae027a99bfd46219750362e622fb8eb] | app.api.v1.auth | 登录失败: 用户名或密码错误 - admin
+2026-03-13 23:51:53 | ERROR | [4ae027a99bfd46219750362e622fb8eb] | app.dependencies | 数据库会话异常: 401: 用户名或密码错误
+Traceback (most recent call last):
+  File "D:\code\bugseek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\dev\python\lib\site-packages\fastapi\concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\bugseek\backend\app\api\v1\auth.py", line 136, in login
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 401: 用户名或密码错误
+2026-03-13 23:56:30 | WARNING | [b3d85979a9834dca9fe25d2247af1231] | app.main | 数据库中没有找到可用的 schema_snapshot，跳过数据库列向量索引构建
+2026-03-13 23:56:30 | WARNING | [b3d85979a9834dca9fe25d2247af1231] | app.platform.vector.api_strategy | 项目 1 下没有 API 数据，无法构建向量索引
+2026-03-13 23:56:30 | WARNING | [b3d85979a9834dca9fe25d2247af1231] | app.main | ⚠️  项目 1 (inventree) 没有数据，跳过构建
+2026-03-13 23:56:30 | ERROR | [c2c5636e4d9b47e9b39a9ce9c523bc56] | app.dependencies | 数据库会话异常: 'created_by' is an invalid keyword argument for Version
+Traceback (most recent call last):
+  File "D:\code\bugseek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\dev\python\lib\site-packages\fastapi\concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\bugseek\backend\app\api\v1\versions.py", line 105, in create_version
+    version = Version(
+  File "<string>", line 4, in __init__
+  File "C:\dev\python\lib\site-packages\sqlalchemy\orm\state.py", line 596, in _initialize_instance
+    with util.safe_reraise():
+  File "C:\dev\python\lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\dev\python\lib\site-packages\sqlalchemy\orm\state.py", line 594, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "C:\dev\python\lib\site-packages\sqlalchemy\orm\decl_base.py", line 2179, in _declarative_constructor
+    raise TypeError(
+TypeError: 'created_by' is an invalid keyword argument for Version
+2026-03-13 23:56:30 | ERROR | [c2c5636e4d9b47e9b39a9ce9c523bc56] | app.main | 未捕获的异常: 'created_by' is an invalid keyword argument for Version | 路径: /api/v1/projects/1/versions | 方法: POST
+  + Exception Group Traceback (most recent call last):
+  |   File "C:\dev\python\lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 174, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "C:\dev\python\lib\site-packages\anyio\_backends\_asyncio.py", line 767, in __aexit__
+  |     raise BaseExceptionGroup(
+  | exceptiongroup.ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 173, in __call__
+    |     with recv_stream, send_stream, collapse_excgroups():
+    |   File "C:\dev\python\lib\contextlib.py", line 153, in __exit__
+    |     self.gen.throw(typ, value, traceback)
+    |   File "C:\dev\python\lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 175, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |   File "D:\code\bugseek\backend\app\main.py", line 45, in trace_id_middleware
+    |     response = await call_next(request)
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 153, in call_next
+    |     raise app_exc
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 140, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\cors.py", line 93, in __call__
+    |     await self.simple_response(scope, receive, send, request_headers=headers)
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\cors.py", line 144, in simple_response
+    |     await self.app(scope, receive, send)
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "C:\dev\python\lib\site-packages\starlette\routing.py", line 714, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "C:\dev\python\lib\site-packages\starlette\routing.py", line 734, in app
+    |     await route.handle(scope, receive, send)
+    |   File "C:\dev\python\lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "C:\dev\python\lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "C:\dev\python\lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |   File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 301, in app
+    |     raw_response = await run_endpoint_function(
+    |   File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    |     return await dependant.call(**values)
+    |   File "D:\code\bugseek\backend\app\api\v1\versions.py", line 105, in create_version
+    |     version = Version(
+    |   File "<string>", line 4, in __init__
+    |   File "C:\dev\python\lib\site-packages\sqlalchemy\orm\state.py", line 596, in _initialize_instance
+    |     with util.safe_reraise():
+    |   File "C:\dev\python\lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    |     raise exc_value.with_traceback(exc_tb)
+    |   File "C:\dev\python\lib\site-packages\sqlalchemy\orm\state.py", line 594, in _initialize_instance
+    |     manager.original_init(*mixed[1:], **kwargs)
+    |   File "C:\dev\python\lib\site-packages\sqlalchemy\orm\decl_base.py", line 2179, in _declarative_constructor
+    |     raise TypeError(
+    | TypeError: 'created_by' is an invalid keyword argument for Version
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\dev\python\lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 173, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "C:\dev\python\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\dev\python\lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 175, in __call__
+    response = await self.dispatch_func(request, call_next)
+  File "D:\code\bugseek\backend\app\main.py", line 45, in trace_id_middleware
+    response = await call_next(request)
+  File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 153, in call_next
+    raise app_exc
+  File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 140, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\dev\python\lib\site-packages\starlette\middleware\cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\dev\python\lib\site-packages\starlette\middleware\cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\dev\python\lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\dev\python\lib\site-packages\starlette\routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\dev\python\lib\site-packages\starlette\routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "C:\dev\python\lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "C:\dev\python\lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\dev\python\lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\bugseek\backend\app\api\v1\versions.py", line 105, in create_version
+    version = Version(
+  File "<string>", line 4, in __init__
+  File "C:\dev\python\lib\site-packages\sqlalchemy\orm\state.py", line 596, in _initialize_instance
+    with util.safe_reraise():
+  File "C:\dev\python\lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\dev\python\lib\site-packages\sqlalchemy\orm\state.py", line 594, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "C:\dev\python\lib\site-packages\sqlalchemy\orm\decl_base.py", line 2179, in _declarative_constructor
+    raise TypeError(
+TypeError: 'created_by' is an invalid keyword argument for Version
+2026-03-13 23:57:50 | ERROR | [76032434d711482f8b0fd486a3412649] | app.dependencies | 数据库会话异常: 'created_by' is an invalid keyword argument for Version
+Traceback (most recent call last):
+  File "D:\code\bugseek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\dev\python\lib\site-packages\fastapi\concurrency.py", line 27, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\bugseek\backend\app\api\v1\versions.py", line 105, in create_version
+    version = Version(
+  File "<string>", line 4, in __init__
+  File "C:\dev\python\lib\site-packages\sqlalchemy\orm\state.py", line 596, in _initialize_instance
+    with util.safe_reraise():
+  File "C:\dev\python\lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\dev\python\lib\site-packages\sqlalchemy\orm\state.py", line 594, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "C:\dev\python\lib\site-packages\sqlalchemy\orm\decl_base.py", line 2179, in _declarative_constructor
+    raise TypeError(
+TypeError: 'created_by' is an invalid keyword argument for Version
+2026-03-13 23:57:50 | ERROR | [76032434d711482f8b0fd486a3412649] | app.main | 未捕获的异常: 'created_by' is an invalid keyword argument for Version | 路径: /api/v1/projects/1/versions | 方法: POST
+  + Exception Group Traceback (most recent call last):
+  |   File "C:\dev\python\lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 174, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "C:\dev\python\lib\site-packages\anyio\_backends\_asyncio.py", line 767, in __aexit__
+  |     raise BaseExceptionGroup(
+  | exceptiongroup.ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 173, in __call__
+    |     with recv_stream, send_stream, collapse_excgroups():
+    |   File "C:\dev\python\lib\contextlib.py", line 153, in __exit__
+    |     self.gen.throw(typ, value, traceback)
+    |   File "C:\dev\python\lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 175, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |   File "D:\code\bugseek\backend\app\main.py", line 45, in trace_id_middleware
+    |     response = await call_next(request)
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 153, in call_next
+    |     raise app_exc
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 140, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\cors.py", line 93, in __call__
+    |     await self.simple_response(scope, receive, send, request_headers=headers)
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\cors.py", line 144, in simple_response
+    |     await self.app(scope, receive, send)
+    |   File "C:\dev\python\lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "C:\dev\python\lib\site-packages\starlette\routing.py", line 714, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "C:\dev\python\lib\site-packages\starlette\routing.py", line 734, in app
+    |     await route.handle(scope, receive, send)
+    |   File "C:\dev\python\lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "C:\dev\python\lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "C:\dev\python\lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |   File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 301, in app
+    |     raw_response = await run_endpoint_function(
+    |   File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    |     return await dependant.call(**values)
+    |   File "D:\code\bugseek\backend\app\api\v1\versions.py", line 105, in create_version
+    |     version = Version(
+    |   File "<string>", line 4, in __init__
+    |   File "C:\dev\python\lib\site-packages\sqlalchemy\orm\state.py", line 596, in _initialize_instance
+    |     with util.safe_reraise():
+    |   File "C:\dev\python\lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    |     raise exc_value.with_traceback(exc_tb)
+    |   File "C:\dev\python\lib\site-packages\sqlalchemy\orm\state.py", line 594, in _initialize_instance
+    |     manager.original_init(*mixed[1:], **kwargs)
+    |   File "C:\dev\python\lib\site-packages\sqlalchemy\orm\decl_base.py", line 2179, in _declarative_constructor
+    |     raise TypeError(
+    | TypeError: 'created_by' is an invalid keyword argument for Version
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\dev\python\lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 173, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "C:\dev\python\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\dev\python\lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 175, in __call__
+    response = await self.dispatch_func(request, call_next)
+  File "D:\code\bugseek\backend\app\main.py", line 45, in trace_id_middleware
+    response = await call_next(request)
+  File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 153, in call_next
+    raise app_exc
+  File "C:\dev\python\lib\site-packages\starlette\middleware\base.py", line 140, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\dev\python\lib\site-packages\starlette\middleware\cors.py", line 93, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\dev\python\lib\site-packages\starlette\middleware\cors.py", line 144, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\dev\python\lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\dev\python\lib\site-packages\starlette\routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\dev\python\lib\site-packages\starlette\routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "C:\dev\python\lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "C:\dev\python\lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\dev\python\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\dev\python\lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+  File "C:\dev\python\lib\site-packages\fastapi\routing.py", line 212, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\bugseek\backend\app\api\v1\versions.py", line 105, in create_version
+    version = Version(
+  File "<string>", line 4, in __init__
+  File "C:\dev\python\lib\site-packages\sqlalchemy\orm\state.py", line 596, in _initialize_instance
+    with util.safe_reraise():
+  File "C:\dev\python\lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\dev\python\lib\site-packages\sqlalchemy\orm\state.py", line 594, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "C:\dev\python\lib\site-packages\sqlalchemy\orm\decl_base.py", line 2179, in _declarative_constructor
+    raise TypeError(
+TypeError: 'created_by' is an invalid keyword argument for Version
+2026-03-13 23:57:58 | WARNING | [082d7c5013644825a4917ea98e5d74c7] | app.main | 数据库中没有找到可用的 schema_snapshot，跳过数据库列向量索引构建
+2026-03-13 23:57:58 | WARNING | [082d7c5013644825a4917ea98e5d74c7] | app.platform.vector.api_strategy | 项目 1 下没有 API 数据，无法构建向量索引
+2026-03-13 23:57:58 | WARNING | [082d7c5013644825a4917ea98e5d74c7] | app.main | ⚠️  项目 1 (inventree) 没有数据，跳过构建

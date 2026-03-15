@@ -1,8 +1,8 @@
 """Celery tasks for knowledge graph."""
 from typing import Dict, Any, List
 
-from app.celery.celery_app import celery_app
-from app.db.session import SessionLocal
+from app.celery_config import celery_app
+from app.dependencies import SessionLocal
 from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
 
 

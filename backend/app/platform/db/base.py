@@ -43,7 +43,6 @@ class UserContext(Base, TimestampMixin):
     current_version = relationship("Version", foreign_keys=[current_version_id])
 
     __table_args__ = (
-        Index('ix_user_contexts_user_id', 'user_id'),
         Index('ix_user_contexts_current_project_id', 'current_project_id'),
         Index('ix_user_contexts_current_version_id', 'current_version_id'),
     )
@@ -432,42 +431,42 @@ class SyncTask(Base, TimestampMixin):
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     version_id = Column(Integer, ForeignKey("versions.id"), nullable=True)
-    
+
     # 基本信息
     name = Column(String(255), nullable=False)
     source_type = Column(String(50), nullable=False)  # swagger, yapi, postman
     source_url = Column(String(500), nullable=True)
     source_version = Column(String(50), nullable=True)
-    
+
     # 任务执行信息
     task_id = Column(String(100), nullable=True, unique=True)  # Celery 任务 ID
     celery_task_id = Column(String(100), nullable=True, index=True)  # Celery 任务 ID（冗余字段，用于优化查询）
     status = Column(String(20), default="pending")  # pending/running/completed/failed/cancelled
     progress = Column(Integer, default=0)  # 0-100
-    
+
     # 执行结果
     total_count = Column(Integer, default=0)  # 总接口数
     added_count = Column(Integer, default=0)  # 新增接口数
     updated_count = Column(Integer, default=0)  # 更新接口数
     deleted_count = Column(Integer, default=0)  # 删除接口数
     conflict_count = Column(Integer, default=0)  # 冲突接口数
-    
+
     # 执行详情
     error_message = Column(Text, nullable=True)
     execution_log = Column(JSON, nullable=True)  # 执行日志列表
-    
+
     # 变更数据（V2.0 扩展）
     diff_data = Column(JSON, nullable=True)  # 接口变更详情（新增/删除/变更的接口列表）
     impact_analysis = Column(JSON, nullable=True)  # 影响分析结果（受影响的用例和场景）
     fix_data = Column(JSON, nullable=True)  # AI 修复结果数据
-    
+
     # 执行时间
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
-    
+
     # 审计字段
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    
+
     # 关系定义
     project = relationship("Project", backref="sync_tasks")
     version = relationship("Version", backref="sync_tasks")
@@ -478,7 +477,6 @@ class SyncTask(Base, TimestampMixin):
         Index('ix_sync_tasks_version_id', 'version_id'),
         Index('ix_sync_tasks_status', 'status'),
         Index('ix_sync_tasks_task_id', 'task_id'),
-        Index('ix_sync_tasks_celery_task_id', 'celery_task_id'),
         Index('ix_sync_tasks_source_type', 'source_type'),
     )
 
@@ -709,7 +707,6 @@ class AsyncTask(Base, TimestampMixin):
     __table_args__ = (
         Index('ix_async_tasks_project_id', 'project_id'),
         Index('ix_async_tasks_status', 'status'),
-        Index('ix_async_tasks_celery_task_id', 'celery_task_id'),
     )
 
 # ==================== 鉴权配置相关表 ====================
@@ -720,32 +717,31 @@ class ProjectAuthTemplate(Base, TimestampMixin):
 
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, unique=True)
-    
+
     # 通用配置
     enabled = Column(Boolean, nullable=False, default=False)
     auth_type = Column(String(50), nullable=False)  # none/basic/bearer/api_key/session/custom
-    
+
     # 注入逻辑（Consumer 层）
     injection_target = Column(String(20), nullable=False)  # header/query/cookie
     injection_key = Column(String(100), nullable=True)  # 如 Authorization、X-API-Key
     injection_template = Column(Text, nullable=True)  # 如 "Bearer {{ACCESS_TOKEN}}"
-    
+
     # 来源模式
     source_mode = Column(String(20), nullable=False)  # static/dynamic
-    
+
     # 静态模式数据
     static_value = Column(Text, nullable=True)  # 直接填写的凭证值（加密存储）
-    
+
     # 动态模式数据
     login_api_id = Column(Integer, ForeignKey("api_definitions.id", ondelete="SET NULL"), nullable=True)  # 引用 API 资产库中的接口
     login_auth_type = Column(String(50), nullable=False, default='none')  # 登录接口的鉴权类型（none/basic/bearer/api_key/session/custom）
-    
+
     # 关系定义
     template_mappings = relationship("ProjectAuthTemplateMapping", back_populates="template", cascade="all, delete-orphan")
     template_rules = relationship("ProjectAuthTemplateRule", back_populates="template", cascade="all, delete-orphan")
 
     __table_args__ = (
-        Index('ix_project_auth_templates_project_id', 'project_id'),
         Index('ix_project_auth_templates_auth_type', 'auth_type'),
         Index('ix_project_auth_templates_source_mode', 'source_mode'),
     )
@@ -925,13 +921,7 @@ class TestExecution(Base, TimestampMixin):
     # 关系定义
     environment = relationship("Environment", foreign_keys=[environment_id])
 
-    __table_args__ = (
-        Index('ix_test_executions_project_id', 'project_id'),
-        Index('ix_test_executions_execution_type', 'execution_type'),
-        Index('ix_test_executions_target_id', 'target_id'),
-        Index('ix_test_executions_status', 'status'),
-        Index('ix_test_executions_triggered_by', 'triggered_by'),
-    )
+    __table_args__ = ()
 
 
 class TestExecutionResult(Base, TimestampMixin):
@@ -960,12 +950,7 @@ class TestExecutionResult(Base, TimestampMixin):
     # 关系定义
     execution = relationship("TestExecution", foreign_keys=[execution_id])
 
-    __table_args__ = (
-        Index('ix_test_execution_results_execution_id', 'execution_id'),
-        Index('ix_test_execution_results_target_type', 'target_type'),
-        Index('ix_test_execution_results_target_id', 'target_id'),
-        Index('ix_test_execution_results_status', 'status'),
-    )
+    __table_args__ = ()
 
 
 class GraphNode(Base, TimestampMixin):
@@ -979,10 +964,6 @@ class GraphNode(Base, TimestampMixin):
     source_id = Column(String(255))
     properties = Column(JSONB)
 
-    __table_args__ = (
-        Index('ix_graph_nodes_node_type', 'node_type'),
-    )
-
 
 class GraphEdge(Base):
     """Knowledge graph edge"""
@@ -994,8 +975,77 @@ class GraphEdge(Base):
     relation_type = Column(String(50), nullable=False, index=True)
     properties = Column(JSONB)
 
+
+class ApiExecutionTrace(Base, TimestampMixin):
+    """API execution trace for data impact analysis."""
+    __tablename__ = "api_execution_traces"
+
+    id = Column(Integer, primary_key=True, index=True)
+    execution_id = Column(String(100), nullable=False, index=True)
+    api_id = Column(Integer, nullable=False, index=True)
+    start_time = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    end_time = Column(DateTime)
+    status = Column(String(20), default="running", index=True)
+
+
+class SqlTrace(Base, TimestampMixin):
+    """Captured SQL statements for an execution."""
+    __tablename__ = "sql_traces"
+
+    id = Column(Integer, primary_key=True, index=True)
+    trace_id = Column(String(100), nullable=False, index=True)
+    sql_text = Column(Text, nullable=False)
+    operation_type = Column(String(10), index=True)
+    table_name = Column(String(255), index=True)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+
+class TableImpact(Base, TimestampMixin):
+    """Table-level impact record."""
+    __tablename__ = "table_impacts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    execution_id = Column(String(100), nullable=False, index=True)
+    api_id = Column(Integer, nullable=False, index=True)
+    table_name = Column(String(255), nullable=False, index=True)
+    operation = Column(String(10))
+    row_count = Column(Integer, default=0)
+
+
+class FieldImpact(Base, TimestampMixin):
+    """Field-level impact record."""
+    __tablename__ = "field_impacts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    table_impact_id = Column(Integer, ForeignKey("table_impacts.id"), nullable=False, index=True)
+    field_name = Column(String(255), nullable=False, index=True)
+    old_value = Column(JSON)
+    new_value = Column(JSON)
+    change_type = Column(String(20))
+
+    table_impact = relationship("TableImpact", foreign_keys=[table_impact_id])
+
+
+class Snapshot(Base, TimestampMixin):
+    """Data snapshot before/after an execution."""
+    __tablename__ = "snapshots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    execution_id = Column(String(100), nullable=False, index=True)
+    table_name = Column(String(255), nullable=False, index=True)
+    data_json = Column(JSON, nullable=False)
+    snapshot_time = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+
+class ApiTableImpact(Base, TimestampMixin):
+    """Cached API-to-table impact confidence."""
+    __tablename__ = "api_table_impacts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    api_id = Column(Integer, nullable=False, index=True)
+    table_name = Column(String(255), nullable=False, index=True)
+    confidence = Column(Float, default=0.0)
+
     __table_args__ = (
-        Index('ix_graph_edges_relation_type', 'relation_type'),
-        Index('ix_graph_edges_source_node_id', 'source_node_id'),
-        Index('ix_graph_edges_target_node_id', 'target_node_id'),
+        UniqueConstraint("api_id", "table_name", name="uq_api_table_impacts_api_table"),
     )

@@ -55,22 +55,30 @@ class VersionResponse(BaseModel):
 
 # ========== API 端点 ==========
 
-@router.post("/versions", response_model=dict)
+@router.post("/projects/{project_id}/versions", response_model=dict)
 async def create_version(
+    project_id: int,
     request: VersionCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """创建版本"""
     trace_id = get_trace_id()
-    logger.info(f"[{trace_id}] 创建版本: {request.version_number}, user={current_user.username}")
+    logger.info(f"[{trace_id}] 创建版本: {request.version_number}, user={current_user.username}, project={project_id}")
+
+    # 验证 project_id 是否匹配
+    if request.project_id != project_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"项目 ID 不匹配：路径中的 project_id ({project_id}) 与请求体中的 project_id ({request.project_id}) 不一致"
+        )
 
     # 检查项目是否存在
-    project = db.query(Project).filter(Project.id == request.project_id).first()
+    project = db.query(Project).filter(Project.id == project_id).first()
     if not project:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"项目不存在：{request.project_id}"
+            detail=f"项目不存在：{project_id}"
         )
 
     # 检查版本号是否已存在
@@ -101,8 +109,7 @@ async def create_version(
         status=request.status,
         change_summary=request.change_summary,
         requirement_doc=request.requirement_doc,
-        test_scope=request.test_scope,
-        created_by=current_user.id
+        test_scope=request.test_scope
     )
     db.add(version)
     db.commit()

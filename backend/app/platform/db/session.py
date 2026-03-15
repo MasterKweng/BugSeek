@@ -11,6 +11,12 @@ from app.platform.db.base import (
     ScenarioNode,
     SyncTask,
     VersionSnapshot,
+    ApiExecutionTrace,
+    SqlTrace,
+    TableImpact,
+    FieldImpact,
+    Snapshot,
+    ApiTableImpact,
 )
 
 

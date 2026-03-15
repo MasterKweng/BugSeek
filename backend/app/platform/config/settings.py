@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # 数据库配置
     DATABASE_URL: str = "postgresql://bugseek:bugseek@localhost:5432/bugseek"
 
+    # Redis 配置（用于 Celery 异步任务队列）
+    REDIS_URL: str = "redis://127.0.0.1:6380/0"
+
     # 数据库连接池配置（适配8核16线程+16GB内存）
     # 连接池大小：根据CPU核心数配置，每个核心2-3个连接
     DB_POOL_SIZE: int = 20
@@ -71,6 +74,22 @@ class Settings(BaseSettings):
 
     # Hugging Face 配置
     HF_ENDPOINT: str = "https://hf-mirror.com"  # 国内镜像加速
+
+    # Data Impact Engine 配置
+    DATA_IMPACT_ENABLED: bool = True
+    DATA_IMPACT_ASYNC: bool = False
+    DATA_IMPACT_DB_ALIAS: str = "primary"
+    DATA_IMPACT_MAX_TABLES: int = 20
+    DATA_IMPACT_ROW_LIMIT: int = 200
+    DATA_IMPACT_CONFIDENCE_THRESHOLD: float = 0.7
+    DATA_IMPACT_TRACE_MODE: str = "sqlalchemy"  # sqlalchemy | pg_log | pg_stat_statements
+    DATA_IMPACT_PG_LOG_PATH: str = ""
+    DATA_IMPACT_PG_LOG_MAX_BYTES: int = 5_000_000
+    DATA_IMPACT_PG_LOG_DBNAME: str = ""
+    DATA_IMPACT_PG_LOG_USER: str = ""
+    DATA_IMPACT_ASSERTIONS_ENABLED: bool = False
+    DATA_IMPACT_ASSERTIONS_MODE: str = "rule"  # rule | ai | hybrid
+    DATA_IMPACT_SNAPSHOT_MODE: str = "full"  # full | incremental
 
     def get_scenario_v2_whitelist_projects(self) -> List[int]:
         """获取 V2.0 场景白名单项目ID列表"""

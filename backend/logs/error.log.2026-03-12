@@ -1,0 +1,1619 @@
+2026-03-11 08:25:09 | ERROR | [a903443d92c444ccbff7d3c300b99b5b] | app.dependencies | 数据库会话异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
+    total = query.count()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
+    ret = self.one()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-03-11 08:25:09 | ERROR | [a903443d92c444ccbff7d3c300b99b5b] | app.main | 未捕获的异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405) | 路径: /api/v1/sync-tasks | 方法: GET
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+  File "D:\code\BugSeek\backend\app\main.py", line 45, in trace_id_middleware
+    response = await call_next(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
+    total = query.count()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
+    ret = self.one()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-03-11 08:25:10 | ERROR | [0b744c1465274de2a91701856b72e065] | app.dependencies | 数据库会话异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
+    total = query.count()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
+    ret = self.one()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-03-11 08:25:10 | ERROR | [0b744c1465274de2a91701856b72e065] | app.main | 未捕获的异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405) | 路径: /api/v1/sync-tasks | 方法: GET
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+  File "D:\code\BugSeek\backend\app\main.py", line 45, in trace_id_middleware
+    response = await call_next(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
+    total = query.count()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
+    ret = self.one()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-03-11 08:25:10 | ERROR | [26b1a9ece59544c0b35664424b5676b8] | app.dependencies | 数据库会话异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
+    total = query.count()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
+    ret = self.one()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-03-11 08:25:10 | ERROR | [26b1a9ece59544c0b35664424b5676b8] | app.main | 未捕获的异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405) | 路径: /api/v1/sync-tasks | 方法: GET
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+  File "D:\code\BugSeek\backend\app\main.py", line 45, in trace_id_middleware
+    response = await call_next(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
+    total = query.count()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
+    ret = self.one()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-03-11 08:25:24 | ERROR | [d7f4cbf8b4b94007acb65c9b1584aa18] | app.dependencies | 数据库会话异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
+    total = query.count()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
+    ret = self.one()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-03-11 08:25:24 | ERROR | [d7f4cbf8b4b94007acb65c9b1584aa18] | app.main | 未捕获的异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405) | 路径: /api/v1/sync-tasks | 方法: GET
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+  File "D:\code\BugSeek\backend\app\main.py", line 45, in trace_id_middleware
+    response = await call_next(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
+    total = query.count()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
+    ret = self.one()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-03-11 08:25:24 | ERROR | [48c70764d97e46a8abbed64122d39128] | app.dependencies | 数据库会话异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
+    total = query.count()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
+    ret = self.one()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-03-11 08:25:24 | ERROR | [48c70764d97e46a8abbed64122d39128] | app.main | 未捕获的异常: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405) | 路径: /api/v1/sync-tasks | 方法: GET
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+  File "D:\code\BugSeek\backend\app\main.py", line 45, in trace_id_middleware
+    response = await call_next(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 115, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\sync_tasks.py", line 217, in get_sync_tasks
+    total = query.count()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2835, in scalar
+    ret = self.one()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column sync_tasks.celery_task_id does not exist
+LINE 2: ...ersion, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT sync_tasks.id AS sync_tasks_id, sync_tasks.project_id AS sync_tasks_project_id, sync_tasks.version_id AS sync_tasks_version_id, sync_tasks.name AS sync_tasks_name, sync_tasks.source_type AS sync_tasks_source_type, sync_tasks.source_url AS sync_tasks_source_url, sync_tasks.source_version AS sync_tasks_source_version, sync_tasks.task_id AS sync_tasks_task_id, sync_tasks.celery_task_id AS sync_tasks_celery_task_id, sync_tasks.status AS sync_tasks_status, sync_tasks.progress AS sync_tasks_progress, sync_tasks.total_count AS sync_tasks_total_count, sync_tasks.added_count AS sync_tasks_added_count, sync_tasks.updated_count AS sync_tasks_updated_count, sync_tasks.deleted_count AS sync_tasks_deleted_count, sync_tasks.conflict_count AS sync_tasks_conflict_count, sync_tasks.error_message AS sync_tasks_error_message, sync_tasks.execution_log AS sync_tasks_execution_log, sync_tasks.diff_data AS sync_tasks_diff_data, sync_tasks.impact_analysis AS sync_tasks_impact_analysis, sync_tasks.fix_data AS sync_tasks_fix_data, sync_tasks.started_at AS sync_tasks_started_at, sync_tasks.completed_at AS sync_tasks_completed_at, sync_tasks.created_by AS sync_tasks_created_by, sync_tasks.created_at AS sync_tasks_created_at, sync_tasks.updated_at AS sync_tasks_updated_at 
+FROM sync_tasks 
+WHERE sync_tasks.project_id = %(project_id_1)s) AS anon_1]
+[parameters: {'project_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-03-11 08:33:34 | ERROR | [421014318c7e4484a3a3a6041e6d19cc] | asyncio | Task was destroyed but it is pending!
+task: <Task pending name='Task-10' coro=<<async_generator_athrow without __name__>()>>
+2026-03-11 08:36:06 | ERROR | [5e5df51657894ada91bf76e60b031e98] | app.dependencies | 数据库会话异常: 1 validation error:
+  {'type': 'missing', 'loc': ('body', 'user_intent'), 'msg': 'Field required', 'input': {'intent_text': '生成登录模块的测试用例', 'project_id': 1, 'version_id': 1}}
+
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 69, in generate_scenario_from_intent
+    POST /api/v1/intent-workbench/generate-scenario
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 397, in app
+    raise validation_error
+fastapi.exceptions.RequestValidationError: 1 validation error:
+  {'type': 'missing', 'loc': ('body', 'user_intent'), 'msg': 'Field required', 'input': {'intent_text': '生成登录模块的测试用例', 'project_id': 1, 'version_id': 1}}
+
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 69, in generate_scenario_from_intent
+    POST /api/v1/intent-workbench/generate-scenario
+2026-03-11 08:39:13 | ERROR | [a96a391971814d2399903b6b1d371385] | app.services.api_retrieval | [a96a391971814d2399903b6b1d371385] AI 重排异常: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\services\api_retrieval.py", line 347, in _semantic_rerank
+    summary = ranked_apis.get("summary", {})
+AttributeError: 'str' object has no attribute 'get'
+2026-03-11 08:39:13 | ERROR | [a96a391971814d2399903b6b1d371385] | app.api.v1.intent_workbench | [a96a391971814d2399903b6b1d371385] 意图生成场景失败: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 171, in generate_scenario_from_intent
+    logger.info(f"[{trace_id}] [阶段二] 场景生成成功: nodes={len(scenario_result.get('nodes', []))}")
+AttributeError: 'str' object has no attribute 'get'
+2026-03-11 08:39:13 | ERROR | [a96a391971814d2399903b6b1d371385] | app.dependencies | 数据库会话异常: 500: 意图生成场景失败：'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 171, in generate_scenario_from_intent
+    logger.info(f"[{trace_id}] [阶段二] 场景生成成功: nodes={len(scenario_result.get('nodes', []))}")
+AttributeError: 'str' object has no attribute 'get'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 188, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: 意图生成场景失败：'str' object has no attribute 'get'
+2026-03-11 08:41:32 | ERROR | [78a5eb76fd9b4fb6937ad79dd09700a0] | app.services.api_retrieval | [78a5eb76fd9b4fb6937ad79dd09700a0] AI 重排异常: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\services\api_retrieval.py", line 347, in _semantic_rerank
+    summary = ranked_apis.get("summary", {})
+AttributeError: 'str' object has no attribute 'get'
+2026-03-11 08:41:32 | ERROR | [78a5eb76fd9b4fb6937ad79dd09700a0] | app.api.v1.intent_workbench | [78a5eb76fd9b4fb6937ad79dd09700a0] JSON 解析失败: Expecting value: line 1 column 1 (char 0), result=好的，请提供用户的业务意图，以便我为您生成完整的 API 测试场景。
+2026-03-11 08:41:32 | ERROR | [78a5eb76fd9b4fb6937ad79dd09700a0] | app.dependencies | 数据库会话异常: 500: AI 返回数据格式错误，无法解析 JSON
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 175, in generate_scenario_from_intent
+    scenario_result = json.loads(scenario_result)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 178, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 返回数据格式错误，无法解析 JSON
+2026-03-11 08:41:48 | ERROR | [6a24f61536844c808b7d16a24fbfefd2] | app.services.api_retrieval | [6a24f61536844c808b7d16a24fbfefd2] AI 重排异常: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\services\api_retrieval.py", line 347, in _semantic_rerank
+    summary = ranked_apis.get("summary", {})
+AttributeError: 'str' object has no attribute 'get'
+2026-03-11 08:41:48 | ERROR | [6a24f61536844c808b7d16a24fbfefd2] | app.api.v1.intent_workbench | [6a24f61536844c808b7d16a24fbfefd2] JSON 解析失败: Expecting value: line 1 column 1 (char 0), result=好的，请提供用户的业务意图，以便我为您生成一个完整的 API 测试场景。
+2026-03-11 08:41:48 | ERROR | [6a24f61536844c808b7d16a24fbfefd2] | app.dependencies | 数据库会话异常: 500: AI 返回数据格式错误，无法解析 JSON
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 175, in generate_scenario_from_intent
+    scenario_result = json.loads(scenario_result)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 178, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 返回数据格式错误，无法解析 JSON
+2026-03-11 08:46:18 | ERROR | [6e589f354c644242aa769c0c86054c4f] | app.services.api_retrieval | [6e589f354c644242aa769c0c86054c4f] AI 重排异常: 'str' object has no attribute 'get'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\services\api_retrieval.py", line 347, in _semantic_rerank
+    summary = ranked_apis.get("summary", {})
+AttributeError: 'str' object has no attribute 'get'
+2026-03-11 08:46:18 | ERROR | [6e589f354c644242aa769c0c86054c4f] | app.api.v1.intent_workbench | [6e589f354c644242aa769c0c86054c4f] JSON 解析失败: Expecting value: line 1 column 1 (char 0), result=好的，请提供用户的业务意图。
+2026-03-11 08:46:18 | ERROR | [6e589f354c644242aa769c0c86054c4f] | app.dependencies | 数据库会话异常: 500: AI 返回数据格式错误，无法解析 JSON
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 175, in generate_scenario_from_intent
+    scenario_result = json.loads(scenario_result)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 178, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 返回数据格式错误，无法解析 JSON
+2026-03-11 08:50:00 | ERROR | [c63ce0781a0645518413baf7d2db0886] | app.api.v1.intent_workbench | [c63ce0781a0645518413baf7d2db0886] JSON 解析失败: Expecting value: line 1 column 1 (char 0), result=好的，我将帮助您分析用户意图并生成相应的 API 测试场景。
+
+### 阶段一：业务步骤识别
+
+1. **创建用户**
+   - 使用 `/api/user/` POST API 创建用户。
+   - 输入：用户名和电子邮件。
+   - 输出：用户 ID。
+
+2. **查询用户**
+   - 使用 `/api/user/{user_id}` GET API 查询用户。
+   - 输入：用户 ID（从创建用户步骤中获取）。
+   - 输出：用户信息。
+
+### 阶段二：场景生成
+
+```json
+{
+  "scenario": {
+    "name": "创建并查询用户",
+    "description": "创建一个新用户并查询该用户的信息",
+    "scenario_type": "business_flow",
+    "source_type": "intent",
+    "execution_mode": "dag",
+    "timeout_seconds": 600,
+    "retry_count": 0,
+    "continue_on_failure
+2026-03-11 08:50:00 | ERROR | [c63ce0781a0645518413baf7d2db0886] | app.dependencies | 数据库会话异常: 500: AI 返回数据格式错误，无法解析 JSON
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 175, in generate_scenario_from_intent
+    scenario_result = json.loads(scenario_result)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 178, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 返回数据格式错误，无法解析 JSON
+2026-03-11 09:46:40 | ERROR | [28aa033e491b4469adbbe2448d68fe94] | app.api.v1.intent_workbench | [28aa033e491b4469adbbe2448d68fe94] JSON 解析失败: Expecting value: line 1 column 1 (char 0), result=### 阶段一：业务步骤识别
+
+**业务步骤分解：**
+1. 创建用户
+2. 登录用户
+
+**API 调用识别：**
+1. **创建用户：**
+   - 选择 API ID: 2992 - POST /api/company/part/（创建供应商零件）
+   - 原因：用户登录通常需要一个有效的用户凭证，创建用户可以作为一个前置步骤来确保用户存在。
+
+2. **登录用户：**
+   - 缺少候选列表中的 API 用于登录用户。
+   - 需要一个占位符节点来表示登录步骤的缺失。
+
+**步骤之间的执行顺序：**
+1. 创建用户
+2. 登录用户
+
+### 阶段二：场景生成
+
+```json
+{
+  "scenario": {
+    "name": "用户登录流程",
+    "description": "测试用户登录流程，包括创建用户和登录用户",
+    "scenario_type": "business_flow",
+    "source_type": "intent",
+    "execution_mode": "dag",
+    "timeout_seconds": 
+2026-03-11 09:46:40 | ERROR | [28aa033e491b4469adbbe2448d68fe94] | app.dependencies | 数据库会话异常: 500: AI 返回数据格式错误，无法解析 JSON
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 218, in generate_scenario_from_intent
+    scenario_result = json.loads(scenario_result)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 221, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 返回数据格式错误，无法解析 JSON
+2026-03-11 10:07:49 | ERROR | [ae63d1d62ee74a1e8e90febf724da975] | app.services.api_retrieval | [ae63d1d62ee74a1e8e90febf724da975] 向量检索失败: type object 'VectorIndexManager' has no attribute 'get_instance'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\services\api_retrieval.py", line 515, in _vector_search
+    vector_manager = VectorIndexManager.get_instance()
+AttributeError: type object 'VectorIndexManager' has no attribute 'get_instance'
+2026-03-11 10:08:09 | ERROR | [ae63d1d62ee74a1e8e90febf724da975] | app.api.v1.intent_workbench | [ae63d1d62ee74a1e8e90febf724da975] JSON 解析失败: Expecting value: line 1 column 1 (char 0), result=### 阶段一：业务步骤识别
+
+**用户意图分解为具体的业务步骤：**
+1. 创建用户
+2. 查询用户
+3. 创建订单
+4. 创建订单行项目
+
+**识别每个步骤对应的 API 调用：**
+1. 创建用户 - `ref_id: -1`（缺少 API）
+2. 查询用户 - `ref_id: -1`（缺少 API）
+3. 创建订单 - `ref_id: 2612`
+4. 创建订单行项目 - `ref_id: 2880`
+
+**确定步骤之间的执行顺序（依赖关系）：**
+1. 创建用户
+2. 查询用户
+3. 创建订单
+4. 创建订单行项目
+
+### 阶段二：场景生成
+
+**返回格式（JSON）：**
+
+```json
+{
+  "scenario": {
+    "name": "电商登录流程测试",
+    "description": "模拟电商用户的登录流程，包括创建用户、查询用户、创建订单和创建订单行项目",
+    "scenario_type": "business_flow",
+    "source_type": "intent",
+    "execution_mode": "d
+2026-03-11 10:08:09 | ERROR | [ae63d1d62ee74a1e8e90febf724da975] | app.dependencies | 数据库会话异常: 500: AI 返回数据格式错误，无法解析 JSON
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 218, in generate_scenario_from_intent
+    scenario_result = json.loads(scenario_result)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 221, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 返回数据格式错误，无法解析 JSON
+2026-03-11 10:08:48 | ERROR | [245b6bc61fd14d82b1ba535cd37049e5] | app.services.api_retrieval | [245b6bc61fd14d82b1ba535cd37049e5] 向量检索失败: type object 'VectorIndexManager' has no attribute 'get_instance'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\services\api_retrieval.py", line 515, in _vector_search
+    vector_manager = VectorIndexManager.get_instance()
+AttributeError: type object 'VectorIndexManager' has no attribute 'get_instance'
+2026-03-11 10:09:12 | ERROR | [245b6bc61fd14d82b1ba535cd37049e5] | app.api.v1.intent_workbench | [245b6bc61fd14d82b1ba535cd37049e5] JSON 解析失败: Expecting value: line 1 column 1 (char 0), result=### 阶段一：业务步骤识别
+
+1. **用户意图分解为具体的业务步骤**
+   - 注册用户（如果用户不存在）
+   - 登录系统
+   - 创建订单
+
+2. **识别每个步骤对应的 API 调用**
+   - **注册用户**：需要一个 API 来创建用户
+   - **登录系统**：需要一个 API 来验证用户并获取会话信息
+   - **创建订单**：需要一个 API 来创建销售订单
+
+3. **确定步骤之间的执行顺序（依赖关系）**
+   - 注册用户（如果用户不存在） -> 登录系统 -> 创建订单
+
+### 阶段二：场景生成
+
+#### 选择的 API
+- **注册用户**：候选 API 列表中没有找到对应的 API
+- **登录系统**：ID: 2672
+- **创建订单**：ID: 2612
+
+#### 缺失的接口
+- **注册用户**：需要一个 API 来创建用户，但候选列表中没有找到对应的 API
+
+#### 生成的场景数据结构
+
+```json
+{
+  "scenario": {
+    "name": "用户登录和订单创建",
+    "description
+2026-03-11 10:09:12 | ERROR | [245b6bc61fd14d82b1ba535cd37049e5] | app.dependencies | 数据库会话异常: 500: AI 返回数据格式错误，无法解析 JSON
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 218, in generate_scenario_from_intent
+    scenario_result = json.loads(scenario_result)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 221, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 返回数据格式错误，无法解析 JSON
+2026-03-11 11:39:51 | ERROR | [41a1ec1157af41f3908716a1fcabeed7] | app.services.api_retrieval | [41a1ec1157af41f3908716a1fcabeed7] 向量检索失败: VectorIndexManager.search() got an unexpected keyword argument 'query_text'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\services\api_retrieval.py", line 516, in _vector_search
+    results = await vector_manager.search(
+TypeError: VectorIndexManager.search() got an unexpected keyword argument 'query_text'
+2026-03-11 11:40:17 | ERROR | [41a1ec1157af41f3908716a1fcabeed7] | app.api.v1.intent_workbench | [41a1ec1157af41f3908716a1fcabeed7] JSON 解析失败: Expecting value: line 1 column 1 (char 0), result=```json
+{
+  "scenario": {
+    "name": "InvenTree 登录流程测试",
+    "description": "测试 InvenTree 项目的登录流程",
+    "scenario_type": "business_flow",
+    "source_type": "intent",
+    "execution_mode": "dag",
+    "timeout_seconds": 600,
+    "retry_count": 0,
+    "continue_on_failure": false
+  },
+  "nodes": [
+    {
+      "node_key": "step1",
+      "node_name": "第一步：创建用户",
+      "node_type": "api_call",
+      "ref_type": "api_definition",
+      "ref_id": -1,
+      "step_order": 1,
+      "depends_on": [],
+    
+2026-03-11 11:40:17 | ERROR | [41a1ec1157af41f3908716a1fcabeed7] | app.dependencies | 数据库会话异常: 500: AI 返回数据格式错误，无法解析 JSON
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 218, in generate_scenario_from_intent
+    scenario_result = json.loads(scenario_result)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 221, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 返回数据格式错误，无法解析 JSON
+2026-03-11 11:46:35 | ERROR | [7c3e4a47d77b4a149eae3a03cf5777a3] | app.services.api_retrieval | [7c3e4a47d77b4a149eae3a03cf5777a3] 向量检索失败: VectorIndexManager.search() got an unexpected keyword argument 'query_text'
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\services\api_retrieval.py", line 516, in _vector_search
+    results = await vector_manager.search(
+TypeError: VectorIndexManager.search() got an unexpected keyword argument 'query_text'
+2026-03-11 11:46:55 | ERROR | [7c3e4a47d77b4a149eae3a03cf5777a3] | app.api.v1.intent_workbench | [7c3e4a47d77b4a149eae3a03cf5777a3] JSON 解析失败: Expecting value: line 1 column 1 (char 0), result=### 阶段一：业务步骤识别
+
+#### 业务步骤分解
+1. **创建用户**：创建一个用户账户。
+2. **登录用户**：使用用户名和密码登录。
+3. **验证登录**：确认用户已经成功登录。
+
+#### 识别每个步骤对应的 API 调用
+1. **创建用户**：候选 API 列表中没有直接创建用户的接口。我们需要从其他地方获取用户信息。
+2. **登录用户**：使用 `/api/auth/login/` 接口。
+3. **验证登录**：使用 `/api/auth/me/` 接口确认用户已经成功登录。
+
+#### 确定步骤之间的执行顺序
+1. **创建用户**：由于候选 API 列表中没有直接创建用户的接口，我们需要从其他地方获取用户信息。
+2. **登录用户**：在创建用户后，使用 `/api/auth/login/` 接口登录。
+3. **验证登录**：在登录后，使用 `/api/auth/me/` 接口确认用户已经成功登录。
+
+### 阶段二：场景生成
+
+```json
+{
+  "scenario": {
+    "name": "测试登录流程",
+    "descripti
+2026-03-11 11:46:55 | ERROR | [7c3e4a47d77b4a149eae3a03cf5777a3] | app.dependencies | 数据库会话异常: 500: AI 返回数据格式错误，无法解析 JSON
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 218, in generate_scenario_from_intent
+    scenario_result = json.loads(scenario_result)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 221, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 返回数据格式错误，无法解析 JSON
+2026-03-11 14:34:45 | ERROR | [ac1e8365fcbd44ecab1d7f34c61ca415] | app.main | ❌ 向量索引预热失败，语义检索功能降级: type object 'Project' has no attribute 'status'
+2026-03-11 15:06:18 | ERROR | [aaedf5463be14cebb7ae51a993782060] | app.api.v1.intent_workbench | [aaedf5463be14cebb7ae51a993782060] JSON 解析失败: Expecting value: line 1 column 1 (char 0), result=### 阶段一：业务步骤识别
+
+1. **第一步：登录**
+   - 用户意图：测试登录流程，第一步应该是登录用户。
+   - 识别的 API：`/api/login/`（假设是登录 API）
+   - 执行顺序：第一步
+
+2. **第二步：获取用户信息**
+   - 用户意图：登录成功后，获取用户信息。
+   - 识别的 API：`/api/user/info/`（假设是获取用户信息 API）
+   - 执行顺序：第二步，依赖于第一步
+
+3. **第三步：验证用户信息**
+   - 用户意图：验证获取到的用户信息是否正确。
+   - 识别的 API：`/api/user/verify/`（假设是验证用户信息 API）
+   - 执行顺序：第三步，依赖于第二步
+
+### 阶段二：场景生成
+
+由于候选 API 列表中没有 `/api/login/`、`/api/user/info/` 和 `/api/user/verify/` 这些 API，我们需要生成占位符节点。
+
+```json
+{
+  "scenario": {
+    "name": "登录流程测试",
+    "descrip
+2026-03-11 15:06:18 | ERROR | [aaedf5463be14cebb7ae51a993782060] | app.dependencies | 数据库会话异常: 500: AI 返回数据格式错误，无法解析 JSON
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 218, in generate_scenario_from_intent
+    scenario_result = json.loads(scenario_result)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 221, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 返回数据格式错误，无法解析 JSON
+2026-03-11 15:21:54 | ERROR | [a396c35aa84846d68b5392b5543c6e23] | app.api.v1.intent_workbench | [a396c35aa84846d68b5392b5543c6e23] JSON 解析失败: Expecting value: line 1 column 1 (char 0), result=### 阶段一：业务步骤识别
+
+#### 业务步骤分解
+1. **创建用户**：用户需要注册或创建一个新账户。
+2. **登录用户**：用户使用创建的账户登录系统。
+3. **查询用户信息**：用户登录后，查询自己的用户信息以确认登录成功。
+
+#### 识别每个步骤对应的 API 调用
+1. **创建用户**：候选API列表中没有直接创建用户的API，因此需要一个占位符。
+2. **登录用户**：候选API列表中没有直接登录用户的API，因此需要一个占位符。
+3. **查询用户信息**：候选API列表中没有直接查询用户信息的API，因此需要一个占位符。
+
+#### 确定步骤之间的执行顺序（依赖关系）
+1. **创建用户**（假设通过占位符） -> **登录用户**（假设通过占位符） -> **查询用户信息**（假设通过占位符）
+
+### 阶段二：场景生成
+
+```json
+{
+  "scenario": {
+    "name": "测试登录流程",
+    "description": "测试用户注册、登录和查询用户信息的完整流程",
+    "scenario_type": "bu
+2026-03-11 15:21:54 | ERROR | [a396c35aa84846d68b5392b5543c6e23] | app.dependencies | 数据库会话异常: 500: AI 返回数据格式错误，无法解析 JSON
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 241, in generate_scenario_from_intent
+    scenario_result = json.loads(scenario_result)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 244, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 返回数据格式错误，无法解析 JSON
+2026-03-11 15:48:49 | ERROR | [0cb1a486072f49b1930ae8f07101a9ef] | app.api.v1.intent_workbench | JSON 解析失败: Expecting value: line 1 column 1 (char 0), raw_text=### 阶段一：业务步骤识别
+
+1. **登录用户**
+   - 需要 API：待补齐：登录用户
+   - 缺少该接口，需要用户手动选择。
+
+2. **获取用户信息**
+   - 需要 API：待补齐：获取用户信息
+   - 缺少该接口，需要用户手动选择。
+
+### 阶段二：场景生成
+
+```json
+{
+  "scenario": {
+    "name": "登录流程测试",
+    "des
+2026-03-11 15:48:49 | ERROR | [0cb1a486072f49b1930ae8f07101a9ef] | app.api.v1.intent_workbench | [0cb1a486072f49b1930ae8f07101a9ef] AI 返回格式净化失败: AI 返回数据格式错误: Expecting value: line 1 column 1 (char 0), AI原始返回=### 阶段一：业务步骤识别
+
+1. **登录用户**
+   - 需要 API：待补齐：登录用户
+   - 缺少该接口，需要用户手动选择。
+
+2. **获取用户信息**
+   - 需要 API：待补齐：获取用户信息
+   - 缺少该接口，需要用户手动选择。
+
+### 阶段二：场景生成
+
+```json
+{
+  "scenario": {
+    "name": "登录流程测试",
+    "description": "测试登录流程",
+    "scenario_type": "business_flow",
+    "source_type": "intent",
+    "execution_mode": "dag",
+    "timeout_seconds": 600,
+    "retry_count": 0,
+    "continue_on_failure": false
+  },
+  "nodes": [
+    {
+      "node_key": "step1",
+      "node_name": "待补齐：登录用户",
+      "node_type":
+2026-03-11 15:48:49 | ERROR | [0cb1a486072f49b1930ae8f07101a9ef] | app.dependencies | 数据库会话异常: 500: AI 返回数据格式错误，无法解析: AI 返回数据格式错误: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 584, in _parse_ai_response
+    result = json.loads(raw_text)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\json\decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 239, in generate_scenario_from_intent
+    parsed_result = _parse_ai_response(ai_result["result"])
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 588, in _parse_ai_response
+    raise ValueError(f"AI 返回数据格式错误: {str(e)}")
+ValueError: AI 返回数据格式错误: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\code\BugSeek\backend\app\dependencies.py", line 196, in get_db
+    yield db
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\concurrency.py", line 29, in contextmanager_in_threadpool
+    yield await run_in_threadpool(cm.__enter__)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 101, in app
+    response = await f(request)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 355, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 243, in run_endpoint_function
+    return await dependant.call(**values)
+  File "D:\code\BugSeek\backend\app\api\v1\intent_workbench.py", line 248, in generate_scenario_from_intent
+    raise HTTPException(
+fastapi.exceptions.HTTPException: 500: AI 返回数据格式错误，无法解析: AI 返回数据格式错误: Expecting value: line 1 column 1 (char 0)

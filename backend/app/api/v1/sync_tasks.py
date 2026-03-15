@@ -761,6 +761,12 @@ def _apply_changes_impl(
 
         logger.info(f"[{trace_id}] 变更应用完成: {result.applied_count} 个变更已应用, 创建了 {len(groups_map)} 个分组")
 
+    except Exception as e:
+        db.rollback()
+        logger.error(f"[{trace_id}] 应用变更时发生错误: {str(e)}")
+        result.errors.append(f"应用变更失败: {str(e)}")
+        raise
+
     return result
 
 
@@ -796,11 +802,6 @@ def _sync_knowledge_graph_from_openapi(db: Session, project_id: int, diff_data: 
 
     service = KnowledgeGraphService(db)
     service.build_from_openapi(candidates)
-
-    except Exception as e:
-        db.rollback()
-        logger.error(f"[{trace_id}] 应用变更失败: {str(e)}", exc_info=True)
-        raise
 
 
 @router.post("/sync-tasks/{task_id}/apply", response_model=ApiResponse)

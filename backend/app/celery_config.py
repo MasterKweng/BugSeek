@@ -1,4 +1,5 @@
 """Celery 配置文件"""
+import os
 from dotenv import load_dotenv
 
 # 加载环境变量（必须在导入其他模块之前）
@@ -9,11 +10,17 @@ from celery import Celery
 # 创建 Celery 实例
 celery_app = Celery('bugseek')
 
+# 从环境变量获取 Redis 配置
+REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6380/0')
+
+# 解析 Redis URL
+redis_base = REDIS_URL.rsplit('/', 1)[0]  # 去掉最后的数据库编号
+
 # Celery 配置
 celery_app.conf.update(
     # Broker 配置（使用 Redis）
-    broker_url='redis://127.0.0.1:6380/0',
-    result_backend='redis://127.0.0.1:6380/1',
+    broker_url=f'{redis_base}/0',
+    result_backend=f'{redis_base}/1',
 
     # 序列化配置
     task_serializer='json',
@@ -68,5 +75,8 @@ celery_app.autodiscover_tasks(['app.celery'])
 
 # 显式导入任务以确保注册
 from app.celery import tasks  # noqa: F401
+
+# 导入解析器模块以确保注册
+from app.integrations import *  # noqa: F401
 
 __all__ = ['celery_app']

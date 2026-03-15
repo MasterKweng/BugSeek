@@ -36,6 +36,7 @@ from datetime import datetime
 
 import httpx
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from jsonpath_ng import parse
 
 from app.platform.db.base import (
@@ -44,6 +45,12 @@ from app.platform.db.base import (
 )
 from app.core.auth_service import AuthMiddleware
 from app.core.trace import get_trace_id
+from app.platform.config.settings import settings
+from app.dependencies import engine as app_engine
+from app.domains.data_impact.engine import DataImpactEngine
+from app.domains.data_impact.snapshot_provider import capture_snapshots, get_target_engine
+from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
+from app.celery.tasks import analyze_data_impact
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +144,7 @@ class CaseExecutor:
         case_trace_id = get_trace_id()
 
         extracted_vars: Dict[str, Any] = {}
+        data_impact_execution_id: Optional[str] = None
         try:
             logger.info(f"[{case_trace_id}] ========== 开始执行用例 ==========")
             logger.info(f"[{case_trace_id}] 用例ID: {case.id}, 用例名称: {case.name}")
@@ -182,6 +190,14 @@ class CaseExecutor:
             import traceback
             logger.error(f"[{case_trace_id}] 异常堆栈:\n{traceback.format_exc()}")
             raise
+
+        # Data Impact - start execution and snapshot before API call
+        data_impact_execution_id = self._start_data_impact(
+            db=db,
+            project_id=project_id,
+            api_id=definition.id,
+            trace_id=case_trace_id,
+        )
 
         # 执行前变量校验（避免 {{var}} 未替换直接出站）
         try:
@@ -253,10 +269,26 @@ class CaseExecutor:
             logger.info(f"[{case_trace_id}] [步骤5] 发送HTTP请求...")
             response_data = await self._send_request(request_data, case_trace_id)
             logger.info(f"[{case_trace_id}] [步骤5] HTTP请求完成")
+            data_impact_assertions = self._finish_data_impact(
+                db=db,
+                execution_id=data_impact_execution_id,
+                project_id=project_id,
+                api_id=definition.id,
+                trace_id=case_trace_id,
+                status="completed",
+            )
         except Exception as e:
             logger.error(f"[{case_trace_id}] [步骤5] HTTP请求发送失败: {str(e)}")
             import traceback
             logger.error(f"[{case_trace_id}] 异常堆栈:\n{traceback.format_exc()}")
+            data_impact_assertions = self._finish_data_impact(
+                db=db,
+                execution_id=data_impact_execution_id,
+                project_id=project_id,
+                api_id=definition.id,
+                trace_id=case_trace_id,
+                status="failed",
+            )
             raise
 
         # 验证断言
@@ -265,7 +297,10 @@ class CaseExecutor:
             logger.info(f"[{case_trace_id}] [步骤6] 断言规则: {json.dumps(case.assertion_rules, ensure_ascii=False)}")
             assertion_results = await self._validate_assertions(
                 case=case,
-                response=response_data
+                response=response_data,
+                extra_assertions=data_impact_assertions,
+                db=db,
+                project_id=project_id,
             )
             logger.info(f"[{case_trace_id}] [步骤6] 断言验证完成，结果: {json.dumps(assertion_results, ensure_ascii=False)}")
         except Exception as e:
@@ -744,7 +779,10 @@ class CaseExecutor:
     async def _validate_assertions(
         self,
         case: ApiCase,
-        response: Dict[str, Any]
+        response: Dict[str, Any],
+        extra_assertions: Optional[List[Dict[str, Any]]] = None,
+        db: Optional[Session] = None,
+        project_id: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         验证断言
@@ -771,14 +809,146 @@ class CaseExecutor:
             "error_message": None
         }
 
+        def _normalize_operator(op: Any) -> str:
+            if op is None:
+                return "=="
+            raw = str(op).strip()
+            low = raw.lower()
+            mapping = {
+                "equals": "==",
+                "equal": "==",
+                "=": "==",
+                "==": "==",
+                "not_equals": "!=",
+                "not_equal": "!=",
+                "!=": "!=",
+                "<>": "!=",
+                "greater_than": ">",
+                "gt": ">",
+                "less_than": "<",
+                "lt": "<",
+                "greater_equal": ">=",
+                "ge": ">=",
+                "gte": ">=",
+                "less_equal": "<=",
+                "le": "<=",
+                "lte": "<=",
+                "not_in": "not_in",
+                "not-in": "not_in",
+                "not_contains": "not_contains",
+                "not-contains": "not_contains",
+            }
+            return mapping.get(low, raw)
+
+        def _match_type(actual_value: Any, expected_type: Any) -> bool:
+            type_map = {
+                "string": str,
+                "str": str,
+                "text": str,
+                "int": int,
+                "integer": int,
+                "float": float,
+                "number": (int, float),
+                "bool": bool,
+                "boolean": bool,
+                "list": list,
+                "array": list,
+                "dict": dict,
+                "object": dict,
+            }
+            if isinstance(expected_type, str):
+                t = type_map.get(expected_type.lower())
+                if t is None:
+                    return False
+                return isinstance(actual_value, t)
+            return False
+
+        def _compare(actual_value: Any, operator_value: str, expected_value: Any) -> bool:
+            op = operator_value
+            op_lower = str(op).lower()
+
+            if op in ("==", "="):
+                return actual_value == expected_value
+            if op in ("!=", "<>"):
+                return actual_value != expected_value
+            if op_lower == "in":
+                if isinstance(expected_value, (list, tuple, set)):
+                    return actual_value in expected_value
+                if isinstance(actual_value, (list, tuple, set)):
+                    return expected_value in actual_value
+                if isinstance(actual_value, str):
+                    return str(expected_value) in actual_value
+                return actual_value == expected_value
+            if op_lower == "not_in":
+                return not _compare(actual_value, "in", expected_value)
+            if op_lower == "contains":
+                if actual_value is None:
+                    return False
+                if isinstance(actual_value, dict):
+                    return expected_value in actual_value
+                if isinstance(actual_value, (list, tuple, set)):
+                    return expected_value in actual_value
+                return str(expected_value) in str(actual_value)
+            if op_lower == "not_contains":
+                return not _compare(actual_value, "contains", expected_value)
+            if op in (">", ">=", "<", "<="):
+                try:
+                    if op == ">":
+                        return actual_value > expected_value
+                    if op == ">=":
+                        return actual_value >= expected_value
+                    if op == "<":
+                        return actual_value < expected_value
+                    if op == "<=":
+                        return actual_value <= expected_value
+                except Exception:
+                    return False
+            if op_lower in ("exists", "not_null"):
+                return actual_value is not None
+            if op_lower == "is_null":
+                return actual_value is None
+            if op_lower == "is_true":
+                return actual_value is True or actual_value == True
+            if op_lower == "is_false":
+                return actual_value is False or actual_value == False
+            if op_lower == "regex":
+                if expected_value is None:
+                    return False
+                return re.search(str(expected_value), str(actual_value)) is not None
+            if op_lower == "type":
+                if isinstance(expected_value, (list, tuple, set)):
+                    return any(_match_type(actual_value, t) for t in expected_value)
+                return _match_type(actual_value, expected_value)
+            if op_lower == "length":
+                try:
+                    return len(actual_value) == expected_value
+                except Exception:
+                    return False
+            if op_lower == "empty":
+                if actual_value is None:
+                    return True
+                try:
+                    return len(actual_value) == 0
+                except Exception:
+                    return False
+            return False
+
+        def _get_header(headers_dict: Dict[str, Any], name: str) -> Any:
+            if not name:
+                return None
+            if name in headers_dict:
+                return headers_dict.get(name)
+            lower_map = {k.lower(): v for k, v in headers_dict.items()}
+            return lower_map.get(name.lower())
+
         # 检查断言规则是否存在
-        if not case.assertion_rules:
+        if not case.assertion_rules and not extra_assertions:
             logger.info(f"[{trace_id}] 无断言规则，跳过所有断言")
             logger.info(f"[{trace_id}] ========== 断言验证完成 ==========")
             return results
 
         # 判断断言规则格式（列表或字典）
-        if isinstance(case.assertion_rules, list):
+        if case.assertion_rules and isinstance(case.assertion_rules, list):
             # 新格式：列表形式的断言规则
             logger.info(f"[{trace_id}] 检查断言（列表格式），共 {len(case.assertion_rules)} 条断言")
             
@@ -787,138 +957,6 @@ class CaseExecutor:
                 response_body = json.loads(response["body"]) if response["body"] else {}
             except:
                 response_body = {}
-
-            def _normalize_operator(op: Any) -> str:
-                if op is None:
-                    return "=="
-                raw = str(op).strip()
-                low = raw.lower()
-                mapping = {
-                    "equals": "==",
-                    "equal": "==",
-                    "=": "==",
-                    "==": "==",
-                    "not_equals": "!=",
-                    "not_equal": "!=",
-                    "!=": "!=",
-                    "<>": "!=",
-                    "greater_than": ">",
-                    "gt": ">",
-                    "less_than": "<",
-                    "lt": "<",
-                    "greater_equal": ">=",
-                    "ge": ">=",
-                    "gte": ">=",
-                    "less_equal": "<=",
-                    "le": "<=",
-                    "lte": "<=",
-                    "not_in": "not_in",
-                    "not-in": "not_in",
-                    "not_contains": "not_contains",
-                    "not-contains": "not_contains",
-                }
-                return mapping.get(low, raw)
-
-            def _match_type(actual_value: Any, expected_type: Any) -> bool:
-                type_map = {
-                    "string": str,
-                    "str": str,
-                    "text": str,
-                    "int": int,
-                    "integer": int,
-                    "float": float,
-                    "number": (int, float),
-                    "bool": bool,
-                    "boolean": bool,
-                    "list": list,
-                    "array": list,
-                    "dict": dict,
-                    "object": dict,
-                }
-                if isinstance(expected_type, str):
-                    t = type_map.get(expected_type.lower())
-                    if t is None:
-                        return False
-                    return isinstance(actual_value, t)
-                return False
-
-            def _compare(actual_value: Any, operator_value: str, expected_value: Any) -> bool:
-                op = operator_value
-                op_lower = str(op).lower()
-
-                if op in ("==", "="):
-                    return actual_value == expected_value
-                if op in ("!=", "<>"):
-                    return actual_value != expected_value
-                if op_lower == "in":
-                    if isinstance(expected_value, (list, tuple, set)):
-                        return actual_value in expected_value
-                    if isinstance(actual_value, (list, tuple, set)):
-                        return expected_value in actual_value
-                    if isinstance(actual_value, str):
-                        return str(expected_value) in actual_value
-                    return actual_value == expected_value
-                if op_lower == "not_in":
-                    return not _compare(actual_value, "in", expected_value)
-                if op_lower == "contains":
-                    if actual_value is None:
-                        return False
-                    if isinstance(actual_value, dict):
-                        return expected_value in actual_value
-                    if isinstance(actual_value, (list, tuple, set)):
-                        return expected_value in actual_value
-                    return str(expected_value) in str(actual_value)
-                if op_lower == "not_contains":
-                    return not _compare(actual_value, "contains", expected_value)
-                if op in (">", ">=", "<", "<="):
-                    try:
-                        if op == ">":
-                            return actual_value > expected_value
-                        if op == ">=":
-                            return actual_value >= expected_value
-                        if op == "<":
-                            return actual_value < expected_value
-                        if op == "<=":
-                            return actual_value <= expected_value
-                    except Exception:
-                        return False
-                if op_lower in ("exists", "not_null"):
-                    return actual_value is not None
-                if op_lower == "is_null":
-                    return actual_value is None
-                if op_lower == "is_true":
-                    return actual_value is True or actual_value == True
-                if op_lower == "is_false":
-                    return actual_value is False or actual_value == False
-                if op_lower == "regex":
-                    if expected_value is None:
-                        return False
-                    return re.search(str(expected_value), str(actual_value)) is not None
-                if op_lower == "type":
-                    if isinstance(expected_value, (list, tuple, set)):
-                        return any(_match_type(actual_value, t) for t in expected_value)
-                    return _match_type(actual_value, expected_value)
-                if op_lower == "length":
-                    try:
-                        return len(actual_value) == expected_value
-                    except Exception:
-                        return False
-                if op_lower == "empty":
-                    if actual_value is None:
-                        return True
-                    try:
-                        return len(actual_value) == 0
-                    except Exception:
-                        return False
-                return False
-
-            def _get_header(headers_dict: Dict[str, Any], name: str) -> Any:
-                if not name:
-                    return None
-                if name in headers_dict:
-                    return headers_dict.get(name)
-                lower_map = {k.lower(): v for k, v in headers_dict.items()}
-                return lower_map.get(name.lower())
 
             for idx, assertion in enumerate(case.assertion_rules, 1):
                 source_raw = assertion.get("source", "body")
@@ -1023,7 +1061,7 @@ class CaseExecutor:
                     })
                     results["passed"] = False
                     
-        elif isinstance(case.assertion_rules, dict):
+        elif case.assertion_rules and isinstance(case.assertion_rules, dict):
             # 旧格式：字典形式的断言规则（向后兼容）
             logger.info(f"[{trace_id}] 检查断言（字典格式）")
             
@@ -1096,8 +1134,106 @@ class CaseExecutor:
                     logger.error(f"[{trace_id}] 异常信息: {str(e)}")
                     results["error_message"] = f"解析响应失败: {str(e)}"
                     results["passed"] = False
-        else:
+        elif case.assertion_rules:
             logger.warning(f"[{trace_id}] 不支持的断言规则格式: {type(case.assertion_rules)}")
+
+        # Data Impact 断言（DB层）
+        if extra_assertions:
+            logger.info(f"[{trace_id}] 检查 Data Impact 断言，共 {len(extra_assertions)} 条")
+            if not db or not project_id:
+                logger.warning(f"[{trace_id}] 缺少 db 或 project_id，跳过 Data Impact 断言")
+                for assertion in extra_assertions:
+                    results["assertions"].append({
+                        "type": "db",
+                        "source": "db",
+                        "table": assertion.get("table"),
+                        "field": assertion.get("field"),
+                        "operator": assertion.get("operator"),
+                        "expected": assertion.get("expected"),
+                        "actual": None,
+                        "passed": True,
+                        "skipped": True,
+                        "reason": "missing_db_or_project",
+                    })
+            else:
+                target_engine = get_target_engine(db, project_id)
+                if not target_engine:
+                    logger.warning(f"[{trace_id}] 无法获取目标数据库连接，跳过 Data Impact 断言")
+                    for assertion in extra_assertions:
+                        results["assertions"].append({
+                            "type": "db",
+                            "source": "db",
+                            "table": assertion.get("table"),
+                            "field": assertion.get("field"),
+                            "operator": assertion.get("operator"),
+                            "expected": assertion.get("expected"),
+                            "actual": None,
+                            "passed": True,
+                            "skipped": True,
+                            "reason": "no_target_engine",
+                        })
+                else:
+                    table_re = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+                    for idx, assertion in enumerate(extra_assertions, 1):
+                        table = assertion.get("table")
+                        field = assertion.get("field")
+                        operator = _normalize_operator(assertion.get("operator", "=="))
+                        expected = assertion.get("expected")
+                        where = assertion.get("where") if isinstance(assertion.get("where"), dict) else {}
+                        sql = assertion.get("sql")
+
+                        if not sql:
+                            if not table or not field or not table_re.match(str(table)) or not table_re.match(str(field)):
+                                logger.warning(f"[{trace_id}] [DB断言 #{idx}] 表/字段非法，跳过")
+                                results["assertions"].append({
+                                    "type": "db",
+                                    "source": "db",
+                                    "table": table,
+                                    "field": field,
+                                    "operator": operator,
+                                    "expected": expected,
+                                    "actual": None,
+                                    "passed": True,
+                                    "skipped": True,
+                                    "reason": "invalid_identifier",
+                                })
+                                continue
+
+                            if where:
+                                where_clause = " AND ".join([f'\"{k}\" = :{k}' for k in where.keys()])
+                                sql = f'SELECT \"{field}\" FROM \"{table}\" WHERE {where_clause}'
+                            else:
+                                sql = f'SELECT \"{field}\" FROM \"{table}\"'
+
+                        actual = None
+                        passed = False
+                        try:
+                            with target_engine.connect() as conn:
+                                row = conn.execute(text(sql), where).fetchone()
+                                if row is not None:
+                                    try:
+                                        mapping = row._mapping
+                                        actual = list(mapping.values())[0] if mapping else row[0]
+                                    except Exception:
+                                        actual = row[0]
+                                passed = _compare(actual, operator, expected)
+                        except Exception as exc:
+                            logger.error(f"[{trace_id}] [DB断言 #{idx}] 执行失败: {exc}")
+                            passed = False
+
+                        results["assertions"].append({
+                            "type": "db",
+                            "source": "db",
+                            "table": table,
+                            "field": field,
+                            "operator": operator,
+                            "expected": expected,
+                            "actual": actual,
+                            "passed": passed,
+                            "sql": sql,
+                        })
+                        if not passed:
+                            results["passed"] = False
 
         total_assertions = len(results["assertions"])
         passed_assertions = len([a for a in results["assertions"] if a["passed"]])
@@ -1228,6 +1364,69 @@ class CaseExecutor:
             logger.warning(f"[{trace_id}] pre_sql extracted no vars; use SELECT ... AS <var_name>")
 
         return extracted_vars
+
+    def _start_data_impact(
+        self,
+        db: Session,
+        project_id: int,
+        api_id: int,
+        trace_id: str,
+    ) -> Optional[str]:
+        if not settings.DATA_IMPACT_ENABLED:
+            return None
+
+        try:
+            impact_engine = DataImpactEngine(db, app_engine)
+            execution_id = f"case_{api_id}_{uuid.uuid4().hex}"
+            impact_engine.start_execution(execution_id, api_id)
+            capture_snapshots(db, execution_id, project_id, api_id)
+            db.commit()
+            logger.info(f"[{trace_id}] Data impact started: execution_id={execution_id}")
+            return execution_id
+        except Exception as exc:
+            logger.error(f"[{trace_id}] Data impact start failed: {exc}")
+            return None
+
+    def _finish_data_impact(
+        self,
+        db: Session,
+        execution_id: Optional[str],
+        project_id: int,
+        api_id: int,
+        trace_id: str,
+        status: str,
+    ) -> Optional[List[Dict[str, Any]]]:
+        if not execution_id:
+            return None
+
+        try:
+            impact_engine = DataImpactEngine(db, app_engine)
+            capture_snapshots(db, execution_id, project_id, api_id)
+
+            if settings.DATA_IMPACT_ASYNC:
+                analyze_data_impact.delay(execution_id, api_id)
+            else:
+                result = impact_engine.analyze(
+                    execution_id,
+                    api_id,
+                    include_assertions=settings.DATA_IMPACT_ASSERTIONS_ENABLED,
+                )
+                impacts = impact_engine.repo.get_impacts_by_execution(execution_id)
+                payload = [
+                    {"definition_id": api_id, "table_name": impact.table_name, "count": impact.row_count}
+                    for impact in impacts
+                ]
+                if payload:
+                    KnowledgeGraphService(db).build_from_execution_logs(payload)
+                if settings.DATA_IMPACT_ASSERTIONS_ENABLED:
+                    return result.get("assertions") if isinstance(result, dict) else None
+
+            impact_engine.end_execution(execution_id, status=status)
+            db.commit()
+            logger.info(f"[{trace_id}] Data impact finished: execution_id={execution_id}, status={status}")
+        except Exception as exc:
+            logger.error(f"[{trace_id}] Data impact finish failed: {exc}")
+        return None
 
     async def _save_execution_record(
         self,
