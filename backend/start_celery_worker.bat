@@ -5,9 +5,16 @@ echo 启动 Celery Worker (Windows)
 echo ========================================
 echo.
 
-REM 加载 .env 文件
-echo 加载环境变量配置...
-for /f "tokens=*" %%a in (%~dp0.env) do set %%a
+REM 设置环境变量（默认为 dev）
+if "%APP_ENV%"=="" (
+    set APP_ENV=dev
+)
+echo 当前环境: %APP_ENV%
+echo.
+
+REM 加载对应的 .env 文件
+echo 加载环境变量配置: .env.%APP_ENV%
+for /f "tokens=*" %%a in (%~dp0.env.%APP_ENV%) do set %%a
 echo 环境变量加载完成
 echo.
 

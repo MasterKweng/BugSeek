@@ -1,1 +1,1 @@
-﻿"""AI testing domain package."""
+"""AI testing domain package."""

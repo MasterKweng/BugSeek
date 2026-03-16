@@ -6,6 +6,13 @@ echo 启动 BugSeek 后端服务
 echo ========================================
 echo.
 
+REM 设置环境变量（默认为 dev）
+if "%APP_ENV%"=="" (
+    set APP_ENV=dev
+)
+echo 当前环境: %APP_ENV%
+echo.
+
 REM 切换到脚本所在目录
 cd /d "%~dp0"
 

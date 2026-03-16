@@ -50,7 +50,6 @@ from app.dependencies import engine as app_engine
 from app.domains.data_impact.engine import DataImpactEngine
 from app.domains.data_impact.snapshot_provider import capture_snapshots, get_target_engine
 from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
-from app.celery.tasks import analyze_data_impact
 
 logger = logging.getLogger(__name__)
 
@@ -1404,6 +1403,8 @@ class CaseExecutor:
             capture_snapshots(db, execution_id, project_id, api_id)
 
             if settings.DATA_IMPACT_ASYNC:
+                # Delayed import to avoid circular import
+                from app.celery.tasks import analyze_data_impact
                 analyze_data_impact.delay(execution_id, api_id)
             else:
                 result = impact_engine.analyze(

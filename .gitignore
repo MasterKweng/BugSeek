@@ -30,6 +30,9 @@
    # Environment variables
    .env
    .env.local
+   .env.dev
+   .env.test
+   .env.*.local
 
    # Logs
    logs/

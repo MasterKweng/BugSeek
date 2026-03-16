@@ -1,8 +1,4 @@
-from dotenv import load_dotenv
-
-# 加载环境变量（必须在导入其他模块之前）
-load_dotenv()
-
+import os
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse

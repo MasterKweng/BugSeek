@@ -105200,3 +105200,393 @@ Traceback (most recent call last):
   File "C:\dev\python\lib\site-packages\kombu\connection.py", line 478, in _reraise_as_library_errors
     raise ConnectionError(str(exc)) from exc
 kombu.exceptions.OperationalError: Error 10061 connecting to 192.168.1.3:6381. 由于目标计算机积极拒绝，无法连接。.
+[2026-03-16 11:19:41,132: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 2.00 seconds... (1/100)
+
+[2026-03-16 11:20:04,157: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 4.00 seconds... (2/100)
+
+[2026-03-16 11:20:29,194: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 6.00 seconds... (3/100)
+
+[2026-03-16 11:20:56,250: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 8.00 seconds... (4/100)
+
+[2026-03-16 11:21:25,314: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 10.00 seconds... (5/100)
+
+[2026-03-16 11:21:56,397: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 12.00 seconds... (6/100)
+
+[2026-03-16 11:22:29,481: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 14.00 seconds... (7/100)
+
+[2026-03-16 11:23:04,602: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 16.00 seconds... (8/100)
+
+[2026-03-16 11:23:41,670: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 18.00 seconds... (9/100)
+
+[2026-03-16 11:24:20,772: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 20.00 seconds... (10/100)
+
+[2026-03-16 11:25:01,884: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 22.00 seconds... (11/100)
+
+[2026-03-16 11:25:45,010: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 24.00 seconds... (12/100)
+
+[2026-03-16 11:26:30,283: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 26.00 seconds... (13/100)
+
+[2026-03-16 11:27:17,615: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 28.00 seconds... (14/100)
+
+[2026-03-16 11:28:06,784: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 30.00 seconds... (15/100)
+
+[2026-03-16 11:28:57,978: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (16/100)
+
+[2026-03-16 11:29:51,222: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (17/100)
+
+[2026-03-16 11:30:44,502: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (18/100)
+
+[2026-03-16 11:31:37,787: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (19/100)
+
+[2026-03-16 11:32:31,048: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (20/100)
+
+[2026-03-16 11:33:24,303: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (21/100)
+
+[2026-03-16 11:34:17,555: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (22/100)
+
+[2026-03-16 11:35:10,833: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (23/100)
+
+[2026-03-16 11:36:04,171: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (24/100)
+
+[2026-03-16 11:36:57,468: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (25/100)
+
+[2026-03-16 11:37:50,695: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (26/100)
+
+[2026-03-16 11:38:43,981: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (27/100)
+
+[2026-03-16 11:39:37,362: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (28/100)
+
+[2026-03-16 11:40:30,705: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (29/100)
+
+[2026-03-16 11:41:23,965: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (30/100)
+
+[2026-03-16 11:42:17,209: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (31/100)
+
+[2026-03-16 11:43:10,520: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (32/100)
+
+[2026-03-16 11:44:03,837: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (33/100)
+
+[2026-03-16 11:44:57,093: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (34/100)
+
+[2026-03-16 11:45:50,414: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (35/100)
+
+[2026-03-16 11:46:43,710: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (36/100)
+
+[2026-03-16 11:47:36,937: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (37/100)
+
+[2026-03-16 11:48:30,084: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (38/100)
+
+[2026-03-16 11:49:23,237: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (39/100)
+
+[2026-03-16 11:50:16,439: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (40/100)
+
+[2026-03-16 11:51:09,651: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (41/100)
+
+[2026-03-16 11:52:02,836: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (42/100)
+
+[2026-03-16 11:52:56,015: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (43/100)
+
+[2026-03-16 11:53:49,230: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (44/100)
+
+[2026-03-16 11:54:42,527: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (45/100)
+
+[2026-03-16 11:55:35,751: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (46/100)
+
+[2026-03-16 11:56:29,021: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (47/100)
+
+[2026-03-16 11:57:22,316: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (48/100)
+
+[2026-03-16 11:58:15,639: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (49/100)
+
+[2026-03-16 11:59:08,952: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (50/100)
+
+[2026-03-16 12:00:02,279: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (51/100)
+
+[2026-03-16 12:00:55,569: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (52/100)
+
+[2026-03-16 12:01:48,847: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (53/100)
+
+[2026-03-16 12:02:42,166: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (54/100)
+
+[2026-03-16 12:03:35,400: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (55/100)
+
+[2026-03-16 12:04:28,666: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (56/100)
+
+[2026-03-16 12:05:22,047: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (57/100)
+
+[2026-03-16 12:06:15,317: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (58/100)
+
+[2026-03-16 12:07:08,603: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (59/100)
+
+[2026-03-16 12:08:01,881: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (60/100)
+
+[2026-03-16 12:08:55,154: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (61/100)
+
+[2026-03-16 12:09:48,436: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (62/100)
+
+[2026-03-16 12:10:41,669: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (63/100)
+
+[2026-03-16 12:11:34,896: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (64/100)
+
+[2026-03-16 12:12:28,173: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (65/100)
+
+[2026-03-16 12:13:21,472: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (66/100)
+
+[2026-03-16 12:14:14,797: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (67/100)
+
+[2026-03-16 12:15:08,091: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (68/100)
+
+[2026-03-16 12:16:01,382: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (69/100)
+
+[2026-03-16 12:16:54,681: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (70/100)
+
+[2026-03-16 12:17:47,986: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (71/100)
+
+[2026-03-16 12:18:41,279: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (72/100)
+
+[2026-03-16 12:19:34,603: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (73/100)
+
+[2026-03-16 12:20:27,916: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (74/100)
+
+[2026-03-16 12:21:21,190: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (75/100)
+
+[2026-03-16 12:22:14,425: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (76/100)
+
+[2026-03-16 12:23:07,731: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (77/100)
+
+[2026-03-16 12:24:00,966: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (78/100)
+
+[2026-03-16 12:24:54,214: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (79/100)
+
+[2026-03-16 12:25:47,416: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (80/100)
+
+[2026-03-16 12:26:40,638: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (81/100)
+
+[2026-03-16 12:27:33,913: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (82/100)
+
+[2026-03-16 12:28:27,112: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (83/100)
+
+[2026-03-16 12:29:20,293: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (84/100)
+
+[2026-03-16 12:30:13,530: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (85/100)
+
+[2026-03-16 12:31:06,799: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (86/100)
+
+[2026-03-16 12:32:00,026: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (87/100)
+
+[2026-03-16 12:32:53,271: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (88/100)
+
+[2026-03-16 12:33:46,440: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (89/100)
+
+[2026-03-16 12:34:39,636: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (90/100)
+
+[2026-03-16 12:35:32,821: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (91/100)
+
+[2026-03-16 12:36:26,083: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (92/100)
+
+[2026-03-16 12:37:19,319: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (93/100)
+
+[2026-03-16 12:38:12,589: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (94/100)
+
+[2026-03-16 12:39:05,791: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (95/100)
+
+[2026-03-16 12:39:59,038: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (96/100)
+
+[2026-03-16 12:40:52,230: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (97/100)
+
+[2026-03-16 12:41:45,457: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (98/100)
+
+[2026-03-16 12:42:38,637: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (99/100)
+
+[2026-03-16 12:43:31,812: ERROR/MainProcess] consumer: Cannot connect to redis://192.168.1.3:6381/0: Timeout connecting to server.
+Trying again in 32.00 seconds... (100/100)
+
+[2026-03-16 12:44:25,010: CRITICAL/MainProcess] Unrecoverable error: OperationalError('Timeout connecting to server')
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\transport\virtual\base.py", line 951, in create_channel
+    return self._avail_channels.pop()
+IndexError: pop from empty list
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 855, in connect_check_health
+    sock = self.retry.call_with_retry(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\retry.py", line 123, in call_with_retry
+    raise error
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\retry.py", line 116, in call_with_retry
+    return do()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 856, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 1306, in _connect
+    raise err
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 1290, in _connect
+    sock.connect(socket_address)
+TimeoutError: [WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\connection.py", line 474, in _reraise_as_library_errors
+    yield
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\connection.py", line 461, in _ensure_connection
+    return retry_over_time(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\utils\functional.py", line 318, in retry_over_time
+    return fun(*args, **kwargs)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\connection.py", line 941, in _connection_factory
+    self._connection = self._establish_connection()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\connection.py", line 863, in _establish_connection
+    conn = self.transport.establish_connection()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\transport\virtual\base.py", line 975, in establish_connection
+    self._avail_channels.append(self.create_channel(self))
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\transport\virtual\base.py", line 953, in create_channel
+    channel = self.Channel(connection)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\transport\redis.py", line 757, in __init__
+    self.client.ping()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\commands\core.py", line 1226, in ping
+    return self.execute_command("PING", **kwargs)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\client.py", line 657, in execute_command
+    return self._execute_command(*args, **options)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\client.py", line 663, in _execute_command
+    conn = self.connection or pool.get_connection()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\utils.py", line 196, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 2603, in get_connection
+    connection.connect()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 846, in connect
+    self.connect_check_health(check_health=True)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\redis\connection.py", line 861, in connect_check_health
+    raise TimeoutError("Timeout connecting to server")
+redis.exceptions.TimeoutError: Timeout connecting to server
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\worker\worker.py", line 203, in start
+    self.blueprint.start(self)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\bootsteps.py", line 116, in start
+    step.start(parent)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\bootsteps.py", line 365, in start
+    return self.obj.start()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\worker\consumer\consumer.py", line 346, in start
+    blueprint.start(self)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\bootsteps.py", line 116, in start
+    step.start(parent)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\worker\consumer\connection.py", line 21, in start
+    c.connection = c.connect()
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\worker\consumer\consumer.py", line 475, in connect
+    conn = self.connection_for_read(heartbeat=self.amqheartbeat)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\worker\consumer\consumer.py", line 481, in connection_for_read
+    return self.ensure_connected(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\celery\worker\consumer\consumer.py", line 535, in ensure_connected
+    conn = conn.ensure_connection(
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\connection.py", line 408, in ensure_connection
+    self._ensure_connection(*args, **kwargs)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\connection.py", line 460, in _ensure_connection
+    with ctx():
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\81026\AppData\Local\Programs\Python\Python310\lib\site-packages\kombu\connection.py", line 478, in _reraise_as_library_errors
+    raise ConnectionError(str(exc)) from exc
+kombu.exceptions.OperationalError: Timeout connecting to server
+[2026-03-16 12:45:16,991: INFO/MainProcess] Connected to redis://127.0.0.1:6380/0
+[2026-03-16 12:45:17,042: INFO/MainProcess] celery@yukwengRu ready.

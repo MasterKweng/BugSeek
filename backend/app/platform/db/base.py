@@ -1033,6 +1033,22 @@ class Snapshot(Base, TimestampMixin):
     id = Column(Integer, primary_key=True, index=True)
     execution_id = Column(String(100), nullable=False, index=True)
     table_name = Column(String(255), nullable=False, index=True)
+
+
+class AiMemory(Base, TimestampMixin):
+    """AI memory store."""
+    __tablename__ = "ai_memory"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
+    memory_type = Column(String(50), nullable=False, index=True)  # failure/success/plan/etc.
+    context = Column(JSON, nullable=True)
+    result = Column(JSON, nullable=True)
+    embedding = Column(JSON)  # vector list
+
+    __table_args__ = (
+        Index("ix_ai_memory_project_type", "project_id", "memory_type"),
+    )
     data_json = Column(JSON, nullable=False)
     snapshot_time = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 

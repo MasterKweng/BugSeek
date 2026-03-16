@@ -1,5 +1,13 @@
-from pydantic_settings import BaseSettings
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional, List
+
+# 根据环境变量加载对应的配置文件
+app_env = os.getenv("APP_ENV", "dev")
+env_file = f".env.{app_env}"
+load_dotenv(env_file)
 
 
 class Settings(BaseSettings):
@@ -7,9 +15,17 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "BugSeek"
     VERSION: str = "2.0.0"
     API_V1_STR: str = "/api/v1"
-    
+
     # 环境配置
     ENVIRONMENT: str = "development"  # development, staging, production
+
+    # 使用 model_config 替代 Config 类（Pydantic v2）
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore"  # 忽略额外的字段
+    )
 
     # ========== Feature Flags ==========
     
@@ -120,9 +136,6 @@ class Settings(BaseSettings):
         # 使用用户ID的最后两位数字作为随机种子
         return (user_id % 100) < self.SCENARIO_V2_ROLLOUT_PERCENTAGE
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
 
-
+# 创建 settings 实例（环境变量已在 main.py 和 celery_config.py 中通过 load_dotenv 加载）
 settings = Settings()
