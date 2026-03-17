@@ -18,7 +18,6 @@ import {
   Col,
   Tooltip,
   Drawer,
-  Timeline,
   Descriptions,
   Popconfirm,
   Select,
@@ -28,8 +27,6 @@ import {
   EyeOutlined,
   DeleteOutlined,
   SwapOutlined,
-  ClockCircleOutlined,
-  UserOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import api from '../../services/api';
@@ -52,12 +49,6 @@ interface VersionSnapshot {
   created_by_name: string | null;
 }
 
-interface ApiResponse {
-  code: number;
-  message: string;
-  data: any;
-}
-
 const VersionSnapshots: React.FC = () => {
   // 状态管理
   const [loading, setLoading] = useState(false);
@@ -69,7 +60,7 @@ const VersionSnapshots: React.FC = () => {
   
   // 弹窗状态
   const [compareModalVisible, setCompareModalVisible] = useState(false);
-  const [compareData, setCompareData] = useState<any>(null);
+  const [compareData] = useState<any>(null);
   const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
   const [currentSnapshot, setCurrentSnapshot] = useState<VersionSnapshot | null>(null);
   
@@ -175,7 +166,7 @@ const VersionSnapshots: React.FC = () => {
   };
 
   // 版本对比
-  const handleCompare = (record: VersionSnapshot) => {
+  const handleCompare = (_record: VersionSnapshot) => {
     // 这里简化处理，实际应该让用户选择两个快照进行对比
     // 暂时跳过，因为需要实现选择两个快照的界面
     message.info('版本对比功能开发中，请稍后使用');

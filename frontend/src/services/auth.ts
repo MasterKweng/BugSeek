@@ -3,7 +3,7 @@
  * 符合前端代码规范
  */
 
-import * as request from '../services/request';
+import api from './api';
 import {
   AuthConfig,
   AuthConfigCreate,
@@ -25,7 +25,7 @@ import {
 export const getProjectAuthTemplate = (
   projectId: number
 ): Promise<ApiResponse<ProjectAuthTemplate>> => {
-  return request.get(`/projects/${projectId}/auth-template`);
+  return api.get(`/projects/${projectId}/auth-template`);
 };
 
 /**
@@ -35,7 +35,7 @@ export const createProjectAuthTemplate = (
   projectId: number,
   data: ProjectAuthTemplateCreate
 ): Promise<ApiResponse<ProjectAuthTemplate>> => {
-  return request.post(`/projects/${projectId}/auth-template`, data);
+  return api.post(`/projects/${projectId}/auth-template`, data);
 };
 
 /**
@@ -45,14 +45,14 @@ export const updateProjectAuthTemplate = (
   projectId: number,
   data: ProjectAuthTemplateUpdate
 ): Promise<ApiResponse<ProjectAuthTemplate>> => {
-  return request.put(`/projects/${projectId}/auth-template`, data);
+  return api.put(`/projects/${projectId}/auth-template`, data);
 };
 
 /**
  * 删除项目级鉴权模板
  */
 export const deleteProjectAuthTemplate = (projectId: number): Promise<ApiResponse<null>> => {
-  return request.del(`/projects/${projectId}/auth-template`);
+  return api.delete(`/projects/${projectId}/auth-template`);
 };
 
 // ==================== 环境级配置相关 ====================
@@ -66,7 +66,7 @@ export const getEnvironmentAuthConfig = (
   projectId: number,
   environmentId: number
 ): Promise<ApiResponse<AuthConfig>> => {
-  return request.get(`/projects/${projectId}/environments/${environmentId}/auth-config`);
+  return api.get(`/projects/${projectId}/environments/${environmentId}/auth-config`);
 };
 
 /**
@@ -82,11 +82,10 @@ export const createEnvironmentAuthConfig = (
   data: AuthConfigCreate,
   inheritFromProject: boolean = false
 ): Promise<ApiResponse<AuthConfig>> => {
-  const params = inheritFromProject ? { inherit_from_project: true } : {};
-  return request.post(
+  return api.post(
     `/projects/${projectId}/environments/${environmentId}/auth-config`,
     data,
-    params
+    { params: inheritFromProject ? { inherit_from_project: true } : undefined }
   );
 };
 
@@ -98,7 +97,7 @@ export const updateEnvironmentAuthConfig = (
   environmentId: number,
   data: AuthConfigUpdate
 ): Promise<ApiResponse<AuthConfig>> => {
-  return request.put(
+  return api.put(
     `/projects/${projectId}/environments/${environmentId}/auth-config`,
     data
   );
@@ -111,9 +110,19 @@ export const deleteEnvironmentAuthConfig = (
   projectId: number,
   environmentId: number
 ): Promise<ApiResponse<null>> => {
-  return request.del(
+  return api.delete(
     `/projects/${projectId}/environments/${environmentId}/auth-config`
   );
+};
+
+/**
+ * 测试登录与凭证提取
+ */
+export const testAcquisition = (
+  projectId: number,
+  data: TestAcquisitionRequest
+): Promise<ApiResponse<TestAcquisitionResponse>> => {
+  return api.post(`/projects/${projectId}/auth-config/test-acquisition`, data);
 };
 
 /**
@@ -127,5 +136,6 @@ export default {
   getEnvironmentAuthConfig,
   createEnvironmentAuthConfig,
   updateEnvironmentAuthConfig,
-  deleteEnvironmentAuthConfig
+  deleteEnvironmentAuthConfig,
+  testAcquisition
 };

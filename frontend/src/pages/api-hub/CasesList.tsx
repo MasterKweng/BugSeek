@@ -23,7 +23,6 @@ import {
   Tooltip,
   Popconfirm,
   Drawer,
-  Badge,
   Alert,
   Typography,
 } from 'antd';
@@ -38,7 +37,7 @@ import {
   PlayCircleOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useDebounce } from '../../hooks/useDebounce';
 import api from '../../services/api';
 
@@ -74,6 +73,7 @@ interface ApiDefinition {
   method: string;
   path: string;
   summary: string | null;
+  response_schema?: Record<string, unknown> | null;
 }
 
 interface Environment {
@@ -81,14 +81,7 @@ interface Environment {
   name: string;
 }
 
-interface ApiResponse {
-  code: number;
-  message: string;
-  data: any;
-}
-
 const CasesList: React.FC = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const definitionIdParam = searchParams.get('definition_id');
 

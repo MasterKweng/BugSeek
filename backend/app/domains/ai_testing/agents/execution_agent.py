@@ -22,5 +22,6 @@ class ExecutionAgent:
             scenario_id=scenario_id,
             graph_data=None,
             variables=variables or {},
+            environment_id=None,
             db=db,
         )

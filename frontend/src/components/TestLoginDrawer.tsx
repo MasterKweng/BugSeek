@@ -7,8 +7,8 @@ import React, { useState } from 'react';
 import { Drawer, Button, Space, Alert, Spin, Card, Empty, Descriptions } from 'antd';
 import { PlayCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 
-import { testAcquisition, TestAcquisitionResponse } from '../services/auth';
-import { TestAcquisitionRequest } from '../types/auth';
+import { testAcquisition } from '../services/auth';
+import type { TestAcquisitionRequest, TestAcquisitionResponse } from '../types/auth';
 
 interface TestLoginDrawerProps {
   visible: boolean;
@@ -28,7 +28,7 @@ const TestLoginDrawer: React.FC<TestLoginDrawerProps> = ({ visible, onClose, pro
       const request: TestAcquisitionRequest = {};
       const response = await testAcquisition(projectId, request);
 
-      if (response.code === 0 && response.data) {
+      if (response.code === 0) {
         setResult(response.data);
       } else {
         setResult({
@@ -129,7 +129,7 @@ const TestLoginDrawer: React.FC<TestLoginDrawerProps> = ({ visible, onClose, pro
                 <Card size="small">
                   {Object.entries(result.extracted_vars).map(([key, value]) => (
                     <div key={key}>
-                      <strong>{key}:</strong> {value}
+                      <strong>{key}:</strong> {String(value)}
                     </div>
                   ))}
                 </Card>

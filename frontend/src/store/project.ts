@@ -14,7 +14,7 @@ interface ProjectState {
   
   // Actions
   setCurrentProject: (project: Project) => void
-  setCurrentVersion: (version: Version) => void
+  setCurrentVersion: (version: Version | null) => void
   clearCurrentContext: () => void
   fetchProjects: () => Promise<void>
   fetchVersions: (projectId: number) => Promise<void>
@@ -44,8 +44,12 @@ export const useProjectStore = create<ProjectState>()(
       },
 
       setCurrentVersion: (version) => {
-        if (!version || typeof version.id !== 'number' || isNaN(version.id)) {
-          console.error('无效的版本 ID:', version?.id)
+        if (version === null) {
+          set({ currentVersion: null })
+          return
+        }
+        if (typeof version.id !== 'number' || isNaN(version.id)) {
+          console.error('无效的版本 ID:', version.id)
           message.error('无效的版本信息')
           return
         }
@@ -96,7 +100,7 @@ export const useProjectStore = create<ProjectState>()(
       },
 
       initializeFromStorage: () => {
-        const { currentProject, currentVersion } = get()
+        const { currentProject } = get()
         // 验证从 localStorage 读取的数据
         if (currentProject && typeof currentProject.id === 'number' && !isNaN(currentProject.id)) {
           get().fetchVersions(currentProject.id)

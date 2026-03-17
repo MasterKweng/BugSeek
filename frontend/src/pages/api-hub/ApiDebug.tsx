@@ -8,8 +8,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Card,
-  Row,
-  Col,
   Button,
   Select,
   Input,
@@ -20,9 +18,6 @@ import {
   Tag,
   Space,
   Typography,
-  Divider,
-  Dropdown,
-  Menu,
 } from 'antd';
 import {
   PlayCircleOutlined,
@@ -31,19 +26,19 @@ import {
   ReloadOutlined,
   CheckOutlined,
   ThunderboltOutlined,
-  KeyOutlined,
 } from '@ant-design/icons';
 import type { TabsProps } from 'antd';
 import api from '../../services/api';
 
 const { TextArea } = Input;
 
-const { Text, Paragraph } = Typography;
+const { Text } = Typography;
 
 interface Environment {
   id: number;
   name: string;
   base_url: string;
+  project_id?: number;
   headers?: Record<string, string>;
   variables?: Record<string, any>;
 }
@@ -52,8 +47,11 @@ interface ApiDefinition {
   id: number;
   method: string;
   path: string;
-  request_schema: any;
-  response_schema: any;
+  schema_snapshot?: {
+    parameters?: any[];
+  };
+  request_schema?: any;
+  response_schema?: any;
 }
 
 interface DebugRequest {
@@ -85,9 +83,9 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
   const [environments, setEnvironments] = useState<Environment[]>([]);
   const [debugResult, setDebugResult] = useState<DebugResponse | null>(null);
   const [activeTab, setActiveTab] = useState('request');
-  const [pathParams, setPathParams] = useState<Record<string, any>>({});
-  const [queryParams, setQueryParams] = useState<Record<string, any>>({});
-  const [requestBody, setRequestBody] = useState<Record<string, any>>({});
+  const [, setPathParams] = useState<Record<string, any>>({});
+  const [, setQueryParams] = useState<Record<string, any>>({});
+  const [, setRequestBody] = useState<Record<string, any>>({});
 
   // 辅助函数：从定义中获取参数（优先从 schema_snapshot 获取）
   const getParameters = (): any[] => {
@@ -116,120 +114,6 @@ const ApiDebug: React.FC<ApiDebugProps> = ({ definition }) => {
     }
   };
 
-  // 注入环境鉴权
-  const injectAuth = async () => {
-    const selectedEnvId = form.getFieldValue('environment_id');
-    const environment = environments.find(e => e.id === selectedEnvId);
-    
-    console.log('选中的环境:', environment);
-    
-    if (!environment) {
-      message.warning('请先选择环境');
-      return;
-    }
-
-    // 检查环境是否配置了 headers 或 variables
-    const headers = environment.headers || {};
-    const variables = environment.variables || {};
-    
-    console.log('环境 headers:', headers);
-    console.log('环境 variables:', variables);
-    
-    const hasHeaders = Object.keys(headers).length > 0;
-    const hasVariables = Object.keys(variables).length > 0;
-    
-    if (!hasHeaders && !hasVariables) {
-      message.warning('请在环境中配置鉴权信息（headers 或 variables）');
-      return;
-    }
-
-    // 构建请求头，包含环境配置的 headers
-    let resultHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    // 添加环境配置的 headers
-    if (hasHeaders) {
-      resultHeaders = { ...resultHeaders, ...headers };
-    }
-
-    // 添加环境配置的 variables（作为 headers）
-    if (hasVariables) {
-      Object.keys(variables).forEach(key => {
-        resultHeaders[key] = variables[key];
-      });
-    }
-
-    form.setFieldsValue({
-      headers: JSON.stringify(resultHeaders, null, 2),
-    });
-
-    message.success(`已注入环境 "${environment.name}" 的鉴权信息`);
-  };
-
-  // 自动获取并注入 Token
-  const injectAuthToken = async () => {
-    const selectedEnvId = form.getFieldValue('environment_id');
-    const environment = environments.find(e => e.id === selectedEnvId);
-    
-    if (!environment) {
-      message.warning('请先选择环境');
-      return;
-    }
-
-    try {
-      // 从环境获取项目 ID（需要环境包含 project_id）
-      const projectId = environment.project_id;
-      if (!projectId) {
-        message.warning('无法获取项目 ID');
-        return;
-      }
-
-      // 调用后端获取有效的 Token
-      const response = await api.get(`/projects/${projectId}/auth-config/token`);
-      
-      if (response.code === 0 && response.data && response.data.headers) {
-        // 合并环境 headers 和 Token headers
-        let headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
-
-        // 添加环境配置的 headers
-        if (environment.headers) {
-          headers = { ...headers, ...environment.headers };
-        }
-
-        // 添加环境配置的 variables（作为 headers）
-        if (environment.variables) {
-          Object.keys(environment.variables).forEach(key => {
-            headers[key] = environment.variables[key];
-          });
-        }
-
-        // 添加 Token headers（覆盖同名的环境 headers）
-        headers = { ...headers, ...response.data.headers };
-
-        form.setFieldsValue({
-          headers: JSON.stringify(headers, null, 2),
-        });
-
-        const status = response.data.status;
-        if (status === 'success') {
-          message.success(`已自动注入 Token（${response.data.expire_time ? '有效期至 ' + new Date(response.data.expire_time).toLocaleTimeString() : ''}）`);
-        } else {
-          message.warning(`Token 获取失败: ${response.data.error || '未知错误'}`);
-        }
-      } else {
-        message.warning(response.message || '获取 Token 失败');
-      }
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        message.warning('该项目未配置鉴权，请在项目管理中配置');
-      } else {
-        message.error(error.message || '获取 Token 失败');
-      }
-    }
-  };
 
   // 智能注入鉴权信息（自动选择注入方式）
   const handleInjectAuth = async () => {

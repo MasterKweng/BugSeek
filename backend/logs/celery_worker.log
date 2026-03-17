@@ -105590,3 +105590,31 @@ Traceback (most recent call last):
 kombu.exceptions.OperationalError: Timeout connecting to server
 [2026-03-16 12:45:16,991: INFO/MainProcess] Connected to redis://127.0.0.1:6380/0
 [2026-03-16 12:45:17,042: INFO/MainProcess] celery@yukwengRu ready.
+[2026-03-17 10:00:13,926: INFO/MainProcess] Connected to redis://127.0.0.1:6380/0
+[2026-03-17 10:00:13,963: INFO/MainProcess] celery@yukwengRu ready.
+[2026-03-17 17:22:22,374: ERROR/MainProcess] consumer: Cannot connect to redis://127.0.0.1:6380/0: Error 10061 connecting to 127.0.0.1:6380. 由于目标计算机积极拒绝，无法连接。..
+Trying again in 2.00 seconds... (1/100)
+
+[2026-03-17 17:22:26,433: ERROR/MainProcess] consumer: Cannot connect to redis://127.0.0.1:6380/0: Error 10061 connecting to 127.0.0.1:6380. 由于目标计算机积极拒绝，无法连接。..
+Trying again in 4.00 seconds... (2/100)
+
+[2026-03-17 17:22:32,496: ERROR/MainProcess] consumer: Cannot connect to redis://127.0.0.1:6380/0: Error 10061 connecting to 127.0.0.1:6380. 由于目标计算机积极拒绝，无法连接。..
+Trying again in 6.00 seconds... (3/100)
+
+[2026-03-17 17:22:40,539: ERROR/MainProcess] consumer: Cannot connect to redis://127.0.0.1:6380/0: Error 10061 connecting to 127.0.0.1:6380. 由于目标计算机积极拒绝，无法连接。..
+Trying again in 8.00 seconds... (4/100)
+
+[2026-03-17 17:22:50,632: ERROR/MainProcess] consumer: Cannot connect to redis://127.0.0.1:6380/0: Error 10061 connecting to 127.0.0.1:6380. 由于目标计算机积极拒绝，无法连接。..
+Trying again in 10.00 seconds... (5/100)
+
+[2026-03-17 17:23:02,760: ERROR/MainProcess] consumer: Cannot connect to redis://127.0.0.1:6380/0: Error 10061 connecting to 127.0.0.1:6380. 由于目标计算机积极拒绝，无法连接。..
+Trying again in 12.00 seconds... (6/100)
+
+[2026-03-17 17:23:16,862: ERROR/MainProcess] consumer: Cannot connect to redis://127.0.0.1:6380/0: Error 10061 connecting to 127.0.0.1:6380. 由于目标计算机积极拒绝，无法连接。..
+Trying again in 14.00 seconds... (7/100)
+
+[2026-03-17 17:23:32,976: ERROR/MainProcess] consumer: Cannot connect to redis://127.0.0.1:6380/0: Error 10061 connecting to 127.0.0.1:6380. 由于目标计算机积极拒绝，无法连接。..
+Trying again in 16.00 seconds... (8/100)
+
+[2026-03-17 17:23:49,113: INFO/MainProcess] Connected to redis://127.0.0.1:6380/0
+[2026-03-17 17:23:49,252: INFO/MainProcess] celery@yukwengRu ready.

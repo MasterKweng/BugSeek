@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Card, Tabs, Space, Tag, message } from 'antd';
+import { Card, Tabs, Space, Tag } from 'antd';
 import { FileTextOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useSearchParams } from 'react-router-dom';
@@ -12,7 +12,6 @@ import { getProjectAuthTemplate, getEnvironmentAuthConfig } from '../services/au
 import { getProjectEnvironments } from '../services/environments';
 import ProjectTemplateEditor from '../components/ProjectTemplateEditor';
 import EnvironmentConfigEditor from '../components/EnvironmentConfigEditor';
-import type { ProjectAuthTemplate, AuthConfig } from '../types/auth';
 
 /**
  * 鉴权配置主页面
@@ -98,7 +97,7 @@ const AuthConfigView: React.FC = () => {
               children: (
                 <ProjectTemplateEditor
                   projectId={projectIdNum}
-                  config={projectTemplate as ProjectAuthTemplate | null}
+                  config={projectTemplate?.data ?? null}
                 />
               )
             },
@@ -116,8 +115,8 @@ const AuthConfigView: React.FC = () => {
                   environments={envList || []}
                   selectedEnvironment={selectedEnvironment}
                   onSelectEnvironment={setSelectedEnvironment}
-                  config={envAuthConfig as AuthConfig | null}
-                  projectTemplate={projectTemplate as ProjectAuthTemplate | null}
+                  config={envAuthConfig?.data ?? null}
+                  projectTemplate={projectTemplate?.data ?? null}
                 />
               )
             }

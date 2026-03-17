@@ -125,7 +125,6 @@ const JsonEditor: React.FC<JsonEditorProps> = ({
         <Alert
           message={error}
           type="error"
-          size="small"
           showIcon
           style={{ marginTop: 8 }}
         />

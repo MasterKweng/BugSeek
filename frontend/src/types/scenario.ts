@@ -1,35 +1,114 @@
-/**
- * 场景组装相关类型定义
+﻿/**
+ * Scenario domain types.
  */
 
-// ==================== 场景类型 ====================
+export type ScenarioStatus = 'draft' | 'active' | 'archived'
+export type ScenarioSourceType = 'manual' | 'intent' | 'module_chain'
+export type ScenarioExecutionMode = 'sequential' | 'dag'
 
-export type ScenarioStatus = 'active' | 'archived' | 'draft'
+export interface ScenarioNode {
+  id?: number
+  node_key: string
+  node_name?: string
+  node_type: string
+  ref_type: 'api_case' | 'api_definition' | string
+  ref_id: number
+  step_order: number
+  depends_on: string[]
+  input_mapping?: Record<string, unknown>
+  extract_rules?: Record<string, unknown> | null
+  assertion_overrides?: Record<string, unknown> | null
+  timeout_seconds?: number | null
+  retry_count: number
+  continue_on_failure: boolean
+  is_enabled: boolean
+  extra_config?: Record<string, unknown> | null
+}
 
-export type ScenarioType = 'functional' | 'integration' | 'regression' | 'smoke'
-
-export type ScenarioCategory = 'chain-generated' | 'manual' | 'custom'
-
-export interface Scenario {
+export interface ScenarioSummary {
   id: number
+  project_id: number
+  version_id?: number | null
+  environment_id?: number | null
   name: string
-  description?: string
-  scenario_type: ScenarioType
-  category: ScenarioCategory
-  endpoint_count: number
-  status: ScenarioStatus
+  description?: string | null
+  scenario_type: string
+  source_type: ScenarioSourceType | string
+  source_ref_id?: number | null
+  context_init?: Record<string, unknown> | null
+  execution_mode: ScenarioExecutionMode | string
+  timeout_seconds: number
+  retry_count: number
+  continue_on_failure: boolean
+  status: ScenarioStatus | string
   created_at: string
   updated_at: string
+  created_by?: number | null
+  updated_by?: number | null
+  node_count: number
 }
 
-export interface ScenarioDetail extends Scenario {
-  timeout?: number
-  retry_count?: number
-  continue_on_failure?: boolean
-  endpoint_details?: any[]
+export interface ScenarioDetail extends ScenarioSummary {
+  nodes: ScenarioNode[]
 }
 
-// ==================== 模块类型 ====================
+export type Scenario = ScenarioSummary
+
+export interface ScenarioDraft {
+  scenario: {
+    name?: string
+    description?: string
+    scenario_type?: string
+    source_type?: string
+    source_ref_id?: number | null
+    project_id?: number | null
+    version_id?: number | null
+    environment_id?: number | null
+    context_init?: Record<string, unknown>
+    execution_mode?: string
+    timeout_seconds?: number
+    retry_count?: number
+    continue_on_failure?: boolean
+  }
+  nodes: ScenarioNode[]
+  reasoning?: string
+  candidate_apis?: Array<Record<string, unknown>>
+}
+
+export interface ScenarioExecutionSummary {
+  total: number
+  passed: number
+  failed: number
+  skipped: number
+  duration_ms: number
+}
+
+export interface ScenarioExecutionNodeResult {
+  id?: number
+  target_type?: string
+  target_id?: number
+  status: string
+  response_time?: number | null
+  response_code?: number | null
+  request_body?: unknown
+  response_body?: unknown
+  assertion_results?: unknown
+  extracted_variables?: Record<string, unknown>
+  error_message?: string | null
+}
+
+export interface ScenarioExecutionDetail {
+  id: number
+  scenario_id: number
+  environment_id?: number | null
+  status: string
+  started_at?: string | null
+  finished_at?: string | null
+  duration_ms?: number | null
+  summary: ScenarioExecutionSummary
+  error_message?: string | null
+  node_results: ScenarioExecutionNodeResult[]
+}
 
 export type AnalysisStatus = 'pending' | 'analyzing' | 'completed' | 'failed'
 
@@ -39,7 +118,7 @@ export interface Module {
   description?: string
   analysis_status: AnalysisStatus
   endpoint_count: number
-  internal_chains_count?: number  // 内部链路数量
+  internal_chains_count?: number
   dependency_count?: number
   input_endpoint_count?: number
   output_endpoint_count?: number
@@ -55,8 +134,6 @@ export interface ModuleDetail {
   output_endpoints: number[]
 }
 
-// ==================== 模块依赖类型 ====================
-
 export interface ModuleDependency {
   id: number
   source_group_id: number
@@ -64,10 +141,8 @@ export interface ModuleDependency {
   target_group_id: number
   target_group_name: string
   dependency_strength: number
-  endpoint_mappings: Record<string, any>
+  endpoint_mappings: Record<string, unknown>
 }
-
-// ==================== 模块链路类型 ====================
 
 export interface ModuleChain {
   id: number
@@ -79,8 +154,6 @@ export interface ModuleChain {
   group_count: number
   created_at: string
 }
-
-// ==================== 链路类型 ====================
 
 export type ChainType = 'internal' | 'cross-module'
 export type ChainStatus = 'active' | 'archived'
@@ -101,9 +174,9 @@ export interface Chain {
   created_at?: string
   updated_at?: string
   endpoint_ids?: number[]
-  execution_order?: any[]
-  endpoint_details?: any[]
-  chain_structure?: any[]
+  execution_order?: unknown[]
+  endpoint_details?: unknown[]
+  chain_structure?: unknown[]
 }
 
 export interface ChainDetail extends Chain {
@@ -113,8 +186,6 @@ export interface ChainDetail extends Chain {
     status: string
   }
 }
-
-// ==================== 任务进度类型 ====================
 
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed'
 
@@ -130,8 +201,6 @@ export interface TaskProgress {
   }
 }
 
-// ==================== 环境类型 ====================
-
 export interface Environment {
   id: number
   name: string
@@ -142,15 +211,10 @@ export interface Environment {
   created_at: string
 }
 
-// ==================== 执行结果类型 ====================
-
 export interface ExecutionResult {
-  task_id?: number
+  execution_id?: number
   status: string
-  steps?: any[]
-  summary?: {
-    total: number
-    success: number
-    failed: number
-  }
-}
+  summary?: ScenarioExecutionSummary
+  results?: ScenarioExecutionNodeResult[]
+}
+

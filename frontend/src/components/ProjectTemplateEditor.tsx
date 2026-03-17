@@ -3,7 +3,7 @@
  * 符合前端代码规范
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, Empty, message } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createProjectAuthTemplate, updateProjectAuthTemplate } from '../services/auth';

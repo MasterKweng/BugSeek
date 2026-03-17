@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { Dropdown, Button, Space, message, Spin } from 'antd'
-import { ProjectOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
+import { ProjectOutlined, PlusOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useProjectStore } from '../store/project'
 import type { Project } from '../types'
@@ -16,8 +16,6 @@ const ProjectSelector: React.FC = () => {
     setCurrentProject,
     setCurrentVersion
   } = useProjectStore()
-  const [createModalVisible, setCreateModalVisible] = useState(false)
-
   useEffect(() => {
     fetchProjects()
   }, [])

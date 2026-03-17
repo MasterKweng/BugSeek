@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin } from 'antd'
+import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin } from 'antd'
 import { PlusOutlined, LockOutlined, UnlockOutlined, CopyOutlined, ArrowLeftOutlined, ProjectOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import * as versionService from '../services/version'
 import * as projectService from '../services/project'
-import type { Version, VersionCreate, VersionUpdate, Project } from '../types'
+import type { Version, VersionCreate, Project } from '../types'
 
 const { TextArea } = Input
 const { Option } = Select

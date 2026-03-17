@@ -29,13 +29,14 @@ export async function fetchWithTimeout(
   const token = localStorage.getItem('token');
 
   // 设置默认 headers
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
+  const headers = new Headers(options.headers ?? undefined);
+
+  if (!headers.has('Content-Type') && options.body && !(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers.set('Authorization', `Bearer ${token}`);
   }
 
   // 创建超时控制器
@@ -105,7 +106,7 @@ export async function post<T = any>(
     `${BASE_URL}${url}`,
     {
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : data ? JSON.stringify(data) : undefined,
     },
     timeout
   );
@@ -124,7 +125,7 @@ export async function put<T = any>(
     `${BASE_URL}${url}`,
     {
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : data ? JSON.stringify(data) : undefined,
     },
     timeout
   );

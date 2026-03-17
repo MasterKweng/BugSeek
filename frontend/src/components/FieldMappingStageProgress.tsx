@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Progress, Button, Spin, Space, Modal, message, Tag } from 'antd';
-import { ReloadOutlined, PlayCircleOutlined, RedoOutlined, CloseOutlined } from '@ant-design/icons';
+import { ReloadOutlined, PlayCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { 
   getStageResult, 
   resumeTask, 
@@ -238,7 +238,7 @@ export const FieldMappingStageProgress: React.FC<FieldMappingStageProgressProps>
   const taskStatus = getTaskStatus();
 
   // 渲染阶段结果数据
-  const renderStageData = (data: any, stageNum: number) => {
+  const renderStageData = (data: any) => {
     if (!data) {
       return <div style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '16px 0' }}>暂无数据</div>;
     }
@@ -252,7 +252,7 @@ export const FieldMappingStageProgress: React.FC<FieldMappingStageProgressProps>
               <div key={key} style={{ marginBottom: 8 }}>
                 <div style={{ fontWeight: 500, color: 'var(--text-primary)', marginBottom: 4 }}>{key}:</div>
                 <div style={{ marginLeft: 16, fontSize: 14, color: 'var(--text-secondary)' }}>
-                  {renderStageData(value, stageNum)}
+                  {renderStageData(value)}
                 </div>
               </div>
             );
@@ -441,7 +441,7 @@ export const FieldMappingStageProgress: React.FC<FieldMappingStageProgressProps>
             {/* 阶段详细数据 */}
             <div style={{ backgroundColor: 'var(--bg-tertiary)', padding: 16, borderRadius: 8 }}>
               <div style={{ fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8 }}>详细数据:</div>
-              {renderStageData(stageResultModal.data?.data, stageResultModal.stageNum || 0)}
+              {renderStageData(stageResultModal.data?.data)}
             </div>
           </div>
         )}

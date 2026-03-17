@@ -4,9 +4,9 @@
  */
 
 import React from 'react';
-import { Form, Select, Input, Button, Space, Card } from 'antd';
+import { Form, Select, Input, Button, Card } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
-import { MappingLocationEnum, MappingLocationLabels } from '../types/auth';
+import { MappingLocationLabels } from '../types/auth';
 
 const { Option } = Select;
 

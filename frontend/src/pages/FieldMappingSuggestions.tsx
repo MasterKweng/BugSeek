@@ -14,15 +14,11 @@ import {
   Drawer,
   Progress,
   Steps,
-  Statistic,
-  Row,
-  Col,
   Switch,
   Form,
   Alert,
   List,
   Empty,
-  Result,
   Divider,
   Slider,
   Select,
@@ -31,11 +27,9 @@ import {
   Input
 } from 'antd';
 import { 
-  CheckCircleOutlined, 
   PlayCircleOutlined,
   SearchOutlined,
   ClockCircleOutlined,
-  WarningOutlined,
   CloseCircleOutlined
 } from '@ant-design/icons';
 import { useProjectStore } from '../store/project';
@@ -68,6 +62,7 @@ const FieldMappingSuggestions: React.FC = () => {
   const [selectedCandidates] = useState<Record<number, FieldMappingCandidate | null>>({});
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<FieldMappingSuggestion | null>(null);
+  void selectedCandidates;
   
   // 包含参数类型配置
   const [includePaths, setIncludePaths] = useState(true);
@@ -132,6 +127,10 @@ const FieldMappingSuggestions: React.FC = () => {
   }, [currentProject?.id, currentVersion?.id]);
   
   const handleDeleteMapping = async (mappingId: number) => {
+    if (!currentProject?.id || !currentVersion?.id) {
+      message.warning('Please select a project and version first.');
+      return;
+    }
     try {
       const response = await fieldMappingService.deleteFieldMapping(mappingId, {
         project_id: currentProject.id,
@@ -151,6 +150,10 @@ const FieldMappingSuggestions: React.FC = () => {
   };
   
   const handleUpdateMappingStatus = async (mappingId: number, status: string) => {
+    if (!currentProject?.id || !currentVersion?.id) {
+      message.warning('Please select a project and version first.');
+      return;
+    }
     try {
       const response = await fieldMappingService.updateFieldMappingStatus(mappingId, status, {
         project_id: currentProject.id,
@@ -410,14 +413,13 @@ const FieldMappingSuggestions: React.FC = () => {
       const response = await fieldMappingService.listAsyncTasks({
         task_type: 'field_mapping_suggest',
         status: 'completed',
-        page: 1,
-        page_size: 1
+        limit: 1,
+        offset: 0
       });
 
       if (response.code === 0 && response.data?.items && response.data.items.length > 0) {
         const latestTask = response.data.items[0];
         setTaskId(latestTask.id);
-        setCurrentTask(latestTask);
         setPageState('COMPLETED');
         loadTaskResults(latestTask.id);
       }
@@ -536,7 +538,13 @@ const FieldMappingSuggestions: React.FC = () => {
   /**
    * 计算映射统计信息
    */
-  const calculateStatistics = (suggestions: FieldMappingSuggestion[]): fieldMappingService.MappingStatistics => {
+  const calculateStatistics = (
+    suggestions: FieldMappingSuggestion[]
+  ): fieldMappingService.MappingStatistics & {
+    proposed_count: number;
+    confirmed_count: number;
+    rejected_count: number;
+  } => {
     let highConfidenceCount = 0;
     let mediumConfidenceCount = 0;
     let lowConfidenceCount = 0;
@@ -624,7 +632,6 @@ const FieldMappingSuggestions: React.FC = () => {
       );
 
       if (response.code === 0 && response.data) {
-        const newTaskId = response.data.task_id;
         message.success('任务已创建，请在执行记录中查看详情');
         setTaskModalVisible(false);
         
@@ -995,6 +1002,7 @@ const FieldMappingSuggestions: React.FC = () => {
       const response = await fieldMappingService.batchApplyFieldMappings(
         {
           items: [{
+            suggestion_id: suggestion.id || 0,
             definition_id: suggestion.definition_id,
             api_field_path: suggestion.api_field_path,
             db_table: candidate.db_table,
@@ -1199,6 +1207,15 @@ const FieldMappingSuggestions: React.FC = () => {
     // 确保使用id作为key
     columnWidth: '50px',
   };
+
+  void handleUpdateMappingStatus;
+  void handleRefreshTask;
+  void loadTaskDetails;
+  void getCurrentStageIndex;
+  void getStepStatus;
+  void calculateStatistics;
+  void loadHistoryTask;
+  void handleAutoApplyHighConfidence;
 
   return (
     <div style={{ padding: 24 }}>
@@ -1405,7 +1422,7 @@ const FieldMappingSuggestions: React.FC = () => {
               onChange: (page, pageSize) => {
                 loadTaskResults(taskId!, page, pageSize);
               },
-              onShowSizeChange: (current, size) => {
+              onShowSizeChange: (_current, size) => {
                 loadTaskResults(taskId!, 1, size);
               }
             }}
@@ -2010,7 +2027,7 @@ const FieldMappingSuggestions: React.FC = () => {
                         pageSize: pageSize || 20
                       });
                     },
-                    onShowSizeChange: (current, size) => {
+                    onShowSizeChange: (_current, size) => {
                       setMappingsPagination({
                         current: 1,
                         pageSize: size,
@@ -2024,8 +2041,8 @@ const FieldMappingSuggestions: React.FC = () => {
                       key: 'api',
                       render: (_: any, record: fieldMappingService.FieldMappingWithDetails) => (
                         <div>
-                          <Tag color={getMethodColor(record.definition_method)}>
-                            {record.definition_method}
+                          <Tag color={getMethodColor(record.definition_method || 'UNKNOWN')}>
+                            {record.definition_method || '-'}
                           </Tag>
                           <span>{record.definition_path}</span>
                         </div>

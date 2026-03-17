@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin, Tabs, Empty, Switch, Alert } from 'antd'
+import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin, Tabs, Empty, Switch } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined, MinusCircleOutlined, SafetyOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import * as projectService from '../services/project'
@@ -120,7 +120,15 @@ const Projects: React.FC = () => {
 
   const handleEditClick = (project: Project) => {
     setCurrentProject(project)
-    editForm.setFieldsValue(project)
+    editForm.setFieldsValue({
+      ...project,
+      description: project.description ?? undefined,
+      logo_url: project.logo_url ?? undefined,
+      backend_language: project.backend_language ?? undefined,
+      backend_framework: project.backend_framework ?? undefined,
+      database: project.database ?? undefined,
+      frontend_framework: project.frontend_framework ?? undefined,
+    })
     fetchEnvironments(project.id)
     setEditModalVisible(true)
   }
@@ -246,7 +254,7 @@ const Projects: React.FC = () => {
     }
   
     // 删除环境
-    const handleDeleteEnv = async (envId: number, envName: string) => {
+    const handleDeleteEnv = async (envId: number) => {
       if (!currentProject) return
       try {
         await del(`/projects/${currentProject.id}/environments/${envId}`)
@@ -592,7 +600,7 @@ const Projects: React.FC = () => {
                           <Popconfirm
                             title="确认删除"
                             description={`确定要删除环境 "${record.name}" 吗？`}
-                            onConfirm={() => handleDeleteEnv(record.id, record.name)}
+                            onConfirm={() => handleDeleteEnv(record.id)}
                             okText="确定"
                             cancelText="取消"
                             okButtonProps={{ danger: true }}

@@ -8,8 +8,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Card,
-  Row,
-  Col,
   Button,
   Input,
   Form,
@@ -33,7 +31,7 @@ import type { TabsProps } from 'antd';
 import api from '../../services/api';
 
 const { TextArea } = Input;
-const { Text, Paragraph } = Typography;
+const { Text } = Typography;
 
 interface ApiDefinition {
   id: number;

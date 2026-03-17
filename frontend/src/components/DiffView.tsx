@@ -13,8 +13,6 @@ import {
   Tag,
   Space,
   Typography,
-  Button,
-  Descriptions,
 } from 'antd';
 import {
   PlusOutlined,
@@ -24,7 +22,7 @@ import {
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-const { Text, Paragraph } = Typography;
+const { Text } = Typography;
 
 interface DiffItem {
   type: 'added' | 'removed' | 'changed';
@@ -45,7 +43,7 @@ const DiffView: React.FC<DiffViewProps> = ({ oldData, newData, title = '版本�
   const [stats, setStats] = useState({ added: 0, removed: 0, changed: 0 });
 
   React.useEffect(() => {
-    const calculatedDiffs = calculateDiffs(oldData, newData);
+    const calculatedDiffs = calculateDiffs();
     setDiffs(calculatedDiffs);
     setStats({
       added: calculatedDiffs.filter(d => d.type === 'added').length,
@@ -54,7 +52,7 @@ const DiffView: React.FC<DiffViewProps> = ({ oldData, newData, title = '版本�
     });
   }, [oldData, newData]);
 
-  const calculateDiffs = (oldObj: any, newObj: any): DiffItem[] => {
+  const calculateDiffs = (): DiffItem[] => {
     const result: DiffItem[] = [];
 
     const compare = (o: any, n: any, path: string = '') => {
@@ -155,8 +153,10 @@ const DiffView: React.FC<DiffViewProps> = ({ oldData, newData, title = '版本�
             <Card
               key={index}
               size="small"
-              style={{ marginBottom: 8 }}
-              type={diff.type === 'removed' ? 'error' : undefined}
+              style={{
+                marginBottom: 8,
+                borderLeft: diff.type === 'removed' ? '3px solid #ff4d4f' : undefined,
+              }}
             >
               <Space direction="vertical" style={{ width: '100%' }}>
                 <Space>

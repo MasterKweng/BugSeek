@@ -27,7 +27,6 @@ import {
   importDbSchemaFromSql,
   previewSqlSchema
 } from '../../services/dbSchema'
-import api from '../../services/api'
 
 const DbSchema: React.FC = () => {
   const navigate = useNavigate()
@@ -396,7 +395,7 @@ const DbSchema: React.FC = () => {
       >
         <Tabs 
           activeKey={importTab} 
-          onChange={setImportTab}
+          onChange={(key) => setImportTab(key as 'json' | 'sql')}
           items={[
             {
               key: 'json',
@@ -464,6 +463,12 @@ const DbSchema: React.FC = () => {
                     ) : null}
                   </Form.Item>
                   
+                  {sqlPreviewLoading && (
+                    <div style={{ marginTop: 16 }}>
+                      <Spin size="small" />
+                    </div>
+                  )}
+
                   {/* SQL预览区域 */}
                   {sqlPreview && (
                     <div style={{ marginTop: 16 }}>

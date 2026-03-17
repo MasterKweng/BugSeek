@@ -6,6 +6,7 @@ import asyncio
 import time
 import json
 import logging
+import re
 from collections import defaultdict
 from typing import Dict, Any, List, Optional
 
@@ -33,7 +34,8 @@ class ScenarioExecutor:
         scenario_id: int,
         graph_data: Optional[Dict[str, Any]],
         variables: Optional[Dict[str, Any]],
-        db: Session
+        db: Session,
+        environment_id: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Execute scenario with DAG ordering and shared context bus."""
         trace_id = get_trace_id()
@@ -80,6 +82,7 @@ class ScenarioExecutor:
                     scenario=scenario,
                     node=node,
                     context=context_snapshot,
+                    environment_id=environment_id,
                     db=db
                 )
                 for node in level_nodes
@@ -131,6 +134,7 @@ class ScenarioExecutor:
             scenario=scenario,
             node_results=node_results,
             final_status=final_status,
+            environment_id=environment_id or scenario.environment_id,
             duration=duration,
             total=total,
             passed=passed,
@@ -305,6 +309,7 @@ class ScenarioExecutor:
         scenario: ApiScenario,
         node: Dict[str, Any],
         context: Dict[str, Any],
+        environment_id: Optional[int],
         db: Session
     ) -> Dict[str, Any]:
         node_key = node["node_key"]
@@ -314,6 +319,7 @@ class ScenarioExecutor:
                 scenario=scenario,
                 node=node,
                 context=context,
+                environment_id=environment_id,
                 db=db
             )
 
@@ -359,6 +365,7 @@ class ScenarioExecutor:
         scenario: ApiScenario,
         node: Dict[str, Any],
         context: Dict[str, Any],
+        environment_id: Optional[int],
         db: Session
     ) -> Any:
         ref_type = (node.get("ref_type") or "api_case").lower()
@@ -398,6 +405,7 @@ class ScenarioExecutor:
 
         environment_id = (
             node.get("environment_id")
+            or environment_id
             or scenario.environment_id
             or case.environment_id
         )
@@ -490,6 +498,7 @@ class ScenarioExecutor:
         scenario: ApiScenario,
         node_results: List[Dict[str, Any]],
         final_status: str,
+        environment_id: Optional[int],
         duration: int,
         total: int,
         passed: int,
@@ -501,7 +510,7 @@ class ScenarioExecutor:
                 project_id=scenario.project_id,
                 execution_type=ExecutionType.SCENARIO,
                 target_id=scenario.id,
-                environment_id=scenario.environment_id,
+                environment_id=environment_id,
                 execution_mode=scenario.execution_mode,
                 triggered_by="manual",
                 status=ExecutionStatus.COMPLETED if final_status == "completed" else ExecutionStatus.FAILED,

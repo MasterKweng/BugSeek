@@ -21,7 +21,6 @@ import {
   Checkbox,
 } from 'antd';
 import {
-  PlusOutlined,
   SearchOutlined,
   ReloadOutlined,
   DeleteOutlined,
@@ -31,7 +30,6 @@ import {
   CloudUploadOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '../../hooks/useDebounce';
 
 interface SyncTask {
@@ -67,8 +65,6 @@ interface ApiResponse {
 }
 
 const Sync: React.FC = () => {
-  const navigate = useNavigate();
-
   // 状态管理
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState<SyncTask[]>([]);
@@ -672,7 +668,7 @@ const Sync: React.FC = () => {
                 </Col>
               </Row>
               {currentRecord.conflict_count > 0 && (
-                <div style={{ marginTop: 16, padding: '12px', background: 'var(--bg-elevated)'be6', borderRadius: '4px' }}>
+                <div style={{ marginTop: 16, padding: '12px', background: 'var(--bg-elevated)', borderRadius: '4px' }}>
                   <Badge count={currentRecord.conflict_count} style={{ backgroundColor: '#fa8c16', marginRight: 8 }} />
                   <span style={{ color: '#fa8c16' }}>接口存在冲突，需要手动处理</span>
                 </div>
@@ -792,7 +788,9 @@ const Sync: React.FC = () => {
                           )}
                           onChange={(e) => handleOperationToggle('add', record, e.target.checked)}
                         >
-                          {e.target.checked ? '已选择' : '添加'}
+                          {selectedOperations.some(op =>
+                            op.type === 'add' && op.method === record.method && op.path === record.path
+                          ) ? '已选择' : '添加'}
                         </Checkbox>
                       )
                     }
@@ -862,7 +860,9 @@ const Sync: React.FC = () => {
                           )}
                           onChange={(e) => handleOperationToggle('deprecate', record, e.target.checked)}
                         >
-                          {e.target.checked ? '已选择' : '废弃'}
+                          {selectedOperations.some(op =>
+                            op.type === 'deprecate' && op.method === record.method && op.path === record.path
+                          ) ? '已选择' : '废弃'}
                         </Checkbox>
                       )
                     }

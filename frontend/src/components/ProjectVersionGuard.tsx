@@ -10,7 +10,7 @@ interface ProjectVersionGuardProps {
 
 const ProjectVersionGuard: React.FC<ProjectVersionGuardProps> = ({ children }) => {
   const navigate = useNavigate()
-  const { currentProject, currentVersion } = useProjectStore()
+  const { currentProject } = useProjectStore()
   const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {

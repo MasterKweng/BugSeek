@@ -7,7 +7,7 @@
 3. 全链路 TraceID：使用 get_trace_id()
 4. 魔法值清理：使用枚举定义状态
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
@@ -16,7 +16,7 @@ import logging
 
 from app.dependencies import get_db
 from app.context import get_current_project_id
-from app.platform.db.base import ApiScenario, ScenarioNode, ApiCase, ApiDefinition, Environment, User
+from app.platform.db.base import ApiScenario, ScenarioNode, ApiCase, ApiDefinition, Environment, User, Version
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
 from app.execution.engine import ScenarioExecutor
@@ -84,6 +84,7 @@ class ScenarioCreate(BaseModel):
     scenario_type: str = Field(default="business_flow", description="场景类型")
     source_type: str = Field(default="manual", description="来源类型：manual/intent/module_chain")
     source_ref_id: Optional[int] = Field(None, description="来源引用ID")
+    version_id: Optional[int] = Field(None, description="???ID")
     environment_id: Optional[int] = Field(None, description="环境ID")
     context_init: Optional[Dict[str, Any]] = Field(default={}, description="上下文初始化变量")
     execution_mode: str = Field(default="sequential", description="执行模式：sequential/dag")
@@ -97,6 +98,7 @@ class ScenarioUpdate(BaseModel):
     """更新场景请求模型"""
     name: Optional[str] = Field(None, description="场景名称")
     description: Optional[str] = Field(None, description="场景描述")
+    version_id: Optional[int] = Field(None, description="???ID")
     environment_id: Optional[int] = Field(None, description="环境ID")
     context_init: Optional[Dict[str, Any]] = Field(None, description="上下文初始化变量")
     execution_mode: Optional[str] = Field(None, description="执行模式：sequential/dag")
@@ -142,6 +144,11 @@ class ScenarioDetailResponse(ScenarioResponse):
         from_attributes = True
 
 
+class ScenarioExecuteRequest(BaseModel):
+    environment_id: Optional[int] = Field(None, description="???ID")
+    variables: Dict[str, Any] = Field(default_factory=dict, description="??????")
+
+
 # ========== 场景 CRUD 接口 ==========
 
 @router.post("/scenarios", response_model=ApiResponse)
@@ -168,11 +175,23 @@ async def create_scenario(
     if project_id is None:
         project_id = get_current_project_id(db, current_user)
 
+    if request.version_id is not None:
+        version = db.query(Version).filter(
+            Version.id == request.version_id,
+            Version.project_id == project_id
+        ).first()
+        if not version:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"?????????{request.version_id}"
+            )
+
     logger.info(f"[{trace_id}] 创建场景: name={request.name}, source_type={request.source_type}, user={current_user.username}")
 
     # 创建场景
     scenario = ApiScenario(
         project_id=project_id,
+        version_id=request.version_id,
         name=request.name,
         description=request.description,
         scenario_type=request.scenario_type,
@@ -423,6 +442,17 @@ async def update_scenario(
         scenario.name = request.name
     if request.description is not None:
         scenario.description = request.description
+    if request.version_id is not None:
+        version = db.query(Version).filter(
+            Version.id == request.version_id,
+            Version.project_id == scenario.project_id
+        ).first()
+        if not version:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"?????????{request.version_id}"
+            )
+        scenario.version_id = request.version_id
     if request.environment_id is not None:
         scenario.environment_id = request.environment_id
     if request.context_init is not None:
@@ -567,66 +597,82 @@ async def archive_scenario(
 @router.post("/scenarios/{scenario_id}/execute", response_model=ApiResponse)
 async def execute_scenario(
     scenario_id: int,
-    environment_id: int = Query(..., description="环境ID"),
-    variables: Optional[Dict[str, Any]] = None,
+    request: Optional[ScenarioExecuteRequest] = Body(None),
+    environment_id: Optional[int] = Query(None, description="???ID"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    执行场景
+    ??????
 
-    - **scenario_id**: 场景ID
-    - **environment_id**: 环境ID
-    - **variables**: 额外变量（可选）
+    - **scenario_id**: ???ID
+    - **environment_id**: ???ID
+    - **variables**: ????????????
     """
     trace_id = get_trace_id()
 
-    logger.info(f"[{trace_id}] 执行场景: scenario_id={scenario_id}, environment_id={environment_id}, user={current_user.username}")
-
-    # 查询场景
     scenario = db.query(ApiScenario).filter(ApiScenario.id == scenario_id).first()
 
     if not scenario:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"场景不存在：{scenario_id}"
+            detail=f"?????????{scenario_id}"
         )
 
-    # IDOR 防御：检查资源归属
     if scenario.project_id != get_current_project_id(db, current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权执行该场景"
+            detail="???????????"
         )
 
-    # 查询环境
-    environment = db.query(Environment).filter(Environment.id == environment_id).first()
+    resolved_environment_id = (
+        (request.environment_id if request else None)
+        or environment_id
+        or scenario.environment_id
+    )
+    variables = request.variables if request else {}
+
+    logger.info(
+        f"[{trace_id}] ??????: scenario_id={scenario_id}, environment_id={resolved_environment_id}, user={current_user.username}"
+    )
+
+    if not resolved_environment_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="????????????????ID"
+        )
+
+    environment = db.query(Environment).filter(Environment.id == resolved_environment_id).first()
 
     if not environment:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"环境不存在：{environment_id}"
+            detail=f"?????????{resolved_environment_id}"
         )
 
-    # 执行场景
+    if environment.project_id != scenario.project_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="??????????????"
+        )
+
     executor = ScenarioExecutor()
     result = await executor.execute_scenario(
         scenario_id=scenario_id,
-        graph_data=None,  # 从数据库构建
+        graph_data=None,
         variables=variables or {},
+        environment_id=resolved_environment_id,
         db=db
     )
 
-    logger.info(f"[{trace_id}] 场景执行完成: scenario_id={scenario_id}, status={result['status']}, execution_id={result.get('execution_id')}")
+    logger.info(f"[{trace_id}] ?????????: scenario_id={scenario_id}, status={result['status']}, execution_id={result.get('execution_id')}")
 
     return ApiResponse(
         code=0,
-        message="场景执行完成",
+        message="?????????",
         data=result
     )
 
-
-# ========== 场景执行历史接口 ==========
 
 @router.get("/scenarios/{scenario_id}/executions", response_model=ApiResponse)
 async def get_scenario_executions(
@@ -668,7 +714,10 @@ async def get_scenario_executions(
     # 查询执行记录
     from app.platform.db.base import TestExecution
 
-    query = db.query(TestExecution).filter(TestExecution.scenario_id == scenario_id)
+    query = db.query(TestExecution).filter(
+        TestExecution.execution_type == "scenario",
+        TestExecution.target_id == scenario_id
+    )
 
     # 状态过滤
     if status:
@@ -676,20 +725,26 @@ async def get_scenario_executions(
 
     # 分页
     total = query.count()
-    executions = query.order_by(TestExecution.created_at.desc()).offset(skip).limit(limit).all()
+    executions = query.order_by(TestExecution.id.desc()).offset(skip).limit(limit).all()
 
     # 转换为响应模型
     result_list = []
     for execution in executions:
         result_list.append({
             "id": execution.id,
-            "scenario_id": execution.scenario_id,
+            "scenario_id": scenario_id,
             "environment_id": execution.environment_id,
             "status": execution.status,
             "started_at": execution.started_at.isoformat() if execution.started_at else None,
-            "completed_at": execution.completed_at.isoformat() if execution.completed_at else None,
-            "duration_ms": execution.duration_ms,
-            "summary": execution.summary
+            "finished_at": execution.finished_at.isoformat() if execution.finished_at else None,
+            "duration_ms": execution.duration,
+            "summary": {
+                "total": execution.total or 0,
+                "passed": execution.passed or 0,
+                "failed": execution.failed or 0,
+                "skipped": execution.skipped or 0,
+                "duration_ms": execution.duration or 0,
+            }
         })
 
     return ApiResponse(
@@ -740,7 +795,8 @@ async def get_scenario_execution_detail(
 
     execution = db.query(TestExecution).filter(
         TestExecution.id == execution_id,
-        TestExecution.scenario_id == scenario_id
+        TestExecution.execution_type == "scenario",
+        TestExecution.target_id == scenario_id
     ).first()
 
     if not execution:
@@ -757,18 +813,25 @@ async def get_scenario_execution_detail(
     # 转换为响应模型
     result = {
         "id": execution.id,
-        "scenario_id": execution.scenario_id,
+        "scenario_id": scenario_id,
         "environment_id": execution.environment_id,
         "status": execution.status,
         "started_at": execution.started_at.isoformat() if execution.started_at else None,
-        "completed_at": execution.completed_at.isoformat() if execution.completed_at else None,
-        "duration_ms": execution.duration_ms,
-        "summary": execution.summary,
-        "error_message": execution.error_message,
+        "finished_at": execution.finished_at.isoformat() if execution.finished_at else None,
+        "duration_ms": execution.duration,
+        "summary": {
+            "total": execution.total or 0,
+            "passed": execution.passed or 0,
+            "failed": execution.failed or 0,
+            "skipped": execution.skipped or 0,
+            "duration_ms": execution.duration or 0,
+        },
+        "error_message": next((item.error_message for item in node_results if item.error_message), None),
         "node_results": [
             {
                 "id": result.id,
-                "node_key": result.node_key,
+                "target_type": result.target_type,
+                "target_id": result.target_id,
                 "status": result.status,
                 "response_time": result.response_time,
                 "response_code": result.response_code,

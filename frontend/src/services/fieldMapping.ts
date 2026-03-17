@@ -702,6 +702,9 @@ export interface MappingStatistics {
   medium_confidence_count: number  // 中等置信度（0.6-0.85）
   low_confidence_count: number  // 低置信度（<0.6）
   auto_confirmed_count?: number  // 自动确认数
+  proposed_count?: number
+  confirmed_count?: number
+  rejected_count?: number
 }
 
 // ==================== 批量拒绝建议相关类型 ====================

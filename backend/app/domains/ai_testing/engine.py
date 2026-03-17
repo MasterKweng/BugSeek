@@ -84,6 +84,7 @@ class AITestingEngine:
                 scenario_id=scenario_id,
                 graph_data=None,
                 variables={},
+                environment_id=env_id,
                 db=db,
             )
 

@@ -22,7 +22,6 @@ import {
   Tooltip,
   Drawer,
   Progress,
-  Steps,
   Alert,
   Tabs,
   Checkbox,
@@ -63,12 +62,6 @@ interface SyncTask {
   completed_at: string | null;
   created_at: string;
   created_by: number | null;
-}
-
-interface ApiResponse {
-  code: number;
-  message: string;
-  data: any;
 }
 
 const SyncTasksList: React.FC = () => {
@@ -174,7 +167,6 @@ const SyncTasksList: React.FC = () => {
     strategy?: string
   ) => {
     setSelectedOperations(prev => {
-      const key = `${method}:${path}`;
       if (checked) {
         return [...prev, { type, method, path, strategy: strategy || 'overwrite' }];
       } else {

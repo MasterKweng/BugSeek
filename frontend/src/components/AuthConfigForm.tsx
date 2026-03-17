@@ -45,9 +45,7 @@ interface AuthConfigFormProps {
  * 支持项目模板和环境级配置两种模式
  */
 const AuthConfigForm: React.FC<AuthConfigFormProps> = ({
-  mode,
   initialValues,
-  projectTemplate,
   onSave,
   loading = false
 }) => {

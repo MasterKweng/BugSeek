@@ -113,6 +113,7 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
   dependencyGraphVisible: false,
 
   moduleChains: [],
+  internalChains: [],
 
   currentTaskId: null,
   taskProgress: null,
@@ -286,7 +287,7 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
     set({ loadingScenarios: true })
     try {
       // BSK-SC-021: 更新为新的 API 路径
-      const response = await api.get(`/api/v1/scenarios?project_id=${currentProject.id}`)
+      const response = await api.get(`/scenarios?project_id=${currentProject.id}`)
       if (response.code === 0) {
         set({ scenarios: response.data.items || [] })
       } else {
@@ -302,7 +303,7 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
   loadScenarioDetail: async (scenarioId: number) => {
     try {
       // BSK-SC-021: 更新为新的 API 路径
-      const response = await api.get(`/api/v1/scenarios/${scenarioId}`)
+      const response = await api.get(`/scenarios/${scenarioId}`)
       if (response.code === 0) {
         set({ currentScenario: response.data })
       } else {
@@ -316,7 +317,7 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
   executeScenario: async (scenarioId: number, environmentId: number) => {
     try {
       // BSK-SC-021: 更新为新的 API 路径
-      const response = await api.post(`/api/v1/scenarios/${scenarioId}/execute`, {
+      const response = await api.post(`/scenarios/${scenarioId}/execute`, {
         environment_id: environmentId,
       })
       return response.data
@@ -329,7 +330,7 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
   updateScenario: async (scenarioId: number, data: Partial<ScenarioDetail>) => {
     try {
       // BSK-SC-021: 更新为新的 API 路径
-      const response = await api.put(`/api/v1/scenarios/${scenarioId}`, data)
+      const response = await api.put(`/scenarios/${scenarioId}`, data)
       if (response.code === 0) {
         message.success('场景保存成功')
         get().loadScenarios()
@@ -345,7 +346,7 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
   deleteScenario: async (scenarioId: number) => {
     try {
       // BSK-SC-021: 更新为新的 API 路径
-      const response = await api.delete(`/api/v1/scenarios/${scenarioId}`)
+      const response = await api.delete(`/scenarios/${scenarioId}`)
       if (response.code === 0) {
         message.success('场景删除成功')
         get().loadScenarios()
@@ -361,7 +362,8 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
   loadScenarioExecutions: async (scenarioId: number, page: number = 1, pageSize: number = 20, status?: string) => {
     try {
       // BSK-SC-021: 更新为新的 API 路径
-      let url = `/api/v1/scenarios/${scenarioId}/executions?page=${page}&page_size=${pageSize}`
+      const skip = Math.max(page - 1, 0) * pageSize
+      let url = `/scenarios/${scenarioId}/executions?skip=${skip}&limit=${pageSize}`
       if (status) {
         url += `&status=${status}`
       }
@@ -381,7 +383,7 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
   loadScenarioExecutionDetail: async (scenarioId: number, executionId: number) => {
     try {
       // BSK-SC-021: 更新为新的 API 路径
-      const response = await api.get(`/api/v1/scenarios/${scenarioId}/executions/${executionId}`)
+      const response = await api.get(`/scenarios/${scenarioId}/executions/${executionId}`)
       if (response.code === 0) {
         return response.data
       } else {
@@ -435,7 +437,7 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
   },
 
   // [SCENARIO-A-SOLUTION] 加载内部链路 - 修正：从 moduleDetail 中获取，不单独调用接口
-  loadInternalChains: async (moduleId: number) => {
+  loadInternalChains: async (_moduleId: number) => {
     // 内部链路数据已经包含在 moduleDetail 中，无需额外调用接口
     // moduleDetail.internal_chains 包含了链路数据
     set({ loadingInternalChains: false })
@@ -443,6 +445,10 @@ export const useScenarioStore = create<ScenarioStore>((set, get) => ({
 
   createModuleChain: async (data) => {
     const { currentProject } = useProjectStore.getState()
+    if (!currentProject) {
+      message.warning('请先选择项目')
+      return
+    }
     try {
       const response = await api.post('/api-integration/modules/compose', {
         project_id: currentProject.id,

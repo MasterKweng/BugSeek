@@ -36,7 +36,6 @@ import {
   DeleteOutlined,
   EyeOutlined,
   ReloadOutlined,
-  FilterOutlined,
   LinkOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
@@ -44,7 +43,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useProjectStore } from '../../store/project';
 import DiffView from '../../components/DiffView';
-import api from '../../services/api';
 import ApiDebug from './ApiDebug';
 import MockService from './MockService';
 
@@ -70,6 +68,9 @@ interface ApiDefinition {
   updated_at: string;
   created_by: number | null;
   updated_by: number | null;
+  request_schema?: Record<string, unknown> | null;
+  response_schema?: Record<string, unknown> | null;
+  mock_data?: Record<string, unknown> | null;
 }
 
 interface ApiResponse {

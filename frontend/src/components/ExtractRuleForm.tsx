@@ -4,9 +4,9 @@
  */
 
 import React from 'react';
-import { Form, Select, Input, Button, Space, Card } from 'antd';
+import { Form, Select, Input, Button, Card } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
-import { ExtractSourceEnum, ExtractSourceLabels } from '../types/auth';
+import { ExtractSourceLabels } from '../types/auth';
 
 const { Option } = Select;
 

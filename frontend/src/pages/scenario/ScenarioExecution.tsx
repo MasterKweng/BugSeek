@@ -1,89 +1,108 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Button, Space, Timeline, Tag, Progress, Alert, Spin } from 'antd';
-import { ArrowLeftOutlined, RedoOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useProjectStore } from '../../store/project';
-import api from '../../services/api';
-import './ScenarioExecution.css';
+﻿import React, { useEffect, useMemo, useState } from 'react'
+import { Alert, Button, Card, Progress, Space, Spin, Tag, Timeline, Typography, message } from 'antd'
+import { ArrowLeftOutlined, RedoOutlined } from '@ant-design/icons'
+import { useNavigate, useParams } from 'react-router-dom'
+
+import api from '../../services/api'
+import type {
+  ScenarioDetail,
+  ScenarioExecutionDetail,
+  ScenarioExecutionNodeResult,
+} from '../../types/scenario'
+import './ScenarioExecution.css'
+
+const { Text } = Typography
 
 const ScenarioExecution: React.FC = () => {
-  const navigate = useNavigate();
-  const { scenarioId, executionId } = useParams();
-  const { selectedEnvironmentId } = useProjectStore();
-  const [loading, setLoading] = useState(false);
-  const [execution, setExecution] = useState<any>(null);
-  const [scenario, setScenario] = useState<any>(null);
+  const navigate = useNavigate()
+  const { scenarioId, executionId } = useParams()
+  const [loading, setLoading] = useState(false)
+  const [execution, setExecution] = useState<ScenarioExecutionDetail | null>(null)
+  const [scenario, setScenario] = useState<ScenarioDetail | null>(null)
 
   useEffect(() => {
-    loadExecution();
-    loadScenario();
-  }, [scenarioId, executionId]);
+    void loadExecution()
+    void loadScenario()
+  }, [scenarioId, executionId])
 
   const loadExecution = async () => {
-    if (!scenarioId || !executionId) return;
-    
-    setLoading(true);
+    if (!scenarioId || !executionId) {
+      return
+    }
+
+    setLoading(true)
     try {
-      const response = await api.get(`/scenarios/${scenarioId}/executions/${executionId}`);
+      const response = await api.get(`/scenarios/${scenarioId}/executions/${executionId}`)
       if (response.code === 0) {
-        setExecution(response.data);
+        setExecution(response.data)
+      } else {
+        message.error(response.message || '加载执行详情失败')
       }
     } catch (error: any) {
-      console.error('加载执行详情失败:', error);
+      message.error(error.message || '加载执行详情失败')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const loadScenario = async () => {
-    if (!scenarioId) return;
-    
-    try {
-      const response = await api.get(`/scenarios/${scenarioId}`);
-      if (response.code === 0) {
-        setScenario(response.data);
-      }
-    } catch (error: any) {
-      console.error('加载场景失败:', error);
+    if (!scenarioId) {
+      return
     }
-  };
+
+    try {
+      const response = await api.get(`/scenarios/${scenarioId}`)
+      if (response.code === 0) {
+        setScenario(response.data)
+      }
+    } catch (error) {
+      console.error('加载场景失败:', error)
+    }
+  }
 
   const handleRetry = async () => {
-    if (!scenarioId || !selectedEnvironmentId) {
-      alert('请先选择环境');
-      return;
+    const environmentId = scenario?.environment_id
+    if (!scenarioId || !environmentId) {
+      message.warning('请先为场景选择环境')
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
       const response = await api.post(`/scenarios/${scenarioId}/execute`, {
-        environment_id: selectedEnvironmentId,
-      });
-
+        environment_id: environmentId,
+      })
       if (response.code === 0) {
-        alert('场景已重新执行');
-        navigate(`/scenario/${scenarioId}/execution/${response.data.execution_id}`);
+        message.success('场景已重新执行')
+        navigate(`/scenario/${scenarioId}/execution/${response.data.execution_id}`)
+      } else {
+        message.error(response.message || '重新执行失败')
       }
     } catch (error: any) {
-      console.error('重新执行失败:', error);
-      alert('重新执行失败');
+      message.error(error.message || '重新执行失败')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+  const results = useMemo(() => execution?.node_results || [], [execution])
+  const successCount = results.filter((item) => item.status === 'passed').length
+  const failedCount = results.filter((item) => item.status !== 'passed').length
+  const totalCount = results.length
+  const passRate = totalCount > 0 ? (successCount / totalCount) * 100 : 0
 
   if (loading && !execution) {
     return (
       <div style={{ padding: 24, textAlign: 'center' }}>
         <Spin size="large" tip="加载中..." />
       </div>
-    );
+    )
   }
 
-  const successCount = execution?.results?.filter((r: any) => r.status === 'passed').length || 0;
-  const failedCount = execution?.results?.filter((r: any) => r.status === 'failed').length || 0;
-  const totalCount = execution?.results?.length || 0;
-  const passRate = totalCount > 0 ? (successCount / totalCount) * 100 : 0;
+  const renderNodeTitle = (result: ScenarioExecutionNodeResult) => {
+    const node = scenario?.nodes?.find((item) => item.id === result.target_id)
+    return node?.node_name || node?.node_key || `Node ${result.target_id ?? '-'}`
+  }
 
   return (
     <div className="scenario-execution">
@@ -91,7 +110,7 @@ const ScenarioExecution: React.FC = () => {
         <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(`/scenario/${scenarioId}`)}>
           返回场景
         </Button>
-        <Button icon={<RedoOutlined />} onClick={handleRetry} loading={loading}>
+        <Button icon={<RedoOutlined />} onClick={() => void handleRetry()} loading={loading}>
           重新执行
         </Button>
       </Space>
@@ -101,17 +120,17 @@ const ScenarioExecution: React.FC = () => {
           <div>
             <h3>执行概览</h3>
             <Space size="large" wrap>
-              <span>场景: {scenario?.name}</span>
-              <span>执行ID: {executionId}</span>
-              <Tag color={execution?.status === 'completed' ? 'success' : 'processing'}>
-                {execution?.status === 'completed' ? '已完成' : '执行中'}
+              <span>场景: {scenario?.name || '-'}</span>
+              <span>执行 ID: {executionId}</span>
+              <Tag color={execution?.status === 'completed' ? 'success' : 'error'}>
+                {execution?.status || '-'}
               </Tag>
             </Space>
             <div style={{ marginTop: 16 }}>
               <Progress
                 percent={Math.round(passRate)}
                 status={failedCount > 0 ? 'exception' : 'success'}
-                format={(percent) => `${successCount}/${totalCount} 通过`}
+                format={() => `${successCount}/${totalCount} 通过`}
               />
             </div>
             {execution?.summary && (
@@ -124,74 +143,70 @@ const ScenarioExecution: React.FC = () => {
                 </Space>
               </div>
             )}
+            {execution?.error_message && (
+              <Alert style={{ marginTop: 12 }} type="error" showIcon message="执行失败" description={execution.error_message} />
+            )}
           </div>
 
           <div>
             <h3>执行时间线</h3>
             <Timeline
-              items={execution?.results?.map((result: any, index: number) => {
-                const node = scenario?.nodes?.find((n: any) => n.node_key === result.node_key);
-                return {
-                  color: result.status === 'passed' ? 'green' : 'red',
-                  children: (
-                    <div className="execution-item">
-                      <div className="execution-item-header">
-                        <Space>
-                          <Tag color={result.status === 'passed' ? 'success' : 'error'}>
-                            {result.status === 'passed' ? '成功' : '失败'}
-                          </Tag>
-                          <strong>{node?.node_name || result.node_key}</strong>
-                          {node && (
-                            <Tag>{node.node_type}</Tag>
-                          )}
-                        </Space>
-                        <span>耗时: {result.response_time}ms</span>
-                      </div>
-                      <div className="execution-item-details">
-                        {result.request_body && (
-                          <div>
-                            <strong>请求:</strong>
-                            <pre>{JSON.stringify(result.request_body, null, 2)}</pre>
-                          </div>
-                        )}
-                        {result.response_body && (
-                          <div>
-                            <strong>响应:</strong>
-                            <pre>{JSON.stringify(result.response_body, null, 2)}</pre>
-                          </div>
-                        )}
-                        {result.assertion_results && (
-                          <div>
-                            <strong>断言:</strong>
-                            <pre>{JSON.stringify(result.assertion_results, null, 2)}</pre>
-                          </div>
-                        )}
-                        {result.extracted_variables && Object.keys(result.extracted_variables).length > 0 && (
-                          <div>
-                            <strong>提取变量:</strong>
-                            <pre>{JSON.stringify(result.extracted_variables, null, 2)}</pre>
-                          </div>
-                        )}
-                        {result.error_message && (
-                          <Alert
-                            message="错误信息"
-                            description={result.error_message}
-                            type="error"
-                            showIcon
-                            style={{ marginTop: 8 }}
-                          />
-                        )}
-                      </div>
+              items={results.map((result) => ({
+                color: result.status === 'passed' ? 'green' : 'red',
+                children: (
+                  <div className="execution-item">
+                    <div className="execution-item-header">
+                      <Space>
+                        <Tag color={result.status === 'passed' ? 'success' : 'error'}>{result.status}</Tag>
+                        <strong>{renderNodeTitle(result)}</strong>
+                      </Space>
+                      <Text type="secondary">耗时: {result.response_time ?? 0}ms</Text>
                     </div>
-                  ),
-                };
-              })}
+                    <div className="execution-item-details">
+                      {result.request_body !== undefined && result.request_body !== null && (
+                        <div>
+                          <strong>请求:</strong>
+                          <pre>{JSON.stringify(result.request_body, null, 2)}</pre>
+                        </div>
+                      )}
+                      {result.response_body !== undefined && result.response_body !== null && (
+                        <div>
+                          <strong>响应:</strong>
+                          <pre>{JSON.stringify(result.response_body, null, 2)}</pre>
+                        </div>
+                      )}
+                      {result.assertion_results !== undefined && result.assertion_results !== null && (
+                        <div>
+                          <strong>断言:</strong>
+                          <pre>{JSON.stringify(result.assertion_results, null, 2)}</pre>
+                        </div>
+                      )}
+                      {result.extracted_variables && Object.keys(result.extracted_variables).length > 0 && (
+                        <div>
+                          <strong>提取变量:</strong>
+                          <pre>{JSON.stringify(result.extracted_variables, null, 2)}</pre>
+                        </div>
+                      )}
+                      {result.error_message && (
+                        <Alert
+                          message="错误信息"
+                          description={result.error_message}
+                          type="error"
+                          showIcon
+                          style={{ marginTop: 8 }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                ),
+              }))}
             />
           </div>
         </Space>
       </Card>
     </div>
-  );
-};
+  )
+}
 
-export default ScenarioExecution;
+export default ScenarioExecution
+
