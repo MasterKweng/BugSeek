@@ -1,5 +1,5 @@
 ﻿import React, { useMemo, useState } from 'react'
-import { Alert, Button, Card, Descriptions, Input, List, Spin, Steps, Typography, message } from 'antd'
+import { Button, Card, Descriptions, Input, List, Spin, Steps, Typography, message } from 'antd'
 import {
   CheckCircleOutlined,
   LoadingOutlined,
@@ -8,6 +8,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 
 import api from '../../services/api'
+import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
 import { useProjectStore } from '../../store/project'
 import type { ScenarioDraft } from '../../types/scenario'
 
@@ -126,16 +127,18 @@ const IntentWorkbench: React.FC = () => {
   }
 
   return (
-    <div className="intent-workbench">
-      <Card title="意图工作台" className="workbench-card">
-        <Alert
-          message="AI 驱动的场景生成"
-          description="输入自然语言描述，系统会自动检索相关 API 并生成可保存的场景草稿。"
-          type="info"
-          showIcon
-          style={{ marginBottom: 24 }}
-        />
-
+    <div className="intent-workbench governance-stack">
+      <WorkspaceModuleHero
+        eyebrow="Scenario"
+        title="意图工作台"
+        description="输入自然语言意图，生成场景草稿并确认入库。"
+        metrics={[
+          { label: '当前步骤', value: currentStep + 1 },
+          { label: '草稿节点数', value: nodes.length },
+          { label: '当前版本', value: currentVersion?.version_number || '-' },
+        ]}
+      />
+      <Card className="workbench-card workspace-table-card" bordered={false}>
         <Steps
           current={currentStep}
           style={{ marginBottom: 32 }}
@@ -246,4 +249,5 @@ const IntentWorkbench: React.FC = () => {
 }
 
 export default IntentWorkbench
+
 

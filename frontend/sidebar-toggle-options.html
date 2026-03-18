@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sidebar Toggle 15 方案（真实 app-shell__rail）</title>
+    <style>
+      :root {
+        --brand: #0d6c63;
+        --line: rgba(31, 37, 32, 0.12);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: #f3efe7;
+        color: #1f2520;
+      }
+      .wrap {
+        padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(300px, 1fr));
+        gap: 14px;
+      }
+      .demo {
+        position: relative;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        overflow: hidden;
+        min-height: 200px;
+        background: #fff;
+      }
+      .frame {
+        display: grid;
+        grid-template-columns: 92px 1fr;
+        min-height: 200px;
+      }
+      .content {
+        background: #fffaf2;
+        padding: 16px 18px;
+      }
+      .title { margin: 0 0 6px; font-size: 14px; }
+      .desc { margin: 0; color: #5e655d; font-size: 12px; line-height: 1.45; }
+      .tag {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        font-size: 11px;
+        color: #5e655d;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #ffffffcc;
+        padding: 3px 8px;
+      }
+
+      /* 真实 app-shell__rail 基底（从项目 CSS 复制） */
+      .app-shell__rail {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        padding: 18px 12px;
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(13, 108, 99, 0.96), rgba(17, 52, 53, 0.98));
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.65);
+        box-shadow: 0 18px 40px rgba(33, 35, 31, 0.12);
+        backdrop-filter: blur(14px);
+      }
+      .app-shell__brand {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 0 2px;
+      }
+      .app-shell__brand-mark {
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.16);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+      }
+      .app-shell__brand-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: center;
+        text-align: center;
+      }
+      .app-shell__brand-copy strong {
+        font-size: 15px;
+        letter-spacing: 0.04em;
+      }
+      .app-shell__brand-subtitle {
+        font-size: 11px;
+        line-height: 1.2;
+        opacity: 0.82;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .app-shell__rail-nav,
+      .app-shell__rail-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+      }
+      .app-shell__rail-nav {
+        flex: 1;
+        margin-top: 6px;
+      }
+      .app-shell__rail-button {
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        border-radius: 16px;
+        border: 0;
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.84);
+        font-size: 18px;
+      }
+
+      /* 真实当前 toggle 样式（作为基底） */
+      .app-shell__rail-toggle {
+        position: absolute;
+        right: 6px;
+        top: 12px;
+        width: 16px;
+        height: 56px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.34);
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        cursor: pointer;
+        z-index: 3;
+        font-weight: 700;
+      }
+
+      /* 15 个方案：只改位置/形状 */
+      .s1 { right: 4px; top: 12px; width: 16px; height: 56px; }
+      .s2 { right: -2px; top: 14px; width: 20px; height: 42px; border-radius: 0 999px 999px 0; border-left: 0; }
+      .s3 { right: 2px; top: 14px; width: 28px; height: 28px; border-radius: 10px; }
+      .s4 { right: 6px; top: 12px; width: 16px; height: 56px; } /* 当前线上形态 */
+      .s5 { right: 2px; top: 14px; width: 28px; height: 28px; border-radius: 999px; }
+      .s6 { right: -2px; top: 14px; width: 32px; height: 36px; border-radius: 999px; }
+      .s7 { right: -12px; top: 10px; width: 48px; height: 20px; border-radius: 999px; font-size: 11px; }
+      .s8 { right: 2px; top: 14px; width: 28px; height: 42px; border-radius: 12px; border-color: transparent; background: linear-gradient(180deg, #0d6c63, #0a5a53); }
+      .s9 { right: -14px; top: 14px; width: 22px; height: 44px; border-radius: 10px; }
+      .s10 { right: 2px; bottom: 12px; top: auto; width: 28px; height: 28px; border-radius: 10px; }
+      .s11 { right: 2px; top: 12px; width: 28px; height: 46px; border-radius: 8px; border-color: transparent; background: linear-gradient(180deg, #0d6c63, #0a5a53); }
+      .s12 { right: 1px; top: 12px; width: 30px; height: 46px; border-radius: 10px; background: #fff; color: #0d6c63; }
+      .s13 { right: -2px; top: 12px; width: 22px; height: 44px; border-left: 0; border-radius: 0 10px 10px 0; border-color: transparent; background: linear-gradient(180deg, #0d6c63, #0a5a53); }
+      .s14 { right: -6px; top: 12px; width: 36px; height: 36px; border-radius: 12px; }
+      .s15 { right: 4px; top: 16px; width: 24px; height: 24px; border-radius: 999px; border-width: 2px; background: #fff; color: #0d6c63; }
+      .s16 { right: 4px; top: 12px; width: 10px; height: 64px; border-radius: 999px; }
+      .s17 { right: -8px; top: 28px; width: 18px; height: 18px; border-radius: 999px; }
+      .s18 { right: 0; top: 0; width: 12px; height: 100%; border-radius: 0; border: 0; background: linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,.06)); }
+      .s19 { right: 6px; top: 14px; width: 16px; height: 56px; border-radius: 999px; background: repeating-linear-gradient(180deg, rgba(255,255,255,.24) 0 6px, rgba(255,255,255,.12) 6px 12px); }
+      .s20 { right: -2px; top: 14px; width: 22px; height: 44px; border-radius: 999px; }
+      .s21 { right: 2px; top: 12px; width: 28px; height: 16px; border-radius: 999px; font-size: 10px; }
+      .s22 { right: 2px; top: 34px; width: 28px; height: 16px; border-radius: 999px; font-size: 10px; }
+      .s23 { right: 3px; top: 12px; width: 26px; height: 60px; border-radius: 14px; border-style: dashed; }
+      .s24 { right: 2px; top: 12px; width: 28px; height: 56px; border-radius: 10px; background: linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,.14)); }
+      .s25 { right: -6px; top: 18px; width: 34px; height: 34px; border-radius: 999px; }
+      .s26 { right: 4px; top: 12px; width: 16px; height: 56px; border-radius: 999px; border-width: 2px; }
+      .s27 { right: -1px; top: 10px; width: 20px; height: 20px; border-radius: 999px; }
+      .s28 { right: -1px; top: 34px; width: 20px; height: 20px; border-radius: 999px; }
+      .s29 { right: 2px; bottom: 12px; top: auto; width: 28px; height: 14px; border-radius: 999px; font-size: 9px; }
+      .s30 { right: 2px; top: 12px; width: 28px; height: 56px; border-radius: 0 14px 14px 0; border-left: 0; }
+
+      .p-glyph {
+        position: relative;
+        width: 12px;
+        height: 18px;
+        display: inline-block;
+      }
+      .p-glyph::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 3px;
+        height: 18px;
+        border-radius: 2px;
+        background: currentColor;
+      }
+      .p-glyph::after {
+        content: "";
+        position: absolute;
+        left: 2px;
+        top: 0;
+        width: 9px;
+        height: 9px;
+        border-radius: 0 8px 8px 0;
+        border: 3px solid currentColor;
+        border-left: 0;
+        box-sizing: border-box;
+      }
+      .s12 .p-glyph::before,
+      .s12 .p-glyph::after { background: transparent; }
+      .s12 .p-glyph::before { border: 2px solid currentColor; border-right: 0; width: 0; height: 18px; }
+      .s12 .p-glyph::after { border-width: 2px; }
+      .s13 .p-glyph { transform: scale(0.9); }
+
+      .ghost {
+        position: absolute;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.34);
+        background: rgba(255, 255, 255, 0.2);
+        display: grid;
+        place-items: center;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .g16a { right: 8px; top: 20px; width: 8px; height: 8px; border-radius: 999px; }
+      .g16b { right: 8px; top: 34px; width: 8px; height: 8px; border-radius: 999px; }
+      .g16c { right: 8px; top: 48px; width: 8px; height: 8px; border-radius: 999px; }
+      .g18 {
+        right: 0;
+        top: 20px;
+        width: 12px;
+        height: 42px;
+        border: 0;
+        border-left: 1px solid rgba(255,255,255,.35);
+        background: rgba(255,255,255,.16);
+        border-radius: 8px 0 0 8px;
+      }
+      .g20 {
+        right: 0;
+        top: 20px;
+        width: 10px;
+        height: 30px;
+        border: 0;
+        border-left: 1px solid rgba(255,255,255,.38);
+        background: rgba(255,255,255,.14);
+      }
+      .g24a { right: 10px; top: 22px; width: 8px; height: 8px; border-radius: 999px; }
+      .g24b { right: 10px; top: 50px; width: 8px; height: 8px; border-radius: 999px; }
+
+      @media (max-width: 1100px) {
+        .wrap { grid-template-columns: repeat(2, minmax(300px, 1fr)); }
+      }
+      @media (max-width: 760px) {
+        .wrap { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="demo"><span class="tag">01</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s1">›</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">边缘吸附圆角</h3><p class="desc">稳妥默认型。</p></section></div></div>
+      <div class="demo"><span class="tag">02</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s2">›</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">半嵌入缺口</h3><p class="desc">更一体化。</p></section></div></div>
+      <div class="demo"><span class="tag">03</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s3">›</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">轨道内悬浮</h3><p class="desc">不侵入第二列。</p></section></div></div>
+      <div class="demo"><span class="tag">04</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s4">›</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">纵向拉条（当前）</h3><p class="desc">完全按现网位置尺寸。</p></section></div></div>
+      <div class="demo"><span class="tag">05</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s5">›</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">圆点按钮</h3><p class="desc">视觉轻量。</p></section></div></div>
+      <div class="demo"><span class="tag">06</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s6">»</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">双箭头胶囊</h3><p class="desc">语义更直接。</p></section></div></div>
+      <div class="demo"><span class="tag">07</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s7">展开</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">顶部横向把手</h3><p class="desc">工具条风格。</p></section></div></div>
+      <div class="demo"><span class="tag">08</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s8">›</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">品牌反色块</h3><p class="desc">最醒目。</p></section></div></div>
+      <div class="demo"><span class="tag">09</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s9">›</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">外侧悬臂</h3><p class="desc">辨识度高。</p></section></div></div>
+      <div class="demo"><span class="tag">10</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s10">›</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">右下角悬浮</h3><p class="desc">不抢上焦点。</p></section></div></div>
+      <div class="demo"><span class="tag">11 / P</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s11"><span class="p-glyph"></span></button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">P 形实体块</h3><p class="desc">强品牌感。</p></section></div></div>
+      <div class="demo"><span class="tag">12 / P</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s12"><span class="p-glyph"></span></button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">P 形描边</h3><p class="desc">更克制。</p></section></div></div>
+      <div class="demo"><span class="tag">13 / P</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s13"><span class="p-glyph"></span></button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">半嵌入 P 把手</h3><p class="desc">P + 缺口。</p></section></div></div>
+      <div class="demo"><span class="tag">14</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s14">⟷</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">切换图标块</h3><p class="desc">弱化方向争议。</p></section></div></div>
+      <div class="demo"><span class="tag">15</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s15"></button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">纯形态圆点</h3><p class="desc">仅通过动效表达。</p></section></div></div>
+      <div class="demo"><span class="tag">16</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s16"></div><div class="ghost g16a"></div><div class="ghost g16b"></div><div class="ghost g16c"></div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">点阵拉条</h3><p class="desc">非按钮，像可拖拽手柄。</p></section></div></div>
+      <div class="demo"><span class="tag">17</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s17">•</div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">磁吸单点</h3><p class="desc">极简触点。</p></section></div></div>
+      <div class="demo"><span class="tag">18</span><div class="frame"><aside class="app-shell__rail"><div class="ghost g18"></div><div class="app-shell__rail-toggle s18"></div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">整边高亮</h3><p class="desc">非按钮，整条边作为触发区。</p></section></div></div>
+      <div class="demo"><span class="tag">19</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s19"></div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">斑马拉条</h3><p class="desc">拖拽感更强。</p></section></div></div>
+      <div class="demo"><span class="tag">20</span><div class="frame"><aside class="app-shell__rail"><div class="ghost g20"></div><div class="app-shell__rail-toggle s20">›</div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">边缝提示 + 按钮</h3><p class="desc">边缝提示可点击区。</p></section></div></div>
+      <div class="demo"><span class="tag">21</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s21">收起</div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">文本标签（上）</h3><p class="desc">不靠图标语义。</p></section></div></div>
+      <div class="demo"><span class="tag">22</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s22">展开</div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">文本标签（中）</h3><p class="desc">更靠近菜单区。</p></section></div></div>
+      <div class="demo"><span class="tag">23</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s23">⋮</div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">虚线把手</h3><p class="desc">强调“可拖可拉”。</p></section></div></div>
+      <div class="demo"><span class="tag">24</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s24"></div><div class="ghost g24a"></div><div class="ghost g24b"></div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">双节点锚点</h3><p class="desc">上下锚点视觉。</p></section></div></div>
+      <div class="demo"><span class="tag">25</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s25">≡</div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">外凸菜单球</h3><p class="desc">强调入口，但更抢眼。</p></section></div></div>
+      <div class="demo"><span class="tag">26</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s26">›</div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">粗边拉条</h3><p class="desc">线条更强势。</p></section></div></div>
+      <div class="demo"><span class="tag">27</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s27">−</div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">双点位-上</h3><p class="desc">与 28 组合成上下切换区。</p></section></div></div>
+      <div class="demo"><span class="tag">28</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s28">+</div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">双点位-下</h3><p class="desc">上下状态明确。</p></section></div></div>
+      <div class="demo"><span class="tag">29</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s29">开/关</div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">底部状态条</h3><p class="desc">靠近轨道底部操作。</p></section></div></div>
+      <div class="demo"><span class="tag">30</span><div class="frame"><aside class="app-shell__rail"><div class="app-shell__rail-toggle s30">›</div><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">侧翼片</h3><p class="desc">非圆角胶囊，片状手柄。</p></section></div></div>
+    </div>
+  </body>
+</html>

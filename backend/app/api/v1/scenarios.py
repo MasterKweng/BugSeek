@@ -10,7 +10,7 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 import logging
 
@@ -133,16 +133,13 @@ class ScenarioResponse(BaseModel):
     updated_by: Optional[int]
     node_count: int = 0
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ScenarioDetailResponse(ScenarioResponse):
     """场景详情响应模型"""
     nodes: List[Dict[str, Any]] = []
 
-    class Config:
-        from_attributes = True
 
 
 class ScenarioExecuteRequest(BaseModel):

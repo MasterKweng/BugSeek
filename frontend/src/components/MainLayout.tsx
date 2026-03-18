@@ -1,281 +1,315 @@
-import React, { useEffect } from 'react';
-import { Layout, Menu, Button, Space, Dropdown, Avatar } from 'antd';
+import React, { useEffect, useState } from 'react'
+import { Avatar, Dropdown, Input, Select, Tooltip } from 'antd'
 import {
-  HomeOutlined,
-  UserOutlined,
-  RobotOutlined,
-  ThunderboltOutlined,
-  DatabaseOutlined,
+  GlobalOutlined,
+  LeftOutlined,
   LogoutOutlined,
-  ProjectOutlined,
-  BranchesOutlined,
-  DownOutlined,
-  CloudServerOutlined,
-  ExperimentOutlined,
-} from '@ant-design/icons';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../store/auth';
-import { useProjectStore } from '../store/project';
-import ProjectSelector from './ProjectSelector';
-import VersionSelector from './VersionSelector';
-
-const { Header, Content } = Layout;
+  MoonOutlined,
+  RightOutlined,
+  SearchOutlined,
+  SmileOutlined,
+  SunOutlined,
+  UserOutlined,
+} from '@ant-design/icons'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../store/auth'
+import { useProjectStore } from '../store/project'
+import {
+  findNavigationSection,
+  navigationSections,
+  resolveNavigationState,
+} from '../navigation/appNavigation'
+import { useAppPreferences } from '../preferences/AppPreferencesProvider'
 
 const MainLayout: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { logout } = useAuthStore();
-  const { initializeFromStorage, fetchProjects, currentProject } = useProjectStore();
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { logout, user } = useAuthStore()
+  const {
+    initializeFromStorage,
+    fetchProjects,
+    currentProject,
+    currentVersion,
+    projects,
+    versions,
+    setCurrentProject,
+    setCurrentVersion,
+  } = useProjectStore()
+  const { locale, setLocale, themeMode, setThemeMode, t } = useAppPreferences()
 
   useEffect(() => {
-    // 初始化项目状态
-    initializeFromStorage();
-    fetchProjects();
-  }, []);
+    initializeFromStorage()
+    fetchProjects()
+  }, [])
 
   const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+    logout()
+    navigate('/login')
+  }
 
-  const menuItems = [
-    {
-      key: '/dashboard',
-      icon: <HomeOutlined />,
-      label: '仪表盘',
-    },
-    {
-      key: 'projects',
-      icon: <ProjectOutlined />,
-      label: '项目管理',
-      children: [
-        {
-          key: '/projects',
-          label: '项目列表',
-        },
-      ],
-    },
-    {
-      key: 'version-center',
-      icon: <BranchesOutlined />,
-      label: '版本中心',
-      children: [
-        {
-          key: 'versions',
-          label: '版本管理',
-        },
-        {
-          key: '/version-center/db-schema',
-          label: '数据结构',
-        },
-        {
-          key: '/version-center/field-mapping',
-          label: '字段映射',
-        },
-        {
-          key: '/knowledge-graph',
-          label: 'Knowledge Graph',
-        },
-      ],
-    },
-    {
-      key: 'api-hub',
-      icon: <CloudServerOutlined />,
-      label: 'API 资产库',
-      children: [
-        {
-          key: '/api-hub/definitions',
-          label: '接口定义',
-        },
-        {
-          key: '/api-hub/cases',
-          label: '测试用例',
-        },
-        {
-          key: '/api-hub/sync',
-          label: '文档同步',
-        },
-        {
-          key: '/api-hub/snapshots',
-          label: '版本快照',
-        },
-      ],
-    },
-    {
-      key: 'scenario',
-      icon: <ThunderboltOutlined />,
-      label: '场景工作室',
-      children: [
-        {
-          key: '/scenario/intent-workbench',
-          label: '意图工作台',
-        },
-        {
-          key: '/scenario/list',
-          label: '场景管理',
-        },
-      ],
-    },
-    {
-      key: 'ui-automation',
-      icon: <RobotOutlined />,
-      label: 'UI 自动化',
-      children: [
-        {
-          key: '/ui-automation',
-          label: 'UI 测试',
-        },
-      ],
-    },
-    {
-      key: 'orchestrator',
-      icon: <ThunderboltOutlined />,
-      label: '流程编排',
-      children: [
-        {
-          key: '/orchestrator',
-          label: 'CI/CD 集成',
-        },
-      ],
-    },
-    {
-      key: 'infra',
-      icon: <DatabaseOutlined />,
-      label: '基础设施',
-      children: [
-        {
-          key: '/infra',
-          label: '数据支撑',
-        },
-      ],
-    },
-    {
-      key: 'todo',
-      icon: <ExperimentOutlined />,
-      label: '待实现',
-      children: [
-        {
-          key: '/requirements',
-          label: '需求洞察',
-        },
-        {
-          key: '/code-quality',
-          label: '代码质量',
-        },
-        {
-          key: '/ui-automation',
-          label: 'UI 自动化',
-        },
-      ],
-    },
-  ];
+  const { section: activeSection, item: activeItem } = resolveNavigationState(location.pathname)
+  const navContext = { currentProjectId: currentProject?.id }
+  const secondaryItems = activeSection.items.filter((item) => !item.hidden)
+  const sectionIcon = activeSection.icon
+  const activeItemKey = activeItem.menuKey ?? activeItem.key
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [contextSelectorWidth, setContextSelectorWidth] = useState(120)
 
-  const getSelectedKeys = () => {
-    const path = location.pathname;
-    if (path === '/') return ['/dashboard'];
-    // 如果是版本管理页面，返回 versions 作为选中项
-    if (path.startsWith('/projects/') && path.endsWith('/versions')) {
-      return ['versions'];
-    }
-    if (path.startsWith('/version-center/db-schema')) {
-      return ['/version-center/db-schema'];
-    }
-    if (path.startsWith('/version-center/field-mapping')) {
-      return ['/version-center/field-mapping'];
-    }
-    if (path.startsWith('/knowledge-graph')) {
-      return ['/knowledge-graph'];
-    }
-    return [path];
-  };
+  const projectOptions = projects.map((project) => ({
+    label: project.name,
+    value: project.id,
+  }))
 
-  const handleMenuClick = ({ key }: { key: string }) => {
-    if (key === 'profile') {
-      navigate('/profile');
-    } else if (key === 'versions') {
-      // 版本管理特殊处理
-      if (currentProject) {
-        navigate(`/projects/${currentProject.id}/versions`);
-      } else {
-        // 如果未选择项目，跳转到项目列表并提示用户
-        navigate('/projects');
-      }
-    } else {
-      navigate(key);
+  const versionOptions = versions.map((version) => ({
+    label: version.version_number,
+    value: version.id,
+  }))
+
+  useEffect(() => {
+    const projectName = currentProject?.name?.trim() || ''
+    const fallbackWidth = 120
+
+    if (!projectName) {
+      setContextSelectorWidth(fallbackWidth)
+      return
     }
-  };
+
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d')
+    if (!context) {
+      const estimated = Math.max(96, Math.min(320, projectName.length * 14 + 40))
+      setContextSelectorWidth(estimated)
+      return
+    }
+
+    context.font = '500 13px "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif'
+    const measured = Math.ceil(context.measureText(projectName).width)
+    const width = Math.max(96, Math.min(320, measured + 40))
+    setContextSelectorWidth(width)
+  }, [currentProject?.id, currentProject?.name])
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{
-        background: 'var(--bg-secondary)',
-        padding: '0 24px',
-        display: 'flex',
-        alignItems: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.45)',
-        height: 64,
-      }}>
-        {/* Logo */}
-        <div style={{
-          marginRight: 40,
-          fontSize: 20,
-          fontWeight: 'bold',
-          color: '#1890ff',
-          cursor: 'pointer',
-          whiteSpace: 'nowrap',
-        }} onClick={() => navigate('/')}>
-          BugSeek
-        </div>
-
-        {/* 顶部导航菜单 */}
-        <Menu
-          theme="dark"
-          mode="horizontal"
-          selectedKeys={getSelectedKeys()}
-          items={menuItems}
-          onClick={handleMenuClick}
-          style={{ flex: 1, lineHeight: '64px', border: 'none', background: 'transparent' }}
-        />
-
-        {/* 右侧工具栏 */}
-        <Space size="middle" style={{ marginLeft: 24 }}>
-          <ProjectSelector />
-          <VersionSelector />
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: 'profile',
-                  icon: <UserOutlined />,
-                  label: '个人中心',
-                  onClick: () => navigate('/profile'),
-                },
-                {
-                  type: 'divider',
-                },
-                {
-                  key: 'logout',
-                  icon: <LogoutOutlined />,
-                  label: '退出登录',
-                  onClick: handleLogout,
-                },
-              ],
-            }}
-            placement="bottomRight"
+    <div className="app-shell">
+      <div className={`app-shell__canvas ${isSidebarCollapsed ? 'is-sidebar-collapsed' : ''}`}>
+        <aside className="app-shell__rail">
+          <button
+            type="button"
+            className="app-shell__rail-toggle"
+            onClick={() => setIsSidebarCollapsed((prev) => !prev)}
+            title={isSidebarCollapsed ? '展开菜单' : '收起菜单'}
           >
-            <Button type="text" icon={<Avatar icon={<UserOutlined />} />}>
-              <DownOutlined />
-            </Button>
-          </Dropdown>
-        </Space>
-      </Header>
-      <Content style={{ margin: '24px', overflow: 'auto' }}>
-        <div style={{ padding: 24, minHeight: 'calc(100vh - 112px)', background: 'var(--bg-secondary)', borderRadius: 8 }}>
-          <Outlet />
-        </div>
-      </Content>
-    </Layout>
-  );
-};
+            {isSidebarCollapsed ? <RightOutlined /> : <LeftOutlined />}
+          </button>
 
-export default MainLayout;
+          <div className="app-shell__brand">
+            <div className="app-shell__brand-mark">BS</div>
+            <div className="app-shell__brand-copy">
+              <strong>{t('shell.brand')}</strong>
+              <span className="app-shell__brand-subtitle">{t('shell.badge')}</span>
+            </div>
+          </div>
+
+          <nav className="app-shell__rail-nav" aria-label={t('shell.sectionTitle')}>
+            {navigationSections.map((section) => {
+              const Icon = section.icon
+              const isActive = section.key === activeSection.key
+              const firstVisibleItem = section.items.find((item) => !item.hidden)
+              const sectionLabel = t(section.labelKey, section.shortLabel)
+              const itemLabel =
+                section.key === activeSection.key
+                  ? t(activeItem.labelKey)
+                  : firstVisibleItem
+                    ? t(firstVisibleItem.labelKey)
+                    : ''
+              const breadcrumbTitle = itemLabel ? `${sectionLabel} / ${itemLabel}` : sectionLabel
+
+              const railButton = (
+                <button
+                  type="button"
+                  className={`app-shell__rail-button ${isActive ? 'is-active' : ''}`}
+                  onClick={() => {
+                    const targetSection = findNavigationSection(section.key)
+                    const firstVisibleItem = targetSection?.items.find((item) => !item.hidden)
+
+                    if (firstVisibleItem) {
+                      navigate(firstVisibleItem.getPath(navContext))
+                    }
+                  }}
+                  title={isSidebarCollapsed ? breadcrumbTitle : sectionLabel}
+                >
+                  <Icon />
+                </button>
+              )
+
+              if (isSidebarCollapsed) {
+                return (
+                  <Tooltip key={section.key} placement="right" title={breadcrumbTitle}>
+                    {railButton}
+                  </Tooltip>
+                )
+              }
+
+              return <React.Fragment key={section.key}>{railButton}</React.Fragment>
+            })}
+          </nav>
+
+          <div className="app-shell__rail-footer">
+            <button
+              type="button"
+              className="app-shell__rail-button"
+              onClick={() => setThemeMode(themeMode === 'light' ? 'dark' : 'light')}
+              title={t('shell.theme')}
+            >
+              {themeMode === 'light' ? <MoonOutlined /> : <SunOutlined />}
+            </button>
+            <button
+              type="button"
+              className="app-shell__rail-button"
+              onClick={() => setLocale(locale === 'zh-CN' ? 'en-US' : 'zh-CN')}
+              title={t('shell.language')}
+            >
+              <GlobalOutlined />
+            </button>
+          </div>
+        </aside>
+
+        {!isSidebarCollapsed && (
+          <aside className="app-shell__sidebar">
+            <div className="app-shell__sidebar-head">
+              <span className="app-shell__eyebrow">{t('shell.menuTitle')}</span>
+              <div className="app-shell__section-title">
+                {React.createElement(sectionIcon)}
+                <div>
+                  <h2>{t(activeSection.labelKey, activeSection.shortLabel)}</h2>
+                  <p>{t(activeSection.descriptionKey)}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="app-shell__menu-list">
+              {secondaryItems.map((item) => {
+                const Icon = item.icon ?? activeSection.icon
+                const key = item.menuKey ?? item.key
+                const isActive = key === activeItemKey
+
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={`app-shell__menu-item ${isActive ? 'is-active' : ''}`}
+                    onClick={() => navigate(item.getPath(navContext))}
+                  >
+                    <span className="app-shell__menu-icon">
+                      <Icon />
+                    </span>
+                    <span className="app-shell__menu-copy">
+                      <strong>{t(item.labelKey)}</strong>
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </aside>
+        )}
+
+        <main className="app-shell__workspace">
+          <header className="app-shell__workspace-topbar">
+            <div className="app-shell__search">
+              <SearchOutlined />
+              <Input
+                bordered={false}
+                placeholder={t('shell.searchPlaceholder')}
+                readOnly
+                value=""
+              />
+              <span className="app-shell__search-hint">{t('shell.searchHint')}</span>
+            </div>
+
+            <div className="app-shell__toolbar">
+              <div className="app-shell__context-selectors">
+                <div
+                  className="app-shell__selector-group app-shell__selector-group--project"
+                  style={{ width: contextSelectorWidth + 84 }}
+                >
+                  <span>{t('shell.currentProject')}</span>
+                  <Select
+                    className="app-shell__selector app-shell__selector--project"
+                    style={{ width: contextSelectorWidth }}
+                    value={currentProject?.id}
+                    options={projectOptions}
+                    placeholder={t('shell.noProject')}
+                    onChange={(projectId) => {
+                      const selectedProject = projects.find((project) => project.id === projectId)
+                      if (selectedProject) {
+                        setCurrentProject(selectedProject)
+                      }
+                    }}
+                  />
+                </div>
+                <div
+                  className="app-shell__selector-group app-shell__selector-group--version"
+                  style={{ width: contextSelectorWidth + 84 }}
+                >
+                  <span>{t('shell.currentVersion')}</span>
+                  <Select
+                    className="app-shell__selector app-shell__selector--version"
+                    style={{ width: contextSelectorWidth }}
+                    value={currentVersion?.id}
+                    options={versionOptions}
+                    placeholder={t('shell.noVersion')}
+                    disabled={!currentProject}
+                    onChange={(versionId) => {
+                      const selectedVersion = versions.find((version) => version.id === versionId)
+                      if (selectedVersion) {
+                        setCurrentVersion(selectedVersion)
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <Dropdown
+                placement="bottomRight"
+                menu={{
+                  items: [
+                    {
+                      key: 'profile',
+                      icon: <UserOutlined />,
+                      label: t('shell.profile'),
+                      onClick: () => navigate('/profile'),
+                    },
+                    {
+                      type: 'divider',
+                    },
+                    {
+                      key: 'logout',
+                      icon: <LogoutOutlined />,
+                      label: t('shell.logout'),
+                      onClick: handleLogout,
+                    },
+                  ],
+                }}
+              >
+                <button
+                  type="button"
+                  className="app-shell__user-button app-shell__user-button--icon"
+                  title={user?.nickname || user?.username || 'User'}
+                >
+                  <Avatar className="app-shell__user-avatar" icon={<SmileOutlined />} />
+                </button>
+              </Dropdown>
+            </div>
+          </header>
+
+          <section className="app-shell__workspace-body">
+            <div className="app-shell__content-panel">
+              <Outlet />
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+export default MainLayout

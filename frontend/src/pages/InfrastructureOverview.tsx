@@ -1,5 +1,5 @@
 ﻿import React from 'react'
-import { Alert, Card, Col, Descriptions, Row, Space, Tag, Typography } from 'antd'
+import { Card, Col, Descriptions, Row, Space, Tag, Typography } from 'antd'
 import './InfrastructureOverview.css'
 
 const { Paragraph, Text, Title } = Typography
@@ -47,12 +47,6 @@ const InfrastructureOverview: React.FC = () => {
           </Card>
         </Col>
       </Row>
-
-      <Alert
-        type="info"
-        showIcon
-        message="对象存储在这轮先完成配置与运维说明，运行时默认仍走本地制品目录。"
-      />
 
       <Card className="infra-card" title="Recommended Env Vars">
         <Space direction="vertical" size={6}>

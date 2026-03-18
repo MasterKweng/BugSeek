@@ -6,6 +6,7 @@ import type { ColumnsType } from 'antd/es/table'
 import * as projectService from '../services/project'
 import type { Project, ProjectCreate, ProjectUpdate } from '../types'
 import { get, post, put, del } from '../services/request'
+import WorkspaceModuleHero from '../components/WorkspaceModuleHero'
 
 const { TextArea } = Input
 const { Option } = Select
@@ -371,33 +372,34 @@ const Projects: React.FC = () => {
   ]
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Card
+    <div className="workspace-page workspace-list-page">
+      <WorkspaceModuleHero
+        eyebrow="Project Center"
         title="项目管理"
-        extra={
-          <Space>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={fetchProjects}
-              loading={loading}
-            >
+        description="管理项目基础信息、认证配置与环境资产。"
+        metrics={[
+          { label: '当前页项目数', value: projects.length },
+          { label: '项目总数', value: total },
+          { label: '分页', value: `${page}/${Math.max(1, Math.ceil((total || 1) / pageSize))}` },
+        ]}
+        actions={
+          <Space wrap>
+            <Button icon={<ReloadOutlined />} onClick={fetchProjects} loading={loading}>
               刷新
             </Button>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setCreateModalVisible(true)}
-            >
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
               创建项目
             </Button>
           </Space>
         }
-      >
+      />
+      <Card className="workspace-table-card workspace-list-page__card" bordered={false}>
         <Table
           columns={columns}
           dataSource={projects}
           loading={loading}
           rowKey="id"
+          scroll={{ y: 'calc(100vh - 420px)' }}
           pagination={{
             current: page,
             pageSize,

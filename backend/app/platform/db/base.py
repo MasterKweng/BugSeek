@@ -2,8 +2,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 from sqlalchemy import Column, Integer, BigInteger, String, Boolean, DateTime, Text, JSON, ForeignKey, Index, UniqueConstraint, Float
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 Base = declarative_base()
@@ -880,6 +879,7 @@ class AuthExtractRule(Base, TimestampMixin):
 class TestExecution(Base, TimestampMixin):
     """统一测试执行记录表（支持单接口、场景、套件）V2.0 层级一"""
     __tablename__ = "test_executions"
+    __test__ = False
 
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
@@ -927,6 +927,7 @@ class TestExecution(Base, TimestampMixin):
 class TestExecutionResult(Base, TimestampMixin):
     """测试执行结果明细表 V2.0 层级一"""
     __tablename__ = "test_execution_results"
+    __test__ = False
 
     id = Column(Integer, primary_key=True, index=True)
     execution_id = Column(Integer, ForeignKey("test_executions.id"), nullable=False, index=True)

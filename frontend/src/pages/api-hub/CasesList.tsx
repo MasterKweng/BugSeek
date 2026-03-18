@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 用例列表页面（V2.0 层级一 - API 资产库）
  * 符合前端代码规范：
  * 1. 防止重复提交：按钮加载状态
@@ -23,7 +23,6 @@ import {
   Tooltip,
   Popconfirm,
   Drawer,
-  Alert,
   Typography,
 } from 'antd';
 import {
@@ -40,6 +39,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { useSearchParams } from 'react-router-dom';
 import { useDebounce } from '../../hooks/useDebounce';
 import api from '../../services/api';
+import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
 
 const { Text } = Typography;
 
@@ -541,8 +541,18 @@ const CasesList: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Card>
+    <div className="workspace-page workspace-list-page">
+      <WorkspaceModuleHero
+        eyebrow="API Hub"
+        title="测试用例"
+        description="基于接口定义维护测试用例并执行验证。"
+        metrics={[
+          { label: '当前页用例', value: dataSource.length },
+          { label: '用例总数', value: total },
+          { label: '已选择', value: selectedRowKeys.length },
+        ]}
+      />
+      <Card className="workspace-table-card workspace-list-page__card" bordered={false}>
         {/* 顶部操作栏 */}
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col span={6}>
@@ -639,7 +649,7 @@ const CasesList: React.FC = () => {
               setPagination({ current: page, pageSize: pageSize || 20 });
             },
           }}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1200, y: 'calc(100vh - 420px)' }}
           title={() => (
             selectedRowKeys.length > 0 && (
               <Space>
@@ -784,15 +794,7 @@ const CasesList: React.FC = () => {
       >
         {aiGeneratedCase && (
           <div>
-            <Alert
-              message="AI 已生成基准用例，请审核后保存"
-              description="AI 置信度: {Math.round((aiGeneratedCase.ai_confidence || 0) * 100)}%"
-              type="info"
-              showIcon
-              style={{ marginBottom: 16 }}
-            />
-
-            <Row gutter={[16, 16]}>
+<Row gutter={[16, 16]}>
               <Col span={24}>
                 <div style={{ fontWeight: 'bold', marginBottom: 8 }}>用例名称</div>
                 <div>{aiGeneratedCase.name}</div>
@@ -1111,13 +1113,7 @@ const CasesList: React.FC = () => {
             layout="vertical"
             onFinish={handleBatchExecute}
           >
-            <Alert
-              message={`准备执行 ${selectedRowKeys.length} 个用例`}
-              type="info"
-              showIcon
-              style={{ marginBottom: 16 }}
-            />
-            <Form.Item
+<Form.Item
               name="environment_id"
               label="执行环境"
               rules={[{ required: true, message: '请选择执行环境' }]}
@@ -1232,3 +1228,4 @@ const CasesList: React.FC = () => {
 };
 
 export default CasesList;
+

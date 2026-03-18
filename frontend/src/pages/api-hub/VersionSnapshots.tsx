@@ -30,6 +30,7 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import api from '../../services/api';
+import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
 
 interface VersionSnapshot {
   id: number;
@@ -286,8 +287,18 @@ const VersionSnapshots: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Card>
+    <div className="workspace-page workspace-list-page">
+      <WorkspaceModuleHero
+        eyebrow="API Hub"
+        title="版本快照"
+        description="按接口追踪快照、版本标签与结构差异。"
+        metrics={[
+          { label: '当前页快照', value: snapshots.length },
+          { label: '快照总数', value: total },
+          { label: '已选接口', value: selectedDefinitionId || '-' },
+        ]}
+      />
+      <Card className="workspace-table-card workspace-list-page__card" bordered={false}>
         {/* 顶部操作栏 */}
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col span={18}>
@@ -353,7 +364,7 @@ const VersionSnapshots: React.FC = () => {
               setPagination({ current: page, pageSize: pageSize || 20 });
             },
           }}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1200, y: 'calc(100vh - 440px)' }}
           locale={{
             emptyText: selectedDefinitionId ? '暂无快照数据' : '请先选择接口定义'
           }}

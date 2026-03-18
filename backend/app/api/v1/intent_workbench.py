@@ -272,7 +272,9 @@ async def confirm_scenario_draft(
 def _model_dump(model: Any) -> Dict[str, Any]:
     if hasattr(model, "model_dump"):
         return model.model_dump()
-    return model.dict()
+    if hasattr(model, "__dict__"):
+        return dict(model.__dict__)
+    return dict(model)
 
 
 def _normalize_draft_payload(payload: Dict[str, Any]) -> Dict[str, Any]:

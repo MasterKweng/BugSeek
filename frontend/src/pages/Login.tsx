@@ -1,72 +1,80 @@
 import { useState } from 'react'
 import { Form, Input, Button, Card, message } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
+import { useAppPreferences } from '../preferences/AppPreferencesProvider'
+import AuthPreferenceBar from '../components/AuthPreferenceBar'
 
 const Login: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { login } = useAuthStore()
+  const { t } = useAppPreferences()
   const [loading, setLoading] = useState(false)
 
-  const from = (location.state as any)?.from?.pathname || '/'
+  const from = (location.state as { from?: { pathname?: string } } | undefined)?.from?.pathname || '/'
 
   const onFinish = async (values: { username: string; password: string }) => {
     setLoading(true)
     try {
       await login(values.username, values.password)
-      message.success('登录成功')
-      // 登录成功后，确保 token 也保存到 localStorage
+      message.success(t('auth.loginSuccess'))
+
       const token = localStorage.getItem('token')
       if (!token) {
-        // 如果 Zustand persist 还没有保存到 localStorage，手动获取并保存
         const authData = localStorage.getItem('auth-storage')
+
         if (authData) {
           try {
-            const parsed = JSON.parse(authData)
+            const parsed = JSON.parse(authData) as { state?: { token?: string } }
+
             if (parsed.state?.token) {
               localStorage.setItem('token', parsed.state.token)
             }
-          } catch (e) {
-            console.error('Failed to parse auth storage:', e)
+          } catch (error) {
+            console.error('Failed to parse auth storage:', error)
           }
         }
       }
+
       navigate(from, { replace: true })
-    } catch (error: any) {
-      message.error(error.message || '登录失败')
+    } catch (error) {
+      const messageText = error instanceof Error ? error.message : t('auth.login')
+      message.error(messageText)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--bg-primary)' }}>
-      <Card title="BugSeek" style={{ width: 400 }}>
-        <Form name="login" onFinish={onFinish} autoComplete="off">
+    <div className="auth-screen">
+      <AuthPreferenceBar />
+      <Card title="BugSeek" className="auth-card">
+        <div className="auth-card__subtitle">{t('auth.loginTitle')}</div>
+        <Form name="login" onFinish={onFinish} autoComplete="off" layout="vertical">
           <Form.Item
             name="username"
-            rules={[{ required: true, message: '请输入用户名' }]}
+            rules={[{ required: true, message: t('auth.requiredUsername') }]}
           >
-            <Input prefix={<UserOutlined />} placeholder="用户名" />
+            <Input prefix={<UserOutlined />} placeholder={t('auth.username')} />
           </Form.Item>
 
           <Form.Item
             name="password"
-            rules={[{ required: true, message: '请输入密码' }]}
+            rules={[{ required: true, message: t('auth.requiredPassword') }]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="密码" />
+            <Input.Password prefix={<LockOutlined />} placeholder={t('auth.password')} />
           </Form.Item>
 
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading} block>
-              登录
+              {t('auth.login')}
             </Button>
           </Form.Item>
 
-          <div style={{ textAlign: 'center' }}>
-            还没有账号？ <a href="/register">立即注册</a>
+          <div className="auth-card__footer">
+            {t('auth.noAccount')} <Link to="/register">{t('auth.goRegister')}</Link>
           </div>
         </Form>
       </Card>

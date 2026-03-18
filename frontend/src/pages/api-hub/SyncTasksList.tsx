@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 同步任务列表页面（V2.0 层级一 - API 资产库）
  * 符合前端代码规范：
  * 1. 防止重复提交：按钮加载状态
@@ -39,6 +39,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import api from '../../services/api';
 import { getTaskStatus, isTerminalTaskStatus } from '../../services/taskStatus';
+import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
 
 interface SyncTask {
   id: number;
@@ -513,8 +514,18 @@ const SyncTasksList: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Card>
+    <div className="workspace-page workspace-list-page">
+      <WorkspaceModuleHero
+        eyebrow="API Hub"
+        title="文档同步"
+        description="跟踪同步任务状态，审阅差异并执行变更应用。"
+        metrics={[
+          { label: '当前页任务', value: dataSource.length },
+          { label: '任务总数', value: total },
+          { label: '进行中', value: dataSource.filter((item) => !isTerminalTaskStatus(item.status)).length },
+        ]}
+      />
+      <Card className="workspace-table-card workspace-list-page__card" bordered={false}>
         {/* 顶部操作栏 */}
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col span={4}>
@@ -584,7 +595,7 @@ const SyncTasksList: React.FC = () => {
               setPagination({ current: page, pageSize: pageSize || 20 });
             },
           }}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1200, y: 'calc(100vh - 420px)' }}
         />
       </Card>
 

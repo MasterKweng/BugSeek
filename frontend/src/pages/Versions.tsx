@@ -6,6 +6,7 @@ import type { ColumnsType } from 'antd/es/table'
 import * as versionService from '../services/version'
 import * as projectService from '../services/project'
 import type { Version, VersionCreate, Project } from '../types'
+import WorkspaceModuleHero from '../components/WorkspaceModuleHero'
 
 const { TextArea } = Input
 const { Option } = Select
@@ -311,7 +312,7 @@ const Versions: React.FC = () => {
   ]
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div className="workspace-page workspace-list-page">
       {invalidProject ? (
         <Card>
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
@@ -330,6 +331,16 @@ const Versions: React.FC = () => {
         </Card>
       ) : (
         <>
+          <WorkspaceModuleHero
+            eyebrow="Version Center"
+            title={`版本管理 · ${project?.name || '-'}`}
+            description="管理版本生命周期、冻结状态与克隆链路。"
+            metrics={[
+              { label: '当前页版本数', value: versions.length },
+              { label: '版本总数', value: total },
+              { label: '已锁定', value: versions.filter((item) => item.status === 'locked').length },
+            ]}
+          />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 500 }}>版本管理 - {project?.name || ''}</h2>
             <Space>
@@ -349,11 +360,13 @@ const Versions: React.FC = () => {
             </Space>
           </div>
 
+          <Card className="workspace-table-card workspace-list-page__card" bordered={false}>
           <Table
             columns={columns}
             dataSource={versions}
             loading={loading}
             rowKey="id"
+            scroll={{ y: 'calc(100vh - 470px)' }}
             pagination={{
               current: page,
               pageSize,
@@ -366,6 +379,7 @@ const Versions: React.FC = () => {
               }
             }}
           />
+          </Card>
         </>
       )}
 

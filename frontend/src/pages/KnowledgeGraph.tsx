@@ -1,13 +1,12 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Button,
   Card,
-  Col,
   Descriptions,
   Empty,
   Input,
   List,
-  Row,
+  Result,
   Segmented,
   Space,
   Spin,
@@ -22,6 +21,8 @@ import {
   ReloadOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
+import WorkspaceModuleHero from '../components/WorkspaceModuleHero'
+import { useProjectStore } from '../store/project'
 import {
   GraphNode,
   getApisByField,
@@ -63,6 +64,7 @@ const typeIconMap: Record<string, React.ReactNode> = {
 }
 
 const KnowledgeGraph: React.FC = () => {
+  const { currentProject, currentVersion } = useProjectStore()
   const [nodeType, setNodeType] = useState<NodeFilter>('API')
   const [searchInput, setSearchInput] = useState('')
   const [searchKeyword, setSearchKeyword] = useState('')
@@ -192,154 +194,181 @@ const KnowledgeGraph: React.FC = () => {
       ? 'Table Fields'
       : 'Related Tables'
 
+  const heroMetrics = useMemo(() => [
+    { label: '节点总数', value: nodes.length },
+    { label: '当前筛选', value: nodeType },
+    { label: '当前焦点', value: selectedNode?.display_name || selectedNode?.name || '-' },
+  ], [nodeType, nodes.length, selectedNode?.display_name, selectedNode?.name])
+
+  if (!currentProject || !currentVersion) {
+    return (
+      <Result
+        status="warning"
+        title="请先选择项目和版本"
+        subTitle="知识图谱浏览依赖项目和版本上下文。"
+      />
+    )
+  }
+
   return (
-    <div className="kg-page">
-      <Card className="kg-hero" bordered={false}>
-        <Space direction="vertical" size={12} style={{ width: '100%' }}>
-          <Tag className="kg-hero-tag">Knowledge Graph</Tag>
-          <Title level={2} style={{ margin: 0 }}>Graph Browser</Title>
-          <Paragraph className="kg-hero-copy">
-            Browse APIs, tables, and fields as connected assets. Start from a typed catalog, then inspect
-            write paths, reverse dependencies, and field-level context without manual node IDs.
-          </Paragraph>
-          <div className="kg-toolbar">
-            <Segmented
-              options={filterOptions}
-              value={nodeType}
-              onChange={(value) => setNodeType(value as NodeFilter)}
-            />
-            <Input
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              onPressEnter={() => setSearchKeyword(searchInput.trim())}
-              prefix={<SearchOutlined />}
-              placeholder="Search by name, display name, or source id"
-              allowClear
-            />
-            <Button type="primary" onClick={() => setSearchKeyword(searchInput.trim())}>
-              Search
-            </Button>
+    <div className="governance-stack kg-page">
+      <WorkspaceModuleHero
+        eyebrow="Governance"
+        title="知识图谱"
+        description={`浏览 ${currentProject.name} / ${currentVersion.version_number} 下 API、表和字段节点的真实关联关系，用于排查依赖、回溯写路径和审阅字段上下文。`}
+        metrics={heroMetrics}
+        actions={
+          <Space wrap>
+            <Tag color="blue">{nodeType}</Tag>
             <Button icon={<ReloadOutlined />} onClick={() => void loadNodes(nodeType, searchKeyword)}>
               Refresh
             </Button>
-          </div>
-        </Space>
+          </Space>
+        }
+      />
+
+      <Card className="workspace-table-card" bordered={false}>
+        <div className="kg-toolbar">
+          <Segmented
+            options={filterOptions}
+            value={nodeType}
+            onChange={(value) => setNodeType(value as NodeFilter)}
+          />
+          <Input
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            onPressEnter={() => setSearchKeyword(searchInput.trim())}
+            prefix={<SearchOutlined />}
+            placeholder="Search by name, display name, or source id"
+            allowClear
+          />
+          <Button type="primary" onClick={() => setSearchKeyword(searchInput.trim())}>
+            Search
+          </Button>
+          <Button icon={<ReloadOutlined />} onClick={() => void loadNodes(nodeType, searchKeyword)}>
+            Refresh
+          </Button>
+        </div>
       </Card>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} xl={7}>
-          <Card className="kg-panel" title={`${nodeType} Catalog`} extra={<Text type="secondary">{nodes.length} items</Text>}>
-            <Spin spinning={loadingNodes}>
-              <List
-                className="kg-list"
-                locale={{ emptyText: <Empty description="No graph nodes found" /> }}
-                dataSource={nodes}
-                renderItem={(item) => {
-                  const active = selectedNode?.id === item.id
-                  return (
-                    <List.Item className={`kg-list-item ${active ? 'is-active' : ''}`} onClick={() => setSelectedNode(item)}>
-                      <div className="kg-list-item-main">
-                        <div className="kg-list-item-title">
-                          <span className="kg-list-item-icon">{typeIconMap[item.node_type] || <NodeIndexOutlined />}</span>
-                          <span>{item.display_name || item.name}</span>
-                        </div>
-                        <Text type="secondary">{item.name}</Text>
+      <div className="kg-layout">
+        <Card
+          className="workspace-table-card kg-panel"
+          bordered={false}
+          title={`${nodeType} Catalog`}
+          extra={<Text type="secondary">{nodes.length} items</Text>}
+        >
+          <Spin spinning={loadingNodes}>
+            <List
+              className="kg-list"
+              locale={{ emptyText: <Empty description="No graph nodes found" /> }}
+              dataSource={nodes}
+              renderItem={(item) => {
+                const active = selectedNode?.id === item.id
+                return (
+                  <List.Item className={`kg-list-item ${active ? 'is-active' : ''}`} onClick={() => setSelectedNode(item)}>
+                    <div className="kg-list-item-main">
+                      <div className="kg-list-item-title">
+                        <span className="kg-list-item-icon">{typeIconMap[item.node_type] || <NodeIndexOutlined />}</span>
+                        <span>{item.display_name || item.name}</span>
                       </div>
-                      <Tag color={typeColorMap[item.node_type] || 'default'}>{item.node_type}</Tag>
-                    </List.Item>
-                  )
-                }}
-              />
-            </Spin>
-          </Card>
-        </Col>
-
-        <Col xs={24} xl={10}>
-          <Card className="kg-panel kg-lane-card" title={laneTitle} extra={<Text type="secondary">{laneDescription}</Text>}>
-            {!selectedNode ? (
-              <Empty description="Select a node to inspect the graph" />
-            ) : (
-              <Spin spinning={loadingRelations}>
-                <div className="kg-lane kg-lane-grid">
-                  <div className="kg-lane-section">
-                    <Text className="kg-lane-label">Selected</Text>
-                    <div className="kg-focus-card">
-                      <Tag color={typeColorMap[selectedNode.node_type] || 'default'}>{selectedNode.node_type}</Tag>
-                      <Title level={4}>{selectedNode.display_name || selectedNode.name}</Title>
-                      <Paragraph>{selectedNode.source_id || 'No source id'}</Paragraph>
+                      <Text type="secondary">{item.name}</Text>
                     </div>
-                  </div>
+                    <Tag color={typeColorMap[item.node_type] || 'default'}>{item.node_type}</Tag>
+                  </List.Item>
+                )
+              }}
+            />
+          </Spin>
+        </Card>
 
-                  <div className="kg-lane-section">
-                    <Text className="kg-lane-label">{primaryLabel}</Text>
-                    {relations.primary.length > 0 ? relations.primary.map((item) => (
-                      <button key={item.id} className="kg-mini-card" onClick={() => setSelectedNode(item)}>
-                        <Tag color={typeColorMap[item.node_type] || 'default'}>{item.node_type}</Tag>
-                        <strong>{item.display_name || item.name}</strong>
-                        <span>{item.properties?.method ? `${item.properties.method} ${item.properties.path || ''}` : item.source_id || '-'}</span>
-                      </button>
-                    )) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={`No ${primaryLabel.toLowerCase()}`} />}
-                  </div>
-
-                  <div className="kg-lane-section">
-                    <Text className="kg-lane-label">{secondaryLabel}</Text>
-                    {relations.secondary.length > 0 ? relations.secondary.map((item) => (
-                      <button key={item.id} className="kg-mini-card" onClick={() => setSelectedNode(item)}>
-                        <Tag color={typeColorMap[item.node_type] || 'default'}>{item.node_type}</Tag>
-                        <strong>{item.display_name || item.name}</strong>
-                        <span>{item.properties?.field_path || item.properties?.table || item.source_id || '-'}</span>
-                      </button>
-                    )) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={`No ${secondaryLabel.toLowerCase()}`} />}
+        <Card
+          className="workspace-table-card kg-panel kg-lane-card"
+          bordered={false}
+          title={laneTitle}
+          extra={<Text type="secondary">{laneDescription}</Text>}
+        >
+          {!selectedNode ? (
+            <Empty description="Select a node to inspect the graph" />
+          ) : (
+            <Spin spinning={loadingRelations}>
+              <div className="kg-lane kg-lane-grid">
+                <div className="kg-lane-section">
+                  <Text className="kg-lane-label">Selected</Text>
+                  <div className="kg-focus-card">
+                    <Tag color={typeColorMap[selectedNode.node_type] || 'default'}>{selectedNode.node_type}</Tag>
+                    <Title level={4}>{selectedNode.display_name || selectedNode.name}</Title>
+                    <Paragraph>{selectedNode.source_id || 'No source id'}</Paragraph>
                   </div>
                 </div>
-              </Spin>
-            )}
-          </Card>
-        </Col>
 
-        <Col xs={24} xl={7}>
-          <Card className="kg-panel" title="Node Detail">
-            {!selectedNode ? (
-              <Empty description="Select a node to inspect metadata" />
-            ) : (
-              <Spin spinning={loadingDetail}>
-                <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                  <Descriptions column={1} size="small" labelStyle={{ width: 110 }}>
-                    <Descriptions.Item label="Type">
-                      <Tag color={typeColorMap[selectedNode.node_type] || 'default'}>{selectedNode.node_type}</Tag>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Name">{selectedDetail?.name || '-'}</Descriptions.Item>
-                    <Descriptions.Item label="Display">{selectedDetail?.display_name || '-'}</Descriptions.Item>
-                    <Descriptions.Item label="Source ID">{selectedDetail?.source_id || '-'}</Descriptions.Item>
-                  </Descriptions>
+                <div className="kg-lane-section">
+                  <Text className="kg-lane-label">{primaryLabel}</Text>
+                  {relations.primary.length > 0 ? relations.primary.map((item) => (
+                    <button key={item.id} className="kg-mini-card" onClick={() => setSelectedNode(item)}>
+                      <Tag color={typeColorMap[item.node_type] || 'default'}>{item.node_type}</Tag>
+                      <strong>{item.display_name || item.name}</strong>
+                      <span>{item.properties?.method ? `${item.properties.method} ${item.properties.path || ''}` : item.source_id || '-'}</span>
+                    </button>
+                  )) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={`No ${primaryLabel.toLowerCase()}`} />}
+                </div>
 
-                  <div>
-                    <Text strong>Properties</Text>
-                    {propertyEntries.length === 0 ? (
-                      <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No properties" />
-                    ) : (
-                      <List
-                        size="small"
-                        dataSource={propertyEntries}
-                        renderItem={([key, value]) => (
-                          <List.Item>
-                            <div style={{ width: '100%' }}>
-                              <Text strong>{key}</Text>
-                              <Paragraph className="kg-property-value" copyable={{ text: JSON.stringify(value) }}>
-                                {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
-                              </Paragraph>
-                            </div>
-                          </List.Item>
-                        )}
-                      />
-                    )}
-                  </div>
-                </Space>
-              </Spin>
-            )}
-          </Card>
-        </Col>
-      </Row>
+                <div className="kg-lane-section">
+                  <Text className="kg-lane-label">{secondaryLabel}</Text>
+                  {relations.secondary.length > 0 ? relations.secondary.map((item) => (
+                    <button key={item.id} className="kg-mini-card" onClick={() => setSelectedNode(item)}>
+                      <Tag color={typeColorMap[item.node_type] || 'default'}>{item.node_type}</Tag>
+                      <strong>{item.display_name || item.name}</strong>
+                      <span>{item.properties?.field_path || item.properties?.table || item.source_id || '-'}</span>
+                    </button>
+                  )) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={`No ${secondaryLabel.toLowerCase()}`} />}
+                </div>
+              </div>
+            </Spin>
+          )}
+        </Card>
+
+        <Card className="workspace-table-card kg-panel" bordered={false} title="Node Detail">
+          {!selectedNode ? (
+            <Empty description="Select a node to inspect metadata" />
+          ) : (
+            <Spin spinning={loadingDetail}>
+              <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                <Descriptions column={1} size="small" labelStyle={{ width: 110 }}>
+                  <Descriptions.Item label="Type">
+                    <Tag color={typeColorMap[selectedNode.node_type] || 'default'}>{selectedNode.node_type}</Tag>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Name">{selectedDetail?.name || '-'}</Descriptions.Item>
+                  <Descriptions.Item label="Display">{selectedDetail?.display_name || '-'}</Descriptions.Item>
+                  <Descriptions.Item label="Source ID">{selectedDetail?.source_id || '-'}</Descriptions.Item>
+                </Descriptions>
+
+                <div>
+                  <Text strong>Properties</Text>
+                  {propertyEntries.length === 0 ? (
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No properties" />
+                  ) : (
+                    <List
+                      size="small"
+                      dataSource={propertyEntries}
+                      renderItem={([key, value]) => (
+                        <List.Item>
+                          <div style={{ width: '100%' }}>
+                            <Text strong>{key}</Text>
+                            <Paragraph className="kg-property-value" copyable={{ text: JSON.stringify(value) }}>
+                              {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                            </Paragraph>
+                          </div>
+                        </List.Item>
+                      )}
+                    />
+                  )}
+                </div>
+              </Space>
+            </Spin>
+          )}
+        </Card>
+      </div>
     </div>
   )
 }

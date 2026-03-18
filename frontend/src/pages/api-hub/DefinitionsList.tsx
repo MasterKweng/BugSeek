@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 接口列表页面（V2.0 层级一 - API 资产库）
  * 符合前端代码规范：
  * 1. 防止重复提交：按钮加载状态
@@ -26,7 +26,6 @@ import {
   Drawer,
   Checkbox,
   Tabs,
-  Alert,
   Divider,
 } from 'antd';
 import {
@@ -42,6 +41,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useProjectStore } from '../../store/project';
+import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
 import DiffView from '../../components/DiffView';
 import ApiDebug from './ApiDebug';
 import MockService from './MockService';
@@ -421,7 +421,9 @@ const DefinitionsList: React.FC = () => {
       key: 'method',
       width: 80,
       render: (method: string) => (
-        <Tag color={getMethodColor(method)}>{method.toUpperCase()}</Tag>
+        <Tag color={getMethodColor(method)} className="api-definitions-method-tag">
+          {method.toUpperCase()}
+        </Tag>
       ),
       filters: [
         { text: 'GET', value: 'GET' },
@@ -435,17 +437,17 @@ const DefinitionsList: React.FC = () => {
       title: '接口路径',
       dataIndex: 'path',
       key: 'path',
-      width: 250,
+      width: 320,
       render: (path: string, record: ApiDefinition) => (
-        <div>
-          <Space>
+        <div className="api-definitions-path-block">
+          <div className="api-definitions-path-row">
             {record.sync_status === 'conflict' && (
               <Badge dot color="red" />
             )}
-            <div style={{ fontWeight: 'bold' }}>{path}</div>
-          </Space>
+            <div className="api-definitions-path-text" title={path}>{path}</div>
+          </div>
           {record.summary && (
-            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+            <div className="api-definitions-summary-text" title={record.summary}>
               {record.summary}
             </div>
           )}
@@ -552,8 +554,18 @@ const DefinitionsList: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
-      <Card>
+    <div className="workspace-page api-definitions-page">
+      <WorkspaceModuleHero
+        eyebrow="API Hub"
+        title="接口定义"
+        description="管理接口目录、字段与版本关联。"
+        metrics={[
+          { label: '当前页定义', value: dataSource.length },
+          { label: '定义总数', value: total },
+          { label: '已选择', value: selectedRowKeys.length },
+        ]}
+      />
+      <Card className="workspace-table-card api-definitions-page__card" bordered={false}>
         {/* 顶部操作栏 */}
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col span={5}>
@@ -640,7 +652,7 @@ const DefinitionsList: React.FC = () => {
               setPagination({ current: page, pageSize: pageSize || 20 });
             },
           }}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1200, y: 'calc(100vh - 420px)' }}
         />
       </Card>
 
@@ -928,14 +940,7 @@ const DefinitionsList: React.FC = () => {
               label: 'Schema 配置',
               children: (
                 <div>
-                  <Alert
-                    message="Schema 配置"
-                    description="查看和编辑接口的请求参数和响应参数定义"
-                    type="info"
-                    showIcon
-                    style={{ marginBottom: 16 }}
-                  />
-                  <Tabs
+<Tabs
                     items={[
                       {
                         key: 'request',
@@ -1007,14 +1012,7 @@ const DefinitionsList: React.FC = () => {
               label: '版本历史',
               children: (
                 <div>
-                  <Alert
-                    message="版本历史"
-                    description="查看接口定义的历史变更记录"
-                    type="info"
-                    showIcon
-                    style={{ marginBottom: 16 }}
-                  />
-                  <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
+<div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
                     版本历史功能开发中...
                   </div>
                 </div>
@@ -1025,14 +1023,7 @@ const DefinitionsList: React.FC = () => {
               label: '变更对比',
               children: (
                 <div>
-                  <Alert
-                    message="变更对比"
-                    description="对比当前版本与上一个版本的差异"
-                    type="info"
-                    showIcon
-                    style={{ marginBottom: 16 }}
-                  />
-                  <DiffView
+<DiffView
                     oldData={currentRecord.request_schema || {}}
                     newData={currentRecord.response_schema || {}}
                     title="Schema 对比"
@@ -1094,3 +1085,4 @@ const DefinitionsList: React.FC = () => {
 };
 
 export default DefinitionsList;
+

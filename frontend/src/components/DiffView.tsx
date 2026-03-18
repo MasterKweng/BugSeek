@@ -1,11 +1,4 @@
-/**
- * Diff View 组件（V2.0 层级一 - API 资产库）
- * 符合前端代码规范：
- * 1. 防止重复提交：按钮加载状态
- * 2. 空值防御：使用可选链和默认值
- * 3. 友好异常提示：统一错误处理
- */
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Card,
   Row,
@@ -13,135 +6,128 @@ import {
   Tag,
   Space,
   Typography,
-} from 'antd';
+} from 'antd'
 import {
   PlusOutlined,
   MinusOutlined,
   SwapOutlined,
-} from '@ant-design/icons';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+} from '@ant-design/icons'
 
-const { Text } = Typography;
+const { Text } = Typography
 
 interface DiffItem {
-  type: 'added' | 'removed' | 'changed';
-  field: string;
-  oldValue?: any;
-  newValue?: any;
-  location?: 'request' | 'response';
+  type: 'added' | 'removed' | 'changed'
+  field: string
+  oldValue?: any
+  newValue?: any
 }
 
 interface DiffViewProps {
-  oldData: any;
-  newData: any;
-  title?: string;
+  oldData: any
+  newData: any
+  title?: string
+}
+
+const codeBlockStyle: React.CSSProperties = {
+  marginTop: 4,
+  padding: 10,
+  borderRadius: 8,
+  background: 'var(--bg-tertiary)',
+  fontSize: 12,
+  fontFamily: 'var(--mono)',
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+  overflowX: 'auto',
+}
+
+const formatValue = (value: any): string => {
+  if (value === null || value === undefined) {
+    return 'null'
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value, null, 2)
+  }
+  return String(value)
 }
 
 const DiffView: React.FC<DiffViewProps> = ({ oldData, newData, title = '版本对比' }) => {
-  const [diffs, setDiffs] = useState<DiffItem[]>([]);
-  const [stats, setStats] = useState({ added: 0, removed: 0, changed: 0 });
+  const [diffs, setDiffs] = useState<DiffItem[]>([])
 
-  React.useEffect(() => {
-    const calculatedDiffs = calculateDiffs();
-    setDiffs(calculatedDiffs);
-    setStats({
-      added: calculatedDiffs.filter(d => d.type === 'added').length,
-      removed: calculatedDiffs.filter(d => d.type === 'removed').length,
-      changed: calculatedDiffs.filter(d => d.type === 'changed').length,
-    });
-  }, [oldData, newData]);
+  useEffect(() => {
+    const result: DiffItem[] = []
 
-  const calculateDiffs = (): DiffItem[] => {
-    const result: DiffItem[] = [];
+    const compare = (oldValue: any, nextValue: any, path = '') => {
+      const keys = new Set([...Object.keys(oldValue || {}), ...Object.keys(nextValue || {})])
 
-    const compare = (o: any, n: any, path: string = '') => {
-      const keys = new Set([...Object.keys(o || {}), ...Object.keys(n || {})]);
+      keys.forEach((key) => {
+        const currentPath = path ? `${path}.${key}` : key
 
-      keys.forEach(key => {
-        const currentPath = path ? `${path}.${key}` : key;
-
-        if (o && key in o && n && key in n) {
-          // 都存在的字段
-          if (JSON.stringify(o[key]) !== JSON.stringify(n[key])) {
-            // 值不同
-            if (typeof n[key] === 'object' && n[key] !== null) {
-              // 递归比较对象
-              compare(o[key], n[key], currentPath);
+        if (oldValue && key in oldValue && nextValue && key in nextValue) {
+          if (JSON.stringify(oldValue[key]) !== JSON.stringify(nextValue[key])) {
+            if (
+              typeof oldValue[key] === 'object' &&
+              oldValue[key] !== null &&
+              typeof nextValue[key] === 'object' &&
+              nextValue[key] !== null
+            ) {
+              compare(oldValue[key], nextValue[key], currentPath)
             } else {
-              // 基本类型不同
               result.push({
                 type: 'changed',
                 field: currentPath,
-                oldValue: o[key],
-                newValue: n[key],
-              });
+                oldValue: oldValue[key],
+                newValue: nextValue[key],
+              })
             }
           }
-        } else if (o && key in o && (!n || !(key in n))) {
-          // 只在旧数据中存在（删除）
+        } else if (oldValue && key in oldValue && (!nextValue || !(key in nextValue))) {
           result.push({
             type: 'removed',
             field: currentPath,
-            oldValue: o[key],
-          });
-        } else if (n && key in n && (!o || !(key in o))) {
-          // 只在新数据中存在（新增）
+            oldValue: oldValue[key],
+          })
+        } else if (nextValue && key in nextValue && (!oldValue || !(key in oldValue))) {
           result.push({
             type: 'added',
             field: currentPath,
-            newValue: n[key],
-          });
+            newValue: nextValue[key],
+          })
         }
-      });
-    };
-
-    compare(oldData, newData);
-    return result;
-  };
-
-  const getDiffColor = (type: string) => {
-    switch (type) {
-      case 'added':
-        return 'success';
-      case 'removed':
-        return 'error';
-      case 'changed':
-        return 'warning';
-      default:
-        return 'default';
+      })
     }
-  };
 
-  const getDiffIcon = (type: string) => {
-    switch (type) {
-      case 'added':
-        return <PlusOutlined />;
-      case 'removed':
-        return <MinusOutlined />;
-      case 'changed':
-        return <SwapOutlined />;
-      default:
-        return null;
-    }
-  };
+    compare(oldData, newData)
+    setDiffs(result)
+  }, [newData, oldData])
 
-  const formatValue = (value: any): string => {
-    if (value === null || value === undefined) return 'null';
-    if (typeof value === 'object') return JSON.stringify(value, null, 2);
-    return String(value);
-  };
+  const stats = useMemo(() => ({
+    added: diffs.filter((item) => item.type === 'added').length,
+    removed: diffs.filter((item) => item.type === 'removed').length,
+    changed: diffs.filter((item) => item.type === 'changed').length,
+  }), [diffs])
+
+  const getDiffColor = (type: DiffItem['type']) => {
+    if (type === 'added') return 'success'
+    if (type === 'removed') return 'error'
+    return 'warning'
+  }
+
+  const getDiffIcon = (type: DiffItem['type']) => {
+    if (type === 'added') return <PlusOutlined />
+    if (type === 'removed') return <MinusOutlined />
+    return <SwapOutlined />
+  }
 
   return (
     <Card
-      title={
+      title={(
         <Space>
           <Text strong>{title}</Text>
           <Tag color="success">新增: {stats.added}</Tag>
           <Tag color="error">删除: {stats.removed}</Tag>
           <Tag color="warning">修改: {stats.changed}</Tag>
         </Space>
-      }
+      )}
     >
       {diffs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-tertiary)' }}>
@@ -151,7 +137,7 @@ const DiffView: React.FC<DiffViewProps> = ({ oldData, newData, title = '版本�
         <div style={{ maxHeight: 600, overflow: 'auto' }}>
           {diffs.map((diff, index) => (
             <Card
-              key={index}
+              key={`${diff.field}-${index}`}
               size="small"
               style={{
                 marginBottom: 8,
@@ -168,32 +154,20 @@ const DiffView: React.FC<DiffViewProps> = ({ oldData, newData, title = '版本�
 
                 <Row gutter={16}>
                   <Col span={12}>
-                    {diff.oldValue !== undefined && (
+                    {diff.oldValue !== undefined ? (
                       <div>
-                        <Text type="secondary" style={{ fontSize: 12 }}>旧值:</Text>
-                        <SyntaxHighlighter
-                          language="json"
-                          style={vscDarkPlus}
-                          customStyle={{ fontSize: 12, marginTop: 4, padding: 8 }}
-                        >
-                          {formatValue(diff.oldValue)}
-                        </SyntaxHighlighter>
+                        <Text type="secondary" style={{ fontSize: 12 }}>旧值</Text>
+                        <pre style={codeBlockStyle}>{formatValue(diff.oldValue)}</pre>
                       </div>
-                    )}
+                    ) : null}
                   </Col>
                   <Col span={12}>
-                    {diff.newValue !== undefined && (
+                    {diff.newValue !== undefined ? (
                       <div>
-                        <Text type="secondary" style={{ fontSize: 12 }}>新值:</Text>
-                        <SyntaxHighlighter
-                          language="json"
-                          style={vscDarkPlus}
-                          customStyle={{ fontSize: 12, marginTop: 4, padding: 8 }}
-                        >
-                          {formatValue(diff.newValue)}
-                        </SyntaxHighlighter>
+                        <Text type="secondary" style={{ fontSize: 12 }}>新值</Text>
+                        <pre style={codeBlockStyle}>{formatValue(diff.newValue)}</pre>
                       </div>
-                    )}
+                    ) : null}
                   </Col>
                 </Row>
               </Space>
@@ -202,7 +176,7 @@ const DiffView: React.FC<DiffViewProps> = ({ oldData, newData, title = '版本�
         </div>
       )}
     </Card>
-  );
-};
+  )
+}
 
-export default DiffView;
+export default DiffView

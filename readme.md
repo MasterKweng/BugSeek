@@ -409,3 +409,10 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1
 ## 许可证
 
 MIT
+
+## Frontend Build And Deploy
+
+- Frontend source is in `frontend/`.
+- Production assets must be generated with `npm run build`.
+- `frontend/dist/` is treated as a build artifact and should not be committed.
+- See `docs/frontend_build_and_deploy.md` for the deployment flow.

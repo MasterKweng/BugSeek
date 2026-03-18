@@ -53,17 +53,17 @@ def test_statistics_with_final_candidates():
             if high_confidence:
                 logger.info(f"  ✅ 修复验证成功：final_candidates 已正确赋值")
                 logger.info(f"     top_score={top_score}, 高置信度={high_confidence}")
-                return True
+                assert high_confidence
             else:
                 logger.error(f"  ❌ 修复失败：top_score={top_score} 不满足高置信度条件")
-                return False
+                raise AssertionError(f"top_score={top_score} 不满足高置信度条件")
         else:
             logger.error(f"  ❌ 修复失败：final_candidates 未赋值")
-            return False
+            raise AssertionError("final_candidates 未赋值")
 
     except Exception as e:
         logger.error(f"  ❌ 测试失败: {str(e)}")
-        return False
+        raise
 
 
 def test_current_stage_integer():
@@ -85,11 +85,11 @@ def test_current_stage_integer():
         assert Stage.RESULT_MERGE == 5, f"Stage.RESULT_MERGE 应该是 5"
 
         logger.info(f"  ✅ 修复验证成功：所有阶段常量都是整数类型")
-        return True
+        assert True
 
     except Exception as e:
         logger.error(f"  ❌ 测试失败: {str(e)}")
-        return False
+        raise
 
 
 def test_skipped_stage_logic():
@@ -112,14 +112,14 @@ def test_skipped_stage_logic():
 
         if stage_data and stage_data.get("skipped"):
             logger.info(f"  ✅ 修复验证成功：SKIPPED 阶段数据可以正确提取")
-            return True
+            assert True
         else:
             logger.error(f"  ❌ 修复失败：SKIPPED 阶段数据提取失败")
-            return False
+            raise AssertionError("SKIPPED 阶段数据提取失败")
 
     except Exception as e:
         logger.error(f"  ❌ 测试失败: {str(e)}")
-        return False
+        raise
 
 
 def test_result_count_read_path():
@@ -150,11 +150,11 @@ def test_result_count_read_path():
                 result_count = len(result_data.get("items", []))
                 logger.info(f"  ✅ 修复验证成功：兼容 result.data.items 路径（count={result_count}）")
 
-        return True
+        assert True
 
     except Exception as e:
         logger.error(f"  ❌ 测试失败: {str(e)}")
-        return False
+        raise
 
 
 def test_stage_recovery_data_structure():
@@ -194,11 +194,11 @@ def test_stage_recovery_data_structure():
 
         assert field_info.field_name == "order_id", f"字段名应该是 order_id"
         logger.info(f"  ✅ 修复验证成功：阶段恢复数据结构正确，可以重建 FieldInfo")
-        return True
+        assert True
 
     except Exception as e:
         logger.error(f"  ❌ 测试失败: {str(e)}")
-        return False
+        raise
 
 
 def main():

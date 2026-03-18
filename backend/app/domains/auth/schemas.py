@@ -7,7 +7,7 @@
 3. 完善的错误处理和日志记录
 4. 魔法值清理：使用枚举定义状态
 """
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -60,8 +60,7 @@ class InjectionConfig(BaseModel):
     key: Optional[str] = Field(None, description="Header/Query/Cookie 名称")
     value_template: Optional[str] = Field(None, description="值模板，支持变量 {{ACCESS_TOKEN}}")
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
 
 # ==================== 参数映射 ====================
@@ -72,14 +71,14 @@ class InputMapping(BaseModel):
     key: str = Field(..., min_length=1, max_length=100, description="参数名")
     value: str = Field(..., description="参数值，支持环境变量 {{env_var}}")
 
-    @validator('value')
+    model_config = ConfigDict(use_enum_values=True)
+
+    @field_validator('value')
+    @classmethod
     def validate_value(cls, v):
         if not v:
             raise ValueError('参数值不能为空')
         return v
-
-    class Config:
-        use_enum_values = True
 
 
 # ==================== 提取规则 ====================
@@ -90,14 +89,14 @@ class ExtractRule(BaseModel):
     source: ExtractSourceEnum = Field(..., description="提取来源：body/header/cookie")
     expression: str = Field(..., min_length=1, description="JSONPath 或 Header/Cookie 名")
 
-    @validator('name')
+    model_config = ConfigDict(use_enum_values=True)
+
+    @field_validator('name')
+    @classmethod
     def validate_name(cls, v):
         if not v.isidentifier():
             raise ValueError('变量名必须是有效的标识符')
         return v.upper()
-
-    class Config:
-        use_enum_values = True
 
 
 # ==================== 鉴权配置 CRUD ====================

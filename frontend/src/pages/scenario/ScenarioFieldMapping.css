@@ -1,3 +1,14 @@
 .scenario-field-mapping {
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.scenario-field-mapping__subtext {
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.scenario-field-mapping__candidate {
+  margin-bottom: 6px;
 }

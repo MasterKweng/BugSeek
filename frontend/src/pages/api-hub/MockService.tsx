@@ -12,7 +12,6 @@ import {
   Input,
   Form,
   message,
-  Alert,
   Tag,
   Space,
   Typography,
@@ -196,14 +195,6 @@ const MockService: React.FC<MockServiceProps> = ({ definition }) => {
           layout="vertical"
           onFinish={handleSave}
         >
-          <Alert
-            message="Mock 数据模板"
-            description="使用 Mock.js 语法生成动态数据，如：@name、@email、@date"
-            type="info"
-            showIcon
-            style={{ marginBottom: 16 }}
-          />
-
           <Form.Item
             name="mock_data"
             label="Mock 数据"
@@ -287,14 +278,6 @@ const MockService: React.FC<MockServiceProps> = ({ definition }) => {
       label: 'Mock 地址',
       children: (
         <div>
-          <Alert
-            message="Mock 地址"
-            description="复制此地址到 HTTP 客户端（如 Postman）即可调用 Mock 接口"
-            type="info"
-            showIcon
-            style={{ marginBottom: 16 }}
-          />
-
           <Space direction="vertical" style={{ width: '100%' }} size="large">
             <div>
               <Text strong>Mock URL</Text>
@@ -321,13 +304,6 @@ const MockService: React.FC<MockServiceProps> = ({ definition }) => {
                 </pre>
               </div>
             </div>
-
-            <Alert
-              message="注意事项"
-              description="Mock 接口仅在当前环境可用，请确保 Mock 功能已启用"
-              type="warning"
-              showIcon
-            />
           </Space>
         </div>
       ),
@@ -352,3 +328,4 @@ const MockService: React.FC<MockServiceProps> = ({ definition }) => {
 };
 
 export default MockService;
+

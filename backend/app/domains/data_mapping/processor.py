@@ -2023,7 +2023,9 @@ class FieldMappingProcessor:
                 field_info.source_type,
                 field_info.field_name
             )
-            allowed_tables = sorted(set(field_info.allowed_tables or []))
+            allowed_tables = sorted(
+                set(getattr(field_info, "allowed_tables", None) or db_schema.get("allowed_tables") or [])
+            )
             if allowed_tables:
                 cache_key = f"{cache_key}|{','.join(allowed_tables)}"
             cache_key_to_has_candidates[cache_key] = (
@@ -2083,7 +2085,9 @@ class FieldMappingProcessor:
                     field_info.source_type,
                     field_info.field_name
                 )
-                allowed_tables = sorted(set(field_info.allowed_tables or []))
+                allowed_tables = sorted(
+                    set(getattr(field_info, "allowed_tables", None) or db_schema.get("allowed_tables") or [])
+                )
                 if allowed_tables:
                     cache_key = f"{cache_key}|{','.join(allowed_tables)}"
                 cache_key_to_instances.setdefault(cache_key, []).append((instance_key, field_info))

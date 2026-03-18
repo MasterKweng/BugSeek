@@ -511,7 +511,7 @@ async def get_environment_auth_config(
         return _response_to_dict(0, "环境鉴权配置不存在", None)
     
     logger.info(f"[{trace_id}] 获取环境鉴权配置成功: project_id={project_id}, environment_id={environment_id}")
-    return _response_to_dict(0, "获取成功", _auth_config_to_response(env_config))
+    return _response_to_dict(0, "获取成功", _auth_config_to_response(env_config, db))
 
 
 @router.post("/projects/{project_id}/environments/{environment_id}/auth-config", response_model=dict)
@@ -612,7 +612,7 @@ async def create_environment_auth_config(
         db.refresh(auth_config)
         
         logger.info(f"[{trace_id}] 创建环境鉴权配置成功: project_id={project_id}, environment_id={environment_id}, config_id={auth_config.id}")
-        return _response_to_dict(0, "创建成功", _auth_config_to_response(auth_config))
+        return _response_to_dict(0, "创建成功", _auth_config_to_response(auth_config, db))
         
     except Exception as e:
         db.rollback()
@@ -729,7 +729,7 @@ async def update_environment_auth_config(
         db.refresh(auth_config)
         
         logger.info(f"[{trace_id}] 更新环境鉴权配置成功: project_id={project_id}, environment_id={environment_id}, config_id={auth_config.id}")
-        return _response_to_dict(0, "更新成功", _auth_config_to_response(auth_config))
+        return _response_to_dict(0, "更新成功", _auth_config_to_response(auth_config, db))
         
     except Exception as e:
         db.rollback()

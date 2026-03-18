@@ -1,20 +1,7 @@
 .scenario-designer {
-  padding: 24px;
-}
-
-.nodes-section {
-  margin-top: 24px;
-}
-
-.nodes-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.nodes-header h3 {
-  margin: 0;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .nodes-list {
@@ -24,21 +11,31 @@
 }
 
 .node-card {
-  border-left: 4px solid #1890ff;
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: var(--panel-strong);
+  border: 1px solid var(--border-color-light);
 }
 
 .node-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 16px;
   margin-bottom: 12px;
 }
 
 .node-details {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
 .node-details > div {
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 760px) {
+  .node-header {
+    flex-direction: column;
+  }
 }

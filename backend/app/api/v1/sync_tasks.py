@@ -8,7 +8,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 import logging
 
@@ -83,8 +83,7 @@ class SyncTaskResponse(BaseModel):
     created_at: str
     created_by: Optional[int]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ========== 应用变更相关模型 ==========
@@ -869,7 +868,7 @@ async def apply_changes(
         return ApiResponse(
             code=0,
             message="变更应用成功",
-            data=result.dict()
+            data=result.model_dump()
         )
 
     except Exception as e:

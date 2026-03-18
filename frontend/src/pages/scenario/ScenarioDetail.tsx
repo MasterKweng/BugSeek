@@ -1,6 +1,5 @@
-﻿import React, { useEffect, useMemo, useState } from 'react'
+﻿import React, { useEffect, useState } from 'react'
 import {
-  Alert,
   Button,
   Card,
   Descriptions,
@@ -53,11 +52,6 @@ const ScenarioDetail: React.FC = () => {
   useEffect(() => {
     void loadExecutions()
   }, [scenarioId])
-
-  const currentEnvironment = useMemo(
-    () => environments.find((item) => item.id === selectedEnvironmentId) ?? null,
-    [environments, selectedEnvironmentId],
-  )
 
   const loadScenario = async () => {
     if (!scenarioId) {
@@ -190,15 +184,6 @@ const ScenarioDetail: React.FC = () => {
           </Descriptions>
 
           <Paragraph style={{ marginTop: 16 }}>{scenario.description || '暂无描述'}</Paragraph>
-          {scenario.context_init && Object.keys(scenario.context_init).length > 0 && (
-            <Alert
-              type="info"
-              showIcon
-              message="初始化上下文"
-              description={<pre style={{ margin: 0 }}>{JSON.stringify(scenario.context_init, null, 2)}</pre>}
-              style={{ marginTop: 16 }}
-            />
-          )}
         </Card>
 
         <Card title="场景节点">
@@ -276,14 +261,6 @@ const ScenarioDetail: React.FC = () => {
               value: item.id,
             }))}
           />
-          {currentEnvironment && (
-            <Alert
-              type="info"
-              showIcon
-              message={`当前环境：${currentEnvironment.name}`}
-              description={currentEnvironment.base_url}
-            />
-          )}
         </Space>
       </Modal>
     </div>
@@ -291,4 +268,6 @@ const ScenarioDetail: React.FC = () => {
 }
 
 export default ScenarioDetail
+
+
 

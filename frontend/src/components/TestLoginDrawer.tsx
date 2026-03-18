@@ -3,57 +3,57 @@
  * 符合前端代码规范
  */
 
-import React, { useState } from 'react';
-import { Drawer, Button, Space, Alert, Spin, Card, Empty, Descriptions } from 'antd';
-import { PlayCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import React, { useState } from 'react'
+import { Button, Card, Descriptions, Drawer, Empty, Space, Spin } from 'antd'
+import { CheckCircleOutlined, CloseCircleOutlined, PlayCircleOutlined } from '@ant-design/icons'
 
-import { testAcquisition } from '../services/auth';
-import type { TestAcquisitionRequest, TestAcquisitionResponse } from '../types/auth';
+import { testAcquisition } from '../services/auth'
+import type { TestAcquisitionRequest, TestAcquisitionResponse } from '../types/auth'
 
 interface TestLoginDrawerProps {
-  visible: boolean;
-  onClose: () => void;
-  projectId: number;
+  visible: boolean
+  onClose: () => void
+  projectId: number
 }
 
 const TestLoginDrawer: React.FC<TestLoginDrawerProps> = ({ visible, onClose, projectId }) => {
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<TestAcquisitionResponse | null>(null);
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<TestAcquisitionResponse | null>(null)
 
   const handleTest = async () => {
-    setLoading(true);
-    setResult(null);
+    setLoading(true)
+    setResult(null)
 
     try {
-      const request: TestAcquisitionRequest = {};
-      const response = await testAcquisition(projectId, request);
+      const request: TestAcquisitionRequest = {}
+      const response = await testAcquisition(projectId, request)
 
       if (response.code === 0) {
-        setResult(response.data);
+        setResult(response.data)
       } else {
         setResult({
           success: false,
           message: response.message || '测试失败',
           extracted_vars: {},
-          error: response.message
-        });
+          error: response.message,
+        })
       }
     } catch (error: any) {
       setResult({
         success: false,
         message: '测试异常',
         extracted_vars: {},
-        error: error.message || '未知错误'
-      });
+        error: error.message || '未知错误',
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleClose = () => {
-    setResult(null);
-    onClose();
-  };
+    setResult(null)
+    onClose()
+  }
 
   return (
     <Drawer
@@ -65,28 +65,16 @@ const TestLoginDrawer: React.FC<TestLoginDrawerProps> = ({ visible, onClose, pro
       footer={
         <Space>
           <Button onClick={handleClose}>关闭</Button>
-          <Button
-            type="primary"
-            icon={<PlayCircleOutlined />}
-            onClick={handleTest}
-            loading={loading}
-          >
+          <Button type="primary" icon={<PlayCircleOutlined />} onClick={handleTest} loading={loading}>
             开始测试
           </Button>
         </Space>
       }
     >
       <Space direction="vertical" style={{ width: '100%' }} size="large">
-        <Alert
-          message="测试说明"
-          description="点击开始测试后，系统将使用当前配置执行登录请求，并提取凭证变量。测试结果将显示在下方。"
-          type="info"
-          showIcon
-        />
-
         {loading && (
           <Card>
-            <div style={{ textAlign: 'center', padding: '20px' }}>
+            <div style={{ textAlign: 'center', padding: 20 }}>
               <Spin size="large" tip="正在测试登录..." />
             </div>
           </Card>
@@ -113,9 +101,7 @@ const TestLoginDrawer: React.FC<TestLoginDrawerProps> = ({ visible, onClose, pro
                   <span style={{ color: '#ff4d4f' }}>失败</span>
                 )}
               </Descriptions.Item>
-              <Descriptions.Item label="消息">
-                {result.message}
-              </Descriptions.Item>
+              <Descriptions.Item label="消息">{result.message}</Descriptions.Item>
               {result.error && (
                 <Descriptions.Item label="错误">
                   <span style={{ color: '#ff4d4f' }}>{result.error}</span>
@@ -124,7 +110,7 @@ const TestLoginDrawer: React.FC<TestLoginDrawerProps> = ({ visible, onClose, pro
             </Descriptions>
 
             {result.extracted_vars && Object.keys(result.extracted_vars).length > 0 && (
-              <div style={{ marginTop: '16px' }}>
+              <div style={{ marginTop: 16 }}>
                 <h4>提取的变量：</h4>
                 <Card size="small">
                   {Object.entries(result.extracted_vars).map(([key, value]) => (
@@ -137,12 +123,10 @@ const TestLoginDrawer: React.FC<TestLoginDrawerProps> = ({ visible, onClose, pro
             )}
 
             {result.response_data && (
-              <div style={{ marginTop: '16px' }}>
+              <div style={{ marginTop: 16 }}>
                 <h4>响应数据：</h4>
                 <Card size="small">
-                  <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    {result.response_data}
-                  </pre>
+                  <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{result.response_data}</pre>
                 </Card>
               </div>
             )}
@@ -156,7 +140,7 @@ const TestLoginDrawer: React.FC<TestLoginDrawerProps> = ({ visible, onClose, pro
         )}
       </Space>
     </Drawer>
-  );
-};
+  )
+}
 
-export default TestLoginDrawer;
+export default TestLoginDrawer

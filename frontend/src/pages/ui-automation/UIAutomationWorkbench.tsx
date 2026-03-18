@@ -1,28 +1,21 @@
-﻿import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Alert, Button, Card, Col, Divider, Input, Row, Space, Switch, Table, Tag, Typography, message } from 'antd'
 import { PlayCircleOutlined, ReloadOutlined } from '@ant-design/icons'
 
 import { createUIExecution, getUIExecution, type UIExecutionSummary } from '../../services/uiAutomation'
+import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
 import { useProjectStore } from '../../store/project'
 import './UIAutomationWorkbench.css'
 
 const { Paragraph, Text, Title } = Typography
 const { TextArea } = Input
 
-const defaultSteps = JSON.stringify([
-  { name: 'Open login page', action: 'goto', value: 'https://example.com/login' },
-  { name: 'Fill username', action: 'fill', selector: '#username', value: 'demo@example.com' },
-  { name: 'Fill password', action: 'fill', selector: '#password', value: 'password123' },
-  { name: 'Submit form', action: 'click', selector: 'button[type="submit"]' },
-  { name: 'Assert url', action: 'assert_url', value: '/dashboard' },
-], null, 2)
-
 const UIAutomationWorkbench: React.FC = () => {
   const { currentProject } = useProjectStore()
-  const [caseName, setCaseName] = useState('Smoke Login Flow')
-  const [startUrl, setStartUrl] = useState('https://example.com/login')
+  const [caseName, setCaseName] = useState('')
+  const [startUrl, setStartUrl] = useState('')
   const [headless, setHeadless] = useState(true)
-  const [stepsText, setStepsText] = useState(defaultSteps)
+  const [stepsText, setStepsText] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<UIExecutionSummary | null>(null)
   const [lastExecutionId, setLastExecutionId] = useState<number | null>(null)
@@ -40,6 +33,14 @@ const UIAutomationWorkbench: React.FC = () => {
       message.error('请先选择项目')
       return
     }
+    if (!caseName.trim()) {
+      message.error('请填写执行名称')
+      return
+    }
+    if (!startUrl.trim()) {
+      message.error('请填写起始 URL')
+      return
+    }
     if (!parsedSteps || !Array.isArray(parsedSteps) || parsedSteps.length === 0) {
       message.error('步骤 JSON 无效')
       return
@@ -48,8 +49,8 @@ const UIAutomationWorkbench: React.FC = () => {
     setLoading(true)
     try {
       const response = await createUIExecution(currentProject.id, {
-        name: caseName,
-        start_url: startUrl || undefined,
+        name: caseName.trim(),
+        start_url: startUrl.trim(),
         steps: parsedSteps,
         headless,
       })
@@ -79,17 +80,27 @@ const UIAutomationWorkbench: React.FC = () => {
   }
 
   return (
-    <div className="ui-automation-page">
+    <div className="ui-automation-page governance-stack">
+      <WorkspaceModuleHero
+        eyebrow="Automation"
+        title="UI 执行工作台"
+        description="基于真实 UI Testing 接口提交执行并查看结果。"
+        metrics={[
+          { label: '最新执行', value: lastExecutionId || '-' },
+          { label: '执行状态', value: result?.status || '-' },
+          { label: '步骤通过', value: result ? `${result.passed_steps}/${result.total_steps}` : '-' },
+        ]}
+      />
       <Card className="ui-automation-hero" bordered={false}>
         <Space direction="vertical" size={10} style={{ width: '100%' }}>
           <Tag color="cyan">UI Automation</Tag>
-          <Title level={2} style={{ margin: 0 }}>Playwright Workbench</Title>
+          <Title level={2} style={{ margin: 0 }}>
+            UI 执行工作台
+          </Title>
           <Paragraph className="ui-automation-copy">
-            Run one Playwright case, inspect step logs, and persist the execution result into the unified execution ledger.
+            这里仅承接真实的 `ui-testing` 执行接口。请填写执行名称、起始 URL 和步骤 JSON 后提交执行。
           </Paragraph>
-          {!currentProject?.id && (
-            <Alert type="warning" showIcon message="当前没有项目上下文，先在顶部选择项目后再执行。" />
-          )}
+          {!currentProject?.id && <Alert type="warning" showIcon message="当前没有项目上下文，先在顶部选择项目后再执行。" />}
         </Space>
       </Card>
 
@@ -107,14 +118,14 @@ const UIAutomationWorkbench: React.FC = () => {
                 value={stepsText}
                 onChange={(event) => setStepsText(event.target.value)}
                 autoSize={{ minRows: 14, maxRows: 22 }}
-                placeholder="Playwright steps JSON"
+                placeholder='[{"name":"Open home","action":"goto","value":"https://your-app"}]'
               />
               <div className="ui-automation-actions">
-                <Button type="primary" icon={<PlayCircleOutlined />} loading={loading} onClick={handleRun}>
-                  Run Case
+                <Button type="primary" icon={<PlayCircleOutlined />} loading={loading} onClick={handleRun} disabled={!currentProject?.id}>
+                  执行任务
                 </Button>
                 <Button icon={<ReloadOutlined />} disabled={!lastExecutionId} loading={loading} onClick={handleReload}>
-                  Reload Result
+                  刷新结果
                 </Button>
               </div>
             </Space>
@@ -122,7 +133,7 @@ const UIAutomationWorkbench: React.FC = () => {
         </Col>
 
         <Col xs={24} xl={12}>
-          <Card title="Execution Result" className="ui-automation-card">
+          <Card title="执行结果" className="ui-automation-card">
             {result ? (
               <Space direction="vertical" size={16} style={{ width: '100%' }}>
                 <div className="ui-automation-summary-grid">
@@ -132,11 +143,15 @@ const UIAutomationWorkbench: React.FC = () => {
                   </div>
                   <div>
                     <Text type="secondary">Status</Text>
-                    <Title level={4}><Tag color={result.status === 'completed' ? 'success' : 'error'}>{result.status}</Tag></Title>
+                    <Title level={4}>
+                      <Tag color={result.status === 'completed' ? 'success' : 'error'}>{result.status}</Tag>
+                    </Title>
                   </div>
                   <div>
                     <Text type="secondary">Steps</Text>
-                    <Title level={4}>{result.passed_steps}/{result.total_steps}</Title>
+                    <Title level={4}>
+                      {result.passed_steps}/{result.total_steps}
+                    </Title>
                   </div>
                   <div>
                     <Text type="secondary">Duration</Text>
@@ -173,7 +188,7 @@ const UIAutomationWorkbench: React.FC = () => {
                 />
               </Space>
             ) : (
-              <Alert type="info" showIcon message="执行后会在这里展示步骤日志和结果。" />
+              <div className="workspace-inline-note">执行后会在这里展示步骤日志和结果。</div>
             )}
           </Card>
         </Col>

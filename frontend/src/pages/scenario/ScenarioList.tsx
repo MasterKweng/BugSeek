@@ -1,11 +1,12 @@
 ﻿import React, { useEffect, useState } from 'react'
 import { Button, Card, Empty, Space, Table, Tag, Typography, message } from 'antd'
-import { PlayCircleOutlined, PlusOutlined } from '@ant-design/icons'
+import { PlayCircleOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 
 import api from '../../services/api'
 import { useProjectStore } from '../../store/project'
 import type { ScenarioSummary } from '../../types/scenario'
+import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
 
 const { Text } = Typography
 
@@ -47,17 +48,28 @@ const ScenarioList: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <Card
+    <div className="workspace-page workspace-list-page">
+      <WorkspaceModuleHero
+        eyebrow="Scenario"
         title="场景管理"
-        extra={
-          <Space>
+        description="统一管理项目场景、编排入口与执行链路。"
+        metrics={[
+          { label: '场景数', value: scenarios.length },
+          { label: '当前项目', value: currentProject?.name || '-' },
+          { label: '加载状态', value: loading ? '加载中' : '就绪' },
+        ]}
+        actions={
+          <Space wrap>
+            <Button icon={<ReloadOutlined />} onClick={() => void loadScenarios()} loading={loading}>
+              刷新
+            </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/scenario/intent-workbench')}>
               创建场景
             </Button>
           </Space>
         }
-      >
+      />
+      <Card className="workspace-table-card workspace-list-page__card" bordered={false}>
         {!currentProject?.id ? (
           <Empty description="请先选择项目" />
         ) : (
@@ -65,6 +77,7 @@ const ScenarioList: React.FC = () => {
             rowKey="id"
             loading={loading}
             dataSource={scenarios}
+            scroll={{ y: 'calc(100vh - 420px)' }}
             pagination={{ pageSize: 10 }}
             columns={[
               {

@@ -1,48 +1,50 @@
 # Python
-   __pycache__/
-   *.py[cod]
-   *$py.class
-   *.so
-   .Python
-   env/
-   venv/
-   ENV/
-   .venv
-   *.egg-info/
-   dist/
-   build/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+*.egg-info/
+build/
+.pytest_cache/
 
-   # Node.js
-   node_modules/
-   dist/
-   *.log
-   npm-debug.log*
-   yarn-debug.log*
-   yarn-error.log*
+# Node.js
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-   # IDEs
-   .vscode/
-   .idea/
-   *.swp
-   *.swo
-   *~
+# Logs
+logs/
+*.log
+!backend/logs/
+backend/logs/*
+!backend/logs/.gitkeep
 
-   # Environment variables
-   .env
-   .env.local
-   .env.dev
-   .env.test
-   .env.*.local
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-   # Logs
-   logs/
-   *.log
+# Environment variables
+.env
+.env.local
+.env.dev
+.env.test
+.env.*.local
 
-   # OS
-   .DS_Store
-   Thumbs.db
+# OS
+.DS_Store
+Thumbs.db
 
-   # Temporary files
-   *.tmp
-   *.temp
-   debug_store.js
+# Temporary files
+*.tmp
+*.temp
+debug_store.js

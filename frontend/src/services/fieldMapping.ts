@@ -280,11 +280,11 @@ export interface AsyncTaskCreateRequest {
   include_query?: boolean
   include_body?: boolean
   use_ai?: boolean
-  ai_config?: {
-    high_priority_enabled?: boolean
-    medium_priority_enabled?: boolean
-    low_priority_enabled?: boolean
-  }
+  high_priority_enabled?: boolean
+  medium_priority_enabled?: boolean
+  low_priority_enabled?: boolean
+  definition_ids?: number[]
+  scenario_id?: number
 }
 
 export interface AsyncTaskCreateResponse {
@@ -324,13 +324,13 @@ export const cancelAsyncTask = async (
 export const getFieldMappingSuggestions = async (
   taskId: number,
   params?: {
-    page?: number;
-    page_size?: number;
-    search?: string;
-    status_filter?: string;
-    method_filter?: string;
-    field_type_filter?: string;
-    definition_path_filter?: string;
+    page?: number
+    size?: number
+    search?: string
+    status_filter?: string
+    method_filter?: string
+    field_type_filter?: string
+    definition_path_filter?: string
   }
 ): Promise<ApiResponse<FieldMappingSuggestionResponse>> => {
   return api.get('/field-mappings/suggestions', {

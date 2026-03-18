@@ -1,10 +1,11 @@
 .intent-workbench {
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .workbench-card {
-  max-width: 900px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .step-content {
@@ -16,4 +17,23 @@
   display: flex;
   gap: 12px;
   justify-content: flex-end;
+}
+
+.intent-workbench__progress {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 760px) {
+  .step-actions {
+    justify-content: stretch;
+  }
+
+  .step-actions .ant-btn {
+    flex: 1;
+  }
 }

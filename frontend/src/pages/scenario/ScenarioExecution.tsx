@@ -297,11 +297,9 @@ const ScenarioExecution: React.FC = () => {
                 }))}
               />
             ) : (
-              <Alert
-                type={isRunning ? 'info' : 'warning'}
-                showIcon
-                message={isRunning ? '执行中，等待节点结果回传' : '暂无节点执行结果'}
-              />
+              <div className="workspace-inline-note">
+                {isRunning ? '执行中，等待节点结果回传。' : '暂无节点执行结果。'}
+              </div>
             )}
           </div>
         </Space>
@@ -311,3 +309,4 @@ const ScenarioExecution: React.FC = () => {
 }
 
 export default ScenarioExecution
+

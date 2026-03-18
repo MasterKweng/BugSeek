@@ -194,7 +194,7 @@ class TestPhase4AIPreparation:
         for api in apis:
             print(f"   - {api['method']} {api['path']}: {api['summary']}")
 
-        return apis
+        assert len(apis) == 3
 
 
 class TestPhase4AIIntentParser:
@@ -239,7 +239,7 @@ class TestPhase4AIIntentParser:
         print(f"   用户输入: {user_input}")
         print(f"   解析结果: {json.dumps(parsed_intent, indent=2, ensure_ascii=False)}")
 
-        return parsed_intent
+        assert parsed_intent["target"] == "part_creation_flow"
 
 
 class TestPhase4AITestGenerator:
@@ -292,7 +292,7 @@ class TestPhase4AITestGenerator:
         print(f"   测试用例: {generated_test['name']}")
         print(f"   断言数量: {len(generated_test['assertions'])}")
 
-        return generated_test
+        assert generated_test["test_case_id"] == "TC001"
 
 
 class TestPhase4AIScenarioGenerator:
@@ -367,7 +367,7 @@ class TestPhase4AIScenarioGenerator:
         for node in scenario["nodes"]:
             print(f"     - {node['name']} ({node['api']['method']} {node['api']['path']})")
 
-        return scenario
+        assert scenario["flow_type"] == "serial"
 
 
 class TestPhase4AIAssertionGenerator:
@@ -405,7 +405,7 @@ class TestPhase4AIAssertionGenerator:
         for assertion in assertions:
             print(f"     - {assertion}")
 
-        return assertions
+        assert len(assertions) == 7
 
 
 class TestPhase4Integration:
@@ -485,13 +485,7 @@ class TestPhase4Integration:
         print("🎉 完整 AI Testing Engine 工作流程测试通过！")
         print("="*60)
 
-        return {
-            "user_input": user_input,
-            "intent": parsed_intent,
-            "test_cases": test_cases,
-            "scenario": scenario,
-            "assertions": assertions
-        }
+        assert user_input
 
 
 def run_tests():
@@ -503,7 +497,7 @@ def run_tests():
     # 测试 1: 准备 API 定义
     print("\n📋 测试 1: 准备 Inventree API 定义")
     test_prep = TestPhase4AIPreparation()
-    apis = test_prep.test_create_inventree_api_definitions()
+    test_prep.test_create_inventree_api_definitions()
 
     # 测试 2: AI Intent Parser
     print("\n📋 测试 2: AI Intent Parser")

@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react'
+﻿import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Button,
+  Card,
   Drawer,
   Form,
   Input,
@@ -27,6 +28,7 @@ import {
   importDbSchemaFromSql,
   previewSqlSchema
 } from '../../services/dbSchema'
+import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
 
 const DbSchema: React.FC = () => {
   const navigate = useNavigate()
@@ -354,19 +356,34 @@ const DbSchema: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 500 }}>数据结构 - {currentProject.name} / {currentVersion.version_number}</h2>
-        <Button type="primary" onClick={openImport}>导入结构</Button>
-      </div>
-
-      <Table
-        rowKey="id"
-        loading={loading}
-        columns={columns}
-        dataSource={data}
-        pagination={{ pageSize: 10 }}
+    <div className="workspace-page workspace-list-page">
+      <WorkspaceModuleHero
+        eyebrow="Version Center"
+        title={`数据结构 · ${currentProject.name}`}
+        description={`当前版本 ${currentVersion.version_number} 的数据库结构导入、预览与治理。`}
+        metrics={[
+          { label: '结构数量', value: data.length },
+          { label: '加载状态', value: loading ? '加载中' : '就绪' },
+          { label: '当前版本', value: currentVersion.version_number },
+        ]}
+        actions={
+          <Space wrap>
+            <Button onClick={() => void fetchList()} loading={loading}>刷新</Button>
+            <Button type="primary" onClick={openImport}>导入结构</Button>
+          </Space>
+        }
       />
+
+      <Card className="workspace-table-card workspace-list-page__card" bordered={false}>
+        <Table
+          rowKey="id"
+          loading={loading}
+          columns={columns}
+          dataSource={data}
+          scroll={{ y: 'calc(100vh - 420px)' }}
+          pagination={{ pageSize: 10 }}
+        />
+      </Card>
 
       <Drawer
         title="结构详情"

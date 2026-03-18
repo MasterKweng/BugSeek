@@ -54,6 +54,22 @@ class TestAuthConfigAPI:
 
     def _set_first_results(self, mock_db, *results):
         mock_db.query.return_value.filter.return_value.first.side_effect = list(results)
+
+    def _set_query_results(self, mock_db, *results):
+        queries = []
+        for result in results:
+            query = Mock()
+            filtered_query = Mock()
+            query.filter.return_value = filtered_query
+            filtered_query.filter.return_value = filtered_query
+            if isinstance(result, list):
+                filtered_query.all.return_value = result
+                filtered_query.first.return_value = result[0] if result else None
+            else:
+                filtered_query.first.return_value = result
+                filtered_query.all.return_value = []
+            queries.append(query)
+        mock_db.query.side_effect = queries
     
     @pytest.fixture
     def mock_user(self):
@@ -172,14 +188,6 @@ class TestAuthConfigAPI:
     
     def test_get_environment_config_success(self, mock_db, sample_project, sample_environment, sample_template, mock_user):
         """测试获取环境配置成功"""
-        # 配置多个查询的返回值
-        project_query = Mock()
-        project_query.first.return_value = sample_project
-        
-        environment_query = Mock()
-        environment_query.first.return_value = sample_environment
-        
-        config_query = Mock()
         config = Mock()
         config.id = 1
         config.environment_id = 1
@@ -189,10 +197,7 @@ class TestAuthConfigAPI:
         config.inherit_from_project = True
         config.input_mappings = []
         config.extract_rules = []
-        config_query.first.return_value = config
-        
-        # 配置 query 方法的 side_effect
-        mock_db.query.side_effect = [project_query, environment_query, config_query]
+        self._set_query_results(mock_db, sample_project, sample_environment, config, [], [], [], [])
         
         result = asyncio.run(get_environment_auth_config(project_id=1, environment_id=1, db=mock_db, current_user=mock_user))
         
@@ -202,9 +207,7 @@ class TestAuthConfigAPI:
     
     def test_get_environment_config_not_found(self, mock_db, sample_project, sample_environment, mock_user):
         """测试环境配置不存在"""
-        # 设置 first 返回项目，然后返回环境
-        mock_db.query.return_value.filter.return_value.first.side_effect = [sample_project, sample_environment]
-        mock_db.query.return_value.filter.return_value.filter.return_value.filter.return_value.first.return_value = None
+        self._set_query_results(mock_db, sample_project, sample_environment, None)
         
         result = asyncio.run(get_environment_auth_config(project_id=1, environment_id=1, db=mock_db, current_user=mock_user))
         
@@ -353,7 +356,7 @@ class TestAuthConfigAPI:
         
         result = asyncio.run(update_project_template(
             project_id=1,
-            template_data=ProjectAuthTemplateUpdate(**sample_project_template_data.dict()),
+            template_data=ProjectAuthTemplateUpdate(**sample_project_template_data.model_dump()),
             db=mock_db,
             current_user=mock_user
         ))
@@ -385,10 +388,9 @@ class TestAuthConfigAPI:
     def test_create_environment_config_success(self, mock_trace_id, mock_db, sample_project, sample_environment, sample_env_config_data, mock_user):
         """测试创建环境配置成功"""
         mock_trace_id.return_value = "test-trace-id"
-        # 设置 first 返回项目，然后返回环境
-        mock_db.query.return_value.filter.return_value.first.side_effect = [sample_project, sample_environment]
-        # 重置查询链，确保后续查询返回 None（没有现有配置）
-        mock_db.query.return_value.filter.return_value.filter.return_value.filter.return_value.first.return_value = None
+        mappings_query = []
+        rules_query = []
+        self._set_query_results(mock_db, sample_project, sample_environment, None, mappings_query, rules_query)
         
         result = asyncio.run(create_environment_auth_config(
             project_id=1,
@@ -408,9 +410,6 @@ class TestAuthConfigAPI:
     def test_update_environment_config_success(self, mock_trace_id, mock_db, sample_project, sample_environment, sample_env_config_data, mock_user):
         """测试更新环境配置成功"""
         mock_trace_id.return_value = "test-trace-id"
-        # 设置 first 返回项目，然后返回环境
-        mock_db.query.return_value.filter.return_value.first.side_effect = [sample_project, sample_environment]
-        
         config = Mock()
         config.id = 1
         config.enabled = True
@@ -418,8 +417,8 @@ class TestAuthConfigAPI:
         config.inherit_from_project = False
         config.input_mappings = []
         config.extract_rules = []
-        
-        mock_db.query.return_value.filter.return_value.filter.return_value.filter.return_value.first.return_value = config
+
+        self._set_query_results(mock_db, sample_project, sample_environment, config, [], [], [], [])
         
         result = asyncio.run(update_environment_auth_config(
             project_id=1,
@@ -438,14 +437,12 @@ class TestAuthConfigAPI:
     def test_delete_environment_config_success(self, mock_trace_id, mock_db, sample_project, sample_environment, mock_user):
         """测试删除环境配置成功"""
         mock_trace_id.return_value = "test-trace-id"
-        self._set_first_results(mock_db, sample_project, sample_environment)
-        
         config = Mock()
         config.id = 1
         config.environment_id = 1
         config.project_id = 1
-        
-        mock_db.query.return_value.filter.return_value.filter.return_value.filter.return_value.first.return_value = config
+
+        self._set_query_results(mock_db, sample_project, sample_environment, config)
         
         result = asyncio.run(delete_environment_auth_config(
             project_id=1,

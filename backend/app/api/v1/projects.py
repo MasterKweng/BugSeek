@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import logging
 from app.dependencies import get_db
 from app.platform.db.base import Project, User, Environment
@@ -61,8 +61,7 @@ class ProjectEnvironmentResponse(BaseModel):
     name: str
     base_url: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm(cls, obj):
@@ -94,8 +93,7 @@ class ProjectResponse(BaseModel):
     # 环境数量
     environments_count: int = 0
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm(cls, obj, environments: Optional[List[Environment]] = None, db: Optional[Session] = None):

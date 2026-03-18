@@ -30,6 +30,22 @@ export interface EnvironmentListResponse {
   items: Environment[];
 }
 
+export interface EnvironmentCreate {
+  name: string;
+  base_url: string;
+  headers?: Record<string, string>;
+  variables?: Record<string, any>;
+  is_default?: boolean;
+}
+
+export interface EnvironmentUpdate {
+  name?: string;
+  base_url?: string;
+  headers?: Record<string, string>;
+  variables?: Record<string, any>;
+  is_default?: boolean;
+}
+
 /**
  * 获取项目的环境列表
  * @param projectId 项目 ID
@@ -59,7 +75,32 @@ export const getEnvironment = (
   return request.get(`/projects/${projectId}/environments/${envId}`);
 };
 
+export const createEnvironment = (
+  projectId: number,
+  data: EnvironmentCreate
+): Promise<{ environment: Environment }> => {
+  return request.post(`/projects/${projectId}/environments`, data);
+};
+
+export const updateEnvironment = (
+  projectId: number,
+  envId: number,
+  data: EnvironmentUpdate
+): Promise<{ environment: Environment }> => {
+  return request.put(`/projects/${projectId}/environments/${envId}`, data);
+};
+
+export const deleteEnvironment = (
+  projectId: number,
+  envId: number
+): Promise<{ message: string }> => {
+  return request.del(`/projects/${projectId}/environments/${envId}`);
+};
+
 export default {
   getProjectEnvironments,
-  getEnvironment
+  getEnvironment,
+  createEnvironment,
+  updateEnvironment,
+  deleteEnvironment,
 };

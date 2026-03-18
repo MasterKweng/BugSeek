@@ -2,11 +2,10 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import { Spin } from 'antd'
 import ProtectedRoute from './components/ProtectedRoute'
-import MainLayout from './components/MainLayout'
 import ProjectVersionGuard from './components/ProjectVersionGuard'
-import ComingSoon from './components/ComingSoon'
 
 // 路由懒加载 (P1-7)
+const MainLayout = lazy(() => import('./components/MainLayout'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const Profile = lazy(() => import('./pages/Profile'))
@@ -16,8 +15,9 @@ const Versions = lazy(() => import('./pages/Versions'))
 const DbSchema = lazy(() => import('./pages/version-center/DbSchema'))
 const FieldMapping = lazy(() => import('./pages/version-center/FieldMapping'))
 const KnowledgeGraph = lazy(() => import('./pages/KnowledgeGraph'))
+const EnvironmentManagement = lazy(() => import('./pages/project-center/EnvironmentManagement'))
+const OperationsCenter = lazy(() => import('./pages/operations/OperationsCenter'))
 const UIAutomationWorkbench = lazy(() => import('./pages/ui-automation/UIAutomationWorkbench'))
-const InfrastructureOverview = lazy(() => import('./pages/InfrastructureOverview'))
 
 // API Hub 模块 (V2.0)
 const ApiHubDefinitions = lazy(() => import('./pages/api-hub/DefinitionsList'))
@@ -62,13 +62,12 @@ function App() {
           {/* 项目管理模块 */}
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:projectId/versions" element={<Versions />} />
+          <Route path="project-center/environments" element={<ProjectVersionGuard><EnvironmentManagement /></ProjectVersionGuard>} />
           <Route path="version-center/db-schema" element={<ProjectVersionGuard><DbSchema /></ProjectVersionGuard>} />
           <Route path="version-center/field-mapping" element={<ProjectVersionGuard><FieldMapping /></ProjectVersionGuard>} />
           <Route path="knowledge-graph" element={<ProjectVersionGuard><KnowledgeGraph /></ProjectVersionGuard>} />
           {/* 需求洞察模块 */}
-          <Route path="requirements" element={<ComingSoon />} />
           {/* 代码质量模块 */}
-          <Route path="code-quality" element={<ComingSoon />} />
           {/* API Hub 模块 (V2.0) */}
           <Route path="api-hub/definitions" element={<ProjectVersionGuard><ApiHubDefinitions /></ProjectVersionGuard>} />
           <Route path="api-hub/definitions/:id" element={<ProjectVersionGuard><ApiHubDefinitions /></ProjectVersionGuard>} />
@@ -84,12 +83,11 @@ function App() {
           <Route path="scenario/:scenarioId/field-mapping" element={<ProjectVersionGuard><ScenarioFieldMapping /></ProjectVersionGuard>} />
           {/* 鉴权配置模块 */}
           <Route path="projects/:projectId/auth-config" element={<ProjectVersionGuard><AuthConfig /></ProjectVersionGuard>} />
+          <Route path="operations" element={<ProjectVersionGuard><OperationsCenter /></ProjectVersionGuard>} />
           {/* UI 自动化模块 */}
           <Route path="ui-automation" element={<ProjectVersionGuard><UIAutomationWorkbench /></ProjectVersionGuard>} />
           {/* 流程编排模块 */}
-          <Route path="orchestrator" element={<ComingSoon />} />
           {/* 基础设施模块 */}
-          <Route path="infra" element={<InfrastructureOverview />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

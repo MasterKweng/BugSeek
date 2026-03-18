@@ -4,7 +4,7 @@ import bcrypt
 from jose import jwt
 from datetime import datetime, timedelta
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 import logging
 from app.dependencies import get_db
 from app.platform.db.base import User
@@ -35,8 +35,7 @@ class UserResponse(BaseModel):
     nickname: Optional[str] = None
     avatar: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class LoginResponse(BaseModel):

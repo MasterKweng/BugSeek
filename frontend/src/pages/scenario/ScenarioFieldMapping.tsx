@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { Alert, Button, Card, message, Space, Spin, Table, Tag } from 'antd';
+import { Button, Card, message, Space, Spin, Table, Tag } from 'antd';
 import { ArrowLeftOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -187,13 +187,9 @@ const ScenarioFieldMapping: React.FC = () => {
         }
       >
         {scenario && (
-          <Alert
-            message={`场景: ${scenario.name}`}
-            description={`包含 ${scenario.nodes?.length || 0} 个节点，${suggestions.length} 个字段映射建议`}
-            type="info"
-            showIcon
-            style={{ marginBottom: 16 }}
-          />
+          <div className="workspace-inline-note">
+            {`场景: ${scenario.name}，包含 ${scenario.nodes?.length || 0} 个节点和 ${suggestions.length} 个字段映射建议。`}
+          </div>
         )}
 
         <Spin spinning={loading}>
@@ -286,3 +282,4 @@ const ScenarioFieldMapping: React.FC = () => {
 };
 
 export default ScenarioFieldMapping;
+
