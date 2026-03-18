@@ -5,7 +5,7 @@
  * 2. 空值防御：使用可选链和默认值
  * 3. 友好异常提示：统一错误处理
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Table,
   Button,
@@ -38,6 +38,7 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import api from '../../services/api';
+import { getTaskStatus, isTerminalTaskStatus } from '../../services/taskStatus';
 
 interface SyncTask {
   id: number;
@@ -55,6 +56,7 @@ interface SyncTask {
   deleted_count: number;
   conflict_count: number;
   error_message: string | null;
+  progress_message?: string | null;
   execution_log: any[];
   diff_data: any | null;
   impact_analysis: any | null;
@@ -87,8 +89,19 @@ const SyncTasksList: React.FC = () => {
 
   const [form] = Form.useForm();
 
-  // 获取同步任务列表
-  const fetchTasks = async () => {
+  const mergeTaskDetail = useCallback((detail: Partial<SyncTask> | null | undefined, fallback?: SyncTask | null): SyncTask | null => {
+    if (!detail && !fallback) {
+      return null;
+    }
+
+    return {
+      ...(fallback || {}),
+      ...(detail || {}),
+    } as SyncTask;
+  }, []);
+
+  // Poll sync tasks and refresh active status
+  const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -105,20 +118,73 @@ const SyncTasksList: React.FC = () => {
         setDataSource(response.data.items || []);
         setTotal(response.data.total || 0);
       } else {
-        message.error(response.message || '获取数据失败');
+        message.error(response.message || 'Failed to load sync tasks');
       }
     } catch (error) {
-      console.error('获取同步任务列表失败:', error);
-      message.error('获取数据失败，请稍后重试');
+      console.error('Failed to load sync tasks:', error);
+      message.error('Failed to load sync tasks, please try again later');
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters.source_type, filters.status, pagination.current, pagination.pageSize]);
+
+  const refreshTaskStatus = useCallback(async (taskId: number, fallback?: SyncTask | null) => {
+    try {
+      const response = await getTaskStatus<SyncTask>('sync-task', taskId);
+      if (response.code === 0 && response.data?.detail) {
+        return mergeTaskDetail(response.data.detail, fallback);
+      }
+    } catch (error) {
+      console.error('Failed to refresh sync task status:', error);
+    }
+    return fallback || null;
+  }, [mergeTaskDetail]);
+
+  const refreshActiveTaskStatuses = useCallback(async () => {
+    const activeTasks = dataSource.filter((item) => !isTerminalTaskStatus(item.status));
+    const activeIds = new Set(activeTasks.map((item) => item.id));
+    if (currentRecord && !isTerminalTaskStatus(currentRecord.status)) {
+      activeIds.add(currentRecord.id);
+    }
+
+    if (activeIds.size === 0) {
+      return;
+    }
+
+    const pairs = await Promise.all(
+      Array.from(activeIds).map(async (taskId) => {
+        const fallback = activeTasks.find((item) => item.id === taskId) || (currentRecord?.id === taskId ? currentRecord : null);
+        const task = await refreshTaskStatus(taskId, fallback);
+        return [taskId, task] as const;
+      })
+    );
+
+    const taskMap = new Map(pairs.filter(([, task]) => task).map(([taskId, task]) => [taskId, task as SyncTask]));
+    if (taskMap.size === 0) {
+      return;
+    }
+
+    setDataSource((prev) => prev.map((item) => taskMap.get(item.id) || item));
+    setCurrentRecord((prev) => (prev ? taskMap.get(prev.id) || prev : prev));
+  }, [currentRecord, dataSource, refreshTaskStatus]);
 
   useEffect(() => {
-    fetchTasks();
-  }, [pagination, filters.status, filters.source_type]);
+    void fetchTasks();
+  }, [fetchTasks]);
 
+  useEffect(() => {
+    const hasActiveTasks = dataSource.some((item) => !isTerminalTaskStatus(item.status));
+    const watchingDrawerTask = !!(detailDrawerVisible && currentRecord && !isTerminalTaskStatus(currentRecord.status));
+    if (!hasActiveTasks && !watchingDrawerTask) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      void refreshActiveTaskStatuses();
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [currentRecord, dataSource, detailDrawerVisible, refreshActiveTaskStatuses]);
   // 创建同步任务
   const handleCreate = async (values: any) => {
     setLoading(true);
@@ -382,6 +448,11 @@ const SyncTasksList: React.FC = () => {
               onClick={() => {
                 setCurrentRecord(record);
                 setDetailDrawerVisible(true);
+                void refreshTaskStatus(record.id, record).then((task) => {
+                  if (task) {
+                    setCurrentRecord(task);
+                  }
+                });
               }}
             />
           </Tooltip>
@@ -614,6 +685,9 @@ const SyncTasksList: React.FC = () => {
               <Col span={24}>
                 <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>进度</div>
                 <Progress percent={currentRecord.progress} />
+                {currentRecord.progress_message && (
+                  <div style={{ marginTop: 8, color: 'var(--text-secondary)' }}>{currentRecord.progress_message}</div>
+                )}
               </Col>
               <Col span={24}>
                 <div style={{ color: 'var(--text-tertiary)', marginBottom: 4 }}>变更统计</div>

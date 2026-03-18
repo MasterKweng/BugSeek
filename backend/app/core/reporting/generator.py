@@ -350,28 +350,116 @@ class ReportGenerator:
         
         return html
     
-    def generate_pdf_report(self, report_data: ReportData) -> bytes:
+    async def generate_pdf_report(
+        self,
+        report_data: ReportData,
+        scenario_description: Optional[str] = None,
+        include_rca: bool = True,
+    ) -> bytes:
         """
-        生成 PDF 报告
+        ?? PDF ??
         
         Args:
-            report_data: 报告数据
+            report_data: ????
+            scenario_description: ????????
+            include_rca: ???? RCA ??
             
         Returns:
-            bytes: PDF 报告内容
+            bytes: PDF ????
         """
-        logger.info(f"生成 PDF 报告: scenario_id={report_data.summary.scenario_id}")
-        
-        # TODO: 实现 PDF 生成逻辑
-        # 可以使用 weasyprint 或 reportlab 库
-        
-        # 临时方案：返回 HTML 内容
-        html_content = self.generate_html_report(report_data)
-        
-        logger.warning("PDF 生成功能未实现，返回 HTML 内容")
-        
-        return html_content.encode('utf-8')
-    
+        logger.info(f"?? PDF ??: scenario_id={report_data.summary.scenario_id}")
+
+        html_content = await self.generate_html_report(
+            report_data,
+            scenario_description=scenario_description,
+            include_rca=include_rca,
+        )
+
+        try:
+            return await self._render_pdf_via_playwright(html_content)
+        except Exception as exc:
+            logger.warning("Playwright PDF render failed, falling back to basic PDF: %s", exc)
+            return self._render_basic_pdf(report_data)
+
+    async def _render_pdf_via_playwright(self, html_content: str) -> bytes:
+        """Render HTML into PDF with Playwright when browser runtime is available."""
+        from playwright.async_api import async_playwright
+
+        async with async_playwright() as playwright:
+            browser = await playwright.chromium.launch()
+            try:
+                page = await browser.new_page()
+                await page.set_content(html_content, wait_until="load")
+                return await page.pdf(
+                    format="A4",
+                    print_background=True,
+                    margin={"top": "16mm", "right": "12mm", "bottom": "16mm", "left": "12mm"},
+                )
+            finally:
+                await browser.close()
+
+    def _render_basic_pdf(self, report_data: ReportData) -> bytes:
+        """Generate a minimal PDF when HTML rendering is unavailable."""
+        summary = report_data.summary
+        lines = [
+            f"BugSeek Scenario Report - {summary.scenario_name}",
+            f"Environment: {summary.environment_name}",
+            f"Status: {summary.status}",
+            f"Nodes: total={summary.total_nodes}, passed={summary.passed_nodes}, failed={summary.failed_nodes}, skipped={summary.skipped_nodes}",
+            f"Duration: {summary.total_duration_ms}ms",
+            " ",
+            "Node Results:",
+        ]
+        for node in report_data.node_results:
+            error_suffix = f" | error={node.error_message}" if node.error_message else ""
+            lines.append(
+                f"- {node.node_name or node.node_key} [{node.status}] code={node.response_code} time={node.response_time}ms{error_suffix}"
+            )
+
+        return self._build_text_pdf(lines)
+
+    def _build_text_pdf(self, lines: list[str]) -> bytes:
+        """Build a small text-only PDF without external dependencies."""
+        visible_lines = lines[:48]
+        escaped_lines = [self._escape_pdf_text(line) for line in visible_lines]
+        stream_lines = ["BT", "/F1 12 Tf", "50 790 Td", "15 TL"]
+        for index, line in enumerate(escaped_lines):
+            if index > 0:
+                stream_lines.append("T*")
+            stream_lines.append(f"({line}) Tj")
+        stream_lines.append("ET")
+        stream = "\n".join(stream_lines).encode("latin-1", "replace")
+
+        objects = [
+            b"<< /Type /Catalog /Pages 2 0 R >>",
+            b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 5 0 R /Resources << /Font << /F1 4 0 R >> >> >>",
+            b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+            f"<< /Length {len(stream)} >>\nstream\n".encode("ascii") + stream + b"\nendstream",
+        ]
+
+        output = bytearray(b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
+        offsets = [0]
+        for index, obj in enumerate(objects, start=1):
+            offsets.append(len(output))
+            output.extend(f"{index} 0 obj\n".encode("ascii"))
+            output.extend(obj)
+            output.extend(b"\nendobj\n")
+
+        xref_offset = len(output)
+        output.extend(f"xref\n0 {len(objects) + 1}\n".encode("ascii"))
+        output.extend(b"0000000000 65535 f \n")
+        for offset in offsets[1:]:
+            output.extend(f"{offset:010d} 00000 n \n".encode("ascii"))
+        output.extend(
+            f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref_offset}\n%%EOF\n".encode("ascii")
+        )
+        return bytes(output)
+
+    @staticmethod
+    def _escape_pdf_text(text: str) -> str:
+        return text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
     async def generate_rca_analysis(
         self,
         report_data: ReportData,

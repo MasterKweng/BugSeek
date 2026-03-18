@@ -16,8 +16,16 @@ from .test_generator import TestGenerator
 from .scenario_generator import ScenarioGenerator
 from .assertion_generator import AssertionGenerator
 from .failure_analyzer import FailureAnalyzer
+from .variable_mapper import VariableMapper
 from .memory_manager import MemoryManager
-from .schemas import IntentResult, AIContext, ScenarioDraft, TestCaseSpec, FailureReport
+from .schemas import (
+    IntentResult,
+    AIContext,
+    ScenarioDraft,
+    TestCaseSpec,
+    FailureReport,
+    VariableMappingReport,
+)
 
 
 class AITestingEngine:
@@ -28,6 +36,7 @@ class AITestingEngine:
         self.scenario_generator = ScenarioGenerator()
         self.assertion_generator = AssertionGenerator()
         self.failure_analyzer = FailureAnalyzer()
+        self.variable_mapper = VariableMapper()
         self.memory = MemoryManager()
 
     async def parse_intent(self, text: str) -> IntentResult:
@@ -47,6 +56,9 @@ class AITestingEngine:
 
     async def analyze_failure(self, project_id: int, payload: Dict[str, Any]) -> FailureReport:
         return await self.failure_analyzer.analyze(project_id, payload)
+
+    async def map_variables(self, project_id: int, payload: Dict[str, Any]) -> VariableMappingReport:
+        return await self.variable_mapper.suggest(project_id, payload)
 
     async def run_full_flow(
         self,

@@ -1,5 +1,6 @@
 import api from './api'
 import type { ApiResponse, FieldMapping } from '../types'
+import { getTaskStatus } from './taskStatus'
 
 export interface FieldMappingCreateRequest {
   definition_id: number
@@ -304,6 +305,13 @@ export const createFieldMappingSuggestTask = async (
 export const getAsyncTask = async (
   taskId: number
 ): Promise<ApiResponse<AsyncTask>> => {
+  const response = await getTaskStatus<AsyncTask>('field-mapping', taskId)
+  if (response.code === 0 && response.data?.detail) {
+    return {
+      ...response,
+      data: response.data.detail,
+    }
+  }
   return api.get(`/async-tasks/${taskId}`)
 }
 

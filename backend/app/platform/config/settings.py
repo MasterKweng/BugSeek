@@ -107,6 +107,22 @@ class Settings(BaseSettings):
     DATA_IMPACT_ASSERTIONS_MODE: str = "rule"  # rule | ai | hybrid
     DATA_IMPACT_SNAPSHOT_MODE: str = "full"  # full | incremental
 
+    # ??????
+    AUTH_CACHE_TTL_SECONDS: int = 3600
+
+    # ???????????
+    OBJECT_STORAGE_ENABLED: bool = False
+    OBJECT_STORAGE_PROVIDER: str = "local"  # local | s3 | minio | oss
+    OBJECT_STORAGE_ENDPOINT: str = ""
+    OBJECT_STORAGE_BUCKET: str = "bugseek-artifacts"
+    OBJECT_STORAGE_REGION: str = ""
+    OBJECT_STORAGE_ACCESS_KEY: str = ""
+    OBJECT_STORAGE_SECRET_KEY: str = ""
+    OBJECT_STORAGE_REPORT_PREFIX: str = "reports/"
+    OBJECT_STORAGE_ATTACHMENT_PREFIX: str = "attachments/"
+    OBJECT_STORAGE_GRAPH_EXPORT_PREFIX: str = "graph-exports/"
+    ARTIFACT_LOCAL_DIR: str = "./artifacts"
+
     def get_scenario_v2_whitelist_projects(self) -> List[int]:
         """获取 V2.0 场景白名单项目ID列表"""
         if not self.SCENARIO_V2_WHITELIST_PROJECTS:

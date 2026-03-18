@@ -1,0 +1,22 @@
+﻿.infra-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infra-hero {
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top left, rgba(34, 197, 94, 0.16), transparent 28%),
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.16), transparent 30%),
+    linear-gradient(135deg, #f8fbf6 0%, #f5faff 100%);
+}
+
+.infra-copy {
+  max-width: 840px;
+  margin: 0;
+}
+
+.infra-card {
+  border-radius: 18px;
+}

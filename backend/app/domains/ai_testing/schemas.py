@@ -80,3 +80,18 @@ class FailureReport(BaseModel):
     suggested_fix: Optional[str] = None
     confidence: Optional[float] = None
     evidence: Dict[str, Any] = Field(default_factory=dict)
+
+
+class VariableMappingSuggestion(BaseModel):
+    source_field: str
+    target_field: str
+    variable_name: str
+    suggested_expression: str
+    confidence: float
+    reason: Optional[str] = None
+    source_example: Any = None
+
+
+class VariableMappingReport(BaseModel):
+    suggestions: List[VariableMappingSuggestion] = Field(default_factory=list)
+    input_mapping: Dict[str, Any] = Field(default_factory=dict)

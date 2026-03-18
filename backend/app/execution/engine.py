@@ -626,28 +626,18 @@ class AIAssistedExecutor(CaseExecutor):
         context: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         """
-        AI 自动生成断言规则
-        
-        Args:
-            response: 响应数据
-            context: 上下文信息（可选）
-            
-        Returns:
-            List[Dict]: 生成的断言规则列表
-                [
-                    {
-                        "type": "status_code",
-                        "expected": 200
-                    },
-                    {
-                        "type": "response_body",
-                        "field": "$.data.id",
-                        "operator": "exists"
-                    }
-                ]
+        AI ????????
         """
-        # TODO: 调用 LLM 分析响应，生成断言
-        raise NotImplementedError("AI 断言生成待实现")
+        from app.domains.ai_testing.assertion_generator import AssertionGenerator
+
+        project_id = context.get("project_id") if isinstance(context, dict) else None
+        payload = {
+            "response": response,
+            "response_sample": response.get("body") if isinstance(response.get("body"), dict) else None,
+            "status_code": response.get("status_code"),
+        }
+        result = await AssertionGenerator().generate(project_id, payload)
+        return result.get("assertion_rules", [])
 
     async def auto_map_variables(
         self,
@@ -656,23 +646,19 @@ class AIAssistedExecutor(CaseExecutor):
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        AI 自动映射变量（场景编排用）
-        
-        Args:
-            source_output: 源接口的输出
-            target_input: 目标接口的输入
-            context: 上下文信息（可选）
-            
-        Returns:
-            Dict: 变量映射规则
-                {
-                    "source_field": "source_output.data.orderId",
-                    "target_field": "target_input.body.oid",
-                    "confidence": 0.95
-                }
+        AI ?????????????
         """
-        # TODO: 调用 LLM 语义分析，自动连线
-        raise NotImplementedError("AI 变量映射待实现")
+        from app.domains.ai_testing.variable_mapper import VariableMapper
+
+        project_id = context.get("project_id") if isinstance(context, dict) else None
+        report = await VariableMapper().suggest(
+            project_id,
+            {
+                "source_output": source_output,
+                "target_input": target_input,
+            },
+        )
+        return report.model_dump()
 
     async def analyze_test_failure(
         self,
@@ -680,23 +666,13 @@ class AIAssistedExecutor(CaseExecutor):
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        AI 分析测试失败原因
-        
-        Args:
-            execution_result: 执行结果
-            context: 上下文信息（可选）
-            
-        Returns:
-            Dict: 失败分析结果
-                {
-                    "failure_type": "assertion_failed",
-                    "root_cause": "响应字段名变更",
-                    "suggested_fix": "更新断言字段为 $.data.new_field",
-                    "confidence": 0.88
-                }
+        AI ????????
         """
-        # TODO: 调用 LLM 分析失败原因
-        raise NotImplementedError("AI 失败分析待实现")
+        from app.domains.ai_testing.failure_analyzer import FailureAnalyzer
+
+        project_id = context.get("project_id") if isinstance(context, dict) else None
+        report = await FailureAnalyzer().analyze(project_id, execution_result)
+        return report.model_dump()
 
     async def generate_test_cases(
         self,

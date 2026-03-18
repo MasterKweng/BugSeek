@@ -14,6 +14,7 @@ from app.core.trace import get_trace_id
 from app.dependencies import get_db
 from app.domains.ai_testing.scenario_generator import ScenarioGenerator
 from app.domains.api_hub.retrieval.service import APIRetrievalService
+from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
 from app.platform.db.base import ApiScenario, Project, ScenarioNode, User, Version
 
 router = APIRouter()
@@ -242,6 +243,12 @@ async def confirm_scenario_draft(
 
         db.commit()
         db.refresh(scenario)
+
+        try:
+            KnowledgeGraphService(db).sync_scenario_asset(scenario.id)
+            db.commit()
+        except Exception:
+            logger.warning("[%s] scenario graph sync failed: scenario_id=%s", trace_id, scenario.id, exc_info=True)
 
         return ApiResponse(
             code=0,

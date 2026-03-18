@@ -23,6 +23,7 @@ from app.platform.db.base import (
     ApiDefinition
 )
 from app.core.trace import get_trace_id
+from app.core.config import settings
 from app.domains.auth.schemas import (
     AuthTypeEnum,
     InjectionTargetEnum,
@@ -33,11 +34,18 @@ from app.domains.auth.schemas import (
 
 logger = logging.getLogger(__name__)
 
+try:
+    import redis.asyncio as redis_asyncio
+except ImportError:  # pragma: no cover - redis is optional at runtime
+    redis_asyncio = None
+
+
 
 # ==================== 常量定义 ====================
 
 # 模拟 Redis Key 前缀
 AUTH_VAR_PREFIX = "auth_var:{project_id}:{var_name}"
+AUTH_VAR_HASH_KEY = "auth_vars:{project_id}"
 
 # 变量名正则表达式
 VAR_PATTERN = re.compile(r'\{([A-Z_]+)\}')
@@ -141,7 +149,8 @@ class AuthMiddleware:
         self.db = db
         self.environment_id = environment_id  # 新增：支持环境级配置
         self.trace_id = get_trace_id()
-        self._redis_client = None  # TODO: 替换为真实的 Redis 客户端
+        self._redis_client = self._create_redis_client()
+        self._memory_var_cache: Dict[int, Dict[str, str]] = {}
         self._http_client = AsyncClient(timeout=30.0)
         self._config_cache = {}  # 内存缓存：{ key: AuthConfig }
     
@@ -351,18 +360,63 @@ class AuthMiddleware:
     
     async def _get_auth_variables(self, project_id: int) -> Dict[str, str]:
         """
-        获取鉴权变量（从 Redis 或数据库）
+        ???????? Redis ?????
         
         Args:
-            project_id: 项目 ID
+            project_id: ?? ID
             
         Returns:
-            Dict[str, str]: 鉴权变量字典
+            Dict[str, str]: ??????
         """
-        # TODO: 先从 Redis 获取，如果不存在则返回空字典
-        # 暂时返回空字典，等待阶段五实现
+        cached = self._memory_var_cache.get(project_id)
+        if cached:
+            return dict(cached)
+
+        if not self._redis_client:
+            return {}
+
+        cache_key = AUTH_VAR_HASH_KEY.format(project_id=project_id)
+        try:
+            variables = await self._redis_client.hgetall(cache_key)
+            if variables:
+                self._memory_var_cache[project_id] = dict(variables)
+                return dict(variables)
+        except Exception as exc:
+            logger.warning(f"[{self.trace_id}] Redis auth cache read failed: project_id={project_id}, error={exc}")
+
         return {}
-    
+
+    def _create_redis_client(self):
+        """Create Redis client when the feature is configured."""
+        if not settings.REDIS_URL or redis_asyncio is None:
+            return None
+        try:
+            return redis_asyncio.from_url(settings.REDIS_URL, decode_responses=True)
+        except Exception as exc:
+            logger.warning(f"Redis client init failed: error={exc}")
+            return None
+
+    async def _store_auth_variables(self, project_id: int, variables: Dict[str, Any]) -> None:
+        """Persist auth variables to Redis and in-memory fallback cache."""
+        if not variables:
+            return
+
+        normalized = {str(key): "" if value is None else str(value) for key, value in variables.items()}
+        memory_cache = self._memory_var_cache.setdefault(project_id, {})
+        memory_cache.update(normalized)
+
+        if not self._redis_client:
+            return
+
+        cache_key = AUTH_VAR_HASH_KEY.format(project_id=project_id)
+        try:
+            await self._redis_client.hset(cache_key, mapping=normalized)
+            ttl = getattr(settings, "AUTH_CACHE_TTL_SECONDS", 0)
+            if ttl and ttl > 0:
+                await self._redis_client.expire(cache_key, ttl)
+        except Exception as exc:
+            logger.warning(f"[{self.trace_id}] Redis auth cache write failed: project_id={project_id}, error={exc}")
+
     async def acquire_auth_token(self, project_id: int) -> Dict[str, Any]:
         """
         获取登录凭证（获取层）
@@ -423,8 +477,7 @@ class AuthMiddleware:
         # 根据鉴权类型确定变量名
         var_name = self._get_variable_name(auth_config.auth_type)
         
-        # TODO: 存储到 Redis
-        # await self._redis_client.set(f"{AUTH_VAR_PREFIX.format(project_id=auth_config.project_id, var_name=var_name)}", static_value)
+        await self._store_auth_variables(auth_config.project_id, {var_name: str(static_value)})
         
         return {
             "success": True,
@@ -495,12 +548,7 @@ class AuthMiddleware:
                 "error": "未能提取到凭证变量"
             }
         
-        # TODO: 存储到 Redis
-        # for var_name, var_value in extracted_vars.items():
-        #     await self._redis_client.set(
-        #         f"{AUTH_VAR_PREFIX.format(project_id=auth_config.project_id, var_name=var_name)}",
-        #         var_value
-        #     )
+        await self._store_auth_variables(auth_config.project_id, extracted_vars)
 
         # 将变量转换为 headers
         headers = await self._variables_to_headers(auth_config, extracted_vars)
@@ -960,7 +1008,7 @@ class AuthMiddleware:
         Returns:
             str: 变量名
         """
-        if auth_type == AuthTypeEnum.BEARER_TOKEN.value:
+        if auth_type == AuthTypeEnum.BEARER.value:
             return "ACCESS_TOKEN"
         elif auth_type == AuthTypeEnum.API_KEY.value:
             return "API_KEY"

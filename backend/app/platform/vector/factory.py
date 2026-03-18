@@ -4,8 +4,9 @@
 通过工厂模式创建不同类型的向量管理器，简化调用并确保缓存隔离。
 """
 import logging
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 from pathlib import Path
+import inspect
 
 from .api_strategy import APIVectorManager
 from .db_strategy import DBVectorManager
@@ -126,3 +127,14 @@ class VectorManagerFactory:
                 stats[target_type] = {"error": "向量管理器不存在"}
 
         return stats
+
+    @staticmethod
+    async def hybrid_search(target_type: str, **kwargs: Any):
+        manager = VectorManagerFactory.get_manager(target_type)
+        if not hasattr(manager, "hybrid_search"):
+            raise ValueError(f"{target_type} manager does not support hybrid_search")
+
+        result = manager.hybrid_search(**kwargs)
+        if inspect.isawaitable(result):
+            return await result
+        return result

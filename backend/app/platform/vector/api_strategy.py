@@ -8,6 +8,7 @@ import json
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 import logging
+import re
 
 from .base import VectorBase
 
@@ -242,6 +243,97 @@ class APIVectorManager(VectorBase):
 
         logger.info(f"API 向量检索完成: found={len(formatted_results)} results")
         return formatted_results
+
+
+    def keyword_search(
+        self,
+        query: str,
+        project_id: int,
+        top_k: int = 10
+    ) -> List[Dict[str, Any]]:
+        if self.vectors is None or len(self.vectors) == 0:
+            if not self.build_index(project_id):
+                return []
+
+        query_terms = self._tokenize(query)
+        scored = []
+        for item in self.metadata:
+            text = self.build_feature_text(item)
+            score = self._keyword_score(query_terms, text)
+            if score <= 0:
+                continue
+            scored.append({
+                "api_id": item.get("id"),
+                "method": item.get("method"),
+                "path": item.get("path"),
+                "summary": item.get("summary", ""),
+                "keyword_score": score,
+                "score": score,
+            })
+
+        scored.sort(key=lambda x: x["keyword_score"], reverse=True)
+        return scored[:top_k]
+
+    async def hybrid_search(
+        self,
+        query: str,
+        project_id: int,
+        top_k: int = 10,
+        semantic_weight: float = 0.7,
+        keyword_weight: float = 0.3
+    ) -> List[Dict[str, Any]]:
+        semantic_results = await self.search(query, project_id=project_id, top_k=top_k * 2)
+        keyword_results = self.keyword_search(query, project_id=project_id, top_k=top_k * 2)
+
+        merged: Dict[int, Dict[str, Any]] = {}
+        for item in semantic_results:
+            api_id = item.get("api_id")
+            if api_id is None:
+                continue
+            merged[api_id] = {
+                **item,
+                "semantic_score": item.get("score", 0.0),
+                "keyword_score": 0.0,
+            }
+
+        for item in keyword_results:
+            api_id = item.get("api_id")
+            if api_id is None:
+                continue
+            existing = merged.setdefault(api_id, {
+                **item,
+                "semantic_score": 0.0,
+                "keyword_score": 0.0,
+            })
+            existing["keyword_score"] = max(existing.get("keyword_score", 0.0), item.get("keyword_score", 0.0))
+            existing.setdefault("method", item.get("method"))
+            existing.setdefault("path", item.get("path"))
+            existing.setdefault("summary", item.get("summary", ""))
+
+        results = []
+        for item in merged.values():
+            hybrid_score = (
+                semantic_weight * float(item.get("semantic_score", 0.0)) +
+                keyword_weight * float(item.get("keyword_score", 0.0))
+            )
+            item["score"] = hybrid_score
+            item["hybrid_score"] = hybrid_score
+            results.append(item)
+
+        results.sort(key=lambda x: x.get("hybrid_score", 0.0), reverse=True)
+        return results[:top_k]
+
+    def _tokenize(self, text: str) -> List[str]:
+        return [token for token in re.split(r"[^a-zA-Z0-9一-龥]+", (text or "").lower()) if token]
+
+    def _keyword_score(self, query_terms: List[str], text: str) -> float:
+        if not query_terms:
+            return 0.0
+        haystack = (text or "").lower()
+        matched = sum(1 for term in query_terms if term in haystack)
+        if matched == 0:
+            return 0.0
+        return matched / len(query_terms)
 
     def clear_cache(self) -> bool:
         """

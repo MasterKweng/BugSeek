@@ -16,6 +16,8 @@ const Versions = lazy(() => import('./pages/Versions'))
 const DbSchema = lazy(() => import('./pages/version-center/DbSchema'))
 const FieldMapping = lazy(() => import('./pages/version-center/FieldMapping'))
 const KnowledgeGraph = lazy(() => import('./pages/KnowledgeGraph'))
+const UIAutomationWorkbench = lazy(() => import('./pages/ui-automation/UIAutomationWorkbench'))
+const InfrastructureOverview = lazy(() => import('./pages/InfrastructureOverview'))
 
 // API Hub 模块 (V2.0)
 const ApiHubDefinitions = lazy(() => import('./pages/api-hub/DefinitionsList'))
@@ -83,11 +85,11 @@ function App() {
           {/* 鉴权配置模块 */}
           <Route path="projects/:projectId/auth-config" element={<ProjectVersionGuard><AuthConfig /></ProjectVersionGuard>} />
           {/* UI 自动化模块 */}
-          <Route path="ui-automation" element={<ComingSoon />} />
+          <Route path="ui-automation" element={<ProjectVersionGuard><UIAutomationWorkbench /></ProjectVersionGuard>} />
           {/* 流程编排模块 */}
           <Route path="orchestrator" element={<ComingSoon />} />
           {/* 基础设施模块 */}
-          <Route path="infra" element={<ComingSoon />} />
+          <Route path="infra" element={<InfrastructureOverview />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

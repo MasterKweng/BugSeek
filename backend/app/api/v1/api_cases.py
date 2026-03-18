@@ -18,6 +18,7 @@ from app.platform.db.base import ApiDefinition, ApiCase, Environment, User
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
 from app.core.pre_sql_generator import generate_pre_sql
+from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -189,6 +190,11 @@ async def create_api_case(
     db.commit()
     db.refresh(api_case)
 
+    try:
+        KnowledgeGraphService(db).sync_test_case_asset(api_case.id)
+        db.commit()
+    except Exception:
+        logger.warning(f"[{trace_id}] api case graph sync failed: case_id={api_case.id}", exc_info=True)
     logger.info(f"[{trace_id}] API 用例创建成功: id={api_case.id}")
 
     return ApiResponse(
@@ -409,6 +415,11 @@ async def update_api_case(
     case.updated_by = current_user.id
     db.commit()
 
+    try:
+        KnowledgeGraphService(db).sync_test_case_asset(case.id)
+        db.commit()
+    except Exception:
+        logger.warning(f"[{trace_id}] api case graph sync failed: case_id={case.id}", exc_info=True)
     logger.info(f"[{trace_id}] API 用例更新成功: id={case_id}")
 
     return ApiResponse(

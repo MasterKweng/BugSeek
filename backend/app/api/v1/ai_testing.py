@@ -10,6 +10,7 @@ from app.context import get_current_project_id
 from app.api.v1.deps import get_current_user
 from app.platform.db.base import User, ApiScenario, ScenarioNode
 from app.domains.ai_testing.engine import AITestingEngine
+from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
 
 router = APIRouter()
 
@@ -34,6 +35,16 @@ class AIScenarioGenerateRequest(BaseModel):
 class AITestAnalyzeRequest(BaseModel):
     project_id: Optional[int] = Field(None, description="Project ID")
     input_data: Dict[str, Any] = Field(..., description="Execution result payload for failure analysis")
+
+
+class AITestAssertionRequest(BaseModel):
+    project_id: Optional[int] = Field(None, description="Project ID")
+    input_data: Dict[str, Any] = Field(..., description="API definition / response payload for assertion generation")
+
+
+class AITestVariableMappingRequest(BaseModel):
+    project_id: Optional[int] = Field(None, description="Project ID")
+    input_data: Dict[str, Any] = Field(..., description="Source output / target input payload for variable mapping")
 
 
 class AIFullRunRequest(BaseModel):
@@ -109,6 +120,11 @@ def _save_scenario_draft(
         db.add(node)
 
     db.commit()
+    try:
+        KnowledgeGraphService(db).sync_scenario_asset(scenario.id)
+        db.commit()
+    except Exception:
+        pass
     return scenario.id
 
 
@@ -169,6 +185,42 @@ async def ai_analyze_failure(
     try:
         result = await engine.analyze_failure(project_id, request.input_data)
         return ApiResponse(code=0, message="AI failure analysis success", data=result)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.post("/ai/test/assertions", response_model=ApiResponse)
+async def ai_generate_assertions(
+    request: AITestAssertionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project_id = request.project_id or get_current_project_id(db, current_user)
+    if not project_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Project ID is required")
+
+    engine = AITestingEngine()
+    try:
+        result = await engine.generate_assertions(project_id, request.input_data)
+        return ApiResponse(code=0, message="AI assertion generation success", data=result)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.post("/ai/test/variables/map", response_model=ApiResponse)
+async def ai_map_variables(
+    request: AITestVariableMappingRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project_id = request.project_id or get_current_project_id(db, current_user)
+    if not project_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Project ID is required")
+
+    engine = AITestingEngine()
+    try:
+        result = await engine.map_variables(project_id, request.input_data)
+        return ApiResponse(code=0, message="AI variable mapping success", data=result)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
