@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { Avatar, Dropdown, Input, Select, Tooltip } from 'antd'
 import {
   GlobalOutlined,
-  LeftOutlined,
   LogoutOutlined,
   MoonOutlined,
-  RightOutlined,
   SearchOutlined,
   SmileOutlined,
   SunOutlined,
@@ -98,15 +96,14 @@ const MainLayout: React.FC = () => {
             onClick={() => setIsSidebarCollapsed((prev) => !prev)}
             title={isSidebarCollapsed ? '展开菜单' : '收起菜单'}
           >
-            {isSidebarCollapsed ? <RightOutlined /> : <LeftOutlined />}
+            <span
+              aria-hidden="true"
+              className={`app-shell__rail-toggle-icon ${isSidebarCollapsed ? 'is-plus' : 'is-minus'}`}
+            />
           </button>
 
           <div className="app-shell__brand">
             <div className="app-shell__brand-mark">BS</div>
-            <div className="app-shell__brand-copy">
-              <strong>{t('shell.brand')}</strong>
-              <span className="app-shell__brand-subtitle">{t('shell.badge')}</span>
-            </div>
           </div>
 
           <nav className="app-shell__rail-nav" aria-label={t('shell.sectionTitle')}>

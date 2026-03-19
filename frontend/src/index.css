@@ -166,26 +166,59 @@ code {
 
 .app-shell__rail-toggle {
   position: absolute;
-  right: 6px;
-  top: 12px;
-  width: 16px;
-  height: 56px;
+  right: -12px;
+  top: 18px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.34);
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  border: 1px solid rgba(13, 108, 99, 0.16);
+  background: rgba(255, 255, 255, 0.94);
+  color: #0d6c63;
   cursor: pointer;
   z-index: 3;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 10px 20px rgba(13, 108, 99, 0.16);
   transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.app-shell__rail-toggle-icon {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.app-shell__rail-toggle-icon::before,
+.app-shell__rail-toggle-icon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 2.5px;
+  border-radius: 999px;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+}
+
+.app-shell__rail-toggle-icon.is-plus::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.app-shell__rail-toggle-icon.is-minus::after {
+  display: none;
 }
 
 .app-shell__rail-toggle:hover {
   transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.28);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: #ffffff;
+  border-color: rgba(13, 108, 99, 0.28);
 }
 
 :root[data-theme='dark'] .app-shell__rail {
@@ -1336,6 +1369,12 @@ code {
     justify-content: space-between;
     align-items: center;
     padding: 14px;
+  }
+
+  .app-shell__rail-toggle {
+    right: 12px;
+    top: auto;
+    bottom: -12px;
   }
 
   .app-shell__brand {

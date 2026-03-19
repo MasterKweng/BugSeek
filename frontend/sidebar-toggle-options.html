@@ -22,6 +22,119 @@
         grid-template-columns: repeat(3, minmax(300px, 1fr));
         gap: 14px;
       }
+      .concept {
+        padding: 20px 20px 0;
+      }
+      .concept-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(320px, 1fr));
+        gap: 14px;
+      }
+      .concept-demo {
+        position: relative;
+        min-height: 260px;
+        padding: 18px 18px 18px 54px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at top left, rgba(13, 108, 99, 0.12), transparent 42%),
+          linear-gradient(180deg, #f8f4ec, #f2ede4);
+      }
+      .concept-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 12px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(31, 37, 32, 0.1);
+        font-size: 11px;
+        color: #4d544c;
+      }
+      .concept-shell {
+        position: relative;
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        min-height: 190px;
+        border-radius: 22px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 18px 36px rgba(33, 35, 31, 0.08);
+      }
+      .concept-shell.is-collapsed {
+        grid-template-columns: 92px 0;
+      }
+      .concept-shell .app-shell__rail {
+        min-width: 0;
+        border-radius: 0;
+        box-shadow: none;
+        border: 0;
+      }
+      .concept-content {
+        padding: 20px 22px;
+        background: linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(255, 247, 234, 0.96));
+        overflow: hidden;
+      }
+      .concept-shell.is-collapsed .concept-content {
+        padding-left: 0;
+        padding-right: 0;
+        border-left: 1px solid rgba(31, 37, 32, 0.06);
+      }
+      .concept-shell.is-collapsed .concept-content > * {
+        opacity: 0;
+      }
+      .concept-content h3 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+      .concept-content p {
+        margin: 0;
+        color: #5e655d;
+        font-size: 13px;
+        line-height: 1.55;
+      }
+      .concept-lines {
+        margin-top: 18px;
+        display: grid;
+        gap: 10px;
+      }
+      .concept-lines span {
+        display: block;
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(13, 108, 99, 0.12);
+      }
+      .concept-lines span:nth-child(2) { width: 82%; }
+      .concept-lines span:nth-child(3) { width: 68%; }
+      .concept-floating {
+        position: absolute;
+        left: 14px;
+        top: 96px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 5;
+      }
+      .concept-dot {
+        width: 24px;
+        height: 24px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        border: 1px solid rgba(13, 108, 99, 0.18);
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--brand);
+        box-shadow: 0 10px 20px rgba(13, 108, 99, 0.16);
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .concept-note {
+        margin-top: 12px;
+        font-size: 12px;
+        color: #5e655d;
+      }
       .demo {
         position: relative;
         border: 1px solid var(--line);
@@ -249,6 +362,7 @@
       .g24b { right: 10px; top: 50px; width: 8px; height: 8px; border-radius: 999px; }
 
       @media (max-width: 1100px) {
+        .concept-grid { grid-template-columns: 1fr; }
         .wrap { grid-template-columns: repeat(2, minmax(300px, 1fr)); }
       }
       @media (max-width: 760px) {
@@ -257,6 +371,80 @@
     </style>
   </head>
   <body>
+    <section class="concept">
+      <div class="concept-grid">
+        <div class="concept-demo">
+          <div class="concept-label">示意 A / 展开态</div>
+          <div class="concept-floating" aria-hidden="true">
+            <div class="concept-dot">-</div>
+            <div class="concept-dot">+</div>
+          </div>
+          <div class="concept-shell">
+            <aside class="app-shell__rail">
+              <div class="app-shell__brand">
+                <div class="app-shell__brand-mark">BS</div>
+                <div class="app-shell__brand-copy">
+                  <strong>BugSeek</strong>
+                  <span class="app-shell__brand-subtitle">Release</span>
+                </div>
+              </div>
+              <nav class="app-shell__rail-nav">
+                <button class="app-shell__rail-button">⌂</button>
+                <button class="app-shell__rail-button">⎇</button>
+              </nav>
+              <div class="app-shell__rail-footer">
+                <button class="app-shell__rail-button">☾</button>
+              </div>
+            </aside>
+            <section class="concept-content">
+              <h3>外置双点位，贴页面左缘</h3>
+              <p>沿用 27、28 的上下双圆点语言，但按钮从侧栏本体移到页面左侧外缘，作为独立悬浮入口。</p>
+              <div class="concept-lines" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </section>
+          </div>
+          <div class="concept-note">展开时：按钮保持在页面左侧，不嵌入侧栏边界。</div>
+        </div>
+        <div class="concept-demo">
+          <div class="concept-label">示意 B / 收起态</div>
+          <div class="concept-floating" aria-hidden="true">
+            <div class="concept-dot">+</div>
+            <div class="concept-dot">-</div>
+          </div>
+          <div class="concept-shell is-collapsed">
+            <aside class="app-shell__rail">
+              <div class="app-shell__brand">
+                <div class="app-shell__brand-mark">BS</div>
+                <div class="app-shell__brand-copy">
+                  <strong>BugSeek</strong>
+                  <span class="app-shell__brand-subtitle">Release</span>
+                </div>
+              </div>
+              <nav class="app-shell__rail-nav">
+                <button class="app-shell__rail-button">⌂</button>
+                <button class="app-shell__rail-button">⎇</button>
+              </nav>
+              <div class="app-shell__rail-footer">
+                <button class="app-shell__rail-button">☾</button>
+              </div>
+            </aside>
+            <section class="concept-content">
+              <h3>收起后仍保留外置入口</h3>
+              <p>侧栏缩成极窄轨道后，左侧悬浮按钮继续可见，避免入口随着侧栏一起消失。</p>
+              <div class="concept-lines" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </section>
+          </div>
+          <div class="concept-note">收起时：第一列侧栏继续保留，第二列内容区被折叠，外置按钮仍停留在页面左侧。</div>
+        </div>
+      </div>
+    </section>
     <div class="wrap">
       <div class="demo"><span class="tag">01</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s1">›</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">边缘吸附圆角</h3><p class="desc">稳妥默认型。</p></section></div></div>
       <div class="demo"><span class="tag">02</span><div class="frame"><aside class="app-shell__rail"><button class="app-shell__rail-toggle s2">›</button><div class="app-shell__brand"><div class="app-shell__brand-mark">BS</div><div class="app-shell__brand-copy"><strong>BugSeek</strong><span class="app-shell__brand-subtitle">Release</span></div></div><nav class="app-shell__rail-nav"><button class="app-shell__rail-button">⌂</button><button class="app-shell__rail-button">⎇</button></nav><div class="app-shell__rail-footer"><button class="app-shell__rail-button">☾</button></div></aside><section class="content"><h3 class="title">半嵌入缺口</h3><p class="desc">更一体化。</p></section></div></div>
