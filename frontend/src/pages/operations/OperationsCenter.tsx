@@ -16,6 +16,7 @@ import {
 } from 'antd'
 import { DownloadOutlined, PlayCircleOutlined, ReloadOutlined } from '@ant-design/icons'
 import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
+import { useAppPreferences } from '../../preferences/AppPreferencesProvider'
 import { useProjectStore } from '../../store/project'
 import { useAuthStore } from '../../store/auth'
 import {
@@ -73,9 +74,11 @@ const downloadBlob = (content: Blob, filename: string) => {
 }
 
 const OperationsCenter = () => {
+  const { t } = useAppPreferences()
   const { currentProject } = useProjectStore()
   const authState = useAuthStore()
   const projectId = currentProject?.id
+  const tm = (key: string, fallback: string) => t(`operationsCenter.${key}`, fallback)
 
   const [scenarioList, setScenarioList] = useState<ScenarioSummary[]>([])
   const [environmentList, setEnvironmentList] = useState<any[]>([])
@@ -144,7 +147,7 @@ const OperationsCenter = () => {
         return defaultEnv?.id ?? null
       })
     } catch (error: any) {
-      message.error(error.message || 'Failed to load operations data')
+      message.error(error.message || tm('messages.loadOperationsDataFailed', 'Failed to load operations data'))
       setScenarioList([])
       setEnvironmentList([])
     } finally {
@@ -172,7 +175,7 @@ const OperationsCenter = () => {
         return items[0]?.id ?? null
       })
     } catch (error: any) {
-      message.error(error.message || 'Failed to load executions')
+      message.error(error.message || tm('messages.loadExecutionsFailed', 'Failed to load executions'))
       setExecutionList([])
       setSelectedExecutionId(null)
     }
@@ -194,7 +197,7 @@ const OperationsCenter = () => {
       setReportSummary(summary || null)
       setReportRca(rca || null)
     } catch (error: any) {
-      message.error(error.message || 'Failed to load report summary')
+      message.error(error.message || tm('messages.loadReportSummaryFailed', 'Failed to load report summary'))
       setReportSummary(null)
       setReportRca(null)
     } finally {
@@ -216,7 +219,7 @@ const OperationsCenter = () => {
 
   const handleTriggerScenario = async () => {
     if (!selectedScenarioId || !selectedEnvironmentId) {
-      message.warning('Select a scenario and environment first')
+      message.warning(tm('messages.selectScenarioAndEnvironmentFirst', 'Select a scenario and environment first'))
       return
     }
 
@@ -232,12 +235,12 @@ const OperationsCenter = () => {
       if (response.data?.execution_id) {
         setSelectedExecutionId(response.data.execution_id)
       }
-      message.success(response.message || 'Scenario triggered')
+      message.success(response.message || tm('messages.scenarioTriggered', 'Scenario triggered'))
     } catch (error: any) {
       if (error?.errorFields) {
         return
       }
-      message.error(error.message || 'Failed to trigger scenario')
+      message.error(error.message || tm('messages.triggerScenarioFailed', 'Failed to trigger scenario'))
     } finally {
       setLoadingState(null)
     }
@@ -253,7 +256,7 @@ const OperationsCenter = () => {
       const response = await getTriggerResult(selectedScenarioId, selectedExecutionId)
       setTriggerResult(response.data || null)
     } catch (error: any) {
-      message.error(error.message || 'Failed to load trigger result')
+      message.error(error.message || tm('messages.loadTriggerResultFailed', 'Failed to load trigger result'))
     } finally {
       setLoadingState(null)
     }
@@ -261,7 +264,7 @@ const OperationsCenter = () => {
 
   const downloadReport = async (format: 'html' | 'pdf') => {
     if (!selectedScenarioId || !selectedExecutionId) {
-      message.warning('Select a scenario execution first')
+      message.warning(tm('messages.selectScenarioExecutionFirst', 'Select a scenario execution first'))
       return
     }
 
@@ -280,7 +283,7 @@ const OperationsCenter = () => {
       const blob = await response.blob()
       downloadBlob(blob, `scenario_${selectedScenarioId}_execution_${selectedExecutionId}.${format}`)
     } catch (error: any) {
-      message.error(error.message || 'Failed to download report')
+      message.error(error.message || tm('messages.downloadReportFailed', 'Failed to download report'))
     }
   }
 
@@ -292,9 +295,9 @@ const OperationsCenter = () => {
         action,
         response: response?.data ?? response,
       })
-      message.success(`${action} completed`)
+      message.success(tm(`messages.ai.${action}.completed`, `${action} completed`))
     } catch (error: any) {
-      message.error(error.message || `${action} failed`)
+      message.error(error.message || tm(`messages.ai.${action}.failed`, `${action} failed`))
     } finally {
       setLoadingState(null)
     }
@@ -302,7 +305,7 @@ const OperationsCenter = () => {
 
   const onGenerateScenario = async () => {
     const values = await aiForm.validateFields()
-    await runAiAction('Generate scenario', () =>
+    await runAiAction('generateScenario', () =>
       generateAiScenarioDraft(projectId!, values.intent_text, !!values.save_draft),
     )
   }
@@ -310,30 +313,30 @@ const OperationsCenter = () => {
   const onGenerateTest = async () => {
     const values = await aiForm.validateFields()
     const inputData = parseJsonObject(values.json_payload)
-    await runAiAction('Generate test', () => generateAiTest(projectId!, inputData))
+    await runAiAction('generateTest', () => generateAiTest(projectId!, inputData))
   }
 
   const onAnalyzeFailure = async () => {
     const values = await aiForm.validateFields()
     const inputData = parseJsonObject(values.json_payload)
-    await runAiAction('Analyze failure', () => analyzeAiFailure(projectId!, inputData))
+    await runAiAction('analyzeFailure', () => analyzeAiFailure(projectId!, inputData))
   }
 
   const onGenerateAssertions = async () => {
     const values = await aiForm.validateFields()
     const inputData = parseJsonObject(values.json_payload)
-    await runAiAction('Generate assertions', () => generateAiAssertions(projectId!, inputData))
+    await runAiAction('generateAssertions', () => generateAiAssertions(projectId!, inputData))
   }
 
   const onMapVariables = async () => {
     const values = await aiForm.validateFields()
     const inputData = parseJsonObject(values.json_payload)
-    await runAiAction('Map variables', () => mapAiVariables(projectId!, inputData))
+    await runAiAction('mapVariables', () => mapAiVariables(projectId!, inputData))
   }
 
   const onRunFull = async () => {
     const values = await aiForm.validateFields()
-    await runAiAction('Run full flow', () =>
+    await runAiAction('runFullFlow', () =>
       runAiFullFlow(projectId!, values.intent_text, values.environment_id || null, !!values.auto_fix),
     )
   }
@@ -341,26 +344,26 @@ const OperationsCenter = () => {
   const onOptimize = async () => {
     const values = await aiForm.validateFields()
     const inputData = parseJsonObject(values.json_payload)
-    await runAiAction('Optimize tests', () => optimizeAiTests(inputData))
+    await runAiAction('optimizeTests', () => optimizeAiTests(inputData))
   }
 
   return (
     <div className="workspace-page">
       <WorkspaceModuleHero
-        eyebrow="Operations"
-        title="Report, Trigger, and AI Testing"
-        description="Operate the real scenario report, execution trigger, and AI testing endpoints from one workspace."
+        eyebrow={tm('hero.eyebrow', 'Operations')}
+        title={tm('hero.title', 'Report, Trigger, and AI Testing')}
+        description={tm('hero.description', 'Operate the real scenario report, execution trigger, and AI testing endpoints from one workspace.')}
         metrics={[
-          { label: 'Scenarios', value: scenarioList.length },
-          { label: 'Environments', value: environmentList.length },
-          { label: 'Selected scenario', value: selectedScenario?.name || '-' },
-          { label: 'Selected environment', value: selectedEnvironment?.name || '-' },
-          { label: 'Selected execution', value: selectedExecution?.id || '-' },
+          { label: tm('metrics.scenarios', 'Scenarios'), value: scenarioList.length },
+          { label: tm('metrics.environments', 'Environments'), value: environmentList.length },
+          { label: tm('metrics.selectedScenario', 'Selected scenario'), value: selectedScenario?.name || '-' },
+          { label: tm('metrics.selectedEnvironment', 'Selected environment'), value: selectedEnvironment?.name || '-' },
+          { label: tm('metrics.selectedExecution', 'Selected execution'), value: selectedExecution?.id || '-' },
         ]}
         actions={
           <Space wrap>
             <Button icon={<ReloadOutlined />} onClick={() => void loadProjectData()} loading={scenarioLoading}>
-              Refresh
+              {tm('actions.refresh', 'Refresh')}
             </Button>
             <Button
               type="primary"
@@ -369,24 +372,24 @@ const OperationsCenter = () => {
               loading={loadingState === 'trigger'}
               disabled={!selectedScenarioId || !selectedEnvironmentId}
             >
-              Trigger
+              {tm('actions.trigger', 'Trigger')}
             </Button>
           </Space>
         }
       />
 
-      {!projectId ? <Alert type="warning" showIcon message="Select a project first" /> : null}
+      {!projectId ? <Alert type="warning" showIcon message={tm('messages.selectProjectFirst', 'Select a project first')} /> : null}
 
       <Card>
         <Tabs
           items={[
             {
               key: 'trigger',
-              label: 'Trigger',
+              label: tm('tabs.trigger', 'Trigger'),
               children: (
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
                   <Descriptions column={1} bordered size="small">
-                    <Descriptions.Item label="Scenario">
+                    <Descriptions.Item label={tm('labels.scenario', 'Scenario')}>
                       <Select
                         style={{ width: 360 }}
                         loading={scenarioLoading}
@@ -396,44 +399,44 @@ const OperationsCenter = () => {
                           value: item.id,
                           label: `${item.name} #${item.id}`,
                         }))}
-                        placeholder="Select scenario"
+                        placeholder={tm('placeholders.selectScenario', 'Select scenario')}
                       />
                     </Descriptions.Item>
-                    <Descriptions.Item label="Environment">
+                    <Descriptions.Item label={tm('labels.environment', 'Environment')}>
                       <Select
                         style={{ width: 360 }}
                         value={selectedEnvironmentId ?? undefined}
                         onChange={(value) => setSelectedEnvironmentId(value)}
                         options={environmentList.map((item) => ({
                           value: item.id,
-                          label: item.is_default ? `${item.name} (default)` : item.name,
+                          label: item.is_default ? `${item.name} (${tm('tags.defaultLower', 'default')})` : item.name,
                         }))}
-                        placeholder="Select environment"
+                        placeholder={tm('placeholders.selectEnvironment', 'Select environment')}
                       />
                     </Descriptions.Item>
                   </Descriptions>
                   <Form form={triggerForm} layout="vertical">
-                    <Form.Item name="async_mode" label="Async mode" valuePropName="checked" initialValue={false}>
+                    <Form.Item name="async_mode" label={tm('labels.asyncMode', 'Async mode')} valuePropName="checked" initialValue={false}>
                       <Switch />
                     </Form.Item>
-                    <Form.Item name="callback_url" label="Callback URL">
+                    <Form.Item name="callback_url" label={tm('labels.callbackUrl', 'Callback URL')}>
                       <Input placeholder="https://callback.example.com" />
                     </Form.Item>
                   </Form>
 
-                  <Card size="small" title="Latest trigger result" extra={<Button onClick={() => void refreshTriggerResult()}>Refresh result</Button>}>
-                    {triggerResult ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{prettyJson(triggerResult)}</pre> : <Empty description="No trigger result yet" />}
+                  <Card size="small" title={tm('cards.latestTriggerResult', 'Latest trigger result')} extra={<Button onClick={() => void refreshTriggerResult()}>{tm('actions.refreshResult', 'Refresh result')}</Button>}>
+                    {triggerResult ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{prettyJson(triggerResult)}</pre> : <Empty description={tm('empty.noTriggerResultYet', 'No trigger result yet')} />}
                   </Card>
                 </Space>
               ),
             },
             {
               key: 'report',
-              label: 'Reports',
+              label: tm('tabs.reports', 'Reports'),
               children: (
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
                   <Descriptions column={1} bordered size="small">
-                    <Descriptions.Item label="Scenario">
+                    <Descriptions.Item label={tm('labels.scenario', 'Scenario')}>
                       <Select
                         style={{ width: 360 }}
                         value={selectedScenarioId ?? undefined}
@@ -442,10 +445,10 @@ const OperationsCenter = () => {
                           value: item.id,
                           label: `${item.name} #${item.id}`,
                         }))}
-                        placeholder="Select scenario"
+                        placeholder={tm('placeholders.selectScenario', 'Select scenario')}
                       />
                     </Descriptions.Item>
-                    <Descriptions.Item label="Execution">
+                    <Descriptions.Item label={tm('labels.execution', 'Execution')}>
                       <Select
                         style={{ width: 360 }}
                         value={selectedExecutionId ?? undefined}
@@ -454,13 +457,13 @@ const OperationsCenter = () => {
                           value: item.id,
                           label: `${item.id} - ${item.status}`,
                         }))}
-                        placeholder="Select execution"
+                        placeholder={tm('placeholders.selectExecution', 'Select execution')}
                       />
                     </Descriptions.Item>
                   </Descriptions>
 
                   <Form form={reportForm} layout="inline">
-                    <Form.Item name="include_rca" valuePropName="checked" initialValue={true} label="Include RCA">
+                    <Form.Item name="include_rca" valuePropName="checked" initialValue={true} label={tm('labels.includeRca', 'Include RCA')}>
                       <Switch />
                     </Form.Item>
                   </Form>
@@ -471,54 +474,54 @@ const OperationsCenter = () => {
                       onClick={() => void loadReportContext(selectedScenarioId, selectedExecutionId)}
                       loading={loadingState === 'report'}
                     >
-                      Refresh summary
+                      {tm('actions.refreshSummary', 'Refresh summary')}
                     </Button>
                     <Button icon={<DownloadOutlined />} onClick={() => void downloadReport('html')}>
-                      Download HTML
+                      {tm('actions.downloadHtml', 'Download HTML')}
                     </Button>
                     <Button icon={<DownloadOutlined />} onClick={() => void downloadReport('pdf')}>
-                      Download PDF
+                      {tm('actions.downloadPdf', 'Download PDF')}
                     </Button>
                   </Space>
 
-                  <Card size="small" title="Summary">
-                    {reportSummary ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{prettyJson(reportSummary)}</pre> : <Empty description="No summary" />}
+                  <Card size="small" title={tm('cards.summary', 'Summary')}>
+                    {reportSummary ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{prettyJson(reportSummary)}</pre> : <Empty description={tm('empty.noSummary', 'No summary')} />}
                   </Card>
-                  <Card size="small" title="RCA">
-                    {reportRca ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{prettyJson(reportRca)}</pre> : <Empty description="No RCA result" />}
+                  <Card size="small" title={tm('cards.rca', 'RCA')}>
+                    {reportRca ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{prettyJson(reportRca)}</pre> : <Empty description={tm('empty.noRcaResult', 'No RCA result')} />}
                   </Card>
                 </Space>
               ),
             },
             {
               key: 'ai',
-              label: 'AI Testing',
+              label: tm('tabs.aiTesting', 'AI Testing'),
               children: (
                 <Space direction="vertical" size="large" style={{ width: '100%' }}>
                   <Form form={aiForm} layout="vertical" initialValues={{ save_draft: false, auto_fix: false }}>
-                    <Form.Item name="intent_text" label="Intent text">
+                    <Form.Item name="intent_text" label={tm('labels.intentText', 'Intent text')}>
                       <TextArea rows={3} />
                     </Form.Item>
-                    <Form.Item name="json_payload" label="JSON payload">
+                    <Form.Item name="json_payload" label={tm('labels.jsonPayload', 'JSON payload')}>
                       <TextArea rows={10} spellCheck={false} />
                     </Form.Item>
                     <Space wrap>
                       <Form.Item name="save_draft" valuePropName="checked" style={{ marginBottom: 0 }}>
                         <Switch />
                       </Form.Item>
-                      <Text>Save draft</Text>
+                      <Text>{tm('labels.saveDraft', 'Save draft')}</Text>
                       <Form.Item name="auto_fix" valuePropName="checked" style={{ marginBottom: 0, marginLeft: 16 }}>
                         <Switch />
                       </Form.Item>
-                      <Text>Auto fix</Text>
-                      <Form.Item name="environment_id" label="Environment" style={{ minWidth: 280, marginBottom: 0, marginLeft: 16 }}>
+                      <Text>{tm('labels.autoFix', 'Auto fix')}</Text>
+                      <Form.Item name="environment_id" label={tm('labels.environment', 'Environment')} style={{ minWidth: 280, marginBottom: 0, marginLeft: 16 }}>
                         <Select
                           style={{ minWidth: 280 }}
                           allowClear
-                          placeholder="Optional environment"
+                          placeholder={tm('placeholders.optionalEnvironment', 'Optional environment')}
                           options={environmentList.map((item) => ({
                             value: item.id,
-                            label: item.is_default ? `${item.name} (default)` : item.name,
+                            label: item.is_default ? `${item.name} (${tm('tags.defaultLower', 'default')})` : item.name,
                           }))}
                         />
                       </Form.Item>
@@ -527,30 +530,30 @@ const OperationsCenter = () => {
 
                   <Space wrap>
                     <Button loading={loadingState === 'ai'} onClick={() => void onGenerateScenario()}>
-                      Generate scenario
+                      {tm('actions.generateScenario', 'Generate scenario')}
                     </Button>
                     <Button loading={loadingState === 'ai'} onClick={() => void onGenerateTest()}>
-                      Generate test
+                      {tm('actions.generateTest', 'Generate test')}
                     </Button>
                     <Button loading={loadingState === 'ai'} onClick={() => void onAnalyzeFailure()}>
-                      Analyze failure
+                      {tm('actions.analyzeFailure', 'Analyze failure')}
                     </Button>
                     <Button loading={loadingState === 'ai'} onClick={() => void onGenerateAssertions()}>
-                      Generate assertions
+                      {tm('actions.generateAssertions', 'Generate assertions')}
                     </Button>
                     <Button loading={loadingState === 'ai'} onClick={() => void onMapVariables()}>
-                      Map variables
+                      {tm('actions.mapVariables', 'Map variables')}
                     </Button>
                     <Button loading={loadingState === 'ai'} onClick={() => void onRunFull()}>
-                      Run full
+                      {tm('actions.runFull', 'Run full')}
                     </Button>
                     <Button loading={loadingState === 'ai'} onClick={() => void onOptimize()}>
-                      Optimize
+                      {tm('actions.optimize', 'Optimize')}
                     </Button>
                   </Space>
 
-                  <Card size="small" title="Latest AI response">
-                    {aiResult ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{prettyJson(aiResult)}</pre> : <Empty description="No AI response yet" />}
+                  <Card size="small" title={tm('cards.latestAiResponse', 'Latest AI response')}>
+                    {aiResult ? <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{prettyJson(aiResult)}</pre> : <Empty description={tm('empty.noAiResponseYet', 'No AI response yet')} />}
                   </Card>
                 </Space>
               ),

@@ -138,6 +138,64 @@ code {
   grid-template-columns: 92px minmax(0, 1fr);
 }
 
+.app-shell__canvas.is-sidebar-collapsed .app-shell__workspace {
+  gap: 12px;
+}
+
+.app-shell__canvas.is-sidebar-collapsed .app-shell__workspace-topbar {
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.app-shell__canvas.is-sidebar-collapsed .app-shell__search {
+  min-width: 0;
+  padding: 0 14px;
+}
+
+.app-shell__canvas.is-sidebar-collapsed .app-shell__toolbar {
+  gap: 8px;
+}
+
+.app-shell__canvas.is-sidebar-collapsed .app-shell__content-panel {
+  padding: 14px;
+}
+
+.app-shell__canvas.is-sidebar-collapsed .app-shell__workspace-copy,
+.app-shell__canvas.is-sidebar-collapsed .app-shell__summary-grid,
+.app-shell__canvas.is-sidebar-collapsed .app-shell__signal-card {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.app-shell__canvas.is-sidebar-collapsed .workspace-module-hero {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+}
+
+.app-shell__canvas.is-sidebar-collapsed .workspace-module-hero__metrics {
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+}
+
+.app-shell__canvas.is-sidebar-collapsed .workspace-module-hero__metric {
+  min-width: 0;
+  padding: 9px 10px;
+}
+
+.app-shell__canvas.is-sidebar-collapsed .workspace-table-card .ant-card-body,
+.app-shell__canvas.is-sidebar-collapsed .workspace-list-page__card .ant-card-body {
+  padding: 16px 18px;
+}
+
+.app-shell__canvas.is-sidebar-collapsed .governance-grid,
+.app-shell__canvas.is-sidebar-collapsed .governance-filter-grid,
+.app-shell__canvas.is-sidebar-collapsed .scenario-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.app-shell__canvas.is-sidebar-collapsed .governance-toolbar {
+  gap: 10px;
+}
+
 .app-shell__rail,
 .app-shell__sidebar,
 .app-shell__content-panel,
@@ -441,6 +499,7 @@ code {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 
 .app-shell__workspace-topbar {
@@ -729,6 +788,7 @@ code {
 
 .app-shell__content-panel {
   min-height: 0;
+  min-width: 0;
   flex: 1;
   padding: 18px;
   border-radius: 26px;
@@ -1163,6 +1223,7 @@ code {
 .workspace-list-page {
   height: 100%;
   min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1171,6 +1232,7 @@ code {
 .workspace-list-page__card {
   flex: 1;
   min-height: 0;
+  min-width: 0;
 }
 
 .workspace-list-page__card .ant-card-body {

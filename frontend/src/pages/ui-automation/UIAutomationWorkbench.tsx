@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react'
-import { Alert, Button, Card, Col, Divider, Input, Row, Space, Switch, Table, Tag, Typography, message } from 'antd'
+﻿import React, { useMemo, useState } from 'react'
+import { Alert, Button, Card, Col, Divider, Empty, Input, Row, Space, Switch, Table, Tag, Typography, message } from 'antd'
 import { PlayCircleOutlined, ReloadOutlined } from '@ant-design/icons'
 
 import { createUIExecution, getUIExecution, type UIExecutionSummary } from '../../services/uiAutomation'
 import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
+import { useAppPreferences } from '../../preferences/AppPreferencesProvider'
 import { useProjectStore } from '../../store/project'
 import './UIAutomationWorkbench.css'
 
@@ -11,7 +12,11 @@ const { Paragraph, Text, Title } = Typography
 const { TextArea } = Input
 
 const UIAutomationWorkbench: React.FC = () => {
+  const { t } = useAppPreferences()
   const { currentProject } = useProjectStore()
+  const tm = (key: string, fallback: string, variables?: Record<string, string | number>) =>
+    t(`uiAutomationWorkbench.${key}`, fallback, variables)
+
   const [caseName, setCaseName] = useState('')
   const [startUrl, setStartUrl] = useState('')
   const [headless, setHeadless] = useState(true)
@@ -30,19 +35,19 @@ const UIAutomationWorkbench: React.FC = () => {
 
   const handleRun = async () => {
     if (!currentProject?.id) {
-      message.error('请先选择项目')
+      message.error(tm('messages.selectProjectFirst', 'Please select a project first'))
       return
     }
     if (!caseName.trim()) {
-      message.error('请填写执行名称')
+      message.error(tm('messages.enterExecutionName', 'Please enter an execution name'))
       return
     }
     if (!startUrl.trim()) {
-      message.error('请填写起始 URL')
+      message.error(tm('messages.enterStartUrl', 'Please enter a start URL'))
       return
     }
     if (!parsedSteps || !Array.isArray(parsedSteps) || parsedSteps.length === 0) {
-      message.error('步骤 JSON 无效')
+      message.error(tm('messages.invalidStepsJson', 'Invalid steps JSON'))
       return
     }
 
@@ -56,9 +61,13 @@ const UIAutomationWorkbench: React.FC = () => {
       })
       setResult(response.data)
       setLastExecutionId(response.data.execution_id)
-      message.success(`执行完成，记录 #${response.data.execution_id}`)
+      message.success(
+        tm('messages.executionCompleted', 'Execution completed, record #{executionId}', {
+          executionId: response.data.execution_id,
+        }),
+      )
     } catch (error: any) {
-      message.error(error?.message || 'UI 自动化执行失败')
+      message.error(error?.message || tm('messages.executionFailed', 'UI automation execution failed'))
     } finally {
       setLoading(false)
     }
@@ -73,7 +82,7 @@ const UIAutomationWorkbench: React.FC = () => {
       const response = await getUIExecution(currentProject.id, lastExecutionId)
       setResult(response.data)
     } catch (error: any) {
-      message.error(error?.message || '获取执行结果失败')
+      message.error(error?.message || tm('messages.loadExecutionResultFailed', 'Failed to load execution result'))
     } finally {
       setLoading(false)
     }
@@ -82,50 +91,50 @@ const UIAutomationWorkbench: React.FC = () => {
   return (
     <div className="ui-automation-page governance-stack">
       <WorkspaceModuleHero
-        eyebrow="Automation"
-        title="UI 执行工作台"
-        description="基于真实 UI Testing 接口提交执行并查看结果。"
+        eyebrow={tm('hero.eyebrow', 'Automation')}
+        title={tm('hero.title', 'UI Execution Workbench')}
+        description={tm('hero.description', 'Submit executions through the real UI Testing API and inspect the result stream.')}
         metrics={[
-          { label: '最新执行', value: lastExecutionId || '-' },
-          { label: '执行状态', value: result?.status || '-' },
-          { label: '步骤通过', value: result ? `${result.passed_steps}/${result.total_steps}` : '-' },
+          { label: tm('metrics.latestExecution', 'Latest execution'), value: lastExecutionId || '-' },
+          { label: tm('metrics.executionStatus', 'Execution status'), value: result?.status || '-' },
+          { label: tm('metrics.stepsPassed', 'Steps passed'), value: result ? `${result.passed_steps}/${result.total_steps}` : '-' },
         ]}
       />
       <Card className="ui-automation-hero" bordered={false}>
         <Space direction="vertical" size={10} style={{ width: '100%' }}>
-          <Tag color="cyan">UI Automation</Tag>
+          <Tag color="cyan">{tm('hero.tag', 'UI Automation')}</Tag>
           <Title level={2} style={{ margin: 0 }}>
-            UI 执行工作台
+            {tm('hero.title', 'UI Execution Workbench')}
           </Title>
           <Paragraph className="ui-automation-copy">
-            这里仅承接真实的 `ui-testing` 执行接口。请填写执行名称、起始 URL 和步骤 JSON 后提交执行。
+            {tm('hero.note', 'This page only calls the real ui-testing execution endpoint. Fill in the execution name, start URL, and steps JSON, then submit the run.')}
           </Paragraph>
-          {!currentProject?.id && <Alert type="warning" showIcon message="当前没有项目上下文，先在顶部选择项目后再执行。" />}
+          {!currentProject?.id && <Alert type="warning" showIcon message={tm('messages.noProjectContext', 'No project context is selected. Choose a project from the top bar before running.')} />}
         </Space>
       </Card>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} xl={12}>
-          <Card title="Execution Input" className="ui-automation-card">
+          <Card title={tm('cards.executionInput', 'Execution Input')} className="ui-automation-card">
             <Space direction="vertical" size={16} style={{ width: '100%' }}>
-              <Input value={caseName} onChange={(event) => setCaseName(event.target.value)} placeholder="Case name" />
-              <Input value={startUrl} onChange={(event) => setStartUrl(event.target.value)} placeholder="Start URL" />
+              <Input value={caseName} onChange={(event) => setCaseName(event.target.value)} placeholder={tm('placeholders.caseName', 'Case name')} />
+              <Input value={startUrl} onChange={(event) => setStartUrl(event.target.value)} placeholder={tm('placeholders.startUrl', 'Start URL')} />
               <div className="ui-automation-switch-row">
-                <Text>Headless</Text>
+                <Text>{tm('labels.headless', 'Headless')}</Text>
                 <Switch checked={headless} onChange={setHeadless} />
               </div>
               <TextArea
                 value={stepsText}
                 onChange={(event) => setStepsText(event.target.value)}
                 autoSize={{ minRows: 14, maxRows: 22 }}
-                placeholder='[{"name":"Open home","action":"goto","value":"https://your-app"}]'
+                placeholder={tm('placeholders.stepsJson', '[{"name":"Open home","action":"goto","value":"https://your-app"}]')}
               />
               <div className="ui-automation-actions">
                 <Button type="primary" icon={<PlayCircleOutlined />} loading={loading} onClick={handleRun} disabled={!currentProject?.id}>
-                  执行任务
+                  {tm('actions.runTask', 'Run task')}
                 </Button>
                 <Button icon={<ReloadOutlined />} disabled={!lastExecutionId} loading={loading} onClick={handleReload}>
-                  刷新结果
+                  {tm('actions.refreshResult', 'Refresh result')}
                 </Button>
               </div>
             </Space>
@@ -133,28 +142,28 @@ const UIAutomationWorkbench: React.FC = () => {
         </Col>
 
         <Col xs={24} xl={12}>
-          <Card title="执行结果" className="ui-automation-card">
+          <Card title={tm('cards.executionResult', 'Execution Result')} className="ui-automation-card">
             {result ? (
               <Space direction="vertical" size={16} style={{ width: '100%' }}>
                 <div className="ui-automation-summary-grid">
                   <div>
-                    <Text type="secondary">Execution ID</Text>
+                    <Text type="secondary">{tm('labels.executionId', 'Execution ID')}</Text>
                     <Title level={4}>{result.execution_id}</Title>
                   </div>
                   <div>
-                    <Text type="secondary">Status</Text>
+                    <Text type="secondary">{tm('labels.status', 'Status')}</Text>
                     <Title level={4}>
                       <Tag color={result.status === 'completed' ? 'success' : 'error'}>{result.status}</Tag>
                     </Title>
                   </div>
                   <div>
-                    <Text type="secondary">Steps</Text>
+                    <Text type="secondary">{tm('labels.steps', 'Steps')}</Text>
                     <Title level={4}>
                       {result.passed_steps}/{result.total_steps}
                     </Title>
                   </div>
                   <div>
-                    <Text type="secondary">Duration</Text>
+                    <Text type="secondary">{tm('labels.duration', 'Duration')}</Text>
                     <Title level={4}>{result.duration_ms} ms</Title>
                   </div>
                 </div>
@@ -164,17 +173,18 @@ const UIAutomationWorkbench: React.FC = () => {
                   pagination={false}
                   rowKey="index"
                   dataSource={result.steps}
+                  locale={{ emptyText: <Empty description={tm('empty.noSteps', 'No steps')} /> }}
                   columns={[
                     { title: '#', dataIndex: 'index', width: 60 },
-                    { title: 'Name', dataIndex: 'name' },
-                    { title: 'Action', dataIndex: 'action', width: 110 },
+                    { title: tm('table.name', 'Name'), dataIndex: 'name' },
+                    { title: tm('table.action', 'Action'), dataIndex: 'action', width: 110 },
                     {
-                      title: 'Status',
+                      title: tm('table.status', 'Status'),
                       dataIndex: 'status',
                       width: 100,
                       render: (value: string) => <Tag color={value === 'passed' ? 'success' : 'error'}>{value}</Tag>,
                     },
-                    { title: 'Message', dataIndex: 'message', ellipsis: true },
+                    { title: tm('table.message', 'Message'), dataIndex: 'message', ellipsis: true },
                   ]}
                   expandable={{
                     expandedRowRender: (row) => (
@@ -188,7 +198,7 @@ const UIAutomationWorkbench: React.FC = () => {
                 />
               </Space>
             ) : (
-              <div className="workspace-inline-note">执行后会在这里展示步骤日志和结果。</div>
+              <div className="workspace-inline-note">{tm('empty.resultPlaceholder', 'Execution logs and results will appear here after a run.')}</div>
             )}
           </Card>
         </Col>

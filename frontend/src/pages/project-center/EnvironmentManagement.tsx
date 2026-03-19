@@ -27,6 +27,7 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons'
 import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
+import { useAppPreferences } from '../../preferences/AppPreferencesProvider'
 import { useProjectStore } from '../../store/project'
 import {
   createEnvironment,
@@ -67,9 +68,13 @@ const parseJsonObject = (text: string, fallback: Record<string, any> = {}) => {
   return parsed
 }
 
+const tmKey = 'environmentManagement'
+
 const EnvironmentManagement = () => {
+  const { t } = useAppPreferences()
   const { currentProject } = useProjectStore()
   const projectId = currentProject?.id
+  const tm = (key: string, fallback: string) => t(`${tmKey}.${key}`, fallback)
 
   const [activeTab, setActiveTab] = useState<'environments' | 'variables'>('environments')
   const [environmentLoading, setEnvironmentLoading] = useState(false)
@@ -112,7 +117,7 @@ const EnvironmentManagement = () => {
         return preferred?.id ?? null
       })
     } catch (error: any) {
-      message.error(error.message || 'Failed to load environments')
+      message.error(error.message || tm('messages.loadEnvironmentsFailed', 'Failed to load environments'))
       setEnvironmentList([])
       setSelectedEnvironmentId(null)
     } finally {
@@ -128,10 +133,10 @@ const EnvironmentManagement = () => {
 
     setVariableLoading(true)
     try {
-      const response = await getEnvironmentVariables(projectId, envId, 1, 200)
+      const response = await getEnvironmentVariables(projectId, envId, 1, 100)
       setVariableList(response.items || [])
     } catch (error: any) {
-      message.error(error.message || 'Failed to load variables')
+      message.error(error.message || tm('messages.loadVariablesFailed', 'Failed to load variables'))
       setVariableList([])
     } finally {
       setVariableLoading(false)
@@ -187,10 +192,10 @@ const EnvironmentManagement = () => {
 
       if (editingEnvironment) {
         await updateEnvironment(projectId, editingEnvironment.id, payload)
-        message.success('Environment updated')
+        message.success(tm('messages.environmentUpdated', 'Environment updated'))
       } else {
         await createEnvironment(projectId, payload)
-        message.success('Environment created')
+        message.success(tm('messages.environmentCreated', 'Environment created'))
       }
 
       setEnvironmentModalOpen(false)
@@ -201,7 +206,7 @@ const EnvironmentManagement = () => {
       if (error?.errorFields) {
         return
       }
-      message.error(error.message || 'Failed to save environment')
+      message.error(error.message || tm('messages.saveEnvironmentFailed', 'Failed to save environment'))
     }
   }
 
@@ -212,16 +217,16 @@ const EnvironmentManagement = () => {
 
     try {
       await deleteEnvironment(projectId, env.id)
-      message.success('Environment deleted')
+      message.success(tm('messages.environmentDeleted', 'Environment deleted'))
       await loadEnvironments()
     } catch (error: any) {
-      message.error(error.message || 'Failed to delete environment')
+      message.error(error.message || tm('messages.deleteEnvironmentFailed', 'Failed to delete environment'))
     }
   }
 
   const openCreateVariable = () => {
     if (!selectedEnvironmentId) {
-      message.warning('Select an environment first')
+      message.warning(tm('messages.selectEnvironmentFirst', 'Select an environment first'))
       return
     }
 
@@ -259,10 +264,10 @@ const EnvironmentManagement = () => {
 
       if (editingVariable) {
         await updateEnvironmentVariable(projectId, selectedEnvironmentId, editingVariable.id, payload)
-        message.success('Variable updated')
+        message.success(tm('messages.variableUpdated', 'Variable updated'))
       } else {
         await createEnvironmentVariable(projectId, selectedEnvironmentId, payload)
-        message.success('Variable created')
+        message.success(tm('messages.variableCreated', 'Variable created'))
       }
 
       setVariableModalOpen(false)
@@ -273,7 +278,7 @@ const EnvironmentManagement = () => {
       if (error?.errorFields) {
         return
       }
-      message.error(error.message || 'Failed to save variable')
+      message.error(error.message || tm('messages.saveVariableFailed', 'Failed to save variable'))
     }
   }
 
@@ -284,50 +289,50 @@ const EnvironmentManagement = () => {
 
     try {
       await deleteEnvironmentVariable(projectId, selectedEnvironmentId, variable.id)
-      message.success('Variable deleted')
+      message.success(tm('messages.variableDeleted', 'Variable deleted'))
       await loadVariables(selectedEnvironmentId)
     } catch (error: any) {
-      message.error(error.message || 'Failed to delete variable')
+      message.error(error.message || tm('messages.deleteVariableFailed', 'Failed to delete variable'))
     }
   }
 
   const environmentColumns: ColumnsType<Environment> = [
     {
-      title: 'Name',
+      title: tm('columns.environment.name', 'Name'),
       dataIndex: 'name',
       width: 180,
     },
     {
-      title: 'Base URL',
+      title: tm('columns.environment.baseUrl', 'Base URL'),
       dataIndex: 'base_url',
       ellipsis: true,
     },
     {
-      title: 'Default',
+      title: tm('columns.environment.default', 'Default'),
       dataIndex: 'is_default',
       width: 110,
-      render: (value: boolean) => (value ? <Tag color="gold">Default</Tag> : <Tag>Normal</Tag>),
+      render: (value: boolean) => (value ? <Tag color="gold">{tm('tags.default', 'Default')}</Tag> : <Tag>{tm('tags.normal', 'Normal')}</Tag>),
     },
     {
-      title: 'Headers',
+      title: tm('columns.environment.headers', 'Headers'),
       dataIndex: 'headers',
       width: 120,
       render: (value: Record<string, string> | undefined) => <Tag color="blue">{Object.keys(value || {}).length}</Tag>,
     },
     {
-      title: 'Variables',
+      title: tm('columns.environment.variables', 'Variables'),
       dataIndex: 'variables',
       width: 120,
       render: (value: Record<string, any> | undefined) => <Tag color="purple">{Object.keys(value || {}).length}</Tag>,
     },
     {
-      title: 'Actions',
+      title: tm('columns.actions', 'Actions'),
       key: 'actions',
       width: 220,
       render: (_, record) => (
         <Space size="small" wrap>
           <Button size="small" icon={<EditOutlined />} onClick={() => openEditEnvironment(record)}>
-            Edit
+            {tm('actions.edit', 'Edit')}
           </Button>
           <Button
             size="small"
@@ -337,16 +342,16 @@ const EnvironmentManagement = () => {
               setSelectedEnvironmentId(record.id)
             }}
           >
-            Vars
+            {tm('actions.vars', 'Vars')}
           </Button>
           <Popconfirm
-            title="Delete this environment?"
-            description="This action cannot be undone."
+            title={tm('confirm.deleteEnvironmentTitle', 'Delete this environment?')}
+            description={tm('confirm.deleteDescription', 'This action cannot be undone.')}
             okButtonProps={{ danger: true }}
             onConfirm={() => void removeEnvironment(record)}
           >
             <Button size="small" danger icon={<DeleteOutlined />}>
-              Delete
+              {tm('actions.delete', 'Delete')}
             </Button>
           </Popconfirm>
         </Space>
@@ -356,39 +361,39 @@ const EnvironmentManagement = () => {
 
   const variableColumns: ColumnsType<Variable> = [
     {
-      title: 'Key',
+      title: tm('columns.variable.key', 'Key'),
       dataIndex: 'var_key',
       width: 220,
     },
     {
-      title: 'Value',
+      title: tm('columns.variable.value', 'Value'),
       dataIndex: 'var_value',
       ellipsis: true,
       render: (value: string, record) => (record.is_sensitive ? '******' : value),
     },
     {
-      title: 'Sensitive',
+      title: tm('columns.variable.sensitive', 'Sensitive'),
       dataIndex: 'is_sensitive',
       width: 120,
-      render: (value: boolean) => (value ? <Tag color="red">Yes</Tag> : <Tag>No</Tag>),
+      render: (value: boolean) => (value ? <Tag color="red">{tm('tags.yes', 'Yes')}</Tag> : <Tag>{tm('tags.no', 'No')}</Tag>),
     },
     {
-      title: 'Actions',
+      title: tm('columns.actions', 'Actions'),
       key: 'actions',
       width: 180,
       render: (_, record) => (
         <Space size="small">
           <Button size="small" icon={<EditOutlined />} onClick={() => openEditVariable(record)}>
-            Edit
+            {tm('actions.edit', 'Edit')}
           </Button>
           <Popconfirm
-            title="Delete this variable?"
-            description="This action cannot be undone."
+            title={tm('confirm.deleteVariableTitle', 'Delete this variable?')}
+            description={tm('confirm.deleteDescription', 'This action cannot be undone.')}
             okButtonProps={{ danger: true }}
             onConfirm={() => void removeVariable(record)}
           >
             <Button size="small" danger icon={<DeleteOutlined />}>
-              Delete
+              {tm('actions.delete', 'Delete')}
             </Button>
           </Popconfirm>
         </Space>
@@ -399,28 +404,28 @@ const EnvironmentManagement = () => {
   return (
     <div className="workspace-page">
       <WorkspaceModuleHero
-        eyebrow="Project Center"
-        title="Environment & Variable Management"
-        description="Manage project environments and environment variables using only the real backend CRUD APIs."
+        eyebrow={tm('hero.eyebrow', 'Project Center')}
+        title={tm('hero.title', 'Environment & Variable Management')}
+        description={tm('hero.description', 'Manage project environments and environment variables using only the real backend CRUD APIs.')}
         metrics={[
-          { label: 'Environments', value: environmentList.length },
-          { label: 'Variables', value: variableList.length },
-          { label: 'Selected env', value: selectedEnvironment?.name || '-' },
+          { label: tm('metrics.environments', 'Environments'), value: environmentList.length },
+          { label: tm('metrics.variables', 'Variables'), value: variableList.length },
+          { label: tm('metrics.selectedEnv', 'Selected env'), value: selectedEnvironment?.name || '-' },
         ]}
         actions={
           <Space wrap>
             <Button icon={<ReloadOutlined />} onClick={() => void loadEnvironments()} loading={environmentLoading}>
-              Refresh
+              {tm('actions.refresh', 'Refresh')}
             </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateEnvironment}>
-              New environment
+              {tm('actions.newEnvironment', 'New environment')}
             </Button>
           </Space>
         }
       />
 
       {!projectId ? (
-        <Alert type="warning" showIcon message="Select a project first" />
+        <Alert type="warning" showIcon message={tm('messages.selectProjectFirst', 'Select a project first')} />
       ) : null}
 
       <Card>
@@ -430,7 +435,7 @@ const EnvironmentManagement = () => {
           items={[
             {
               key: 'environments',
-              label: 'Environments',
+              label: tm('tabs.environments', 'Environments'),
               children: (
                 <Table
                   rowKey="id"
@@ -438,44 +443,44 @@ const EnvironmentManagement = () => {
                   dataSource={environmentList}
                   columns={environmentColumns}
                   pagination={false}
-                  locale={{ emptyText: <Empty description="No environments" /> }}
+                  locale={{ emptyText: <Empty description={tm('empty.environments', 'No environments')} /> }}
                 />
               ),
             },
             {
               key: 'variables',
-              label: 'Variables',
+              label: tm('tabs.variables', 'Variables'),
               children: (
                 <Space direction="vertical" style={{ width: '100%' }} size="large">
                   <Card size="small">
                     <Space direction="vertical" style={{ width: '100%' }} size="middle">
                       <Space wrap>
-                        <Text strong>Environment</Text>
+                        <Text strong>{tm('labels.environment', 'Environment')}</Text>
                         <Select
                           style={{ minWidth: 280 }}
                           value={selectedEnvironmentId ?? undefined}
                           onChange={(value) => setSelectedEnvironmentId(value)}
-                          placeholder="Select environment"
+                          placeholder={tm('placeholders.selectEnvironment', 'Select environment')}
                           options={environmentList.map((item) => ({
                             value: item.id,
-                            label: item.is_default ? `${item.name} (default)` : item.name,
+                            label: item.is_default ? `${item.name} (${tm('tags.defaultLower', 'default')})` : item.name,
                           }))}
                         />
                         <Button icon={<ReloadOutlined />} onClick={() => void loadVariables(selectedEnvironmentId)}>
-                          Refresh variables
+                          {tm('actions.refreshVariables', 'Refresh variables')}
                         </Button>
                         <Button type="primary" icon={<PlusOutlined />} onClick={openCreateVariable} disabled={!selectedEnvironmentId}>
-                          New variable
+                          {tm('actions.newVariable', 'New variable')}
                         </Button>
                       </Space>
                       {selectedEnvironment ? (
                         <Descriptions column={1} bordered size="small">
-                          <Descriptions.Item label="Base URL">{selectedEnvironment.base_url}</Descriptions.Item>
-                          <Descriptions.Item label="Headers">{Object.keys(selectedEnvironment.headers || {}).length}</Descriptions.Item>
-                          <Descriptions.Item label="Variables">{Object.keys(selectedEnvironment.variables || {}).length}</Descriptions.Item>
+                          <Descriptions.Item label={tm('columns.environment.baseUrl', 'Base URL')}>{selectedEnvironment.base_url}</Descriptions.Item>
+                          <Descriptions.Item label={tm('columns.environment.headers', 'Headers')}>{Object.keys(selectedEnvironment.headers || {}).length}</Descriptions.Item>
+                          <Descriptions.Item label={tm('columns.environment.variables', 'Variables')}>{Object.keys(selectedEnvironment.variables || {}).length}</Descriptions.Item>
                         </Descriptions>
                       ) : (
-                        <Empty description="Select an environment to manage variables" />
+                        <Empty description={tm('empty.selectEnvironmentToManageVariables', 'Select an environment to manage variables')} />
                       )}
                     </Space>
                   </Card>
@@ -486,7 +491,7 @@ const EnvironmentManagement = () => {
                     dataSource={variableList}
                     columns={variableColumns}
                     pagination={false}
-                    locale={{ emptyText: <Empty description="No variables" /> }}
+                    locale={{ emptyText: <Empty description={tm('empty.variables', 'No variables')} /> }}
                   />
                 </Space>
               ),
@@ -496,7 +501,7 @@ const EnvironmentManagement = () => {
       </Card>
 
       <Modal
-        title={editingEnvironment ? 'Edit environment' : 'New environment'}
+        title={editingEnvironment ? tm('modals.editEnvironment', 'Edit environment') : tm('modals.newEnvironment', 'New environment')}
         open={environmentModalOpen}
         onCancel={() => {
           setEnvironmentModalOpen(false)
@@ -508,26 +513,26 @@ const EnvironmentManagement = () => {
         width={760}
       >
         <Form form={environmentForm} layout="vertical" autoComplete="off">
-          <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter a name' }]}>
+          <Form.Item name="name" label={tm('columns.environment.name', 'Name')} rules={[{ required: true, message: tm('validation.enterName', 'Please enter a name') }]}>
             <Input placeholder="dev / test / staging / prod" />
           </Form.Item>
-          <Form.Item name="base_url" label="Base URL" rules={[{ required: true, message: 'Please enter a base URL' }]}>
+          <Form.Item name="base_url" label={tm('columns.environment.baseUrl', 'Base URL')} rules={[{ required: true, message: tm('validation.enterBaseUrl', 'Please enter a base URL') }]}>
             <Input placeholder="https://example.com" />
           </Form.Item>
-          <Form.Item name="is_default" label="Default environment" valuePropName="checked">
+          <Form.Item name="is_default" label={tm('labels.defaultEnvironment', 'Default environment')} valuePropName="checked">
             <Switch />
           </Form.Item>
-          <Form.Item name="headers_json" label="Headers JSON" rules={[{ required: true, message: 'Please enter headers JSON' }]}>
+          <Form.Item name="headers_json" label={tm('labels.headersJson', 'Headers JSON')} rules={[{ required: true, message: tm('validation.enterHeadersJson', 'Please enter headers JSON') }]}>
             <TextArea rows={5} spellCheck={false} />
           </Form.Item>
-          <Form.Item name="variables_json" label="Variables JSON" rules={[{ required: true, message: 'Please enter variables JSON' }]}>
+          <Form.Item name="variables_json" label={tm('labels.variablesJson', 'Variables JSON')} rules={[{ required: true, message: tm('validation.enterVariablesJson', 'Please enter variables JSON') }]}>
             <TextArea rows={5} spellCheck={false} />
           </Form.Item>
         </Form>
       </Modal>
 
       <Modal
-        title={editingVariable ? 'Edit variable' : 'New variable'}
+        title={editingVariable ? tm('modals.editVariable', 'Edit variable') : tm('modals.newVariable', 'New variable')}
         open={variableModalOpen}
         onCancel={() => {
           setVariableModalOpen(false)
@@ -538,13 +543,13 @@ const EnvironmentManagement = () => {
         destroyOnClose
       >
         <Form form={variableForm} layout="vertical" autoComplete="off">
-          <Form.Item name="var_key" label="Key" rules={[{ required: true, message: 'Please enter a key' }]}>
+          <Form.Item name="var_key" label={tm('columns.variable.key', 'Key')} rules={[{ required: true, message: tm('validation.enterKey', 'Please enter a key') }]}>
             <Input placeholder="ACCESS_TOKEN" />
           </Form.Item>
-          <Form.Item name="var_value" label="Value" rules={[{ required: true, message: 'Please enter a value' }]}>
+          <Form.Item name="var_value" label={tm('columns.variable.value', 'Value')} rules={[{ required: true, message: tm('validation.enterValue', 'Please enter a value') }]}>
             <Input.Password placeholder="value" />
           </Form.Item>
-          <Form.Item name="is_sensitive" label="Sensitive" valuePropName="checked">
+          <Form.Item name="is_sensitive" label={tm('columns.variable.sensitive', 'Sensitive')} valuePropName="checked">
             <Switch />
           </Form.Item>
         </Form>
