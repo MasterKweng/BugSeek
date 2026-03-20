@@ -12,13 +12,19 @@ from app.api.v1.deps import get_current_user
 from app.context import get_current_project_id
 from app.core.trace import get_trace_id
 from app.dependencies import get_db
-from app.domains.data_mapping.constants import Stage, get_stage_name, get_stage_result_key
+from app.domains.field_mapping_engine.constants import Stage, get_stage_name, get_stage_result_key
 from app.platform.db.base import AsyncTask, ApiScenario, SyncTask, TestExecution, TestExecutionResult, User
 
 try:
-    from app.api.v1.field_mappings_async import _calculate_stage_description
+    from app.api.v1.field_mappings_async import (
+        _build_engine_v2_artifacts_summary,
+        _calculate_stage_description,
+        _extract_suggestions_from_result,
+    )
 except Exception:  # pragma: no cover - defensive fallback for import-time issues
     _calculate_stage_description = None
+    _build_engine_v2_artifacts_summary = None
+    _extract_suggestions_from_result = None
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -102,7 +108,8 @@ def _build_field_mapping_stages(task: AsyncTask) -> List[UnifiedTaskStage]:
     return enhanced_stages
 
 
-def _serialize_field_mapping_task(task: AsyncTask) -> UnifiedTaskStatus:
+def _serialize_field_mapping_task(task: AsyncTask, db: Session) -> UnifiedTaskStatus:
+    engine_version = (task.task_params or {}).get("engine_version", "engine_v2")
     can_retry = task.status in {"failed", "cancelled", "partial_success"}
     retryable_stages = [task.current_stage] if can_retry and task.current_stage else []
     stages = _build_field_mapping_stages(task)
@@ -110,8 +117,10 @@ def _serialize_field_mapping_task(task: AsyncTask) -> UnifiedTaskStatus:
     if isinstance(task.result, list):
         result_count = len(task.result)
     elif isinstance(task.result, dict):
-        items = task.result.get("items")
-        if isinstance(items, list):
+        if _extract_suggestions_from_result:
+            result_count = len(_extract_suggestions_from_result(task.result))
+        elif isinstance(task.result.get("items"), list):
+            items = task.result.get("items")
             result_count = len(items)
 
     detail = {
@@ -132,7 +141,12 @@ def _serialize_field_mapping_task(task: AsyncTask) -> UnifiedTaskStatus:
         "finished_at": _iso(task.finished_at),
         "created_at": _iso(task.created_at),
         "updated_at": _iso(task.updated_at),
+        "engine_version": engine_version,
     }
+    artifacts_summary = None
+    if engine_version == "engine_v2" and _build_engine_v2_artifacts_summary:
+        artifacts_summary = _build_engine_v2_artifacts_summary(db, task.id)
+        detail["artifacts_summary"] = artifacts_summary
 
     return UnifiedTaskStatus(
         task_id=task.id,
@@ -145,7 +159,10 @@ def _serialize_field_mapping_task(task: AsyncTask) -> UnifiedTaskStatus:
         current_stage=str(task.current_stage) if task.current_stage is not None else None,
         stages=stages,
         statistics=task.statistics or {},
-        summary={"result_count": result_count},
+        summary={
+            "result_count": result_count,
+            "artifacts_summary": artifacts_summary,
+        },
         error_message=task.error_message,
         started_at=_iso(task.started_at),
         finished_at=_iso(task.finished_at),
@@ -155,6 +172,7 @@ def _serialize_field_mapping_task(task: AsyncTask) -> UnifiedTaskStatus:
             "project_id": task.project_id,
             "user_id": task.user_id,
             "celery_task_id": task.celery_task_id,
+            "engine_version": engine_version,
         },
         detail=detail,
     )
@@ -374,7 +392,7 @@ async def get_task_status(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Task not found: {task_id}")
         if task.user_id and task.user_id != current_user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No permission to access task")
-        payload = _serialize_field_mapping_task(task)
+        payload = _serialize_field_mapping_task(task, db)
     elif normalized_kind == "sync-task":
         task = db.query(SyncTask).filter(SyncTask.id == task_id).first()
         if not task:

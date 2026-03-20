@@ -118,6 +118,23 @@ def upgrade():
                 CREATE INDEX IF NOT EXISTS ix_api_table_impacts_api_id
                 ON api_table_impacts(api_id)
             """))
+
+            for table_name in (
+                "api_execution_traces",
+                "sql_traces",
+                "table_impacts",
+                "field_impacts",
+                "snapshots",
+                "api_table_impacts",
+            ):
+                conn.execute(text(f"""
+                    ALTER TABLE {table_name}
+                    ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                """))
+                conn.execute(text(f"""
+                    ALTER TABLE {table_name}
+                    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                """))
             conn.commit()
 
         print("=" * 60)

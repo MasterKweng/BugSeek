@@ -121,7 +121,7 @@ class VectorIndexManager:
         vectors = np.zeros((len(texts), dim), dtype=np.float32)
 
         for i, text in enumerate(texts):
-            tokens = [t for t in re.split(r"\\W+", (text or "").lower()) if t]
+            tokens = [t for t in re.split(r"\W+", (text or "").lower()) if t]
             if not tokens:
                 continue
             for token in tokens:

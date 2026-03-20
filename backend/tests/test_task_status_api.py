@@ -41,7 +41,8 @@ def test_get_field_mapping_task_status_returns_normalized_payload():
         stage_results={},
         stages=[{"name": "字段提取", "status": "completed", "progress": 100}],
         statistics={"total_fields": 12},
-        result=None,
+        task_params={"engine_version": "engine_v2"},
+        result={"suggestions": [{"api_field_path": "body.order_id"}]},
         error_message=None,
         started_at=created_at,
         finished_at=None,
@@ -56,15 +57,23 @@ def test_get_field_mapping_task_status_returns_normalized_payload():
     app = _build_app(db, current_user)
     client = TestClient(app)
 
-    response = client.get("/task-status/field-mapping/11")
+    with patch(
+        "app.api.v1.task_status._build_engine_v2_artifacts_summary",
+        return_value={"total_artifacts": 2, "by_stage": {"1": 1, "5": 1}},
+    ):
+        response = client.get("/task-status/field-mapping/11")
 
     assert response.status_code == 200
     payload = response.json()["data"]
     assert payload["task_kind"] == "field-mapping"
     assert payload["status"] == "running"
     assert payload["progress"] == 65
+    assert payload["summary"]["result_count"] == 1
+    assert payload["summary"]["artifacts_summary"]["total_artifacts"] == 2
+    assert payload["metadata"]["engine_version"] == "engine_v2"
     assert payload["detail"]["task_id"] == 11
     assert payload["detail"]["task_type"] == "field_mapping_suggest"
+    assert payload["detail"]["artifacts_summary"]["by_stage"] == {"1": 1, "5": 1}
 
 
 def test_get_sync_task_status_returns_counts_summary():

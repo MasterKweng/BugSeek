@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.platform.db.base import AsyncTask
 from app.core.trace import get_trace_id
 from app.domains.data_mapping.exceptions import TaskCancelledException
+from app.domains.field_mapping_engine.services import FieldMappingJobService
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ class AsyncTaskExecutor:
                 result = {"status": "error", "message": f"不支持的任务类型: {task_type}"}
             
             # 更新任务状态
-            if result.get("status") == "success":
+            if result.get("status") == "success" or result.get("success") is True:
                 task.status = "completed"
                 task.result = result
             else:
@@ -108,14 +109,5 @@ class AsyncTaskExecutor:
         Returns:
             执行结果
         """
-        from app.domains.data_mapping.processor import FieldMappingProcessor
-        
         logger.info(f"[{self.trace_id}] 开始执行字段映射任务: task_id={task.id}")
-        
-        # 创建处理器
-        processor = FieldMappingProcessor(self.db, task)
-        
-        # 执行处理
-        result = await processor.process()
-        
-        return result
+        return await FieldMappingJobService(self.db).execute_task(task)

@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     
     # JIT 字段映射开关
     JIT_MAPPING_ENABLED: bool = False
+    FIELD_MAPPING_LEGACY_FALLBACK_ENABLED: bool = False
     
     # 报告 RCA 开关
     RCA_IN_REPORT_ENABLED: bool = False

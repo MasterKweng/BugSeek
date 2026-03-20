@@ -13,6 +13,7 @@ from app.context import get_current_project_id, get_current_version_id
 from app.platform.db.base import ApiFieldMapping, ApiDefinition, Version, User, DbSchemaVersion
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
+from app.domains.field_mapping_engine.services import FieldMappingAppService
 from app.utils.field_mapping_utils import (
     extract_path_params, 
     parse_path_segments, 
@@ -502,54 +503,21 @@ async def suggest_field_mappings(
         f"use_ai={request.use_ai_fallback}, ai_threshold={request.ai_confidence_threshold}"
     )
 
-    # 获取项目中的所有API定义
-    definitions = db.query(ApiDefinition).filter(
-        ApiDefinition.project_id == ctx["project_id"]
-    ).all()
-
-    suggestions = []
-    
-    # 使用重心算法：按API批量处理
-    for definition in definitions:
-        # 提取API字段
-        api_fields = _extract_api_fields(
-            definition, 
-            request.include_paths, 
-            request.include_query, 
-            request.include_body
-        )
-        
-        if not api_fields:
-            continue
-        
-        # 使用重心算法批量生成候选（包含 AI 兜底）
-        gravity_results = await _generate_mapping_candidates_with_gravity(
-            db,
-            ctx,
-            api_fields,
-            definition.method,
-            definition.path,
-            definition.schema_snapshot or {},
-            use_ai_fallback=request.use_ai_fallback,
-            ai_confidence_threshold=request.ai_confidence_threshold
-        )
-        
-        # 构建建议列表
-        for api_field_path, candidates in gravity_results.items():
-            if candidates:
-                suggestion = FieldMappingSuggestion(
-                    definition_id=definition.id,
-                    definition_method=definition.method,
-                    definition_path=definition.path,
-                    api_field_path=api_field_path,
-                    candidates=candidates
-                )
-                suggestions.append(suggestion)
+    app_service = FieldMappingAppService(db)
+    suggestion_items = await app_service.suggest_field_mappings(
+        project_id=ctx["project_id"],
+        version_id=ctx["version_id"],
+        include_paths=request.include_paths,
+        include_query=request.include_query,
+        include_body=request.include_body,
+        use_ai=request.use_ai_fallback,
+        ai_confidence_threshold=request.ai_confidence_threshold or 0.7,
+    )
 
     return ApiResponse(
         code=0,
         message="生成建议成功",
-        data={"items": [suggestion.model_dump() for suggestion in suggestions]}
+        data={"items": suggestion_items}
     )
 
 

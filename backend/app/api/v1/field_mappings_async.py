@@ -12,15 +12,18 @@ from app.context import get_current_project_id, get_current_version_id
 from app.platform.db.base import AsyncTask, ApiDefinition, Version, User
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
+from app.domains.field_mapping_engine.constants import (
+    Stage,
+    StageStatus,
+    get_stage_result_key,
+    get_stage_name,
+)
+from app.domains.field_mapping_engine.services import FieldMappingJobService
+from app.domains.field_mapping_engine.orchestration.resume_manager import ResumeManager
+from app.domains.field_mapping_engine.persistence.artifact_store import ArtifactStore
 # 导入旧的异步任务管理器（向后兼容，用于任务重试等操作）
 # 注意：主要任务执行已迁移到 Celery
 from app.core.async_task.manager import get_task_manager
-from app.domains.data_mapping.constants import (
-    StageStatus,
-    Stage,
-    get_stage_result_key,
-    get_stage_name
-)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -39,6 +42,7 @@ class FieldMappingSuggestTaskRequest(BaseModel):
     include_query: Optional[bool] = Field(True, description="是否包含查询参数")
     include_body: Optional[bool] = Field(True, description="是否包含请求体参数")
     use_ai: Optional[bool] = Field(True, description="是否使用AI推荐")
+    ai_confidence_threshold: Optional[float] = Field(0.7, description="AI threshold", ge=0.0, le=1.0)
     high_priority_enabled: Optional[bool] = Field(True, description="是否启用高优先级字段")
     medium_priority_enabled: Optional[bool] = Field(True, description="是否启用中优先级字段")
     low_priority_enabled: Optional[bool] = Field(True, description="是否启用低优先级字段")
@@ -64,6 +68,76 @@ class AsyncTaskListResponse(BaseModel):
     """任务列表响应模型"""
     total: int
     items: List[AsyncTaskSummary]
+
+
+def _extract_suggestions_from_result(result: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    if not isinstance(result, dict):
+        return []
+
+    suggestions = result.get("suggestions")
+    if isinstance(suggestions, list):
+        return suggestions
+
+    result_data = result.get("data")
+    if isinstance(result_data, dict):
+        items = result_data.get("items")
+        if isinstance(items, list):
+            return items
+
+    return []
+
+
+def _build_engine_v2_artifacts_summary(db: Session, task_id: int) -> Dict[str, Any]:
+    artifact_store = ArtifactStore(db)
+    by_stage: Dict[str, int] = {}
+    total_artifacts = 0
+
+    for stage_num in range(1, Stage.RESULT_MERGE + 1):
+        count = len(artifact_store.list_stage_artifacts(task_id=task_id, stage=stage_num))
+        if count:
+            by_stage[str(stage_num)] = count
+            total_artifacts += count
+
+    return {
+        "total_artifacts": total_artifacts,
+        "by_stage": by_stage,
+    }
+
+
+def _requeue_field_mapping_task(
+    db: Session,
+    task: AsyncTask,
+    *,
+    progress_message: Optional[str] = None,
+) -> str:
+    from app.celery.tasks import execute_field_mapping_task
+
+    task.status = "pending"
+    if progress_message is not None:
+        task.progress_message = progress_message
+    db.commit()
+
+    celery_task = execute_field_mapping_task.apply_async(args=[task.id])
+    task.celery_task_id = celery_task.id
+    db.commit()
+    return celery_task.id
+
+
+def _build_requeue_response(
+    *,
+    task: AsyncTask,
+    engine_version: str,
+    extra: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    data = {
+        "task_id": task.id,
+        "status": task.status,
+        "current_stage": task.current_stage,
+        "engine_version": engine_version,
+    }
+    if extra:
+        data.update(extra)
+    return data
 
 
 def _get_project_and_version(
@@ -128,7 +202,7 @@ async def create_suggest_task(
     
     logger.info(
         f"[{trace_id}] 创建字段映射建议任务: project_id={ctx['project_id']}, "
-        f"version_id={ctx['version_id']}, use_ai={request.use_ai}, "
+        f"version_id={ctx['version_id']}, use_ai={request.use_ai}, ai_threshold={request.ai_confidence_threshold}, "
         f"mapping_mode={mapping_mode}, scenario_id={request.scenario_id}"
     )
 
@@ -168,23 +242,23 @@ async def create_suggest_task(
         estimated_duration = int(estimated_fields * 0.05)  # 约0.05秒/字段
 
     # 构建任务参数
-    task_params = {
-        "project_id": ctx["project_id"],
-        "version_id": ctx["version_id"],
-        "include_paths": request.include_paths,
-        "include_query": request.include_query,
-        "include_body": request.include_body,
-        "use_ai": request.use_ai,
-        "high_priority_enabled": request.high_priority_enabled,
-        "medium_priority_enabled": request.medium_priority_enabled,
-        "low_priority_enabled": request.low_priority_enabled,
-    }
+    task_params = FieldMappingJobService.build_task_params(
+        project_id=ctx["project_id"],
+        version_id=ctx["version_id"],
+        include_paths=request.include_paths,
+        include_query=request.include_query,
+        include_body=request.include_body,
+        use_ai=request.use_ai,
+        high_priority_enabled=request.high_priority_enabled,
+        medium_priority_enabled=request.medium_priority_enabled,
+        low_priority_enabled=request.low_priority_enabled,
+        definition_ids=valid_definition_ids if is_jit_mapping else None,
+        scenario_id=request.scenario_id,
+        engine_version="engine_v2",
+        ai_confidence_threshold=request.ai_confidence_threshold or 0.7,
+    )
     
-    # BSK-SC-018: 添加 JIT 映射参数
-    if is_jit_mapping:
-        task_params["definition_ids"] = valid_definition_ids
-    if request.scenario_id:
-        task_params["scenario_id"] = request.scenario_id
+    # JIT/scenario 参数已统一收口到 FieldMappingJobService.build_task_params
 
     # 创建异步任务记录
     task = AsyncTask(
@@ -404,8 +478,7 @@ async def get_suggestions(
     # 如果建议表为空，尝试从 JSON 读取（向后兼容）
     if total == 0:
         logger.info(f"[{trace_id}] 建议表为空，尝试从 JSON 读取")
-        result = task.result or {}
-        suggestions = result.get("suggestions", [])
+        suggestions = _extract_suggestions_from_result(task.result)
         
         # 状态过滤（JSON 数据）
         if status_filter:
@@ -547,17 +620,18 @@ async def get_async_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"任务不存在：{task_id}"
         )
-
-    # 检查权限（IDOR 防护）
+    # ???????IDOR ???
     if task.user_id != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权访问该任务"
+            detail="???????"
         )
 
-    # 处理 stages 数组，为每个阶段添加 description
+    # ?? stages ?????????? description
     stages = task.stages or []
     stage_results = task.stage_results or {}
+    engine_version = (task.task_params or {}).get("engine_version", "engine_v2")
+
     
     enhanced_stages = []
     for stage in stages:
@@ -591,28 +665,34 @@ async def get_async_task(
     if can_retry and task.current_stage:
         # 可以从当前阶段重试
         retryable_stages = [task.current_stage]
-    
+
+    response_data = {
+        "task_id": task.id,
+        "task_type": task.task_type,
+        "status": task.status,
+        "progress": task.progress,
+        "progress_message": task.progress_message,
+        "current_stage": task.current_stage,
+        "stages": enhanced_stages,
+        "statistics": task.statistics or {},
+        "result": task.result,
+        "error_message": task.error_message,
+        "can_retry": can_retry,
+        "retryable_stages": retryable_stages,
+        "started_at": task.started_at.isoformat() if task.started_at else None,
+        "finished_at": task.finished_at.isoformat() if task.finished_at else None,
+        "created_at": task.created_at.isoformat(),
+        "updated_at": task.updated_at.isoformat(),
+        "engine_version": engine_version,
+    }
+
+    if engine_version == "engine_v2":
+        response_data["artifacts_summary"] = _build_engine_v2_artifacts_summary(db, task.id)
+
     return ApiResponse(
         code=0,
         message="查询成功",
-        data={
-            "task_id": task.id,
-            "task_type": task.task_type,
-            "status": task.status,
-            "progress": task.progress,
-            "progress_message": task.progress_message,
-            "current_stage": task.current_stage,
-            "stages": enhanced_stages,
-            "statistics": task.statistics or {},
-            "result": task.result,
-            "error_message": task.error_message,
-            "can_retry": can_retry,
-            "retryable_stages": retryable_stages,
-            "started_at": task.started_at.isoformat() if task.started_at else None,
-            "finished_at": task.finished_at.isoformat() if task.finished_at else None,
-            "created_at": task.created_at.isoformat(),
-            "updated_at": task.updated_at.isoformat()
-        }
+        data=response_data
     )
 
 
@@ -640,12 +720,6 @@ async def get_field_mapping_stage_result(
         阶段结果数据
     """
     trace_id = get_trace_id()
-    from app.domains.data_mapping.constants import (
-        Stage,
-        get_stage_result_key,
-        StageResultKey
-    )
-    
     logger.info(f"[{trace_id}] 查询阶段结果: task_id={task_id}, stage_num={stage_num}")
     
     # 验证阶段编号范围
@@ -670,6 +744,45 @@ async def get_field_mapping_stage_result(
             detail="无权访问该任务"
         )
     
+    engine_version = (task.task_params or {}).get("engine_version", "engine_v2")
+    if engine_version == "engine_v2":
+        artifact_store = ArtifactStore(db)
+        artifacts = artifact_store.list_stage_artifacts(task_id=task_id, stage=stage_num)
+        if not artifacts:
+            return ApiResponse(
+                code=0,
+                message="该阶段尚未执行",
+                data={
+                    "stage_num": stage_num,
+                    "status": StageStatus.NOT_STARTED,
+                    "data": None,
+                    "artifacts": []
+                }
+            )
+
+        stage_results = task.stage_results or {}
+        stage_key = get_stage_result_key(stage_num)
+        stage_result = stage_results.get(stage_key, {})
+        return ApiResponse(
+            code=0,
+            message="查询成功",
+            data={
+                "stage_num": stage_num,
+                "status": stage_result.get("status", StageStatus.COMPLETED),
+                "summary": stage_result.get("data"),
+                "artifacts": [
+                    {
+                        "id": artifact.id,
+                        "artifact_type": artifact.artifact_type,
+                        "artifact_key": artifact.artifact_key,
+                        "payload_json": artifact.payload_json,
+                        "created_at": artifact.created_at.isoformat() if artifact.created_at else None
+                    }
+                    for artifact in artifacts
+                ]
+            }
+        )
+
     # 获取阶段结果
     stage_results = task.stage_results or {}
     stage_key = get_stage_result_key(stage_num)
@@ -716,8 +829,6 @@ async def resume_field_mapping_task(
         操作结果
     """
     trace_id = get_trace_id()
-    task_manager = get_task_manager(db)
-    
     logger.info(f"[{trace_id}] 继续执行任务: task_id={task_id}")
     
     # 查询任务
@@ -750,28 +861,21 @@ async def resume_field_mapping_task(
             data={"task_id": task_id, "status": task.status}
         )
     
-    # 更新任务状态为 pending
-    task.status = "pending"
-    db.commit()
+    engine_version = (task.task_params or {}).get("engine_version", "engine_v2")
+    task.error_message = None
+    progress_message = "准备继续执行 engine_v2 任务" if engine_version == "engine_v2" else task.progress_message
+    celery_task_id = _requeue_field_mapping_task(
+        db,
+        task,
+        progress_message=progress_message,
+    )
     
-    # 使用 Celery 重投递任务
-    from app.celery.tasks import execute_field_mapping_task
-    celery_task = execute_field_mapping_task.apply_async(args=[task_id])
-    
-    # 更新任务的 Celery 任务 ID
-    task.celery_task_id = celery_task.id
-    db.commit()
-    
-    logger.info(f"[{trace_id}] 任务已通过 Celery 重投递: task_id={task_id}, celery_task_id={celery_task.id}")
+    logger.info(f"[{trace_id}] 任务已通过 Celery 重投递: task_id={task_id}, celery_task_id={celery_task_id}")
     
     return ApiResponse(
         code=0,
         message="任务已继续执行",
-        data={
-            "task_id": task_id,
-            "status": "pending",
-            "current_stage": task.current_stage
-        }
+        data=_build_requeue_response(task=task, engine_version=engine_version)
     )
 
 
@@ -801,12 +905,6 @@ async def retry_field_mapping_stage(
         操作结果
     """
     trace_id = get_trace_id()
-    from app.domains.data_mapping.constants import (
-        Stage,
-        StageStatus
-    )
-    task_manager = get_task_manager(db)
-    
     logger.info(f"[{trace_id}] 重试阶段: task_id={task_id}, stage_num={stage_num}")
     
     # 验证阶段编号范围
@@ -851,8 +949,39 @@ async def retry_field_mapping_stage(
         )
     
     # 检查当前阶段是否已超过要重试的阶段
-    from app.domains.data_mapping.constants import get_stage_result_key
-    
+    engine_version = (task.task_params or {}).get("engine_version", "engine_v2")
+    if engine_version == "engine_v2":
+        resume_manager = ResumeManager(db)
+        deleted_artifacts = resume_manager.clear_from_stage(task, stage_num)
+        task.error_message = None
+        task.statistics = task.statistics or {}
+        task.statistics["retry_stage"] = stage_num
+        task.statistics["cleared_artifacts"] = deleted_artifacts
+        celery_task_id = _requeue_field_mapping_task(
+            db,
+            task,
+            progress_message=f"准备重试阶段{stage_num}",
+        )
+
+        logger.info(
+            f"[{trace_id}] engine_v2 已清除阶段工件并重投任务: "
+            f"task_id={task_id}, stage_num={stage_num}, deleted_artifacts={deleted_artifacts}, "
+            f"celery_task_id={celery_task_id}"
+        )
+
+        return ApiResponse(
+            code=0,
+            message=f"已重试阶段{stage_num}",
+            data=_build_requeue_response(
+                task=task,
+                engine_version=engine_version,
+                extra={
+                    "retry_stage": stage_num,
+                    "cleared_artifacts": deleted_artifacts,
+                },
+            ),
+        )
+
     stage_key = get_stage_result_key(stage_num)
     stage_results = task.stage_results or {}
     
@@ -901,27 +1030,26 @@ async def retry_field_mapping_stage(
         f"current_stage={task.current_stage}"
     )
     
-    # 使用 Celery 重投递任务
-    from app.celery.tasks import execute_field_mapping_task
-    celery_task = execute_field_mapping_task.apply_async(args=[task_id])
+    celery_task_id = _requeue_field_mapping_task(
+        db,
+        task,
+        progress_message=f"准备重试阶段{stage_num}",
+    )
     
-    # 更新任务的 Celery 任务 ID
-    task.celery_task_id = celery_task.id
-    db.commit()
-    
-    logger.info(f"[{trace_id}] 任务已通过 Celery 重投递: task_id={task_id}, celery_task_id={celery_task.id}")
+    logger.info(f"[{trace_id}] 任务已通过 Celery 重投递: task_id={task_id}, celery_task_id={celery_task_id}")
     
     return ApiResponse(
         code=0,
         message=f"已重试阶段{stage_num}",
-        data={
-            "task_id": task_id,
-            "retry_stage": stage_num,
-            "status": "pending",
-            "current_stage": task.current_stage,
-            "cleared_stages": cleared_stages,
-            "retry_reason": f"从阶段{stage_num}开始重新执行"
-        }
+        data=_build_requeue_response(
+            task=task,
+            engine_version=engine_version,
+            extra={
+                "retry_stage": stage_num,
+                "cleared_stages": cleared_stages,
+                "retry_reason": f"从阶段{stage_num}开始重新执行",
+            },
+        )
     )
 
 
@@ -947,8 +1075,6 @@ async def reset_field_mapping_task(
         操作结果
     """
     trace_id = get_trace_id()
-    task_manager = get_task_manager(db)
-    
     logger.info(f"[{trace_id}] 重置任务: task_id={task_id}")
     
     # 查询任务
@@ -966,6 +1092,12 @@ async def reset_field_mapping_task(
             detail="无权访问该任务"
         )
     
+    engine_version = (task.task_params or {}).get("engine_version", "engine_v2")
+    cleared_artifacts = 0
+    if engine_version == "engine_v2":
+        artifact_store = ArtifactStore(db)
+        cleared_artifacts = artifact_store.clear_from_stage(task_id=task.id, stage=1)
+
     # 重置任务状态
     task.status = "pending"
     task.progress = 0
@@ -976,28 +1108,28 @@ async def reset_field_mapping_task(
     task.error_message = None
     task.started_at = None
     task.finished_at = None
+    task.statistics = {}
     
     db.commit()
     
     logger.info(f"[{trace_id}] 任务已重置: task_id={task_id}")
     
-    # 使用 Celery 重投递任务
-    from app.celery.tasks import execute_field_mapping_task
-    celery_task = execute_field_mapping_task.apply_async(args=[task_id])
+    celery_task_id = _requeue_field_mapping_task(
+        db,
+        task,
+        progress_message=task.progress_message,
+    )
     
-    # 更新任务的 Celery 任务 ID
-    task.celery_task_id = celery_task.id
-    db.commit()
-    
-    logger.info(f"[{trace_id}] 任务已通过 Celery 重投递: task_id={task_id}, celery_task_id={celery_task.id}")
+    logger.info(f"[{trace_id}] 任务已通过 Celery 重投递: task_id={task_id}, celery_task_id={celery_task_id}")
     
     return ApiResponse(
         code=0,
         message="任务已重置",
-        data={
-            "task_id": task_id,
-            "status": "pending"
-        }
+        data=_build_requeue_response(
+            task=task,
+            engine_version=engine_version,
+            extra={"cleared_artifacts": cleared_artifacts},
+        )
     )
 
 
@@ -1275,16 +1407,16 @@ async def replay_suggestions_to_table(
         )
     
     # 检查是否有 result
-    if not task.result or not task.result.get("suggestions"):
+    suggestions = _extract_suggestions_from_result(task.result)
+    if not suggestions:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="任务没有 suggestions 数据"
         )
     
     try:
-        # 调用保存函数
-        from app.celery.tasks import _save_suggestions_to_db
-        _save_suggestions_to_db(db, task_id, task.result)
+        from app.domains.field_mapping_engine.persistence.suggestion_writer import SuggestionWriter
+        SuggestionWriter(db).save_task_result(task_id=task_id, result=task.result)
         
         # 清除失败标记
         if task.statistics:
@@ -1300,7 +1432,7 @@ async def replay_suggestions_to_table(
             message="重放成功",
             data={
                 "task_id": task_id,
-                "suggestions_count": len(task.result.get("suggestions", []))
+                "suggestions_count": len(suggestions)
             }
         )
         
@@ -1418,7 +1550,7 @@ def _calculate_stage_description(stage_num: int, stage_result: Dict[str, Any], t
     
     except Exception as e:
         logger.error(
-            f"[{task.id}] 计算阶段{stage_num}描述失败: {str(e)}",
+            f"[{task.id}] ??????{stage_num}??????: {str(e)}",
             exc_info=True
         )
         return None

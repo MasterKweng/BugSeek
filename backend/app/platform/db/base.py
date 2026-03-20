@@ -673,6 +673,32 @@ class FieldMappingTrace(Base, TimestampMixin):
     )
 
 
+class FieldMappingStageArtifact(Base, TimestampMixin):
+    """Persisted real artifacts for field mapping stage resume."""
+
+    __tablename__ = "field_mapping_stage_artifacts"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    task_id = Column(Integer, ForeignKey("async_tasks.id", ondelete="CASCADE"), nullable=False, index=True)
+    stage = Column(Integer, nullable=False, index=True)
+    artifact_type = Column(String(50), nullable=False, index=True)
+    artifact_key = Column(String(255), nullable=False, default="default")
+    payload_json = Column(JSON, nullable=False)
+
+    task = relationship("AsyncTask", foreign_keys=[task_id], backref="field_mapping_stage_artifacts")
+
+    __table_args__ = (
+        Index("ix_field_mapping_stage_artifacts_task_stage", "task_id", "stage"),
+        UniqueConstraint(
+            "task_id",
+            "stage",
+            "artifact_type",
+            "artifact_key",
+            name="uq_field_mapping_stage_artifact",
+        ),
+    )
+
+
 class AsyncTask(Base, TimestampMixin):
     """异步任务表"""
     __tablename__ = "async_tasks"
