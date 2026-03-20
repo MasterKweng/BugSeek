@@ -80,7 +80,7 @@ class _DBStub:
 
     def query(self, model):
         name = getattr(model, "__name__", "")
-        if name == "FieldMappingSuggestion":
+        if name in {"FieldMappingSuggestion", "FieldMappingTrace", "FieldMappingRuntimeEvidence"}:
             return _DeleteStub()
         if name == "AsyncTask":
             return _TaskQueryStub(self._task)
@@ -103,14 +103,43 @@ def test_save_suggestions_to_db_persists_decision_trace():
             {
                 "definition_id": 1,
                 "api_field_path": "body.order_id",
-                "candidates": [{"db_table": "orders", "db_column": "id", "score": 0.9, "reasons": ["ok"]}],
-                "decision_trace": {"trace_id": "t1", "field_instance_key": "1:body.order_id"},
+                "candidates": [
+                    {
+                        "db_table": "orders",
+                        "db_column": "id",
+                        "score": 0.9,
+                        "reasons": ["ok"],
+                        "features": {"f_vector_similarity": 0.8},
+                    }
+                ],
+                "decision_trace": {
+                    "trace_id": "t1",
+                    "field_instance_key": "1:body.order_id",
+                    "decision_source": "rule",
+                    "runtime_table_prior": {"orders": 0.9},
+                },
             }
         ]
     }
     _save_suggestions_to_db(db, task_id=1, result=result)
 
-    assert len(db.saved) == 1
-    saved = db.saved[0]
+    suggestions = [item for item in db.saved if hasattr(item, "decision_trace")]
+    traces = [item for item in db.saved if hasattr(item, "candidate")]
+    evidences = [item for item in db.saved if hasattr(item, "evidence_type")]
+
+    assert len(suggestions) == 1
+    saved = suggestions[0]
     assert saved.decision_trace["trace_id"] == "t1"
     assert saved.decision_trace["field_instance_key"] == "1:body.order_id"
+
+    assert len(traces) == 1
+    trace = traces[0]
+    assert trace.trace_id == "t1"
+    assert trace.field_key == "body.order_id"
+    assert trace.candidate == "orders.id"
+    assert trace.decision_source == "rule"
+
+    assert len(evidences) == 1
+    evidence = evidences[0]
+    assert evidence.evidence_type == "runtime_table_prior"
+    assert evidence.evidence_key == "orders"

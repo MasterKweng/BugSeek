@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.api.v1.deps import get_current_user
-from app.api.v1.field_mappings_async import router
+from app.api.v1.field_mappings_async import _calculate_stage_description, router
 from app.dependencies import get_db
 from app.platform.db.base import AsyncTask
 
@@ -202,6 +202,48 @@ def test_get_suggestions_json_fallback_supports_legacy_data_items():
     assert payload["source"] == "json"
     assert payload["total"] == 1
     assert payload["items"][0]["api_field_path"] == "body.order_id"
+    assert payload["items"][0]["decision_artifact"]["top_candidate"]["db_table"] == "orders"
+
+
+def test_get_suggestions_table_source_includes_decision_artifact_fields():
+    current_user = SimpleNamespace(id=7, username="tester")
+    task = _build_task(status="completed", result={"suggestions": []})
+
+    task_query = Mock()
+    task_query.filter.return_value.first.return_value = task
+
+    suggestion_row = SimpleNamespace(
+        id=11,
+        definition_id=1,
+        api_field_path="body.order_id",
+        candidates=[{"db_table": "orders", "db_column": "id", "score": 0.93}],
+        decision_trace={"decision_source": "rule", "field_name": "order_id"},
+        status="pending",
+        mapping_id=None,
+        definition=SimpleNamespace(method="POST", path="/orders"),
+    )
+
+    suggestion_query = Mock()
+    suggestion_query.filter.return_value = suggestion_query
+    suggestion_query.count.return_value = 1
+    suggestion_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [suggestion_row]
+
+    db = Mock()
+    db.query.side_effect = [task_query, suggestion_query]
+
+    app = _build_app(db, current_user)
+    client = TestClient(app)
+
+    response = client.get("/field-mappings/suggestions?task_id=101")
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["source"] == "table"
+    item = payload["items"][0]
+    assert item["top_candidate"]["db_table"] == "orders"
+    assert item["decision_artifact"]["top_candidate"]["db_column"] == "id"
+    assert item["relation_type"] == "direct"
+    assert item["decision_source"] == "rule"
 
 
 def test_create_task_propagates_ai_threshold():
@@ -239,3 +281,68 @@ def test_create_task_propagates_ai_threshold():
     task = db.add.call_args[0][0]
     assert task.task_params["engine_version"] == "engine_v2"
     assert task.task_params["ai_confidence_threshold"] == 0.55
+
+
+def test_replay_suggestions_returns_consistency_summary():
+    current_user = SimpleNamespace(id=7, username="tester")
+    task = _build_task(
+        status="completed",
+        result={
+            "suggestions": [
+                {
+                    "definition_id": 1,
+                    "api_field_path": "body.order_id",
+                    "candidates": [{"db_table": "orders", "db_column": "id"}],
+                    "decision_trace": {"decision_source": "rule"},
+                }
+            ]
+        },
+        statistics={"write_table_failed": True},
+    )
+    db = _build_db(task)
+    app = _build_app(db, current_user)
+    client = TestClient(app)
+
+    with patch("app.domains.field_mapping_engine.persistence.suggestion_writer.SuggestionWriter.save_task_result") as save_mock:
+        save_mock.return_value = 1
+        with patch("app.api.v1.field_mappings_async.ConsistencyAuditor") as auditor_cls:
+            auditor_cls.return_value.audit_task.return_value = {
+                "consistency_ok": True,
+                "consistency_diff": 0,
+                "result_suggestions_count": 1,
+                "table_suggestions_count": 1,
+                "trace_count": 1,
+                "artifact_suggestions_count": 1,
+                "result_table_mismatch": False,
+                "result_trace_mismatch": False,
+                "result_artifact_mismatch": False,
+                "payload_diffs": [],
+            }
+            response = client.post("/async-tasks/101/replay-suggestions")
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["consistency_ok"] is True
+    assert payload["consistency_diff"] == 0
+    assert task.statistics["trace_count"] == 1
+    assert "write_table_failed" not in task.statistics
+
+
+def test_calculate_stage_description_uses_engine_v2_artifact_fields():
+    task = _build_task(id=303)
+
+    description = _calculate_stage_description(
+        4,
+        {
+            "status": "completed",
+            "data": {
+                "artifact_type": "ai_ranked_items",
+                "field_count": 12,
+                "ai_triggered_count": 3,
+                "threshold": 0.7,
+            },
+        },
+        task,
+    )
+
+    assert description == "Optimized 12 ranked fields; AI triggered for 3 below threshold 0.7"

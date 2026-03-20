@@ -21,6 +21,7 @@ from app.domains.field_mapping_engine.constants import (
 from app.domains.field_mapping_engine.services import FieldMappingJobService
 from app.domains.field_mapping_engine.orchestration.resume_manager import ResumeManager
 from app.domains.field_mapping_engine.persistence.artifact_store import ArtifactStore
+from app.domains.field_mapping_engine.persistence.consistency_auditor import ConsistencyAuditor
 # 导入旧的异步任务管理器（向后兼容，用于任务重试等操作）
 # 注意：主要任务执行已迁移到 Celery
 from app.core.async_task.manager import get_task_manager
@@ -85,6 +86,61 @@ def _extract_suggestions_from_result(result: Optional[Dict[str, Any]]) -> List[D
             return items
 
     return []
+
+
+def _build_decision_artifact_from_payload(suggestion: Dict[str, Any]) -> Dict[str, Any]:
+    if not isinstance(suggestion, dict):
+        return {}
+
+    existing = suggestion.get("decision_artifact")
+    if isinstance(existing, dict):
+        return existing
+
+    candidate_list = suggestion.get("candidate_list")
+    if not isinstance(candidate_list, list):
+        candidate_list = suggestion.get("candidates", []) if isinstance(suggestion.get("candidates"), list) else []
+
+    top_candidate = suggestion.get("top_candidate")
+    if not isinstance(top_candidate, dict):
+        top_candidate = candidate_list[0] if candidate_list else None
+
+    decision_trace = suggestion.get("decision_trace") if isinstance(suggestion.get("decision_trace"), dict) else {}
+    decision_source = suggestion.get("decision_source") or decision_trace.get("decision_source") or "rule"
+    relation_type = (
+        suggestion.get("relation_type")
+        or (top_candidate or {}).get("relation_type")
+        or "direct"
+    )
+    confidence = suggestion.get("confidence")
+    if confidence is None and isinstance(top_candidate, dict):
+        confidence = top_candidate.get("confidence", top_candidate.get("score"))
+
+    return {
+        "definition_id": suggestion.get("definition_id"),
+        "definition_method": suggestion.get("definition_method"),
+        "definition_path": suggestion.get("definition_path"),
+        "api_field_path": suggestion.get("api_field_path"),
+        "field_name": decision_trace.get("field_name"),
+        "top_candidate": top_candidate,
+        "candidate_list": candidate_list,
+        "relation_type": relation_type,
+        "confidence": confidence,
+        "decision_source": decision_source,
+        "decision_trace": decision_trace,
+        "project_id": suggestion.get("project_id"),
+    }
+
+
+def _normalize_suggestion_payload(suggestion: Dict[str, Any]) -> Dict[str, Any]:
+    decision_artifact = _build_decision_artifact_from_payload(suggestion)
+    payload = dict(suggestion)
+    payload["decision_artifact"] = decision_artifact
+    payload["top_candidate"] = payload.get("top_candidate") or decision_artifact.get("top_candidate")
+    payload["candidate_list"] = payload.get("candidate_list") or decision_artifact.get("candidate_list", [])
+    payload["relation_type"] = payload.get("relation_type") or decision_artifact.get("relation_type")
+    payload["confidence"] = payload.get("confidence", decision_artifact.get("confidence"))
+    payload["decision_source"] = payload.get("decision_source") or decision_artifact.get("decision_source")
+    return payload
 
 
 def _build_engine_v2_artifacts_summary(db: Session, task_id: int) -> Dict[str, Any]:
@@ -518,7 +574,11 @@ async def get_suggestions(
         # 临时分页（客户端分页）
         start = (page - 1) * size
         end = start + size
-        paginated_suggestions = suggestions[start:end]
+        paginated_suggestions = [
+            _normalize_suggestion_payload(item)
+            for item in suggestions[start:end]
+            if isinstance(item, dict)
+        ]
         
         return ApiResponse(
             code=0,
@@ -558,6 +618,17 @@ async def get_suggestions(
         }
         mapped_status = status_mapping.get(item.status, item.status)
         
+        normalized_payload = _normalize_suggestion_payload(
+            {
+                "id": item.id,
+                "definition_id": item.definition_id,
+                "definition_method": definition_info["method"] if definition_info else None,
+                "definition_path": definition_info["path"] if definition_info else None,
+                "api_field_path": item.api_field_path,
+                "candidates": item.candidates,
+                "decision_trace": item.decision_trace,
+            }
+        )
         items_data.append({
             "id": item.id,
             "definition_id": item.definition_id,
@@ -565,6 +636,12 @@ async def get_suggestions(
             "definition_path": definition_info["path"] if definition_info else None,
             "api_field_path": item.api_field_path,
             "candidates": item.candidates,  # JSON 自动反序列化
+            "top_candidate": normalized_payload.get("top_candidate"),
+            "candidate_list": normalized_payload.get("candidate_list"),
+            "relation_type": normalized_payload.get("relation_type"),
+            "confidence": normalized_payload.get("confidence"),
+            "decision_source": normalized_payload.get("decision_source"),
+            "decision_artifact": normalized_payload.get("decision_artifact"),
             "status": mapped_status,  # 返回映射后的状态值
             "mapping_id": item.mapping_id
         })
@@ -1417,8 +1494,12 @@ async def replay_suggestions_to_table(
     try:
         from app.domains.field_mapping_engine.persistence.suggestion_writer import SuggestionWriter
         SuggestionWriter(db).save_task_result(task_id=task_id, result=task.result)
+        audit_stats = ConsistencyAuditor(db).audit_task(task_id=task_id, result=task.result, task=task)
         
         # 清除失败标记
+        if not task.statistics:
+            task.statistics = {}
+        task.statistics.update(audit_stats)
         if task.statistics:
             task.statistics.pop("write_table_failed", None)
             task.statistics.pop("write_table_error", None)
@@ -1432,7 +1513,9 @@ async def replay_suggestions_to_table(
             message="重放成功",
             data={
                 "task_id": task_id,
-                "suggestions_count": len(suggestions)
+                "suggestions_count": len(suggestions),
+                "consistency_ok": audit_stats.get("consistency_ok", False),
+                "consistency_diff": audit_stats.get("consistency_diff", 0),
             }
         )
         
@@ -1553,4 +1636,42 @@ def _calculate_stage_description(stage_num: int, stage_result: Dict[str, Any], t
             f"[{task.id}] ??????{stage_num}??????: {str(e)}",
             exc_info=True
         )
+        return None
+
+
+def _calculate_stage_description(stage_num: int, stage_result: Dict[str, Any], task: AsyncTask) -> Optional[str]:
+    """Build stage descriptions from engine_v2 artifact summaries."""
+    if not stage_result or stage_result.get("status") != StageStatus.COMPLETED:
+        return None
+
+    data = stage_result.get("data", {})
+    if not isinstance(data, dict):
+        logger.warning("[%s] stage %s data is not a dict: %s", task.id, stage_num, type(data))
+        return None
+
+    try:
+        if stage_num == Stage.FIELD_EXTRACTION:
+            return f"Saved input snapshot for {int(data.get('definition_count', 0) or 0)} definitions"
+
+        if stage_num == Stage.RULE_SCORING:
+            return f"Extracted {int(data.get('field_count', 0) or 0)} field specs"
+
+        if stage_num == Stage.INTELLIGENT_SCREENING:
+            return f"Built recall candidates for {int(data.get('field_count', 0) or 0)} fields"
+
+        if stage_num == Stage.AI_OPTIMIZATION:
+            field_count = int(data.get("field_count", 0) or 0)
+            ai_triggered_count = int(data.get("ai_triggered_count", 0) or 0)
+            threshold = data.get("threshold")
+            return (
+                f"Optimized {field_count} ranked fields; "
+                f"AI triggered for {ai_triggered_count} below threshold {threshold}"
+            )
+
+        if stage_num == Stage.RESULT_MERGE:
+            return f"Generated {int(data.get('total_suggestions', 0) or 0)} final suggestions"
+
+        return None
+    except Exception as e:
+        logger.error("[%s] failed to build stage %s description: %s", task.id, stage_num, str(e), exc_info=True)
         return None

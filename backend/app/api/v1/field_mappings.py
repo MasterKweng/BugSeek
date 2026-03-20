@@ -1,105 +1,102 @@
-"""API 字段映射管理接口（V2.0 - 版本中心）"""
+"""Field mapping management API."""
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Body
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel, Field
 import logging
-import json
-import concurrent.futures
+from datetime import datetime
 
 from app.dependencies import get_db
 from app.context import get_current_project_id, get_current_version_id
-from app.platform.db.base import ApiFieldMapping, ApiDefinition, Version, User, DbSchemaVersion
+from app.platform.db.base import ApiFieldMapping, ApiDefinition, Version, User
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
+from app.domains.field_mapping_engine.persistence.feedback_writer import FeedbackWriter
 from app.domains.field_mapping_engine.services import FieldMappingAppService
-from app.utils.field_mapping_utils import (
-    extract_path_params, 
-    parse_path_segments, 
-    calculate_mapping_score,
-    normalize_field_name,
-    tokenize_field,
-    field_similarity_score,
-    table_similarity_score
-)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
 class ApiResponse(BaseModel):
-    """统一响应模型"""
+    """Standard API response payload."""
     code: int = 0
     message: str = "success"
     data: Any = None
 
 
 class FieldMappingCreate(BaseModel):
-    """创建字段映射"""
-    definition_id: int = Field(..., description="API 定义ID")
-    api_field_path: str = Field(..., description="API 字段路径，如 body.order_id")
-    db_table: str = Field(..., description="数据库表名")
-    db_column: str = Field(..., description="数据库字段名")
-    relation_type: Optional[str] = Field("direct", description="关系类型：direct/fk/derived")
-    confidence: Optional[float] = Field(None, description="映射置信度")
-    source: Optional[str] = Field("manual", description="来源：manual/ai")
+    """Create a field mapping."""
+    definition_id: int = Field(..., description="API definition ID")
+    api_field_path: str = Field(..., description="API field path, for example body.order_id")
+    db_table: str = Field(..., description="Database table name")
+    db_column: str = Field(..., description="Database column name")
+    relation_type: Optional[str] = Field("direct", description="Relation type: direct/fk/derived")
+    confidence: Optional[float] = Field(None, description="Mapping confidence")
+    source: Optional[str] = Field("manual", description="Source: manual/ai")
 
 
 class FieldMappingUpdate(BaseModel):
-    """更新字段映射"""
-    api_field_path: Optional[str] = Field(None, description="API 字段路径")
-    db_table: Optional[str] = Field(None, description="数据库表名")
-    db_column: Optional[str] = Field(None, description="数据库字段名")
-    relation_type: Optional[str] = Field(None, description="关系类型")
-    confidence: Optional[float] = Field(None, description="映射置信度")
-    source: Optional[str] = Field(None, description="来源")
+    """Update a field mapping."""
+    api_field_path: Optional[str] = Field(None, description="API field path")
+    db_table: Optional[str] = Field(None, description="Database table name")
+    db_column: Optional[str] = Field(None, description="Database column name")
+    relation_type: Optional[str] = Field(None, description="Relation type")
+    confidence: Optional[float] = Field(None, description="Mapping confidence")
+    source: Optional[str] = Field(None, description="Source")
 
 
 class FieldMappingSuggestRequest(BaseModel):
-    """字段映射建议请求"""
-    include_paths: Optional[bool] = Field(True, description="是否包含路径参数")
-    include_query: Optional[bool] = Field(True, description="是否包含查询参数")
-    include_body: Optional[bool] = Field(True, description="是否包含请求体参数")
-    use_ai_fallback: Optional[bool] = Field(True, description="是否启用 AI 兜底（推荐开启）")
-    ai_confidence_threshold: Optional[float] = Field(0.7, description="AI 触发阈值（0.0-1.0），低于此值时触发 AI", ge=0.0, le=1.0)
+    """Suggestion request for field mapping."""
+    include_paths: Optional[bool] = Field(True, description="Include path parameters")
+    include_query: Optional[bool] = Field(True, description="Include query parameters")
+    include_body: Optional[bool] = Field(True, description="Include request body fields")
+    use_ai_fallback: Optional[bool] = Field(True, description="Enable AI fallback")
+    ai_confidence_threshold: Optional[float] = Field(0.7, description="AI trigger threshold, range 0.0-1.0", ge=0.0, le=1.0)
 
 
 class FieldMappingCandidate(BaseModel):
-    """字段映射候选"""
-    db_table: str = Field(..., description="数据库表名")
-    db_column: str = Field(..., description="数据库字段名")
-    score: float = Field(..., description="匹配分数", ge=0.0, le=1.0)
-    reasons: List[str] = Field(..., description="匹配原因")
-    ai_selected: Optional[bool] = Field(None, description="是否由AI选择")
-    ai_reason: Optional[str] = Field(None, description="AI选择原因")
+    """Candidate returned by the mapping engine."""
+    db_table: str = Field(..., description="Database table name")
+    db_column: str = Field(..., description="Database column name")
+    score: float = Field(..., description="Candidate score", ge=0.0, le=1.0)
+    reasons: List[str] = Field(..., description="Match reasons")
+    ai_selected: Optional[bool] = Field(None, description="Selected by AI")
+    ai_reason: Optional[str] = Field(None, description="AI selection reason")
 
 
 class FieldMappingSuggestion(BaseModel):
-    """字段映射建议"""
-    definition_id: int = Field(..., description="API 定义ID")
-    definition_method: str = Field(..., description="API 方法")
-    definition_path: str = Field(..., description="API 路径")
-    api_field_path: str = Field(..., description="API 字段路径")
-    candidates: List[FieldMappingCandidate] = Field(..., description="候选映射列表")
-    decision_trace: Optional[Dict[str, Any]] = Field(None, description="决策审计链路")
+    """Normalized field mapping suggestion."""
+    definition_id: int = Field(..., description="API definition ID")
+    definition_method: str = Field(..., description="API method")
+    definition_path: str = Field(..., description="API path")
+    api_field_path: str = Field(..., description="API field path")
+    top_candidate: Optional[Dict[str, Any]] = Field(None, description="Normalized top candidate")
+    candidate_list: Optional[List[Dict[str, Any]]] = Field(None, description="Normalized candidate list")
+    relation_type: Optional[str] = Field(None, description="Normalized relation type")
+    confidence: Optional[float] = Field(None, description="Normalized decision confidence")
+    decision_source: Optional[str] = Field(None, description="Final decision source")
+    decision_artifact: Optional[Dict[str, Any]] = Field(None, description="Normalized decision artifact")
+    candidates: List[FieldMappingCandidate] = Field(..., description="Candidate list")
+    decision_trace: Optional[Dict[str, Any]] = Field(None, description="Decision trace")
 
 
 class FieldMappingBatchApplyItem(BaseModel):
-    """批量应用映射项"""
-    suggestion_id: int = Field(..., description="建议ID（必填，用于精确命中建议表）")
-    definition_id: int = Field(..., description="API 定义ID")
-    api_field_path: str = Field(..., description="API 字段路径")
-    db_table: str = Field(..., description="数据库表名")
-    db_column: str = Field(..., description="数据库字段名")
-    relation_type: Optional[str] = Field("direct", description="关系类型")
-    source: Optional[str] = Field("ai", description="来源")
+    """Single item for batch-apply."""
+    suggestion_id: int = Field(..., description="Suggestion ID used for exact matching")
+    definition_id: int = Field(..., description="API definition ID")
+    api_field_path: str = Field(..., description="API field path")
+    db_table: str = Field(..., description="Database table name")
+    db_column: str = Field(..., description="Database column name")
+    relation_type: Optional[str] = Field("direct", description="Relation type")
+    source: Optional[str] = Field("ai", description="Source")
 
 
 class FieldMappingBatchApplyRequest(BaseModel):
-    """批量应用映射请求"""
-    items: List[FieldMappingBatchApplyItem] = Field(..., description="映射项列表")
-    mode: str = Field("propose", description="模式：propose(建议)/confirm(确认)")
+    """Request body for batch apply."""
+    items: List[FieldMappingBatchApplyItem] = Field(..., description="Mapping items")
+    mode: str = Field("propose", description="Mode: propose/confirm")
 
 
 def _get_project_and_version(
@@ -116,303 +113,34 @@ def _get_project_and_version(
     if not project_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="请先选择项目"
+            detail="Please select a project first"
         )
     if not version_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="请先选择版本"
+            detail="Please select a version first"
         )
 
     version = db.query(Version).filter(Version.id == version_id).first()
     if not version:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"版本不存在：{version_id}"
+            detail=f"Version not found: {version_id}"
         )
     if version.project_id != project_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权访问该版本"
+            detail="No permission to access this version"
         )
 
     return {"project_id": project_id, "version_id": version_id}
 
 
-def _get_db_schema_for_project(db: Session, project_id: int, version_id: int) -> Dict[str, Any]:
-    """
-    获取项目当前版本的数据库结构
-    """
-    # 尝试从 DbSchemaVersion 获取数据库结构
-    schema_version = db.query(DbSchemaVersion).filter(
-        DbSchemaVersion.project_id == project_id,
-        DbSchemaVersion.version_id == version_id
-    ).first()
-    
-    if schema_version and schema_version.schema_snapshot:
-        return schema_version.schema_snapshot
-    else:
-        # 如果没有找到，返回空结构
-        return {}
-
-
-async def _generate_mapping_candidates_with_gravity(
-    db: Session,
-    ctx: Dict[str, int],
-    api_fields: List[str],
-    api_method: str,
-    api_path: str,
-    schema_snapshot: Dict[str, Any],
-    use_ai_fallback: bool = True,
-    ai_confidence_threshold: float = 0.7
-) -> Dict[str, List[FieldMappingCandidate]]:
-    """
-    使用重心算法批量生成字段映射候选 + AI 兜底（异步版本）
-    
-    适用于多个字段同时映射的场景，通过重心表算法提高准确性，
-    对低置信度字段启用 AI 兜底
-    
-    Args:
-        api_fields: API 字段路径列表（如 ["body.user_id", "body.order_no"]）
-        use_ai_fallback: 是否启用 AI 兜底（默认 True）
-        ai_confidence_threshold: AI 触发阈值（默认 0.7）
-        
-    Returns:
-        字典，键为字段路径，值为候选列表
-    """
-    # 提取字段名仅用于日志记录
-    field_names = [field.split('.')[-1] for field in api_fields]
-    
-    # 使用向量索引管理器的批量搜索（带重心算法 + AI 兜底）
-    try:
-        from app.platform.vector.vector_index import get_vector_manager
-        
-        # 使用单例获取函数，避免每次请求都重新加载模型
-        vector_manager = get_vector_manager()
-        
-        # 防御性检查：如果模型没加载成功，抛出异常触发回退
-        if vector_manager.column_vectors is None:
-            raise ValueError("Vector index not initialized")
-        
-        # 调用批量搜索，传入 AI 参数（异步）
-        result = await vector_manager.batch_search_with_gravity(
-            api_fields,  # 传递原始字段路径列表
-            top_k=20,
-            use_ai_fallback=use_ai_fallback,
-            ai_confidence_threshold=ai_confidence_threshold
-        )
-        
-        gravity_table = result.get("gravity_table")
-        vector_results = result.get("results", {})
-        ai_fallback_count = result.get("ai_fallback_count", 0)
-        
-        logger.info(
-            f"[{get_trace_id()}] 重心算法 + AI 兜底映射完成: "
-            f"字段数={len(api_fields)}, 重心表={gravity_table}, AI兜底={ai_fallback_count}"
-        )
-        
-        # 转换为 FieldMappingCandidate 格式
-        final_results = {}
-        for api_field in api_fields:  # 直接遍历 api_fields
-            candidates = vector_results.get(api_field, [])  # 使用 api_field 作为键
-            
-            # 转换格式并添加原因
-            field_candidates = []
-            for cand in candidates:
-                final_score = cand.get("final_score", cand.get("score", 0.0))
-                reasons = cand.get("reasons", [])
-                
-                # 如果没有原因，添加默认原因
-                if not reasons:
-                    reasons = ["语义匹配"]
-                
-                # 标记 AI 选择的候选
-                if cand.get("ai_selected"):
-                    reasons.append("AI 确认选择")
-                
-                # 只保留分数大于0.3的候选
-                if final_score > 0.3:
-                    field_candidates.append(FieldMappingCandidate(
-                        db_table=cand.get("db_table", ""),
-                        db_column=cand.get("db_column", ""),
-                        score=final_score,
-                        reasons=reasons
-                    ))
-            
-            # 只返回前10个候选
-            final_results[api_field] = field_candidates[:10]
-        
-        return final_results
-        
-    except Exception as e:
-        logger.warning(f"[{get_trace_id()}] 重心算法不可用，回退到单独映射: {str(e)}")
-        
-        # 回退：逐个调用原有的 _generate_mapping_candidates
-        final_results = {}
-        for api_field in api_fields:
-            candidates = _generate_mapping_candidates(
-                db, ctx, api_field, api_method, api_path, schema_snapshot, use_ai=False
-            )
-            final_results[api_field] = candidates
-        
-        return final_results
-
-
-def _extract_api_fields(definition: ApiDefinition, include_paths: bool = True, include_query: bool = True, include_body: bool = True) -> List[str]:
-    """
-    从API定义中提取待映射字段
-    修复报错.md中提到的问题：
-    1. schema_snapshot 结构不统一
-    2. request_schema 与 parameters 存储位置不一致
-    3. 过滤逻辑无效
-    4. array 递归字段路径问题
-    """
-    fields = []
-    
-    # 提取路径参数
-    if include_paths:
-        path_params = extract_path_params(definition.path)
-        for param in path_params:
-            fields.append(f"path.{param}")
-    
-    # 检查 definition.schema_snapshot 结构
-    schema_snapshot = definition.schema_snapshot
-    if schema_snapshot:
-        if isinstance(schema_snapshot, str):
-            try:
-                schema_snapshot = json.loads(schema_snapshot)
-            except:
-                schema_snapshot = {}
-        
-        if isinstance(schema_snapshot, dict):
-            # 情况1: 直接在 schema_snapshot 顶层有 parameters
-            if include_query and 'parameters' in schema_snapshot:
-                for param in schema_snapshot.get('parameters', []):
-                    if param.get('in') == 'query':
-                        fields.append(f"query.{param.get('name')}")
-            
-            # 情况2: 在 schema_snapshot.request_schema 中
-            request_schema = schema_snapshot.get('request_schema')
-            if not request_schema and hasattr(definition, 'request_schema') and definition.request_schema:
-                # 备用：直接从 definition.request_schema 获取
-                request_schema = definition.request_schema
-                if isinstance(request_schema, str):
-                    try:
-                        request_schema = json.loads(request_schema)
-                    except:
-                        request_schema = {}
-            
-            if request_schema and isinstance(request_schema, dict):
-                # 检查是否是YApi结构：{"type": "json", "schema": {...}}
-                if 'type' in request_schema and 'schema' in request_schema:
-                    actual_schema = request_schema.get('schema', {})
-                    if isinstance(actual_schema, dict) and 'properties' in actual_schema:
-                        for prop_name in actual_schema['properties'].keys():
-                            fields.append(f"body.{prop_name}")
-                # 检查是否有properties字段
-                elif 'properties' in request_schema:
-                    for prop_name in request_schema['properties'].keys():
-                        fields.append(f"body.{prop_name}")
-                # 检查是否是其他结构
-                else:
-                    # 递归查找properties
-                    def find_properties_recursive(obj, prefix="body"):
-                        found_fields = []
-                        if isinstance(obj, dict):
-                            if 'properties' in obj:
-                                for prop_name in obj['properties'].keys():
-                                    found_fields.append(f"{prefix}.{prop_name}")
-                            else:
-                                # 递归检查子对象
-                                for key, value in obj.items():
-                                    if isinstance(value, dict):
-                                        found_fields.extend(find_properties_recursive(value, f"{prefix}.{key}"))
-                        return found_fields
-                    
-                    fields.extend(find_properties_recursive(request_schema))
-            
-            # 情况3: 从 schema_snapshot.parameters 提取
-            if include_query:
-                # 检查 schema_snapshot 顶层的 parameters
-                for param in schema_snapshot.get('parameters', []):
-                    if param.get('in') == 'query':
-                        fields.append(f"query.{param.get('name')}")
-    
-    # 最后，保留所有字段，但按规则过滤（去重）
-    # 修复报错.md中提到的过滤逻辑问题
-    result_fields = []
-    for field in fields:
-        if field not in result_fields:  # 防止重复添加
-            result_fields.append(field)
-    
-    return result_fields
-
-
-def _extract_field_descriptions(definition: ApiDefinition) -> Dict[str, str]:
-    """
-    提取字段描述（独立方法，不修改 _extract_api_fields）
-    
-    Args:
-        definition: API 定义
-        
-    Returns:
-        字段描述字典: {field_path: description}
-        例如: {"body.order_id": "订单ID", "query.user_id": "用户ID"}
-    """
-    descriptions = {}
-    schema_snapshot = definition.schema_snapshot
-    
-    if not schema_snapshot:
-        return descriptions
-    
-    # 解析 schema_snapshot
-    if isinstance(schema_snapshot, str):
-        try:
-            schema_snapshot = json.loads(schema_snapshot)
-        except:
-            schema_snapshot = {}
-    
-    if isinstance(schema_snapshot, dict):
-        # 提取查询参数描述
-        parameters = schema_snapshot.get('parameters', [])
-        for param in parameters:
-            if param.get('in') == 'query':
-                field_path = f"query.{param.get('name')}"
-                descriptions[field_path] = param.get('description', '')
-        
-        # 提取请求体参数描述
-        request_schema = schema_snapshot.get('request_schema')
-        if not request_schema and hasattr(definition, 'request_schema'):
-            request_schema = definition.request_schema
-            if isinstance(request_schema, str):
-                try:
-                    request_schema = json.loads(request_schema)
-                except:
-                    request_schema = {}
-        
-        if request_schema and isinstance(request_schema, dict):
-            # 处理 YApi 结构
-            if 'type' in request_schema and 'schema' in request_schema:
-                actual_schema = request_schema.get('schema', {})
-                if isinstance(actual_schema, dict) and 'properties' in actual_schema:
-                    for prop_name, prop_def in actual_schema['properties'].items():
-                        field_path = f"body.{prop_name}"
-                        descriptions[field_path] = prop_def.get('description', '')
-            
-            # 处理标准 JSON Schema 结构
-            elif 'properties' in request_schema:
-                for prop_name, prop_def in request_schema['properties'].items():
-                    field_path = f"body.{prop_name}"
-                    descriptions[field_path] = prop_def.get('description', '')
-    
-    return descriptions
-
-
 @router.post("/field-mappings", response_model=ApiResponse)
 async def create_field_mapping(
     request: FieldMappingCreate,
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
-    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
+    version_id: Optional[int] = Query(None, description="Version ID, optional and defaults to context"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -464,13 +192,11 @@ async def create_field_mapping(
     )
 
 
-from fastapi import Body  # 在文件顶部导入 Body
-
 @router.post("/field-mappings/suggest", response_model=ApiResponse)
 async def suggest_field_mappings(
     request: FieldMappingSuggestRequest,
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
-    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
+    version_id: Optional[int] = Query(None, description="Version ID, optional and defaults to context"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -524,8 +250,8 @@ async def suggest_field_mappings(
 @router.post("/field-mappings/batch-apply", response_model=ApiResponse)
 async def batch_apply_field_mappings(
     request: FieldMappingBatchApplyRequest,
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
-    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
+    version_id: Optional[int] = Query(None, description="Version ID, optional and defaults to context"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -567,6 +293,7 @@ async def batch_apply_field_mappings(
 
         # 预校验：所有 suggestion_id 必须存在且为 pending
         suggestion_ids = [item.suggestion_id for item in request.items]
+        feedback_writer = FeedbackWriter(db)
         suggestions = db.query(FieldMappingSuggestion).filter(
             FieldMappingSuggestion.id.in_(suggestion_ids),
             FieldMappingSuggestion.project_id == ctx["project_id"],
@@ -636,6 +363,34 @@ async def batch_apply_field_mappings(
             # 更新建议状态和关联映射
             suggestion.status = "accepted"
             suggestion.mapping_id = mapping.id
+            top_candidate = None
+            suggestion_candidates = getattr(suggestion, "candidates", None) or []
+            if suggestion_candidates and isinstance(suggestion_candidates[0], dict):
+                top_candidate = suggestion_candidates[0]
+            if (
+                top_candidate
+                and (
+                    str(top_candidate.get("db_table") or "") != str(item.db_table)
+                    or str(top_candidate.get("db_column") or "") != str(item.db_column)
+                )
+            ):
+                feedback_writer.record_modify_feedback(
+                    project_id=ctx["project_id"],
+                    version_id=ctx["version_id"],
+                    current_user_id=current_user.id,
+                    suggestion=suggestion,
+                    mapping=mapping,
+                    chosen_item=item,
+                )
+            else:
+                feedback_writer.record_accept_feedback(
+                    project_id=ctx["project_id"],
+                    version_id=ctx["version_id"],
+                    current_user_id=current_user.id,
+                    suggestion=suggestion,
+                    mapping=mapping,
+                    chosen_item=item,
+                )
             updated_suggestion_ids.append(suggestion.id)
             
             created_count += 1
@@ -676,9 +431,9 @@ async def batch_apply_field_mappings(
 @router.put("/field-mappings/{mapping_id}/status", response_model=ApiResponse)
 async def update_field_mapping_status(
     mapping_id: int,
-    status: str = Query(..., description="新状态：confirmed/rejected"),
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
-    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    status: str = Query(..., description="New status: proposed/confirmed/rejected"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
+    version_id: Optional[int] = Query(None, description="Version ID, optional and defaults to context"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -729,8 +484,8 @@ class FieldMappingSuggestionRejectRequest(BaseModel):
 @router.post("/field-mappings/suggestions/reject", response_model=ApiResponse)
 async def batch_reject_suggestions(
     request: FieldMappingSuggestionRejectRequest,
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
-    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
+    version_id: Optional[int] = Query(None, description="Version ID, optional and defaults to context"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -769,6 +524,14 @@ async def batch_reject_suggestions(
             if suggestion.status == "pending":
                 suggestion.status = "ignored"
                 suggestion.updated_at = datetime.now()
+                feedback_writer = FeedbackWriter(db)
+                feedback_writer.record_reject_feedback(
+                    project_id=ctx["project_id"],
+                    version_id=ctx["version_id"],
+                    current_user_id=current_user.id,
+                    suggestion=suggestion,
+                    reason="batch_reject",
+                )
                 rejected_count += 1
 
         db.commit()
@@ -791,8 +554,8 @@ async def batch_reject_suggestions(
 
 @router.get("/field-mappings/pending", response_model=ApiResponse)
 async def get_pending_field_mappings(
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
-    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
+    version_id: Optional[int] = Query(None, description="Version ID, optional and defaults to context"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -841,9 +604,9 @@ async def get_pending_field_mappings(
 
 @router.post("/field-mappings/clone", response_model=ApiResponse)
 async def clone_field_mappings(
-    from_version_id: int = Query(..., description="源版本ID"),
-    to_version_id: int = Query(..., description="目标版本ID"),
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
+    from_version_id: int = Query(..., description="Source version ID"),
+    to_version_id: int = Query(..., description="Target version ID"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -927,8 +690,8 @@ class ProjectFieldDictionary(BaseModel):
 
 @router.get("/field-mappings/dictionary", response_model=ApiResponse)
 async def get_field_dictionary(
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
-    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
+    version_id: Optional[int] = Query(None, description="Version ID, optional and defaults to context"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -987,9 +750,9 @@ async def get_field_dictionary(
 
 @router.post("/field-mappings/auto-apply", response_model=ApiResponse)
 async def auto_apply_field_mappings(
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
-    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
-    min_confidence: float = Query(0.85, description="最低置信度阈值"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
+    version_id: Optional[int] = Query(None, description="Version ID, optional and defaults to context"),
+    min_confidence: float = Query(0.85, description="Minimum confidence threshold"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -1029,8 +792,8 @@ async def auto_apply_field_mappings(
 
 @router.get("/field-mappings/learning-stats", response_model=ApiResponse)
 async def get_learning_stats(
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
-    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
+    version_id: Optional[int] = Query(None, description="Version ID, optional and defaults to context"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -1098,9 +861,9 @@ async def get_learning_stats(
 
 @router.get("/field-mappings", response_model=ApiResponse)
 async def list_field_mappings(
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
-    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
-    definition_id: Optional[int] = Query(None, description="API 定义ID过滤"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
+    version_id: Optional[int] = Query(None, description="Version ID, optional and defaults to context"),
+    definition_id: Optional[int] = Query(None, description="Filter by API definition ID"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -1155,8 +918,8 @@ async def list_field_mappings(
 async def update_field_mapping(
     mapping_id: int,
     request: FieldMappingUpdate,
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
-    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
+    version_id: Optional[int] = Query(None, description="Version ID, optional and defaults to context"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -1198,8 +961,8 @@ async def update_field_mapping(
 @router.delete("/field-mappings/{mapping_id}", response_model=ApiResponse)
 async def delete_field_mapping(
     mapping_id: int,
-    project_id: Optional[int] = Query(None, description="项目ID（可选，默认使用上下文）"),
-    version_id: Optional[int] = Query(None, description="版本ID（可选，默认使用上下文）"),
+    project_id: Optional[int] = Query(None, description="Project ID, optional and defaults to context"),
+    version_id: Optional[int] = Query(None, description="Version ID, optional and defaults to context"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):

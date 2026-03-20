@@ -6,6 +6,7 @@ import json
 from typing import Any, Dict, List
 
 from app.ai.service import AIService
+from .guardrail import AIFieldMappingGuardrail
 
 
 class AIFieldMappingEnricher:
@@ -13,6 +14,7 @@ class AIFieldMappingEnricher:
 
     def __init__(self) -> None:
         self.ai_service = AIService()
+        self.guardrail = AIFieldMappingGuardrail()
 
     async def enrich_low_confidence_items(
         self,
@@ -85,12 +87,23 @@ class AIFieldMappingEnricher:
             item = item_by_path.get(mapping.get("api_field_path")) or item_by_name.get(mapping.get("field_name"))
             if not item:
                 continue
+            merged_ai_candidates = self._merge_ai_candidates(
+                item.get("rule_candidates", []),
+                mapping.get("candidates", []),
+            )
+            guarded_candidates, rejected_candidates = self.guardrail.filter_candidates(
+                schema_snapshot=schema_snapshot,
+                field_item=item,
+                rule_candidates=item.get("rule_candidates", []),
+                ai_candidates=merged_ai_candidates,
+            )
             enriched[item["api_field_path"]] = {
-                "ai_candidates": self._merge_ai_candidates(
-                    item.get("rule_candidates", []),
-                    mapping.get("candidates", []),
-                ),
-                "raw_response": mapping,
+                "ai_candidates": guarded_candidates,
+                "rejected_ai_candidates": rejected_candidates,
+                "raw_response": {
+                    **mapping,
+                    "guardrail_rejected": rejected_candidates,
+                },
             }
         return enriched
 

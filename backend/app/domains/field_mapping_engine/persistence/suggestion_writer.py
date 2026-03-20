@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 
 from app.core.trace import get_trace_id
 from app.platform.db.base import AsyncTask, FieldMappingSuggestion
+from .feedback_writer import RuntimeEvidenceWriter
+from .trace_writer import TraceWriter
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,8 @@ class SuggestionWriter:
 
     def __init__(self, db: Session):
         self.db = db
+        self.trace_writer = TraceWriter(db)
+        self.runtime_evidence_writer = RuntimeEvidenceWriter(db)
 
     def save_task_result(self, *, task_id: int, result: Dict[str, Any]) -> int:
         trace_id = get_trace_id()
@@ -58,8 +62,21 @@ class SuggestionWriter:
 
         if suggestion_objects:
             self.db.bulk_save_objects(suggestion_objects)
+        trace_count = self.trace_writer.replace_task_traces(
+            task_id=task_id,
+            task=task,
+            suggestions=suggestions_list,
+        )
+        evidence_count = self.runtime_evidence_writer.replace_task_evidence(
+            task_id=task_id,
+            task=task,
+            suggestions=suggestions_list,
+        )
         self.db.commit()
-        logger.info(f"[{trace_id}] Suggestion persistence complete: task_id={task_id}, count={len(suggestion_objects)}")
+        logger.info(
+            f"[{trace_id}] Suggestion persistence complete: task_id={task_id}, "
+            f"suggestions={len(suggestion_objects)}, traces={trace_count}, evidence={evidence_count}"
+        )
         return len(suggestion_objects)
 
     def count_by_task(self, *, task_id: int) -> int:

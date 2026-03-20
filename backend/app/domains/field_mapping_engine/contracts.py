@@ -59,10 +59,35 @@ class CandidateEvidence:
 
 
 @dataclass
+class DecisionCandidate:
+    db_table: str
+    db_column: str
+    score: float
+    relation_type: str = "direct"
+    confidence: Optional[float] = None
+    reasons: List[str] = field(default_factory=list)
+    negative_evidence: List[str] = field(default_factory=list)
+    reject_reasons: List[str] = field(default_factory=list)
+    recall_sources: List[str] = field(default_factory=list)
+    features: Dict[str, Any] = field(default_factory=dict)
+    ai_selected: Optional[bool] = None
+    ai_reason: Optional[str] = None
+    hard_reject: bool = False
+    short_circuit_reason: Optional[str] = None
+
+
+@dataclass
 class DecisionArtifact:
     definition_id: int
     api_field_path: str
-    candidates: List[Dict[str, Any]]
+    definition_method: str
+    definition_path: str
+    field_name: str
+    top_candidate: Optional[DecisionCandidate] = None
+    candidate_list: List[DecisionCandidate] = field(default_factory=list)
+    relation_type: str = "direct"
+    confidence: Optional[float] = None
+    decision_source: str = "rule"
     decision_trace: Dict[str, Any] = field(default_factory=dict)
     project_id: Optional[int] = None
 

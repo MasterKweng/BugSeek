@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import {
-  Alert,
   Button,
   Card,
   Descriptions,
@@ -28,6 +27,7 @@ import {
   RocketOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
+import FieldMappingTaskObservability from '../components/FieldMappingTaskObservability'
 import WorkspaceModuleHero from '../components/WorkspaceModuleHero'
 import { useProjectStore } from '../store/project'
 import { getDbSchemas } from '../services/dbSchema'
@@ -53,6 +53,8 @@ type SuggestionStatusFilter = 'all' | 'pending' | 'confirmed' | 'rejected'
 type MethodFilter = 'all' | 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 type FieldTypeFilter = 'all' | 'path' | 'query' | 'body'
 type MappingFilter = 'all' | 'confirmed' | 'rejected' | 'proposed'
+type DecisionSourceFilter = 'all' | 'rule' | 'ai' | 'fallback'
+type RelationTypeFilter = 'all' | 'direct' | 'fk' | 'derived'
 type ViewMode = 'suggestions' | 'mappings'
 
 const formatDateTime = (value?: string | null) => {
@@ -86,6 +88,55 @@ const getStatusColor = (status?: string) => {
   if (status === 'completed') return 'success'
   if (status === 'running') return 'processing'
   return 'default'
+}
+
+const getDecisionSourceColor = (value?: string | null) => {
+  if (value === 'ai') return 'magenta'
+  if (value === 'fallback') return 'orange'
+  if (value === 'rule') return 'blue'
+  return 'default'
+}
+
+const getRelationTypeColor = (value?: string | null) => {
+  if (value === 'direct') return 'green'
+  if (value === 'fk') return 'gold'
+  if (value === 'derived') return 'purple'
+  return 'default'
+}
+
+const formatPercent = (value?: number | null) => {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return '-'
+  }
+  return `${(value * 100).toFixed(1)}%`
+}
+
+const renderTraceValue = (value: unknown) => {
+  if (value === null || value === undefined || value === '') {
+    return '-'
+  }
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value.toString() : '-'
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value)
+  }
+  return String(value)
+}
+
+const renderKeyValueTags = (record: Record<string, unknown>) => {
+  const entries = Object.entries(record || {})
+  if (entries.length === 0) {
+    return <Text type="secondary">-</Text>
+  }
+
+  return (
+    <Space wrap>
+      {entries.map(([key, value]) => (
+        <Tag key={key}>{`${key}:${renderTraceValue(value)}`}</Tag>
+      ))}
+    </Space>
+  )
 }
 
 const FieldMappingSuggestions: React.FC = () => {
@@ -125,6 +176,8 @@ const FieldMappingSuggestions: React.FC = () => {
   const [methodFilter, setMethodFilter] = useState<MethodFilter>('all')
   const [fieldTypeFilter, setFieldTypeFilter] = useState<FieldTypeFilter>('all')
   const [mappingFilter, setMappingFilter] = useState<MappingFilter>('all')
+  const [decisionSourceFilter, setDecisionSourceFilter] = useState<DecisionSourceFilter>('all')
+  const [relationTypeFilter, setRelationTypeFilter] = useState<RelationTypeFilter>('all')
 
   const contextParams = useMemo(() => ({
     project_id: currentProject?.id,
@@ -136,8 +189,23 @@ const FieldMappingSuggestions: React.FC = () => {
     [selectedRowKeys, suggestions],
   )
 
+  const visibleSuggestions = useMemo(
+    () => suggestions.filter((item) => {
+      const source = item.decision_source || item.decision_artifact?.decision_source || 'rule'
+      const relationType = item.relation_type || item.decision_artifact?.relation_type || 'direct'
+      if (decisionSourceFilter !== 'all' && source !== decisionSourceFilter) {
+        return false
+      }
+      if (relationTypeFilter !== 'all' && relationType !== relationTypeFilter) {
+        return false
+      }
+      return true
+    }),
+    [decisionSourceFilter, relationTypeFilter, suggestions],
+  )
+
   const suggestionMetrics = useMemo(() => {
-    const highConfidence = suggestions.filter((item) => (item.candidates?.[0]?.score || 0) >= 0.85).length
+    const highConfidence = suggestions.filter((item) => ((item.confidence ?? item.candidates?.[0]?.score) || 0) >= 0.85).length
 
     return [
       { label: '建议数', value: suggestions.length },
@@ -465,40 +533,55 @@ const FieldMappingSuggestions: React.FC = () => {
       ),
     },
     {
-      title: '推荐字段',
+      title: '????',
       key: 'candidate',
       render: (_, record) => {
-        const candidate = record.candidates?.[0]
+        const candidate = record.top_candidate || record.candidates?.[0]
         if (!candidate) {
-          return <Text type="secondary">无候选字段</Text>
+          return <Text type="secondary">?????</Text>
         }
 
         return (
           <Space direction="vertical" size={2}>
             <Text strong>{candidate.db_table}.{candidate.db_column}</Text>
-            <Text type="secondary">{candidate.reasons?.join(' / ') || '无额外说明'}</Text>
+            <Text type="secondary">{candidate.reasons?.join(' / ') || '?????'}</Text>
           </Space>
         )
       },
     },
     {
-      title: '置信度',
+      title: '???',
       key: 'confidence',
       width: 180,
       render: (_, record) => {
-        const score = record.candidates?.[0]?.score || 0
+        const score = (record.confidence ?? record.top_candidate?.confidence ?? record.candidates?.[0]?.score) || 0
         return <Progress percent={Number((score * 100).toFixed(1))} size="small" />
       },
     },
     {
-      title: '状态',
+      title: '??',
+      key: 'decision',
+      width: 180,
+      render: (_, record) => {
+        const decisionSource = record.decision_source || record.decision_artifact?.decision_source || 'rule'
+        const relationType = record.relation_type || record.decision_artifact?.relation_type || 'direct'
+        return (
+          <Space wrap>
+            <Tag color={getDecisionSourceColor(decisionSource)}>{decisionSource}</Tag>
+            <Tag color={getRelationTypeColor(relationType)}>{relationType}</Tag>
+          </Space>
+        )
+      },
+    },
+    {
+      title: '??',
       dataIndex: 'status',
       key: 'status',
       width: 110,
       render: (value: string | undefined) => <Tag color={getStatusColor(value || 'pending')}>{value || 'pending'}</Tag>,
     },
     {
-      title: '操作',
+      title: '??',
       key: 'action',
       width: 110,
       render: (_, record) => (
@@ -509,7 +592,7 @@ const FieldMappingSuggestions: React.FC = () => {
             setDetailOpen(true)
           }}
         >
-          查看
+          ??
         </Button>
       ),
     },
@@ -650,26 +733,7 @@ const FieldMappingSuggestions: React.FC = () => {
                       这里只展示当前项目版本下最近一次字段映射任务的真实状态与结果。
                     </Paragraph>
                   </div>
-                  {task ? (
-                    <>
-                      <Descriptions size="small" column={1}>
-                        <Descriptions.Item label="任务 ID">#{task.id}</Descriptions.Item>
-                        <Descriptions.Item label="状态">
-                          <Tag color={getStatusColor(task.status)}>{task.status}</Tag>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="进度">{task.progress}%</Descriptions.Item>
-                        <Descriptions.Item label="创建时间">{formatDateTime(task.created_at)}</Descriptions.Item>
-                      </Descriptions>
-                      <Progress
-                        percent={task.progress}
-                        status={task.status === 'failed' ? 'exception' : task.status === 'completed' ? 'success' : 'active'}
-                      />
-                      {task.progress_message ? <Text type="secondary">{task.progress_message}</Text> : null}
-                      {task.error_message ? <Alert type="error" showIcon message={task.error_message} /> : null}
-                    </>
-                  ) : (
-                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="还没有字段映射任务" />
-                  )}
+                  <FieldMappingTaskObservability task={task} />
                 </Space>
               </div>
             </div>
@@ -710,6 +774,18 @@ const FieldMappingSuggestions: React.FC = () => {
                   <Select.Option value="query">query</Select.Option>
                   <Select.Option value="body">body</Select.Option>
                 </Select>
+                <Select value={decisionSourceFilter} onChange={(value) => setDecisionSourceFilter(value as DecisionSourceFilter)} style={{ width: 140 }}>
+                  <Select.Option value="all">all source</Select.Option>
+                  <Select.Option value="rule">rule</Select.Option>
+                  <Select.Option value="ai">ai</Select.Option>
+                  <Select.Option value="fallback">fallback</Select.Option>
+                </Select>
+                <Select value={relationTypeFilter} onChange={(value) => setRelationTypeFilter(value as RelationTypeFilter)} style={{ width: 140 }}>
+                  <Select.Option value="all">all relation</Select.Option>
+                  <Select.Option value="direct">direct</Select.Option>
+                  <Select.Option value="fk">fk</Select.Option>
+                  <Select.Option value="derived">derived</Select.Option>
+                </Select>
               </div>
 
               <Space wrap>
@@ -749,7 +825,7 @@ const FieldMappingSuggestions: React.FC = () => {
                     }),
                   }}
                   columns={suggestionColumns}
-                  dataSource={suggestions}
+                  dataSource={visibleSuggestions}
                   scroll={{ y: 'calc(100vh - 520px)' }}
                   pagination={{ pageSize: 10, hideOnSinglePage: true }}
                   locale={{ emptyText: <Empty description="当前任务还没有可审阅的建议结果" /> }}
@@ -839,12 +915,43 @@ const FieldMappingSuggestions: React.FC = () => {
                 </Space>
               </Descriptions.Item>
               <Descriptions.Item label="字段路径">{selectedSuggestion.api_field_path}</Descriptions.Item>
-              <Descriptions.Item label="状态">
+              <Descriptions.Item label="??">
                 <Tag color={getStatusColor(selectedSuggestion.status || 'pending')}>
                   {selectedSuggestion.status || 'pending'}
                 </Tag>
               </Descriptions.Item>
+              <Descriptions.Item label="Decision Source">
+                <Tag color={getDecisionSourceColor(selectedSuggestion.decision_source || selectedSuggestion.decision_artifact?.decision_source)}>
+                  {selectedSuggestion.decision_source || selectedSuggestion.decision_artifact?.decision_source || 'rule'}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Relation Type">
+                <Tag color={getRelationTypeColor(selectedSuggestion.relation_type || selectedSuggestion.decision_artifact?.relation_type)}>
+                  {selectedSuggestion.relation_type || selectedSuggestion.decision_artifact?.relation_type || 'direct'}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Confidence">
+                {formatPercent(selectedSuggestion.confidence ?? selectedSuggestion.decision_artifact?.confidence)}
+              </Descriptions.Item>
             </Descriptions>
+
+            {selectedSuggestion.decision_artifact ? (
+              <Card className="governance-note-card" bordered={false}>
+                <Space direction="vertical" size={10} style={{ width: '100%' }}>
+                  <Title level={5} style={{ marginBottom: 0 }}>Decision Artifact</Title>
+                  <Descriptions size="small" column={1}>
+                    <Descriptions.Item label="top candidate">
+                      {selectedSuggestion.decision_artifact.top_candidate
+                        ? `${selectedSuggestion.decision_artifact.top_candidate.db_table}.${selectedSuggestion.decision_artifact.top_candidate.db_column}`
+                        : '-'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="source">{selectedSuggestion.decision_artifact.decision_source || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="relation">{selectedSuggestion.decision_artifact.relation_type || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="confidence">{formatPercent(selectedSuggestion.decision_artifact.confidence)}</Descriptions.Item>
+                  </Descriptions>
+                </Space>
+              </Card>
+            ) : null}
 
             <Card className="governance-note-card" bordered={false}>
               <Space direction="vertical" size={12} style={{ width: '100%' }}>
@@ -862,6 +969,10 @@ const FieldMappingSuggestions: React.FC = () => {
                             </Tag>
                           </Space>
                           <Text type="secondary">score: {(candidate.score * 100).toFixed(1)}%</Text>
+                          {typeof candidate.confidence === 'number' ? <Text type="secondary">confidence: {formatPercent(candidate.confidence)}</Text> : null}
+                          {candidate.relation_type ? <Text type="secondary">relation: {candidate.relation_type}</Text> : null}
+                          {candidate.negative_evidence?.length ? <Text type="secondary">negative: {candidate.negative_evidence.join(' / ')}</Text> : null}
+                          {candidate.reject_reasons?.length ? <Text type="secondary">reject: {candidate.reject_reasons.join(' / ')}</Text> : null}
                           <Text type="secondary">{candidate.reasons?.join(' / ') || '无额外说明'}</Text>
                         </Space>
                       </List.Item>
@@ -876,7 +987,39 @@ const FieldMappingSuggestions: React.FC = () => {
             {selectedSuggestion.decision_trace ? (
               <Card className="governance-note-card" bordered={false}>
                 <Space direction="vertical" size={10} style={{ width: '100%' }}>
-                  <Text type="secondary">决策轨迹</Text>
+                  <Text type="secondary">Decision Trace</Text>
+                  <Descriptions size="small" column={1}>
+                    <Descriptions.Item label="source">
+                      {renderTraceValue(selectedSuggestion.decision_trace.decision_source)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="top candidate">
+                      {renderTraceValue(selectedSuggestion.decision_trace.top_candidate_key || selectedSuggestion.decision_trace.top_final_candidate)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="relation">
+                      {renderTraceValue(selectedSuggestion.decision_trace.relation_type)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="confidence">
+                      {typeof selectedSuggestion.decision_trace.confidence === 'number'
+                        ? formatPercent(selectedSuggestion.decision_trace.confidence)
+                        : renderTraceValue(selectedSuggestion.decision_trace.confidence)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="fallback reason">
+                      {renderTraceValue(selectedSuggestion.decision_trace.fallback_reason)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="runtime prior">
+                      {renderKeyValueTags((selectedSuggestion.decision_trace.runtime_table_prior || {}) as Record<string, unknown>)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="negative evidence">
+                      {selectedSuggestion.candidates?.[0]?.negative_evidence?.length
+                        ? selectedSuggestion.candidates[0].negative_evidence.join(' / ')
+                        : '-'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="reject reasons">
+                      {selectedSuggestion.candidates?.[0]?.reject_reasons?.length
+                        ? selectedSuggestion.candidates[0].reject_reasons.join(' / ')
+                        : '-'}
+                    </Descriptions.Item>
+                  </Descriptions>
                   <pre className="governance-json-block">
                     {JSON.stringify(selectedSuggestion.decision_trace, null, 2)}
                   </pre>

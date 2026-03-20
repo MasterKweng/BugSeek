@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.domains.data_impact.impact_repository import ImpactRepository
 from app.domains.data_impact.schema_mapper import SchemaMapper
+from app.platform.db.base import FieldMappingRuntimeEvidence
 
 
 class RuntimeEvidenceRecaller:
@@ -18,6 +19,9 @@ class RuntimeEvidenceRecaller:
         self.repo = ImpactRepository(db)
 
     def get_table_prior_map(self, definition_id: int) -> Dict[str, float]:
+        return self.get_field_table_prior_map(definition_id)
+
+    def get_field_table_prior_map(self, definition_id: int, api_field_path: str | None = None) -> Dict[str, float]:
         impacts = self.repo.get_impacts_by_api(definition_id)
         prior_map: Dict[str, float] = {}
         for impact in impacts:
@@ -27,6 +31,20 @@ class RuntimeEvidenceRecaller:
             prior_map[str(table_name)] = max(
                 prior_map.get(str(table_name), 0.0),
                 round(float(getattr(impact, "confidence", 0.0) or 0.0), 4),
+            )
+        evidence_query = self.db.query(FieldMappingRuntimeEvidence).filter(
+            FieldMappingRuntimeEvidence.definition_id == definition_id,
+            FieldMappingRuntimeEvidence.evidence_type == "runtime_table_prior",
+        )
+        if api_field_path:
+            evidence_query = evidence_query.filter(FieldMappingRuntimeEvidence.api_field_path == api_field_path)
+        for row in evidence_query.all():
+            table_name = getattr(row, "evidence_key", None)
+            if not table_name:
+                continue
+            prior_map[str(table_name)] = max(
+                prior_map.get(str(table_name), 0.0),
+                round(float(getattr(row, "confidence", 0.0) or 0.0), 4),
             )
         return prior_map
 
@@ -42,7 +60,7 @@ class RuntimeEvidenceRecaller:
         if not field_name:
             return []
 
-        table_prior = self.get_table_prior_map(definition_id)
+        table_prior = self.get_field_table_prior_map(definition_id, str(field_spec.get("field_path") or ""))
         if not table_prior:
             return []
 
@@ -97,4 +115,3 @@ class RuntimeEvidenceRecaller:
             )
 
         return candidates[:top_k]
-

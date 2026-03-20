@@ -1,6 +1,6 @@
 from ._common import *
 from ._common import _save_suggestions_to_db
-from app.domains.field_mapping_engine.persistence.suggestion_writer import SuggestionWriter
+from app.domains.field_mapping_engine.persistence.consistency_auditor import ConsistencyAuditor
 from app.domains.field_mapping_engine.services import FieldMappingJobService
 
 
@@ -12,20 +12,20 @@ def _mark_task_running(db: Session, task: AsyncTask, celery_task_id: str) -> Non
 
 
 def _record_result_consistency(db: Session, task: AsyncTask, task_id: int, result: dict, trace_id: str) -> None:
-    suggestions_count = len(result.get("suggestions", []))
-    table_count = SuggestionWriter(db).count_by_task(task_id=task_id)
-    if suggestions_count == table_count:
-        return
-    logger.warning(
-        f"[{trace_id}] 缁撴灉鏁伴噺涓嶄竴鑷? "
-        f"result.suggestions={suggestions_count}, 寤鸿琛?{table_count}"
-    )
+    audit_stats = ConsistencyAuditor(db).audit_task(task_id=task_id, result=result, task=task)
     if not task.statistics:
         task.statistics = {}
-    task.statistics["result_consistency_mismatch"] = True
-    task.statistics["result_suggestions_count"] = suggestions_count
-    task.statistics["table_suggestions_count"] = table_count
-    task.statistics["consistency_diff"] = abs(suggestions_count - table_count)
+    task.statistics.update(audit_stats)
+    if audit_stats.get("consistency_ok"):
+        return
+    logger.warning(
+        f"[{trace_id}] field mapping consistency mismatch: "
+        f"result={audit_stats['result_suggestions_count']}, "
+        f"table={audit_stats['table_suggestions_count']}, "
+        f"trace={audit_stats['trace_count']}, "
+        f"artifact={audit_stats['artifact_suggestions_count']}, "
+        f"payload_diffs={audit_stats['consistency_diff']}"
+    )
 
 
 def _handle_success_result(db: Session, task: AsyncTask, task_id: int, result: dict, trace_id: str) -> None:

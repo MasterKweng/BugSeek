@@ -699,6 +699,71 @@ class FieldMappingStageArtifact(Base, TimestampMixin):
     )
 
 
+class FieldMappingFeedback(Base, TimestampMixin):
+    """Human feedback captured from accepted/rejected/modified suggestions."""
+
+    __tablename__ = "field_mapping_feedback"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    version_id = Column(Integer, ForeignKey("versions.id", ondelete="CASCADE"), nullable=True, index=True)
+    suggestion_id = Column(BigInteger, ForeignKey("field_mapping_suggestions.id", ondelete="SET NULL"), nullable=True, index=True)
+    mapping_id = Column(BigInteger, ForeignKey("api_field_mappings.id", ondelete="SET NULL"), nullable=True, index=True)
+    definition_id = Column(Integer, ForeignKey("api_definitions.id", ondelete="CASCADE"), nullable=False, index=True)
+    api_field_path = Column(String(255), nullable=False, index=True)
+    feedback_type = Column(String(50), nullable=False, index=True)
+    chosen_db_table = Column(String(255), nullable=True)
+    chosen_db_column = Column(String(255), nullable=True)
+    relation_type = Column(String(50), nullable=True)
+    decision_source = Column(String(50), nullable=True)
+    confidence = Column(Float, nullable=True)
+    reason = Column(Text, nullable=True)
+    payload_json = Column(JSON, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    project = relationship("Project", foreign_keys=[project_id])
+    version = relationship("Version", foreign_keys=[version_id])
+    suggestion = relationship("FieldMappingSuggestion", foreign_keys=[suggestion_id])
+    mapping = relationship("ApiFieldMapping", foreign_keys=[mapping_id])
+    definition = relationship("ApiDefinition", foreign_keys=[definition_id])
+    creator = relationship("User", foreign_keys=[created_by])
+
+    __table_args__ = (
+        Index("ix_field_mapping_feedback_project_field", "project_id", "definition_id", "api_field_path"),
+        Index("ix_field_mapping_feedback_type_created", "feedback_type", "created_at"),
+    )
+
+
+class FieldMappingRuntimeEvidence(Base, TimestampMixin):
+    """Runtime and decision evidence persisted for later ranking priors."""
+
+    __tablename__ = "field_mapping_runtime_evidence"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    version_id = Column(Integer, ForeignKey("versions.id", ondelete="CASCADE"), nullable=True, index=True)
+    task_id = Column(Integer, ForeignKey("async_tasks.id", ondelete="CASCADE"), nullable=True, index=True)
+    definition_id = Column(Integer, ForeignKey("api_definitions.id", ondelete="CASCADE"), nullable=False, index=True)
+    api_field_path = Column(String(255), nullable=False, index=True)
+    evidence_type = Column(String(50), nullable=False, index=True)
+    evidence_key = Column(String(255), nullable=False)
+    source = Column(String(50), nullable=False, default="field_mapping_engine", index=True)
+    confidence = Column(Float, nullable=True)
+    payload_json = Column(JSON, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    project = relationship("Project", foreign_keys=[project_id])
+    version = relationship("Version", foreign_keys=[version_id])
+    task = relationship("AsyncTask", foreign_keys=[task_id])
+    definition = relationship("ApiDefinition", foreign_keys=[definition_id])
+    creator = relationship("User", foreign_keys=[created_by])
+
+    __table_args__ = (
+        Index("ix_field_mapping_runtime_evidence_task_field", "task_id", "definition_id", "api_field_path"),
+        Index("ix_field_mapping_runtime_evidence_type_source", "evidence_type", "source"),
+    )
+
+
 class AsyncTask(Base, TimestampMixin):
     """异步任务表"""
     __tablename__ = "async_tasks"

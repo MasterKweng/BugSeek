@@ -32,6 +32,14 @@ export interface UnifiedTaskStatus<TDetail = Record<string, any>> {
   detail: TDetail
 }
 
+export interface FieldMappingTaskSummary {
+  result_count?: number
+  artifacts_summary?: {
+    total_artifacts: number
+    by_stage: Record<string, number>
+  } | null
+}
+
 export const getTaskStatus = async <TDetail = Record<string, any>>(
   taskKind: UnifiedTaskKind,
   taskId: number

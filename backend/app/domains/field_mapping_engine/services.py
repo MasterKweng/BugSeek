@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.platform.config.settings import settings
 from app.platform.db.base import ApiDefinition, AsyncTask, DbSchemaVersion
+from .contracts import DecisionArtifact, DecisionCandidate
 from .ai.enricher import AIFieldMappingEnricher
 from .orchestration.legacy_runner import LegacyFieldMappingJobRunner
 from .orchestration.job_runner import (
@@ -107,6 +108,7 @@ class FieldMappingAppService:
         schema_snapshot = self._load_db_schema(project_id, version_id)
         db_columns = self.db_extractor.extract_columns(schema_snapshot)
         history_prior_map = self.history_recaller.build_prior_map(project_id, version_id)
+        rejected_prior_map = self.history_recaller.build_rejected_prior_map(project_id, version_id)
 
         items: List[Dict[str, Any]] = []
         for field_spec in field_specs:
@@ -115,7 +117,15 @@ class FieldMappingAppService:
                 field_spec["field_name"],
                 history_prior_map,
             )
-            runtime_table_prior = self.runtime_recaller.get_table_prior_map(int(field_spec["definition_id"]))
+            rejected_prior = self._resolve_history_prior(
+                field_spec["field_path"],
+                field_spec["field_name"],
+                rejected_prior_map,
+            )
+            runtime_table_prior = self.runtime_recaller.get_field_table_prior_map(
+                int(field_spec["definition_id"]),
+                field_spec["field_path"],
+            )
             lexical_candidates = self.lexical_recaller.recall_from_dict(field_spec, db_columns, history_prior)
             lexical_candidates = self._apply_runtime_table_prior(lexical_candidates, runtime_table_prior)
             vector_candidates = self.vector_recaller.recall_from_dict(
@@ -140,6 +150,7 @@ class FieldMappingAppService:
                     "field_description": field_spec.get("description"),
                     "sibling_paths": field_spec.get("sibling_paths", []),
                     "runtime_table_prior": runtime_table_prior,
+                    "rejected_history_prior": rejected_prior,
                     "candidate_evidence": candidate_evidence,
                 }
             )
@@ -194,17 +205,23 @@ class FieldMappingAppService:
             rule_candidates = item.get("rule_candidates", [])
             ai_payload = ai_results.get(item["api_field_path"], {})
             ai_candidates = ai_payload.get("ai_candidates", [])
+            rejected_ai_candidates = ai_payload.get("rejected_ai_candidates", [])
             rule_top = rule_candidates[0].get("score", 0.0) if rule_candidates else 0.0
             ai_top = ai_candidates[0].get("score", 0.0) if ai_candidates else 0.0
 
             decision_source = "rule"
             final_candidates = rule_candidates
+            fallback_reason = None
             if ai_candidates:
                 if not rule_candidates or ai_top >= rule_top:
                     decision_source = "ai"
                     final_candidates = ai_candidates
                 else:
                     decision_source = "fallback"
+                    fallback_reason = "rule_score_stronger"
+            elif rejected_ai_candidates:
+                decision_source = "fallback"
+                fallback_reason = "ai_guardrail_rejected"
 
             optimized.append(
                 {
@@ -212,8 +229,10 @@ class FieldMappingAppService:
                     "final_candidates": final_candidates[:10],
                     "decision_source": decision_source,
                     "ai_candidates": ai_candidates[:10],
+                    "rejected_ai_candidates": rejected_ai_candidates[:10],
                     "ai_triggered": item["api_field_path"] in ai_results,
                     "ai_raw_response": ai_payload.get("raw_response"),
+                    "fallback_reason": fallback_reason,
                     "ai_threshold": ai_confidence_threshold,
                     "rule_top_score": rule_top,
                     "ai_top_score": ai_top,
@@ -227,28 +246,192 @@ class FieldMappingAppService:
             final_candidates = item.get("final_candidates", [])
             if not final_candidates:
                 continue
+            decision_artifact = self._build_decision_artifact(item, final_candidates)
             suggestions.append(
                 {
                     "definition_id": item["definition_id"],
                     "definition_method": item["definition_method"],
                     "definition_path": item["definition_path"],
                     "api_field_path": item["api_field_path"],
+                    "top_candidate": decision_artifact["top_candidate"],
+                    "candidate_list": decision_artifact["candidate_list"],
+                    "relation_type": decision_artifact["relation_type"],
+                    "confidence": decision_artifact["confidence"],
+                    "decision_source": decision_artifact["decision_source"],
+                    "decision_artifact": decision_artifact,
                     "candidates": final_candidates[:10],
                     "decision_trace": {
                         "engine_version": "engine_v2_phase5",
                         "decision_source": item.get("decision_source", "rule"),
+                        "relation_type": decision_artifact["relation_type"],
+                        "confidence": decision_artifact["confidence"],
+                        "top_candidate_key": (
+                            f"{decision_artifact['top_candidate']['db_table']}.{decision_artifact['top_candidate']['db_column']}"
+                            if decision_artifact.get("top_candidate")
+                            else None
+                        ),
                         "field_name": item["field_name"],
                         "field_description": item.get("field_description"),
                         "sibling_paths": item.get("sibling_paths", []),
                         "runtime_table_prior": item.get("runtime_table_prior", {}),
                         "ai_triggered": item.get("ai_triggered", False),
+                        "fallback_reason": item.get("fallback_reason"),
                         "ai_threshold": item.get("ai_threshold"),
                         "rule_top_score": item.get("rule_top_score"),
                         "ai_top_score": item.get("ai_top_score"),
+                        "rejected_ai_candidates": item.get("rejected_ai_candidates", []),
                     },
                 }
             )
         return suggestions
+
+    def _build_decision_artifact(
+        self,
+        item: Dict[str, Any],
+        final_candidates: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        candidate_list = [self._normalize_decision_candidate(candidate) for candidate in final_candidates[:10]]
+        top_candidate = candidate_list[0] if candidate_list else None
+        relation_type = self._infer_relation_type(item, top_candidate)
+        if top_candidate is not None:
+            top_candidate["relation_type"] = relation_type
+        confidence = self._calibrate_confidence(
+            item,
+            top_candidate,
+            rule_top_score=float(item.get("rule_top_score", 0.0) or 0.0),
+            decision_source=str(item.get("decision_source") or "rule"),
+        )
+
+        artifact = DecisionArtifact(
+            definition_id=int(item["definition_id"]),
+            definition_method=str(item["definition_method"]),
+            definition_path=str(item["definition_path"]),
+            api_field_path=str(item["api_field_path"]),
+            field_name=str(item["field_name"]),
+            top_candidate=DecisionCandidate(**top_candidate) if top_candidate else None,
+            candidate_list=[DecisionCandidate(**candidate) for candidate in candidate_list],
+            relation_type=relation_type,
+            confidence=confidence,
+            decision_source=str(item.get("decision_source") or "rule"),
+            decision_trace={},
+        )
+        artifact_dict = asdict(artifact)
+        artifact_dict["decision_trace"] = {
+            "engine_version": "engine_v2_phase5",
+            "decision_source": artifact.decision_source,
+            "field_name": item["field_name"],
+            "field_description": item.get("field_description"),
+            "sibling_paths": item.get("sibling_paths", []),
+            "runtime_table_prior": item.get("runtime_table_prior", {}),
+            "ai_triggered": item.get("ai_triggered", False),
+            "fallback_reason": item.get("fallback_reason"),
+            "ai_threshold": item.get("ai_threshold"),
+            "rule_top_score": item.get("rule_top_score"),
+            "ai_top_score": item.get("ai_top_score"),
+            "rejected_ai_candidates": item.get("rejected_ai_candidates", []),
+        }
+        return artifact_dict
+
+    def _normalize_decision_candidate(self, candidate: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "db_table": str(candidate.get("db_table") or ""),
+            "db_column": str(candidate.get("db_column") or ""),
+            "score": round(float(candidate.get("score", 0.0) or 0.0), 4),
+            "relation_type": str(candidate.get("relation_type") or "direct"),
+            "confidence": self._float_or_none(
+                candidate.get("confidence", candidate.get("score"))
+            ),
+            "reasons": list(candidate.get("reasons", []) or []),
+            "negative_evidence": list(candidate.get("negative_evidence", []) or []),
+            "reject_reasons": list(candidate.get("reject_reasons", []) or []),
+            "recall_sources": list(candidate.get("recall_sources", []) or []),
+            "features": dict(candidate.get("features", {}) or {}),
+            "ai_selected": candidate.get("ai_selected"),
+            "ai_reason": candidate.get("ai_reason"),
+            "hard_reject": bool(candidate.get("hard_reject", False)),
+            "short_circuit_reason": candidate.get("short_circuit_reason"),
+        }
+
+    def _calibrate_confidence(
+        self,
+        item: Dict[str, Any],
+        top_candidate: Optional[Dict[str, Any]],
+        *,
+        rule_top_score: float,
+        decision_source: str,
+    ) -> Optional[float]:
+        if not top_candidate:
+            return None
+        base_score = float(top_candidate.get("score", 0.0) or 0.0)
+        adjusted = base_score
+        negative_evidence = top_candidate.get("negative_evidence", []) or []
+        reject_reasons = top_candidate.get("reject_reasons", []) or []
+        features = top_candidate.get("features", {}) or {}
+
+        if top_candidate.get("hard_reject"):
+            return 0.0
+
+        if top_candidate.get("short_circuit_reason"):
+            adjusted = max(adjusted, 0.98)
+
+        if decision_source == "ai":
+            adjusted = min(1.0, adjusted * 0.96)
+        elif decision_source == "fallback":
+            adjusted = min(1.0, max(adjusted, rule_top_score) * 0.93)
+
+        if features.get("f_runtime_field_hit", 0.0) >= 1.0:
+            adjusted += 0.03
+        elif features.get("f_runtime_table_hit", 0.0) >= 0.8:
+            adjusted += 0.015
+
+        if features.get("f_history_prior", 0.0) >= 0.95:
+            adjusted += 0.02
+
+        if negative_evidence:
+            adjusted -= 0.05 * len(negative_evidence)
+
+        if reject_reasons:
+            adjusted -= 0.08 * len(reject_reasons)
+
+        if item.get("fallback_reason") == "ai_guardrail_rejected":
+            adjusted -= 0.03
+
+        return round(min(max(adjusted, 0.0), 1.0), 4)
+
+    def _infer_relation_type(
+        self,
+        item: Dict[str, Any],
+        top_candidate: Optional[Dict[str, Any]],
+    ) -> str:
+        if not top_candidate:
+            return "direct"
+
+        field_name = str(item.get("field_name") or "").lower()
+        db_column = str(top_candidate.get("db_column") or "").lower()
+        features = top_candidate.get("features", {}) or {}
+        recall_sources = set(top_candidate.get("recall_sources", []) or [])
+
+        if field_name.endswith("_id") and db_column.endswith("_id") and db_column != field_name:
+            return "fk"
+
+        if "runtime" in recall_sources and features.get("f_runtime_field_hit", 0.0) >= 1.0:
+            return "direct"
+
+        if features.get("f_name_exact", 0.0) > 0 or field_name == db_column:
+            return "direct"
+
+        if features.get("f_comment_similarity", 0.0) >= 0.6 or "ai" in recall_sources:
+            return "derived"
+
+        return "direct"
+
+    def _float_or_none(self, value: Any) -> Optional[float]:
+        try:
+            if value is None:
+                return None
+            return round(float(value), 4)
+        except Exception:
+            return None
 
     def _load_db_schema(self, project_id: int, version_id: int) -> Dict[str, Any]:
         schema_version = (

@@ -48,8 +48,26 @@ export interface FieldMappingCandidate {
   db_column: string
   score: number
   reasons: string[]
+  relation_type?: string
+  confidence?: number | null
+  negative_evidence?: string[]
+  reject_reasons?: string[]
+  hard_reject?: boolean
+  short_circuit_reason?: string
+  recall_sources?: string[]
+  features?: Record<string, any>
   ai_selected?: boolean  // 是否由 AI 选择
   ai_reason?: string  // AI 选择原因
+}
+
+export interface FieldMappingDecisionArtifact {
+  field_name?: string
+  top_candidate?: Record<string, any> | null
+  candidate_list?: Record<string, any>[]
+  relation_type?: string | null
+  confidence?: number | null
+  decision_source?: string | null
+  decision_trace?: Record<string, any>
 }
 
 export interface FieldMappingSuggestion {
@@ -58,6 +76,12 @@ export interface FieldMappingSuggestion {
   definition_method: string
   definition_path: string
   api_field_path: string
+  top_candidate?: Record<string, any> | null
+  candidate_list?: Record<string, any>[]
+  relation_type?: string | null
+  confidence?: number | null
+  decision_source?: string | null
+  decision_artifact?: FieldMappingDecisionArtifact | null
   candidates: FieldMappingCandidate[]
   decision_trace?: Record<string, any>
   source?: MappingSourceType  // 映射来源类型
@@ -266,6 +290,11 @@ export interface AsyncTask {
   }>
   statistics?: Record<string, any>
   result?: any
+  engine_version?: string
+  artifacts_summary?: {
+    total_artifacts: number
+    by_stage: Record<string, number>
+  }
   error_message?: string
   started_at?: string
   finished_at?: string

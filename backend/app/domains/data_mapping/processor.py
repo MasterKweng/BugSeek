@@ -11,16 +11,13 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.platform.db.base import ApiDefinition, DbSchemaVersion, ApiFieldMapping, User, AsyncTask, FieldMappingTrace
-from app.api.v1.field_mappings import (
-    _extract_api_fields,
-    _extract_field_descriptions,
-    FieldMappingCandidate,
-    FieldMappingSuggestion
-)
+from app.api.v1.field_mappings import FieldMappingCandidate, FieldMappingSuggestion
 from app.platform.vector.vector_index import get_vector_manager
 from app.core.trace import get_trace_id
 from app.ai.service import AIService
 from app.domains.data_mapping.domain_inferer import DomainInferer
+from app.domains.data_mapping.legacy_support import extract_api_fields as _extract_api_fields
+from app.domains.data_mapping.legacy_support import extract_field_descriptions as _extract_field_descriptions
 from app.domains.data_mapping.constants import (
     Stage,
     StageStatus,
@@ -1071,7 +1068,6 @@ class FieldMappingProcessor:
                     allowed_tables = []
 
             # 提取字段描述
-            from app.api.v1.field_mappings import _extract_field_descriptions
             field_descriptions = _extract_field_descriptions(definition)
 
             for field_path in candidates_map.keys():
@@ -1769,7 +1765,6 @@ class FieldMappingProcessor:
                 source_type, field_name = self._parse_field_path(field_path)
 
                 # 提取字段描述
-                from app.api.v1.field_mappings import _extract_field_descriptions
                 field_descriptions = _extract_field_descriptions(definition)
                 field_description = field_descriptions.get(field_path, '')
 
