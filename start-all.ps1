@@ -103,7 +103,7 @@ if ($shouldStartWorker) {
 }
 
 if ($Only -eq "all" -or $Only -eq "frontend") {
-    $frontendCommand = "npm run dev -- --host 0.0.0.0 --port $frontendPort"
+    $frontendCommand = "npx vite --host 0.0.0.0 --port $frontendPort"
     Start-ServiceWindow -Title "frontend" -WorkingDirectory $frontendDir -Command $frontendCommand
     Write-Step "Frontend: http://127.0.0.1:$frontendPort"
 }
