@@ -75,7 +75,7 @@ if (($Only -eq "all" -or $Only -eq "backend" -or $Only -eq "worker") -and -not $
     }
 
     Write-Step "Installing backend dependencies"
-    powershell.exe -ExecutionPolicy Bypass -Command "Set-Location -LiteralPath '$backendDir'; . .\venv\Scripts\Activate.ps1; pip install -r requirements.txt"
+    powershell.exe -ExecutionPolicy Bypass -Command "Set-Location -LiteralPath '$backendDir'; . .\venv\Scripts\Activate.ps1; `$env:PYTHONUTF8 = '1'; pip install -r requirements.txt"
 }
 
 if (($Only -eq "all" -or $Only -eq "frontend") -and -not $NoInstall) {
