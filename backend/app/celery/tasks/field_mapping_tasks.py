@@ -40,46 +40,31 @@ def _handle_success_result(db: Session, task: AsyncTask, task_id: int, result: d
             task.statistics = {}
         task.statistics["write_table_failed"] = True
         task.statistics["write_table_error"] = str(write_err)
-        task.error_message = f"寤鸿琛ㄥ啓鍏ュけ璐? {str(write_err)}"
-        logger.error(f"[{trace_id}] 鍙屽啓寤鸿琛ㄥけ璐ワ紝闄嶇骇涓?partial_success: {str(write_err)}")
+        task.error_message = f"Suggestion table write failed: {str(write_err)}"
+        logger.error(f"[{trace_id}] Suggestion table dual-write failed; downgraded to partial_success: {str(write_err)}")
+
 
 @celery_app.task(bind=True, name="app.celery.tasks.execute_field_mapping_task")
 def execute_field_mapping_task(self, task_id: int):
-    """
-    执行字段映射建议任务
-
-    Args:
-        task_id: 异步任务 ID（async_tasks.id）
-
-    Returns:
-        任务结果
-    """
+    """Execute the async field mapping task."""
     trace_id = get_trace_id()
-    
     db: Session = SessionLocal()
-    
+
     try:
-        logger.info(f"[{trace_id}] Celery 任务开始执行，任务 ID: {task_id}")
-        
-        # 查询任务信息
+        logger.info(f"[{trace_id}] Celery 任务开始执行: task_id={task_id}")
+
         task = db.query(AsyncTask).filter(AsyncTask.id == task_id).first()
-        
         if not task:
             logger.error(f"[{trace_id}] 任务不存在: {task_id}")
             return {"success": False, "error": "任务不存在"}
-        
+
         _mark_task_running(db, task, self.request.id)
+        logger.info(f"[{trace_id}] 任务状态已更新为 running")
 
-        logger.info(f"[{trace_id}] 任务状态已设置为 running")
-
-        # 执行字段映射处理
         job_service = FieldMappingJobService(db)
-        
-        # 使用 asyncio.run 执行异步处理器
         result = asyncio.run(job_service.execute_task(task))
-        
-        # 保存结果到数据库（双写策略）
-        if result and result.get('success'):
+
+        if result and result.get("success"):
             _handle_success_result(db, task, task_id, result, trace_id)
         else:
             task.status = "failed"
@@ -87,33 +72,26 @@ def execute_field_mapping_task(self, task_id: int):
 
         task.finished_at = datetime.now()
         db.commit()
-        
-        logger.info(f"[{trace_id}] Celery 任务执行完成，结果: {result}")
-        
+
+        logger.info(f"[{trace_id}] Celery 任务执行完成: {result}")
         return result
-        
+
     except Exception as e:
         logger.error(f"[{trace_id}] Celery 任务执行失败: {str(e)}", exc_info=True)
-        
-        # 更新任务状态为失败
+
         try:
             task = db.query(AsyncTask).filter(AsyncTask.id == task_id).first()
             if task:
                 task.status = "failed"
-                task.error_message = str(e)
-                
-                # 记录失败指标
+                task.error_message = f"Field mapping task failed: {str(e)}"
                 if not task.statistics:
                     task.statistics = {}
                 task.statistics["failed_at"] = datetime.now().isoformat()
-                
                 db.commit()
-        except:
+        except Exception:
             pass
-        
-        return {"success": False, "error": str(e)}
-        
+
+        return {"success": False, "error": f"Field mapping task failed: {str(e)}"}
+
     finally:
         db.close()
-
-

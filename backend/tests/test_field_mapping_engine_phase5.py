@@ -377,24 +377,13 @@ def test_resolve_runner_defaults_missing_engine_version_to_engine_v2():
     assert runner.__class__.__name__ == "EngineV2FieldMappingJobRunner"
 
 
-def test_resolve_runner_blocks_legacy_without_flag():
+def test_resolve_runner_rejects_legacy_in_production_flow():
     service = FieldMappingJobService(db=None)
     task = SimpleNamespace(task_params={"engine_version": "legacy"})
 
-    with patch("app.domains.field_mapping_engine.services.settings.FIELD_MAPPING_LEGACY_FALLBACK_ENABLED", False):
-        try:
-            service._resolve_runner(task)
-        except ValueError as exc:
-            assert "legacy field mapping fallback is disabled" in str(exc)
-        else:
-            raise AssertionError("expected ValueError when legacy fallback is disabled")
-
-
-def test_resolve_runner_allows_legacy_with_flag():
-    service = FieldMappingJobService(db=None)
-    task = SimpleNamespace(task_params={"engine_version": "legacy"})
-
-    with patch("app.domains.field_mapping_engine.services.settings.FIELD_MAPPING_LEGACY_FALLBACK_ENABLED", True):
-        runner = service._resolve_runner(task)
-
-    assert runner.__class__.__name__ == "LegacyFieldMappingJobRunner"
+    try:
+        service._resolve_runner(task)
+    except ValueError as exc:
+        assert "unsupported engine_version for production task flow: legacy" in str(exc)
+    else:
+        raise AssertionError("expected ValueError when legacy is requested in production flow")

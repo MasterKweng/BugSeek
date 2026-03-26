@@ -8,7 +8,12 @@ import logging
 from sqlalchemy.orm import Session
 
 from app.core.trace import get_trace_id
-from app.platform.db.base import AsyncTask, FieldMappingSuggestion
+from app.platform.db.base import (
+    AsyncTask,
+    FieldMappingRuntimeEvidence,
+    FieldMappingSuggestion,
+    FieldMappingTrace,
+)
 from .feedback_writer import RuntimeEvidenceWriter
 from .trace_writer import TraceWriter
 
@@ -30,11 +35,8 @@ class SuggestionWriter:
             logger.info(f"[{trace_id}] No suggestions to persist for task_id={task_id}")
             return 0
 
-        deleted_count = (
-            self.db.query(FieldMappingSuggestion)
-            .filter(FieldMappingSuggestion.task_id == task_id)
-            .delete(synchronize_session=False)
-        )
+        deleted = self.clear_task_outputs(task_id=task_id)
+        deleted_count = deleted["suggestions"]
         if deleted_count:
             logger.info(f"[{trace_id}] Cleared existing suggestions: task_id={task_id}, count={deleted_count}")
 
@@ -78,6 +80,29 @@ class SuggestionWriter:
             f"suggestions={len(suggestion_objects)}, traces={trace_count}, evidence={evidence_count}"
         )
         return len(suggestion_objects)
+
+    def clear_task_outputs(self, *, task_id: int) -> Dict[str, int]:
+        """Remove persisted outputs for a task before replay/reset/retry."""
+        deleted_suggestions = (
+            self.db.query(FieldMappingSuggestion)
+            .filter(FieldMappingSuggestion.task_id == task_id)
+            .delete(synchronize_session=False)
+        )
+        deleted_traces = (
+            self.db.query(FieldMappingTrace)
+            .filter(FieldMappingTrace.task_id == task_id)
+            .delete(synchronize_session=False)
+        )
+        deleted_runtime_evidence = (
+            self.db.query(FieldMappingRuntimeEvidence)
+            .filter(FieldMappingRuntimeEvidence.task_id == task_id)
+            .delete(synchronize_session=False)
+        )
+        return {
+            "suggestions": deleted_suggestions,
+            "traces": deleted_traces,
+            "runtime_evidence": deleted_runtime_evidence,
+        }
 
     def count_by_task(self, *, task_id: int) -> int:
         return (

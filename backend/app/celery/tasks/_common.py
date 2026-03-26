@@ -1,16 +1,19 @@
 """Shared helpers for Celery task modules."""
 import asyncio
+import logging
 from datetime import datetime
 from typing import Optional
+
 from celery import Task
+from sqlalchemy.orm import Session
+
 from app.celery_config import celery_app
 from app.core.trace import get_trace_id
-from sqlalchemy.orm import Session
-from app.platform.db.session import SessionLocal
 from app.platform.db.base import AsyncTask
-import logging
+from app.platform.db.session import SessionLocal
 
 logger = logging.getLogger(__name__)
+
 
 def _save_suggestions_to_db(db: Session, task_id: int, result: dict) -> None:
     """Compatibility wrapper that delegates to the engine_v2 writer."""
@@ -21,8 +24,8 @@ def _save_suggestions_to_db(db: Session, task_id: int, result: dict) -> None:
     except Exception as e:
         trace_id = get_trace_id()
         db.rollback()
-        logger.error(f"[{trace_id}] 淇濆瓨寤鸿鏁版嵁澶辫触: {str(e)}", exc_info=True)
-        error_msg = f"淇濆瓨寤鸿鏁版嵁澶辫触: {str(e)}"
+        logger.error(f"[{trace_id}] Suggestion table write failed: {str(e)}", exc_info=True)
+        error_msg = f"Suggestion table write failed: {str(e)}"
         try:
             task = db.query(AsyncTask).filter(AsyncTask.id == task_id).first()
             if task:
@@ -35,5 +38,3 @@ def _save_suggestions_to_db(db: Session, task_id: int, result: dict) -> None:
         except Exception:
             pass
         raise Exception(error_msg)
-
-

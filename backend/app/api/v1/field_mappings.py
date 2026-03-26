@@ -32,8 +32,8 @@ class FieldMappingCreate(BaseModel):
     api_field_path: str = Field(..., description="API field path, for example body.order_id")
     db_table: str = Field(..., description="Database table name")
     db_column: str = Field(..., description="Database column name")
-    relation_type: Optional[str] = Field("direct", description="Relation type: direct/fk/derived")
-    confidence: Optional[float] = Field(None, description="Mapping confidence")
+    relation_type: Optional[str] = Field("direct", description="Relation type enum: direct/fk/derived")
+    confidence: Optional[float] = Field(None, description="Final mapping confidence, not the candidate ranking score")
     source: Optional[str] = Field("manual", description="Source: manual/ai")
 
 
@@ -42,8 +42,8 @@ class FieldMappingUpdate(BaseModel):
     api_field_path: Optional[str] = Field(None, description="API field path")
     db_table: Optional[str] = Field(None, description="Database table name")
     db_column: Optional[str] = Field(None, description="Database column name")
-    relation_type: Optional[str] = Field(None, description="Relation type")
-    confidence: Optional[float] = Field(None, description="Mapping confidence")
+    relation_type: Optional[str] = Field(None, description="Relation type enum: direct/fk/derived")
+    confidence: Optional[float] = Field(None, description="Final mapping confidence, not the candidate ranking score")
     source: Optional[str] = Field(None, description="Source")
 
 
@@ -60,7 +60,7 @@ class FieldMappingCandidate(BaseModel):
     """Candidate returned by the mapping engine."""
     db_table: str = Field(..., description="Database table name")
     db_column: str = Field(..., description="Database column name")
-    score: float = Field(..., description="Candidate score", ge=0.0, le=1.0)
+    score: float = Field(..., description="Candidate ranking score used for ordering", ge=0.0, le=1.0)
     reasons: List[str] = Field(..., description="Match reasons")
     ai_selected: Optional[bool] = Field(None, description="Selected by AI")
     ai_reason: Optional[str] = Field(None, description="AI selection reason")
@@ -74,8 +74,8 @@ class FieldMappingSuggestion(BaseModel):
     api_field_path: str = Field(..., description="API field path")
     top_candidate: Optional[Dict[str, Any]] = Field(None, description="Normalized top candidate")
     candidate_list: Optional[List[Dict[str, Any]]] = Field(None, description="Normalized candidate list")
-    relation_type: Optional[str] = Field(None, description="Normalized relation type")
-    confidence: Optional[float] = Field(None, description="Normalized decision confidence")
+    relation_type: Optional[str] = Field(None, description="Normalized relation type enum: direct/fk/derived")
+    confidence: Optional[float] = Field(None, description="Normalized final decision confidence")
     decision_source: Optional[str] = Field(None, description="Final decision source")
     decision_artifact: Optional[Dict[str, Any]] = Field(None, description="Normalized decision artifact")
     candidates: List[FieldMappingCandidate] = Field(..., description="Candidate list")
@@ -89,7 +89,7 @@ class FieldMappingBatchApplyItem(BaseModel):
     api_field_path: str = Field(..., description="API field path")
     db_table: str = Field(..., description="Database table name")
     db_column: str = Field(..., description="Database column name")
-    relation_type: Optional[str] = Field("direct", description="Relation type")
+    relation_type: Optional[str] = Field("direct", description="Relation type enum: direct/fk/derived")
     source: Optional[str] = Field("ai", description="Source")
 
 
@@ -144,9 +144,7 @@ async def create_field_mapping(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    创建 API 字段映射
-    """
+    """Create a manual API field mapping."""
     trace_id = get_trace_id()
     ctx = _get_project_and_version(db, current_user, project_id, version_id)
 
@@ -163,7 +161,7 @@ async def create_field_mapping(
         )
 
     logger.info(
-        f"[{trace_id}] 创建字段映射: project_id={ctx['project_id']}, version_id={ctx['version_id']}, "
+        f"[{trace_id}] create field mapping: project_id={ctx['project_id']}, version_id={ctx['version_id']}, "
         f"definition_id={request.definition_id}, api_field_path={request.api_field_path}"
     )
 
@@ -201,32 +199,19 @@ async def suggest_field_mappings(
     current_user: User = Depends(get_current_user)
 ):
     """
-    生成字段映射建议（全局映射模式 - 高级功能）
-    
-    BSK-SC-019: 全局映射入口降级策略
-    - 本接口为全局映射模式，会处理项目中的所有接口定义
-    - 推荐使用场景级 JIT 映射（POST /field-mappings/suggest-task + definition_ids）
-    - 全局映射适用于：
-      * 项目级字段映射维护
-      * 批量映射质量检查
-      * 历史数据追溯
-    - JIT 映射适用于：
-      * 场景生成后的即时映射
-      * 快速验证场景配置
-      * 减少不必要的计算开销
-    
-    注意事项：
-    - 全局映射耗时较长，建议使用异步任务接口
-    - 大型项目建议分批处理或使用场景级映射
-    - 返回结果为实时计算，不持久化到数据库
+    Generate field mapping suggestions in synchronous mode.
+
+    This endpoint computes suggestions on demand and does not persist task state.
+    For large projects or per-definition JIT execution, prefer the async suggest-task flow.
     """
     
     trace_id = get_trace_id()
     ctx = _get_project_and_version(db, current_user, project_id, version_id)
 
     logger.info(
-        f"[{trace_id}] 生成字段映射建议: project_id={ctx['project_id']}, version_id={ctx['version_id']}, "
-        f"use_ai={request.use_ai_fallback}, ai_threshold={request.ai_confidence_threshold}"
+        f"[{trace_id}] generate field mapping suggestions: project_id={ctx['project_id']}, "
+        f"version_id={ctx['version_id']}, use_ai={request.use_ai_fallback}, "
+        f"ai_threshold={request.ai_confidence_threshold}"
     )
 
     app_service = FieldMappingAppService(db)
@@ -256,21 +241,17 @@ async def batch_apply_field_mappings(
     current_user: User = Depends(get_current_user)
 ):
     """
-    批量应用字段映射（原子性保证 + 建议表更新）
-    
-    遵循后端代码规范：
-    - 事务原子性：整个操作在一个事务中
-    - 双写策略：同时更新 api_field_mappings 和 field_mapping_suggestions
-    - 幂等性：如果映射已存在，更新而不是插入
-    - 异常处理：失败时回滚事务
+    Batch-apply field mapping suggestions.
+
+    The operation is atomic and keeps accepted suggestions linked to persisted mappings.
     """
     trace_id = get_trace_id()
     ctx = _get_project_and_version(db, current_user, project_id, version_id)
     from app.platform.db.base import FieldMappingSuggestion
 
     logger.info(
-        f"[{trace_id}] 批量应用字段映射: project_id={ctx['project_id']}, version_id={ctx['version_id']}, "
-        f"items_count={len(request.items)}, mode={request.mode}"
+        f"[{trace_id}] batch apply field mappings: project_id={ctx['project_id']}, "
+        f"version_id={ctx['version_id']}, items_count={len(request.items)}, mode={request.mode}"
     )
 
     try:

@@ -62,8 +62,10 @@ class CandidateEvidence:
 class DecisionCandidate:
     db_table: str
     db_column: str
+    # score is the ranking score used to order candidates before the final decision.
     score: float
     relation_type: str = "direct"
+    # confidence is the calibrated final confidence after decision-time adjustments.
     confidence: Optional[float] = None
     reasons: List[str] = field(default_factory=list)
     negative_evidence: List[str] = field(default_factory=list)
@@ -86,6 +88,7 @@ class DecisionArtifact:
     top_candidate: Optional[DecisionCandidate] = None
     candidate_list: List[DecisionCandidate] = field(default_factory=list)
     relation_type: str = "direct"
+    # confidence is the final decision confidence, separate from candidate ranking score.
     confidence: Optional[float] = None
     decision_source: str = "rule"
     decision_trace: Dict[str, Any] = field(default_factory=dict)

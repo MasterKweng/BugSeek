@@ -22,6 +22,7 @@ from app.domains.field_mapping_engine.services import FieldMappingJobService
 from app.domains.field_mapping_engine.orchestration.resume_manager import ResumeManager
 from app.domains.field_mapping_engine.persistence.artifact_store import ArtifactStore
 from app.domains.field_mapping_engine.persistence.consistency_auditor import ConsistencyAuditor
+from app.domains.field_mapping_engine.persistence.suggestion_writer import SuggestionWriter
 # 导入旧的异步任务管理器（向后兼容，用于任务重试等操作）
 # 注意：主要任务执行已迁移到 Celery
 from app.core.async_task.manager import get_task_manager
@@ -697,14 +698,14 @@ async def get_async_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"任务不存在：{task_id}"
         )
-    # ???????IDOR ???
+    # 任务详情只允许任务创建者访问，避免 IDOR 风险。
     if task.user_id != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="???????"
+            detail="无权访问该任务"
         )
 
-    # ?? stages ?????????? description
+    # 为每个阶段补充基于 artifact 的说明文案。
     stages = task.stages or []
     stage_results = task.stage_results or {}
     engine_version = (task.task_params or {}).get("engine_version", "engine_v2")
@@ -762,6 +763,13 @@ async def get_async_task(
         "updated_at": task.updated_at.isoformat(),
         "engine_version": engine_version,
     }
+    statistics = task.statistics or {}
+    response_data["consistency_ok"] = statistics.get("consistency_ok")
+    response_data["consistency_diff"] = statistics.get("consistency_diff")
+    response_data["result_table_mismatch"] = statistics.get("result_table_mismatch")
+    response_data["result_trace_mismatch"] = statistics.get("result_trace_mismatch")
+    response_data["result_artifact_mismatch"] = statistics.get("result_artifact_mismatch")
+
 
     if engine_version == "engine_v2":
         response_data["artifacts_summary"] = _build_engine_v2_artifacts_summary(db, task.id)
@@ -1030,10 +1038,14 @@ async def retry_field_mapping_stage(
     if engine_version == "engine_v2":
         resume_manager = ResumeManager(db)
         deleted_artifacts = resume_manager.clear_from_stage(task, stage_num)
+        cleared_outputs = SuggestionWriter(db).clear_task_outputs(task_id=task.id)
         task.error_message = None
         task.statistics = task.statistics or {}
         task.statistics["retry_stage"] = stage_num
         task.statistics["cleared_artifacts"] = deleted_artifacts
+        task.statistics["cleared_suggestions"] = cleared_outputs["suggestions"]
+        task.statistics["cleared_traces"] = cleared_outputs["traces"]
+        task.statistics["cleared_runtime_evidence"] = cleared_outputs["runtime_evidence"]
         celery_task_id = _requeue_field_mapping_task(
             db,
             task,
@@ -1055,6 +1067,9 @@ async def retry_field_mapping_stage(
                 extra={
                     "retry_stage": stage_num,
                     "cleared_artifacts": deleted_artifacts,
+                    "cleared_suggestions": cleared_outputs["suggestions"],
+                    "cleared_traces": cleared_outputs["traces"],
+                    "cleared_runtime_evidence": cleared_outputs["runtime_evidence"],
                 },
             ),
         )
@@ -1174,6 +1189,9 @@ async def reset_field_mapping_task(
     if engine_version == "engine_v2":
         artifact_store = ArtifactStore(db)
         cleared_artifacts = artifact_store.clear_from_stage(task_id=task.id, stage=1)
+        cleared_outputs = SuggestionWriter(db).clear_task_outputs(task_id=task.id)
+    else:
+        cleared_outputs = {"suggestions": 0, "traces": 0, "runtime_evidence": 0}
 
     # 重置任务状态
     task.status = "pending"
@@ -1205,7 +1223,12 @@ async def reset_field_mapping_task(
         data=_build_requeue_response(
             task=task,
             engine_version=engine_version,
-            extra={"cleared_artifacts": cleared_artifacts},
+            extra={
+                "cleared_artifacts": cleared_artifacts,
+                "cleared_suggestions": cleared_outputs["suggestions"],
+                "cleared_traces": cleared_outputs["traces"],
+                "cleared_runtime_evidence": cleared_outputs["runtime_evidence"],
+            },
         )
     )
 
@@ -1516,6 +1539,9 @@ async def replay_suggestions_to_table(
                 "suggestions_count": len(suggestions),
                 "consistency_ok": audit_stats.get("consistency_ok", False),
                 "consistency_diff": audit_stats.get("consistency_diff", 0),
+                "result_table_mismatch": audit_stats.get("result_table_mismatch", False),
+                "result_trace_mismatch": audit_stats.get("result_trace_mismatch", False),
+                "result_artifact_mismatch": audit_stats.get("result_artifact_mismatch", False),
             }
         )
         
@@ -1526,117 +1552,6 @@ async def replay_suggestions_to_table(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"重放失败: {str(e)}"
         )
-
-
-def _calculate_stage_description(stage_num: int, stage_result: Dict[str, Any], task: AsyncTask) -> Optional[str]:
-    """
-    计算阶段描述文本（优化版）
-    
-    遵循后端代码规范：
-    - 魔法值清理：使用常量定义阶段编号
-    - 空值防御：检查 stage_result 和 data 是否存在
-    - 数据类型校验：确保数据结构正确
-    - 详细描述：提供更多有用的信息给用户
-    
-    Args:
-        stage_num: 阶段编号 (1-5)
-        stage_result: 阶段结果数据
-        task: 任务对象
-    
-    Returns:
-        描述文本，如果阶段未完成则返回 None
-    """
-    # 空值防御
-    if not stage_result or stage_result.get("status") != StageStatus.COMPLETED:
-        return None
-    
-    data = stage_result.get("data", {})
-    if not isinstance(data, dict):
-        logger.warning(
-            f"[{task.id}] 阶段{stage_num}的 data 不是字典类型: {type(data)}"
-        )
-        return None
-    
-    try:
-        if stage_num == Stage.FIELD_EXTRACTION:  # 阶段1: 字段提取
-            # 适配实际保存的数据结构
-            total_fields = data.get("total_fields", 0)
-            unique_fields = data.get("unique_fields", 0)
-            field_count_by_type = data.get("field_count_by_type", {})
-
-            # 从 field_count_by_type 中提取各类型数量
-            path_params = field_count_by_type.get("path", 0) if isinstance(field_count_by_type, dict) else 0
-            query_params = field_count_by_type.get("query", 0) if isinstance(field_count_by_type, dict) else 0
-            body_params = field_count_by_type.get("body", 0) if isinstance(field_count_by_type, dict) else 0
-
-            description_parts = [f"已提取 {total_fields} 个字段，去重后: {unique_fields} 个"]
-            if path_params > 0 or query_params > 0 or body_params > 0:
-                description_parts.append(f"(路径:{path_params} 查询:{query_params} 请求体:{body_params})")
-
-            return "，".join(description_parts)
-        
-        elif stage_num == Stage.RULE_SCORING:  # 阶段2: 规则评分
-            # 适配实际保存的数据结构
-            processed_fields = data.get("processed_fields", 0)
-            success_fields = data.get("success_fields", 0)
-            failed_fields = data.get("failed_fields", 0)
-            avg_score = data.get("avg_score", 0)
-
-            description_parts = [f"已评分 {processed_fields} 个字段"]
-            if success_fields > 0 or failed_fields > 0:
-                description_parts.append(f"(成功:{success_fields} 失败:{failed_fields})")
-            if avg_score > 0:
-                description_parts.append(f"平均分:{(avg_score * 100):.1f}%")
-
-            return "，".join(description_parts)
-        
-        elif stage_num == Stage.INTELLIGENT_SCREENING:  # 阶段3: 智能筛选
-            # 适配实际保存的数据结构（直接在 data 中，不在 statistics 中）
-            auto_confirm = data.get("auto_confirm", 0)
-            ai_high = data.get("ai_high", 0)
-            ai_medium = data.get("ai_medium", 0)
-            ai_low = data.get("ai_low", 0)
-
-            description_parts = []
-            if auto_confirm > 0:
-                description_parts.append(f"自动确认: {auto_confirm}")
-            if ai_high > 0 or ai_medium > 0 or ai_low > 0:
-                description_parts.append(f"待AI优化: {ai_high + ai_medium + ai_low} (高:{ai_high} 中:{ai_medium} 低:{ai_low})")
-
-            return "，".join(description_parts) if description_parts else "智能筛选完成"
-        
-        elif stage_num == Stage.AI_OPTIMIZATION:  # 阶段4: AI 优化
-            # 适配实际保存的数据结构（直接在 data 中，不在 statistics 中）
-            ai_optimized_fields = data.get("ai_optimized_fields", 0)
-            ai_failed_fields = data.get("ai_failed_fields", 0)
-
-            description_parts = []
-            if ai_optimized_fields > 0:
-                description_parts.append(f"AI优化: {ai_optimized_fields} 个字段")
-            if ai_failed_fields > 0:
-                description_parts.append(f"失败: {ai_failed_fields} 个")
-
-            return "，".join(description_parts) if description_parts else "AI优化完成"
-        
-        elif stage_num == Stage.RESULT_MERGE:  # 阶段5: 结果合并
-            # 适配实际保存的数据结构
-            total_suggestions = data.get("total_suggestions", 0)
-            unique_fields_covered = data.get("unique_fields_covered", 0)
-
-            description_parts = [f"生成 {total_suggestions} 个映射建议"]
-            if unique_fields_covered > 0:
-                description_parts.append(f"覆盖 {unique_fields_covered} 个字段")
-
-            return "，".join(description_parts)
-        
-        return None
-    
-    except Exception as e:
-        logger.error(
-            f"[{task.id}] ??????{stage_num}??????: {str(e)}",
-            exc_info=True
-        )
-        return None
 
 
 def _calculate_stage_description(stage_num: int, stage_result: Dict[str, Any], task: AsyncTask) -> Optional[str]:

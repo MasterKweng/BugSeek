@@ -85,7 +85,7 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
         self._mark_stage_complete(task, Stage.RULE_SCORING, get_stage_name(Stage.RULE_SCORING), {
             "artifact_type": "field_specs",
             "field_count": len(field_specs),
-        }, 45, "字段提取完成")
+        }, 45, "字段规格已提取")
 
         recall_payload = self.artifact_store.load_artifact(
             task_id=task.id, stage=Stage.INTELLIGENT_SCREENING, artifact_type="recall_candidates"
@@ -109,7 +109,7 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
         self._mark_stage_complete(task, Stage.INTELLIGENT_SCREENING, get_stage_name(Stage.INTELLIGENT_SCREENING), {
             "artifact_type": "recall_candidates",
             "field_count": len(recall_items),
-        }, 70, "候选召回完成")
+        }, 70, "召回候选已生成")
 
         ranked_items = app_service.rank_recall_items(recall_items)
         ranked_items = await app_service.optimize_ranked_items(
@@ -150,7 +150,7 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
         self._mark_stage_complete(task, Stage.RESULT_MERGE, get_stage_name(Stage.RESULT_MERGE), {
             "artifact_type": "final_suggestions",
             "total_suggestions": len(suggestions),
-        }, 100, "字段映射建议生成完成")
+        }, 100, "最终建议已生成")
 
         result_payload = {
             "success": True,

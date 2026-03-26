@@ -148,19 +148,67 @@ def test_reset_engine_v2_clears_artifacts_and_requeues():
 
     with patch("app.api.v1.field_mappings_async.ArtifactStore") as artifact_store_cls:
         artifact_store_cls.return_value.clear_from_stage.return_value = 4
-        with patch("app.celery.tasks.execute_field_mapping_task.apply_async") as apply_async:
-            apply_async.return_value = SimpleNamespace(id="celery-102")
-            response = client.post("/field-mappings/tasks/101/reset")
+        with patch("app.api.v1.field_mappings_async.SuggestionWriter") as suggestion_writer_cls:
+            suggestion_writer_cls.return_value.clear_task_outputs.return_value = {
+                "suggestions": 2,
+                "traces": 3,
+                "runtime_evidence": 1,
+            }
+            with patch("app.celery.tasks.execute_field_mapping_task.apply_async") as apply_async:
+                apply_async.return_value = SimpleNamespace(id="celery-102")
+                response = client.post("/field-mappings/tasks/101/reset")
 
     assert response.status_code == 200
     payload = response.json()["data"]
     assert payload["status"] == "pending"
     assert payload["engine_version"] == "engine_v2"
     assert payload["cleared_artifacts"] == 4
+    assert payload["cleared_suggestions"] == 2
+    assert payload["cleared_traces"] == 3
+    assert payload["cleared_runtime_evidence"] == 1
     assert task.current_stage == 0
     assert task.stage_results == {}
     assert task.statistics == {}
     assert task.result is None
+
+
+def test_retry_engine_v2_clears_persisted_outputs_before_requeue():
+    current_user = SimpleNamespace(id=7, username="tester")
+    task = _build_task(
+        status="failed",
+        current_stage=5,
+        statistics={"total_fields": 8},
+        stage_results={
+            "stage1": {"status": "completed", "data": {"artifact_type": "input_snapshot"}},
+            "stage2": {"status": "completed", "data": {"artifact_type": "field_specs"}},
+            "stage3": {"status": "failed", "data": {"artifact_type": "recall_candidates"}},
+        },
+    )
+    db = _build_db(task)
+    app = _build_app(db, current_user)
+    client = TestClient(app)
+
+    with patch("app.api.v1.field_mappings_async.ResumeManager") as resume_manager_cls:
+        resume_manager_cls.return_value.clear_from_stage.return_value = 5
+        with patch("app.api.v1.field_mappings_async.SuggestionWriter") as suggestion_writer_cls:
+            suggestion_writer_cls.return_value.clear_task_outputs.return_value = {
+                "suggestions": 7,
+                "traces": 11,
+                "runtime_evidence": 13,
+            }
+            with patch("app.celery.tasks.execute_field_mapping_task.apply_async") as apply_async:
+                apply_async.return_value = SimpleNamespace(id="celery-103")
+                response = client.post("/field-mappings/tasks/101/retry/3")
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["status"] == "pending"
+    assert payload["engine_version"] == "engine_v2"
+    assert payload["retry_stage"] == 3
+    assert payload["cleared_artifacts"] == 5
+    assert payload["cleared_suggestions"] == 7
+    assert payload["cleared_traces"] == 11
+    assert payload["cleared_runtime_evidence"] == 13
 
 
 def test_get_suggestions_json_fallback_supports_legacy_data_items():

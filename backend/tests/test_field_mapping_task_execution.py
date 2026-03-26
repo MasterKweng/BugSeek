@@ -35,3 +35,22 @@ def test_handle_success_result_records_consistency_stats():
     assert task.result == result
     assert task.statistics["consistency_ok"] is True
     assert task.statistics["trace_count"] == 1
+
+
+def test_handle_success_result_uses_readable_error_message_on_write_failure():
+    db = Mock()
+    task = SimpleNamespace(
+        status="running",
+        statistics={},
+        result=None,
+        error_message=None,
+    )
+    result = {"success": True, "suggestions": [{"api_field_path": "body.order_id"}]}
+
+    with patch("app.celery.tasks.field_mapping_tasks._save_suggestions_to_db") as save_mock:
+        save_mock.side_effect = Exception("duplicate key value violates unique constraint")
+        _handle_success_result(db, task, 101, result, "trace-2")
+
+    assert task.status == "partial_success"
+    assert task.error_message.startswith("Suggestion table write failed:")
+    assert "duplicate key value violates unique constraint" in task.error_message

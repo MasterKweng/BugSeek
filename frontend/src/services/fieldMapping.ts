@@ -7,7 +7,9 @@ export interface FieldMappingCreateRequest {
   api_field_path: string
   db_table: string
   db_column: string
+  // direct = same-field mapping, fk = foreign-key style mapping, derived = inferred/derived mapping
   relation_type?: string
+  // Final human-facing decision confidence, separate from candidate ranking score
   confidence?: number
   source?: string
 }
@@ -16,7 +18,9 @@ export interface FieldMappingUpdateRequest {
   api_field_path?: string
   db_table?: string
   db_column?: string
+  // direct = same-field mapping, fk = foreign-key style mapping, derived = inferred/derived mapping
   relation_type?: string
+  // Final human-facing decision confidence, separate from candidate ranking score
   confidence?: number
   source?: string
 }
@@ -46,9 +50,11 @@ export enum MappingStatus {
 export interface FieldMappingCandidate {
   db_table: string
   db_column: string
+  // score is only used to rank candidates before final decision selection
   score: number
   reasons: string[]
   relation_type?: string
+  // confidence is the calibrated final confidence for this candidate, not raw ranking score
   confidence?: number | null
   negative_evidence?: string[]
   reject_reasons?: string[]
@@ -64,7 +70,9 @@ export interface FieldMappingDecisionArtifact {
   field_name?: string
   top_candidate?: Record<string, any> | null
   candidate_list?: Record<string, any>[]
+  // direct = same-field mapping, fk = foreign-key style mapping, derived = inferred/derived mapping
   relation_type?: string | null
+  // Final decision confidence after rule/AI/fallback calibration
   confidence?: number | null
   decision_source?: string | null
   decision_trace?: Record<string, any>
@@ -78,7 +86,9 @@ export interface FieldMappingSuggestion {
   api_field_path: string
   top_candidate?: Record<string, any> | null
   candidate_list?: Record<string, any>[]
+  // direct = same-field mapping, fk = foreign-key style mapping, derived = inferred/derived mapping
   relation_type?: string | null
+  // Final decision confidence after calibration; do not treat this as candidate ranking score
   confidence?: number | null
   decision_source?: string | null
   decision_artifact?: FieldMappingDecisionArtifact | null
@@ -91,6 +101,10 @@ export interface FieldMappingSuggestion {
 export interface FieldMappingSuggestionResponse {
   items: FieldMappingSuggestion[]
   total?: number
+  page?: number
+  size?: number
+  pages?: number
+  source?: string
 }
 
 export interface FieldMappingBatchApplyItem {
@@ -244,7 +258,9 @@ export interface PendingFieldMapping extends FieldMappingWithDetails {
   api_field_path: string
   db_table: string
   db_column: string
+  // direct = same-field mapping, fk = foreign-key style mapping, derived = inferred/derived mapping
   relation_type: string
+  // Final stored mapping confidence
   confidence?: number
   source: string
   status: string
@@ -289,6 +305,11 @@ export interface AsyncTask {
     description?: string | null
   }>
   statistics?: Record<string, any>
+  consistency_ok?: boolean | null
+  consistency_diff?: number | null
+  result_table_mismatch?: boolean | null
+  result_trace_mismatch?: boolean | null
+  result_artifact_mismatch?: boolean | null
   result?: any
   engine_version?: string
   artifacts_summary?: {

@@ -19,8 +19,7 @@ class VectorRecaller:
         from app.platform.vector.vector_index import get_vector_manager
 
         vector_manager = get_vector_manager()
-        if vector_manager.column_vectors is None:
-            vector_manager.build_index(schema_snapshot)
+        vector_manager.ensure_index_compatible(schema_snapshot)
 
         if vector_manager.column_vectors is None or len(vector_manager.column_vectors) == 0:
             return []

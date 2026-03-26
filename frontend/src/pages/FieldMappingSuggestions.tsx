@@ -44,6 +44,7 @@ import {
   listAsyncTasks,
   type AsyncTask,
   type FieldMappingSuggestion,
+  type FieldMappingSuggestionResponse,
   type FieldMappingWithDetails,
 } from '../services/fieldMapping'
 
@@ -140,6 +141,8 @@ const renderKeyValueTags = (record: Record<string, unknown>) => {
 }
 
 const FieldMappingSuggestions: React.FC = () => {
+  const defaultSuggestionPageSize = 20
+  const suggestionPageSizeOptions = ['20', '50', '100']
   const { currentProject, currentVersion } = useProjectStore()
   const [viewMode, setViewMode] = useState<ViewMode>('suggestions')
   const [loading, setLoading] = useState(false)
@@ -151,6 +154,9 @@ const FieldMappingSuggestions: React.FC = () => {
   const [taskId, setTaskId] = useState<number | null>(null)
   const [schemaCount, setSchemaCount] = useState(0)
   const [suggestions, setSuggestions] = useState<FieldMappingSuggestion[]>([])
+  const [suggestionPage, setSuggestionPage] = useState(1)
+  const [suggestionPageSize, setSuggestionPageSize] = useState(defaultSuggestionPageSize)
+  const [suggestionTotal, setSuggestionTotal] = useState(0)
   const [mappings, setMappings] = useState<FieldMappingWithDetails[]>([])
   const [stats, setStats] = useState<{
     total_mappings: number
@@ -204,8 +210,11 @@ const FieldMappingSuggestions: React.FC = () => {
     [decisionSourceFilter, relationTypeFilter, suggestions],
   )
 
+
   const suggestionMetrics = useMemo(() => {
-    const highConfidence = suggestions.filter((item) => ((item.confidence ?? item.candidates?.[0]?.score) || 0) >= 0.85).length
+    const highConfidence = suggestions.filter((item) => (
+      (item.confidence ?? item.candidates?.[0]?.confidence ?? item.candidates?.[0]?.score) || 0
+    ) >= 0.85).length
 
     return [
       { label: '建议数', value: suggestions.length },
@@ -282,10 +291,15 @@ const FieldMappingSuggestions: React.FC = () => {
         method_filter: methodFilter !== 'all' ? methodFilter : undefined,
         field_type_filter: fieldTypeFilter !== 'all' ? fieldTypeFilter : undefined,
         definition_path_filter: pathFilter || undefined,
-        page: 1,
-        size: 200,
+        page: suggestionPage,
+        size: suggestionPageSize,
       })
-      setSuggestions(response.data?.items || [])
+      const data: FieldMappingSuggestionResponse | undefined = response.data
+      setSuggestions(data?.items || [])
+      setSelectedRowKeys([])
+      setSuggestionTotal(data?.total || 0)
+      setSuggestionPage(data?.page || suggestionPage)
+      setSuggestionPageSize(data?.size || suggestionPageSize)
     } catch (error: any) {
       message.error(error.message || '获取建议结果失败')
     } finally {
@@ -299,9 +313,6 @@ const FieldMappingSuggestions: React.FC = () => {
       const nextTask = response.data || null
       setTask(nextTask)
 
-      if (nextTask?.status === 'completed' || nextTask?.status === 'partial_success') {
-        await loadSuggestions(nextTaskId)
-      }
     } catch (error: any) {
       message.error(error.message || '获取任务状态失败')
     }
@@ -329,6 +340,9 @@ const FieldMappingSuggestions: React.FC = () => {
         setTask(null)
         setTaskId(null)
         setSuggestions([])
+        setSuggestionTotal(0)
+        setSuggestionPage(1)
+        setSuggestionPageSize(defaultSuggestionPageSize)
         return
       }
 
@@ -338,6 +352,9 @@ const FieldMappingSuggestions: React.FC = () => {
       setTask(null)
       setTaskId(null)
       setSuggestions([])
+      setSuggestionTotal(0)
+      setSuggestionPage(1)
+      setSuggestionPageSize(defaultSuggestionPageSize)
     }
   }
 
@@ -361,10 +378,14 @@ const FieldMappingSuggestions: React.FC = () => {
   }, [task, taskId])
 
   useEffect(() => {
+    setSuggestionPage(1)
+  }, [fieldTypeFilter, methodFilter, pathFilter, searchKeyword, statusFilter])
+
+  useEffect(() => {
     if (taskId && task && (task.status === 'completed' || task.status === 'partial_success')) {
       void loadSuggestions(taskId)
     }
-  }, [fieldTypeFilter, methodFilter, pathFilter, searchKeyword, statusFilter, task?.status, taskId])
+  }, [fieldTypeFilter, methodFilter, pathFilter, searchKeyword, statusFilter, suggestionPage, suggestionPageSize, task?.status, taskId])
 
   const handleCreateTask = async () => {
     if (!currentProject?.id || !currentVersion?.id) {
@@ -400,6 +421,9 @@ const FieldMappingSuggestions: React.FC = () => {
       setTaskId(nextTaskId)
       setSelectedRowKeys([])
       setSuggestions([])
+      setSuggestionTotal(0)
+      setSuggestionPage(1)
+      setSuggestionPageSize(defaultSuggestionPageSize)
       message.success('字段映射任务已创建')
       await loadTask(nextTaskId)
     } catch (error: any) {
@@ -424,7 +448,7 @@ const FieldMappingSuggestions: React.FC = () => {
           api_field_path: item.api_field_path,
           db_table: candidate.db_table,
           db_column: candidate.db_column,
-          relation_type: 'write',
+          relation_type: candidate.relation_type || item.relation_type || item.decision_artifact?.relation_type || 'direct',
           source: candidate.ai_selected ? 'ai' : 'manual',
         }
       })
@@ -533,33 +557,38 @@ const FieldMappingSuggestions: React.FC = () => {
       ),
     },
     {
-      title: '????',
+      title: '候选映射',
       key: 'candidate',
       render: (_, record) => {
         const candidate = record.top_candidate || record.candidates?.[0]
         if (!candidate) {
-          return <Text type="secondary">?????</Text>
+          return <Text type="secondary">暂无候选</Text>
         }
 
         return (
           <Space direction="vertical" size={2}>
             <Text strong>{candidate.db_table}.{candidate.db_column}</Text>
-            <Text type="secondary">{candidate.reasons?.join(' / ') || '?????'}</Text>
+            <Text type="secondary">{candidate.reasons?.join(' / ') || '暂无说明'}</Text>
           </Space>
         )
       },
     },
     {
-      title: '???',
+      title: '置信度',
       key: 'confidence',
       width: 180,
       render: (_, record) => {
-        const score = (record.confidence ?? record.top_candidate?.confidence ?? record.candidates?.[0]?.score) || 0
-        return <Progress percent={Number((score * 100).toFixed(1))} size="small" />
+        const confidence = (
+          record.confidence
+          ?? record.top_candidate?.confidence
+          ?? record.candidates?.[0]?.confidence
+          ?? record.candidates?.[0]?.score
+        ) || 0
+        return <Progress percent={Number((confidence * 100).toFixed(1))} size="small" />
       },
     },
     {
-      title: '??',
+      title: '决策',
       key: 'decision',
       width: 180,
       render: (_, record) => {
@@ -574,14 +603,14 @@ const FieldMappingSuggestions: React.FC = () => {
       },
     },
     {
-      title: '??',
+      title: '状态',
       dataIndex: 'status',
       key: 'status',
       width: 110,
       render: (value: string | undefined) => <Tag color={getStatusColor(value || 'pending')}>{value || 'pending'}</Tag>,
     },
     {
-      title: '??',
+      title: '操作',
       key: 'action',
       width: 110,
       render: (_, record) => (
@@ -592,7 +621,7 @@ const FieldMappingSuggestions: React.FC = () => {
             setDetailOpen(true)
           }}
         >
-          ??
+          查看
         </Button>
       ),
     },
@@ -756,9 +785,9 @@ const FieldMappingSuggestions: React.FC = () => {
                 />
                 <Select value={statusFilter} onChange={(value) => setStatusFilter(value as SuggestionStatusFilter)} style={{ width: 140 }}>
                   <Select.Option value="all">全部状态</Select.Option>
-                  <Select.Option value="pending">Pending</Select.Option>
-                  <Select.Option value="confirmed">Confirmed</Select.Option>
-                  <Select.Option value="rejected">Rejected</Select.Option>
+                  <Select.Option value="pending">待审核</Select.Option>
+                  <Select.Option value="confirmed">已确认</Select.Option>
+                  <Select.Option value="rejected">已拒绝</Select.Option>
                 </Select>
                 <Select value={methodFilter} onChange={(value) => setMethodFilter(value as MethodFilter)} style={{ width: 120 }}>
                   <Select.Option value="all">全部方法</Select.Option>
@@ -775,13 +804,13 @@ const FieldMappingSuggestions: React.FC = () => {
                   <Select.Option value="body">body</Select.Option>
                 </Select>
                 <Select value={decisionSourceFilter} onChange={(value) => setDecisionSourceFilter(value as DecisionSourceFilter)} style={{ width: 140 }}>
-                  <Select.Option value="all">all source</Select.Option>
-                  <Select.Option value="rule">rule</Select.Option>
-                  <Select.Option value="ai">ai</Select.Option>
-                  <Select.Option value="fallback">fallback</Select.Option>
+                  <Select.Option value="all">全部来源</Select.Option>
+                  <Select.Option value="rule">规则</Select.Option>
+                  <Select.Option value="ai">AI</Select.Option>
+                  <Select.Option value="fallback">降级</Select.Option>
                 </Select>
                 <Select value={relationTypeFilter} onChange={(value) => setRelationTypeFilter(value as RelationTypeFilter)} style={{ width: 140 }}>
-                  <Select.Option value="all">all relation</Select.Option>
+                  <Select.Option value="all">全部关系</Select.Option>
                   <Select.Option value="direct">direct</Select.Option>
                   <Select.Option value="fk">fk</Select.Option>
                   <Select.Option value="derived">derived</Select.Option>
@@ -827,7 +856,19 @@ const FieldMappingSuggestions: React.FC = () => {
                   columns={suggestionColumns}
                   dataSource={visibleSuggestions}
                   scroll={{ y: 'calc(100vh - 520px)' }}
-                  pagination={{ pageSize: 10, hideOnSinglePage: true }}
+                  pagination={{
+                    current: suggestionPage,
+                    pageSize: suggestionPageSize,
+                    total: suggestionTotal,
+                    showSizeChanger: true,
+                    pageSizeOptions: suggestionPageSizeOptions,
+                    hideOnSinglePage: false,
+                    showTotal: (total) => `共 ${total} 条`,
+                    onChange: (page, pageSize) => {
+                      setSuggestionPage(page)
+                      setSuggestionPageSize(pageSize)
+                    },
+                  }}
                   locale={{ emptyText: <Empty description="当前任务还没有可审阅的建议结果" /> }}
                 />
               </Spin>
@@ -876,9 +917,9 @@ const FieldMappingSuggestions: React.FC = () => {
                   onChange={(value) => setMappingFilter(value as MappingFilter)}
                   options={[
                     { label: '全部', value: 'all' },
-                    { label: 'Confirmed', value: 'confirmed' },
-                    { label: 'Rejected', value: 'rejected' },
-                    { label: 'Proposed', value: 'proposed' },
+                    { label: '已确认', value: 'confirmed' },
+                    { label: '已拒绝', value: 'rejected' },
+                    { label: '待审核', value: 'proposed' },
                   ]}
                 />
               </div>
@@ -915,22 +956,22 @@ const FieldMappingSuggestions: React.FC = () => {
                 </Space>
               </Descriptions.Item>
               <Descriptions.Item label="字段路径">{selectedSuggestion.api_field_path}</Descriptions.Item>
-              <Descriptions.Item label="??">
+              <Descriptions.Item label="状态">
                 <Tag color={getStatusColor(selectedSuggestion.status || 'pending')}>
                   {selectedSuggestion.status || 'pending'}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Decision Source">
+              <Descriptions.Item label="决策来源">
                 <Tag color={getDecisionSourceColor(selectedSuggestion.decision_source || selectedSuggestion.decision_artifact?.decision_source)}>
                   {selectedSuggestion.decision_source || selectedSuggestion.decision_artifact?.decision_source || 'rule'}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Relation Type">
+              <Descriptions.Item label="关系类型">
                 <Tag color={getRelationTypeColor(selectedSuggestion.relation_type || selectedSuggestion.decision_artifact?.relation_type)}>
                   {selectedSuggestion.relation_type || selectedSuggestion.decision_artifact?.relation_type || 'direct'}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Confidence">
+              <Descriptions.Item label="最终置信度">
                 {formatPercent(selectedSuggestion.confidence ?? selectedSuggestion.decision_artifact?.confidence)}
               </Descriptions.Item>
             </Descriptions>
@@ -938,16 +979,16 @@ const FieldMappingSuggestions: React.FC = () => {
             {selectedSuggestion.decision_artifact ? (
               <Card className="governance-note-card" bordered={false}>
                 <Space direction="vertical" size={10} style={{ width: '100%' }}>
-                  <Title level={5} style={{ marginBottom: 0 }}>Decision Artifact</Title>
+                  <Title level={5} style={{ marginBottom: 0 }}>决策产物</Title>
                   <Descriptions size="small" column={1}>
-                    <Descriptions.Item label="top candidate">
+                    <Descriptions.Item label="最高候选">
                       {selectedSuggestion.decision_artifact.top_candidate
                         ? `${selectedSuggestion.decision_artifact.top_candidate.db_table}.${selectedSuggestion.decision_artifact.top_candidate.db_column}`
                         : '-'}
                     </Descriptions.Item>
-                    <Descriptions.Item label="source">{selectedSuggestion.decision_artifact.decision_source || '-'}</Descriptions.Item>
-                    <Descriptions.Item label="relation">{selectedSuggestion.decision_artifact.relation_type || '-'}</Descriptions.Item>
-                    <Descriptions.Item label="confidence">{formatPercent(selectedSuggestion.decision_artifact.confidence)}</Descriptions.Item>
+                    <Descriptions.Item label="来源">{selectedSuggestion.decision_artifact.decision_source || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="关系">{selectedSuggestion.decision_artifact.relation_type || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="置信度">{formatPercent(selectedSuggestion.decision_artifact.confidence)}</Descriptions.Item>
                   </Descriptions>
                 </Space>
               </Card>
@@ -965,11 +1006,11 @@ const FieldMappingSuggestions: React.FC = () => {
                           <Space wrap>
                             <Text strong>{candidate.db_table}.{candidate.db_column}</Text>
                             <Tag color={candidate.ai_selected ? 'green' : 'blue'}>
-                              {candidate.ai_selected ? 'AI selected' : 'Rule selected'}
+                              {candidate.ai_selected ? 'AI 选中' : '规则选中'}
                             </Tag>
                           </Space>
-                          <Text type="secondary">score: {(candidate.score * 100).toFixed(1)}%</Text>
-                          {typeof candidate.confidence === 'number' ? <Text type="secondary">confidence: {formatPercent(candidate.confidence)}</Text> : null}
+                          <Text type="secondary">score: {(candidate.score * 100).toFixed(1)}%（排序分）</Text>
+                          {typeof candidate.confidence === 'number' ? <Text type="secondary">confidence: {formatPercent(candidate.confidence)}（最终置信度）</Text> : null}
                           {candidate.relation_type ? <Text type="secondary">relation: {candidate.relation_type}</Text> : null}
                           {candidate.negative_evidence?.length ? <Text type="secondary">negative: {candidate.negative_evidence.join(' / ')}</Text> : null}
                           {candidate.reject_reasons?.length ? <Text type="secondary">reject: {candidate.reject_reasons.join(' / ')}</Text> : null}
@@ -987,34 +1028,34 @@ const FieldMappingSuggestions: React.FC = () => {
             {selectedSuggestion.decision_trace ? (
               <Card className="governance-note-card" bordered={false}>
                 <Space direction="vertical" size={10} style={{ width: '100%' }}>
-                  <Text type="secondary">Decision Trace</Text>
+                  <Text type="secondary">决策轨迹</Text>
                   <Descriptions size="small" column={1}>
-                    <Descriptions.Item label="source">
+                    <Descriptions.Item label="来源">
                       {renderTraceValue(selectedSuggestion.decision_trace.decision_source)}
                     </Descriptions.Item>
-                    <Descriptions.Item label="top candidate">
+                    <Descriptions.Item label="最高候选">
                       {renderTraceValue(selectedSuggestion.decision_trace.top_candidate_key || selectedSuggestion.decision_trace.top_final_candidate)}
                     </Descriptions.Item>
-                    <Descriptions.Item label="relation">
+                    <Descriptions.Item label="关系">
                       {renderTraceValue(selectedSuggestion.decision_trace.relation_type)}
                     </Descriptions.Item>
-                    <Descriptions.Item label="confidence">
+                    <Descriptions.Item label="置信度">
                       {typeof selectedSuggestion.decision_trace.confidence === 'number'
                         ? formatPercent(selectedSuggestion.decision_trace.confidence)
                         : renderTraceValue(selectedSuggestion.decision_trace.confidence)}
                     </Descriptions.Item>
-                    <Descriptions.Item label="fallback reason">
+                    <Descriptions.Item label="降级原因">
                       {renderTraceValue(selectedSuggestion.decision_trace.fallback_reason)}
                     </Descriptions.Item>
-                    <Descriptions.Item label="runtime prior">
+                    <Descriptions.Item label="运行时先验">
                       {renderKeyValueTags((selectedSuggestion.decision_trace.runtime_table_prior || {}) as Record<string, unknown>)}
                     </Descriptions.Item>
-                    <Descriptions.Item label="negative evidence">
+                    <Descriptions.Item label="负向证据">
                       {selectedSuggestion.candidates?.[0]?.negative_evidence?.length
                         ? selectedSuggestion.candidates[0].negative_evidence.join(' / ')
                         : '-'}
                     </Descriptions.Item>
-                    <Descriptions.Item label="reject reasons">
+                    <Descriptions.Item label="拒绝原因">
                       {selectedSuggestion.candidates?.[0]?.reject_reasons?.length
                         ? selectedSuggestion.candidates[0].reject_reasons.join(' / ')
                         : '-'}

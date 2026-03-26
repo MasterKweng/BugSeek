@@ -45,7 +45,11 @@ const FieldMappingTaskObservability: React.FC<FieldMappingTaskObservabilityProps
   }
 
   const artifactsSummary = task.artifacts_summary
-  const consistencyOk = task.statistics?.consistency_ok
+  const consistencyOk = task.consistency_ok ?? task.statistics?.consistency_ok
+  const consistencyDiff = task.consistency_diff ?? task.statistics?.consistency_diff
+  const resultTableMismatch = task.result_table_mismatch ?? task.statistics?.result_table_mismatch
+  const resultTraceMismatch = task.result_trace_mismatch ?? task.statistics?.result_trace_mismatch
+  const resultArtifactMismatch = task.result_artifact_mismatch ?? task.statistics?.result_artifact_mismatch
 
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
@@ -79,8 +83,15 @@ const FieldMappingTaskObservability: React.FC<FieldMappingTaskObservabilityProps
           by stage: {Object.entries(artifactsSummary.by_stage || {}).map(([key, value]) => `${key}:${value}`).join(', ') || '-'}
         </Text>
       ) : null}
-      {typeof task.statistics?.consistency_diff === 'number' ? (
-        <Text type="secondary">consistency diff: {task.statistics.consistency_diff}</Text>
+      {typeof consistencyDiff === 'number' ? (
+        <Text type="secondary">consistency diff: {consistencyDiff}</Text>
+      ) : null}
+      {!consistencyOk && (resultTableMismatch || resultTraceMismatch || resultArtifactMismatch) ? (
+        <Space wrap>
+          {resultTableMismatch ? <Tag color="error">table mismatch</Tag> : null}
+          {resultTraceMismatch ? <Tag color="error">trace mismatch</Tag> : null}
+          {resultArtifactMismatch ? <Tag color="error">artifact mismatch</Tag> : null}
+        </Space>
       ) : null}
       {task.progress_message ? <Text type="secondary">{task.progress_message}</Text> : null}
       {task.error_message ? <Alert type="error" showIcon message={task.error_message} /> : null}

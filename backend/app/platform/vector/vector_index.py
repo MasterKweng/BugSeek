@@ -81,6 +81,7 @@ class VectorIndexManager:
         self.model: Optional[SentenceTransformer] = None
         self.schema_hash: Optional[str] = None
         self._use_fallback = False
+        self._embedding_dimension: Optional[int] = None
         
         logger.debug(f"[{self.trace_id}] VectorIndexManager 初始化完成, cache_dir={self.cache_dir}")
     
@@ -141,6 +142,40 @@ class VectorIndexManager:
         if self._use_fallback or self.model is None:
             return self._fallback_encode(texts)
         return self.model.encode(texts, convert_to_numpy=True, show_progress_bar=False)
+
+    def get_embedding_dimension(self) -> int:
+        """Return the active encoder dimension for cache compatibility checks."""
+        if self._embedding_dimension is not None:
+            return self._embedding_dimension
+
+        self._load_model()
+        if self._use_fallback or self.model is None:
+            self._embedding_dimension = 128
+            return self._embedding_dimension
+
+        try:
+            self._embedding_dimension = int(self.model.get_sentence_embedding_dimension())
+        except Exception:
+            self._embedding_dimension = int(self._encode(["dimension_probe"]).shape[1])
+        return self._embedding_dimension
+
+    def ensure_index_compatible(self, schema_snapshot: Dict[str, Any]) -> None:
+        """Rebuild stale cached vectors when their dimension mismatches the active encoder."""
+        if self.column_vectors is None or len(self.column_vectors) == 0:
+            self.build_index(schema_snapshot)
+            return
+
+        cached_dim = int(self.column_vectors.shape[1]) if self.column_vectors.ndim == 2 else 0
+        active_dim = self.get_embedding_dimension()
+        if cached_dim == active_dim:
+            return
+
+        logger.warning(
+            f"[{self.trace_id}] Cached vector dimension mismatch, rebuilding index: "
+            f"cached_dim={cached_dim}, active_dim={active_dim}"
+        )
+        self.clear_cache()
+        self.build_index(schema_snapshot, force_rebuild=True)
     
     def _build_feature_text(self, table: str, column: str, column_type: str, comment: Optional[str] = None) -> str:
         """
@@ -320,6 +355,11 @@ class VectorIndexManager:
         
         # 计算查询向量
         query_vec = self._encode([query])
+        if self.column_vectors.shape[1] != query_vec.shape[1]:
+            raise ValueError(
+                "Vector dimension mismatch: "
+                f"cached_dim={self.column_vectors.shape[1]}, query_dim={query_vec.shape[1]}"
+            )
         
         allowed_table_set = set(allowed_tables) if allowed_tables else None
         if allowed_table_set is not None:
@@ -493,6 +533,9 @@ class VectorIndexManager:
     
     def clear_cache(self):
         """清除缓存文件"""
+        self.column_vectors = None
+        self.column_meta = None
+        self.schema_hash = None
         if self.cache_file.exists():
             self.cache_file.unlink()
             logger.info(f"[{self.trace_id}] 向量索引缓存已清除")

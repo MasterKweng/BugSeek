@@ -7,11 +7,9 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
-from app.platform.config.settings import settings
 from app.platform.db.base import ApiDefinition, AsyncTask, DbSchemaVersion
 from .contracts import DecisionArtifact, DecisionCandidate
 from .ai.enricher import AIFieldMappingEnricher
-from .orchestration.legacy_runner import LegacyFieldMappingJobRunner
 from .orchestration.job_runner import (
     EngineV2FieldMappingJobRunner,
     FieldMappingJobRunner,
@@ -543,6 +541,8 @@ class FieldMappingJobService:
         engine_version: str = "engine_v2",
         ai_confidence_threshold: float = 0.7,
     ) -> Dict[str, Any]:
+        if engine_version != "engine_v2":
+            raise ValueError(f"unsupported engine_version for production task flow: {engine_version}")
         params: Dict[str, Any] = {
             "project_id": project_id,
             "version_id": version_id,
@@ -569,8 +569,6 @@ class FieldMappingJobService:
     def _resolve_runner(self, task: AsyncTask) -> FieldMappingJobRunner:
         params = task.task_params or {}
         engine_version = params.get("engine_version", "engine_v2")
-        if engine_version == "legacy":
-            if not settings.FIELD_MAPPING_LEGACY_FALLBACK_ENABLED:
-                raise ValueError("legacy field mapping fallback is disabled")
-            return LegacyFieldMappingJobRunner(self.db)
+        if engine_version != "engine_v2":
+            raise ValueError(f"unsupported engine_version for production task flow: {engine_version}")
         return EngineV2FieldMappingJobRunner(self.db)
