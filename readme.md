@@ -1,48 +1,38 @@
-# BugSeek
+﻿# BugSeek
 
-BugSeek 是一个 AI 驱动的测试质量平台，提供从需求洞察到 CI/CD 集成的全流程测试解决方案。
-
-## 项目结构
+BugSeek 鏄竴涓?AI 椹卞姩鐨勬祴璇曡川閲忓钩鍙帮紝鎻愪緵浠庨渶姹傛礊瀵熷埌 CI/CD 闆嗘垚鐨勫叏娴佺▼娴嬭瘯瑙ｅ喅鏂规銆?
+## 椤圭洰缁撴瀯
 
 ```
 BugSeek/
-├── backend/           # 后端项目（FastAPI + Python）
-├── frontend/          # 前端项目（React + TypeScript + Ant Design）
-└── README.md
+鈹溾攢鈹€ backend/           # 鍚庣椤圭洰锛團astAPI + Python锛?鈹溾攢鈹€ frontend/          # 鍓嶇椤圭洰锛圧eact + TypeScript + Ant Design锛?鈹斺攢鈹€ README.md
 ```
 
-## 技术栈
+## 鎶€鏈爤
 
-### 后端
-- FastAPI - Web 框架
-- PostgreSQL - 数据库
-- SQLAlchemy - ORM
-- JWT - 认证
-- prance - OpenAPI 文档解析
-- Celery - 异步任务队列
-- Redis - 消息队列和缓存
-- Docker - 容器化部署
+### 鍚庣
+- FastAPI - Web 妗嗘灦
+- PostgreSQL - 鏁版嵁搴?- SQLAlchemy - ORM
+- JWT - 璁よ瘉
+- prance - OpenAPI 鏂囨。瑙ｆ瀽
+- Celery - 寮傛浠诲姟闃熷垪
+- Redis - 娑堟伅闃熷垪鍜岀紦瀛?- Docker - 瀹瑰櫒鍖栭儴缃?
+### 鍓嶇
+- React 18 - UI 妗嗘灦
+- TypeScript - 绫诲瀷瀹夊叏
+- Ant Design 5 - UI 缁勪欢搴?- Vite - 鏋勫缓宸ュ叿
+- Zustand - 鐘舵€佺鐞?- React Router - 璺敱绠＄悊
 
-### 前端
-- React 18 - UI 框架
-- TypeScript - 类型安全
-- Ant Design 5 - UI 组件库
-- Vite - 构建工具
-- Zustand - 状态管理
-- React Router - 路由管理
+## 蹇€熷紑濮?
+### 鍓嶆彁鏉′欢
 
-## 快速开始
-
-### 前提条件
-
-- Docker 和 Docker Compose 已安装
-- Python 3.10+
+- Docker 鍜?Docker Compose 宸插畨瑁?- Python 3.10+
 - Node.js 18+
 
-### 1. 启动 PostgreSQL 数据库（如果未启动）
+### 1. 鍚姩 PostgreSQL 鏁版嵁搴擄紙濡傛灉鏈惎鍔級
 
 ```bash
-# 使用 Docker 启动 PostgreSQL
+# 浣跨敤 Docker 鍚姩 PostgreSQL
 docker run -d \
   --name bugseek-postgres \
   -e POSTGRES_DB=bugseek \
@@ -52,60 +42,50 @@ docker run -d \
   postgres:15
 ```
 
-### 1.5 安装 pgvector 扩展（必需）
-
-pgvector 是 PostgreSQL 的向量相似度搜索扩展，用于优化方案 V2.0 的向量索引功能。
-
-#### 安装步骤：
-
+### 1.5 瀹夎 pgvector 鎵╁睍锛堝繀闇€锛?
+pgvector 鏄?PostgreSQL 鐨勫悜閲忕浉浼煎害鎼滅储鎵╁睍锛岀敤浜庝紭鍖栨柟妗?V2.0 鐨勫悜閲忕储寮曞姛鑳姐€?
+#### 瀹夎姝ラ锛?
 ```bash
-# 1. 进入 PostgreSQL 容器
+# 1. 杩涘叆 PostgreSQL 瀹瑰櫒
 docker exec -it bugseek-postgres bash
 
-# 2. 安装编译依赖
+# 2. 瀹夎缂栬瘧渚濊禆
 apt-get update
 apt-get install -y git build-essential postgresql-server-dev-15
 
-# 3. 下载并编译 pgvector（版本 v0.5.1）
-cd /tmp
+# 3. 涓嬭浇骞剁紪璇?pgvector锛堢増鏈?v0.5.1锛?cd /tmp
 git clone --branch v0.5.1 https://github.com/pgvector/pgvector.git
 cd pgvector
 make
 make install
 
-# 4. 验证安装
+# 4. 楠岃瘉瀹夎
 ls /usr/lib/postgresql/15/lib/vector.so
 
-# 5. 启用扩展
+# 5. 鍚敤鎵╁睍
 psql -U bugseek -d bugseek
 CREATE EXTENSION IF NOT EXISTS vector;
 \dx
-# 应该看到：vector | 0.5.1 | public
+# 搴旇鐪嬪埌锛歷ector | 0.5.1 | public
 \q
 
-# 6. 退出容器
-exit
+# 6. 閫€鍑哄鍣?exit
 ```
 
-#### 验证安装：
-
+#### 楠岃瘉瀹夎锛?
 ```bash
-# 连接数据库测试
-docker exec -it bugseek-postgres psql -U bugseek -d bugseek
+# 杩炴帴鏁版嵁搴撴祴璇?docker exec -it bugseek-postgres psql -U bugseek -d bugseek
 
-# 创建测试表
-CREATE TABLE test_vector (id serial, embedding vector(3));
+# 鍒涘缓娴嬭瘯琛?CREATE TABLE test_vector (id serial, embedding vector(3));
 INSERT INTO test_vector (embedding) VALUES ('[1,2,3]');
 SELECT * FROM test_vector;
 DROP TABLE test_vector;
 ```
 
-**注意**：pgvector 扩展只需要安装一次，容器重启后仍然有效。
-
-### 2. 启动 Redis（如果未启动）
-
+**娉ㄦ剰**锛歱gvector 鎵╁睍鍙渶瑕佸畨瑁呬竴娆★紝瀹瑰櫒閲嶅惎鍚庝粛鐒舵湁鏁堛€?
+### 2. 鍚姩 Redis锛堝鏋滄湭鍚姩锛?
 ```bash
-# 使用 Docker 启动 Redis（端口 6380，与其他项目的 Redis 分开，避免冲突）
+# 浣跨敤 Docker 鍚姩 Redis锛堢鍙?6380锛屼笌鍏朵粬椤圭洰鐨?Redis 鍒嗗紑锛岄伩鍏嶅啿绐侊級
 docker run -d \
   --name bugseek-redis \
   -p 0.0.0.0:6380:6380 \
@@ -114,300 +94,273 @@ docker run -d \
 ```
 docker start bugseek-redis
 
-**说明**: Redis 使用端口 6380（映射到容器内的 6379），与其他项目的 Redis（如 6379）分开，避免冲突。
-
-### 3. 启动 Celery Worker
+**璇存槑**: Redis 浣跨敤绔彛 6380锛堟槧灏勫埌瀹瑰櫒鍐呯殑 6379锛夛紝涓庡叾浠栭」鐩殑 Redis锛堝 6379锛夊垎寮€锛岄伩鍏嶅啿绐併€?
+### 3. 鍚姩 Celery Worker
 
 ```bash
 cd backend
 
-# 使用命令行启动 Celery Worker
+# 浣跨敤鍛戒护琛屽惎鍔?Celery Worker
 celery -A app.celery_config worker --loglevel=info --pool=solo
 ```
 
-**说明**: Celery Worker 会连接到 Redis（端口 6380）作为消息队列，处理异步任务。
+**璇存槑**: Celery Worker 浼氳繛鎺ュ埌 Redis锛堢鍙?6380锛変綔涓烘秷鎭槦鍒楋紝澶勭悊寮傛浠诲姟銆?
+**鍙傛暟璇存槑**:
+- `-A app.celery_config`: 鎸囧畾 Celery 搴旂敤閰嶇疆妯″潡
+- `worker`: 鍚姩 worker 杩涚▼
+- `--loglevel=info`: 鏃ュ織绾у埆涓?info
+- `--pool=solo`: 浣跨敤 solo 姹狅紙鍗曡繘绋嬶紝閫傚悎寮€鍙戠幆澧冿級
 
-**参数说明**:
-- `-A app.celery_config`: 指定 Celery 应用配置模块
-- `worker`: 启动 worker 进程
-- `--loglevel=info`: 日志级别为 info
-- `--pool=solo`: 使用 solo 池（单进程，适合开发环境）
-
-### 4. 启动后端服务
+### 4. 鍚姩鍚庣鏈嶅姟
 
 ```bash
 cd backend
 
-# 创建虚拟环境（可选）
+# 鍒涘缓铏氭嫙鐜锛堝彲閫夛級
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# 安装依赖
+# 瀹夎渚濊禆
 pip install -r requirements.txt
 
-# 配置环境变量
+# 閰嶇疆鐜鍙橀噺
 cp .env.example .env
-# 编辑 .env 文件，配置数据库连接等信息
+# 缂栬緫 .env 鏂囦欢锛岄厤缃暟鎹簱杩炴帴绛変俊鎭?
+# 鍒濆鍖栨暟鎹簱
+python migrations/init_tables.py
 
-# 初始化数据库
-python -c "from app.db.session import init_db; init_db()"
-
-# 启动服务
+# 鍚姩鏈嶅姟
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-后端服务将在 http://localhost:8000 启动
+鍚庣鏈嶅姟灏嗗湪 http://localhost:8000 鍚姩
 
-API 文档：http://localhost:8000/docs
+API 鏂囨。锛歨ttp://localhost:8000/docs
 
-### 5. 启动前端服务
+### 4.1 鏁版嵁搴撳垵濮嬪寲璇存槑
+
+褰撳墠椤圭洰鐨勬暟鎹簱鍒濆鍖栧彧淇濈暀涓€鏉¤矾寰勶細
+
+```bash
+cd backend
+python migrations/init_tables.py
+```
+
+- `backend/migrations/init_tables.py` 鏄綋鍓嶅敮涓€鍙墽琛岀殑鍒濆鍖栧叆鍙ｃ€�
+- `backend/migrations/init_schema.sql` 鏄笌鍏朵竴鑷寸殑 SQL 瀵煎嚭鏂囦欢锛屼究浜庡鏌ユ垨鍦ㄥ閮ㄧ幆澧冩墽琛屻€�
+- `backend/migrations/generate_init_tables.py` 鐢ㄤ簬浠庡綋鍓嶇湡瀹?PostgreSQL 缁撴瀯鍙嶅皠骞堕噸鏂扮敓鎴愬垵濮嬪寲鑴氭湰銆€�
+- 鍘熷厛闆舵暎鐨勬棫杩佺Щ鑴氭湰宸插綊妗ｅ埌 `backend/migrations/archived/`锛屼粎淇濈暀鍘嗗彶锛屼笉鍐嶄綔涓哄綋鍓嶅垵濮嬪寲鏂瑰紡銆€�
+
+### 5. 鍚姩鍓嶇鏈嶅姟
 
 ```bash
 cd frontend
 
-# 安装依赖
+# 瀹夎渚濊禆
 npm install
 
-# 启动开发服务器
+# 鍚姩寮€鍙戞湇鍔″櫒
 npm run dev
 ```
 
-前端服务将在 http://localhost:3000 启动
+鍓嶇鏈嶅姟灏嗗湪 http://localhost:3000 鍚姩
 
-## 服务管理
+## 鏈嶅姟绠＄悊
 
-### 查看服务状态
-
+### 鏌ョ湅鏈嶅姟鐘舵€?
 ```bash
-# 查看 Docker 容器状态
-docker ps
+# 鏌ョ湅 Docker 瀹瑰櫒鐘舵€?docker ps
 
-# 查看 Redis 日志
+# 鏌ョ湅 Redis 鏃ュ織
 docker logs -f bugseek-redis
 
-# 查看 PostgreSQL 日志
+# 鏌ョ湅 PostgreSQL 鏃ュ織
 docker logs -f bugseek-postgres
 ```
 
-### 停止服务
+### 鍋滄鏈嶅姟
 
 ```bash
-# 停止 Redis
+# 鍋滄 Redis
 docker stop bugseek-redis
 docker rm bugseek-redis
 
-# 停止 PostgreSQL
+# 鍋滄 PostgreSQL
 docker stop bugseek-postgres
 docker rm bugseek-postgres
 
-# 停止 Celery Worker（按 Ctrl+C）
-```
+# 鍋滄 Celery Worker锛堟寜 Ctrl+C锛?```
 
-### 重启服务
+### 閲嶅惎鏈嶅姟
 
 ```bash
-# 重启 Redis
+# 閲嶅惎 Redis
 docker restart bugseek-redis
 
-# 重启 PostgreSQL
+# 閲嶅惎 PostgreSQL
 docker restart bugseek-postgres
 
-# 重启 Celery Worker
-# 先停止（按 Ctrl+C），然后重新执行启动命令：
-cd backend
+# 閲嶅惎 Celery Worker
+# 鍏堝仠姝紙鎸?Ctrl+C锛夛紝鐒跺悗閲嶆柊鎵ц鍚姩鍛戒护锛?cd backend
 celery -A app.celery_config worker --loglevel=info --pool=solo
 ```
 
-## 功能模块
+## 鍔熻兘妯″潡
 
-### 已实现
+### 宸插疄鐜?
+#### 鐧诲綍娉ㄥ唽妯″潡
+- 鐢ㄦ埛娉ㄥ唽
+- 鐢ㄦ埛鐧诲綍
+- 鑾峰彇鐢ㄦ埛淇℃伅
+- 淇敼瀵嗙爜
+- 鏇存柊鐢ㄦ埛淇℃伅
+- 鐢ㄦ埛鐧诲嚭
 
-#### 登录注册模块
-- 用户注册
-- 用户登录
-- 获取用户信息
-- 修改密码
-- 更新用户信息
-- 用户登出
+#### 鎺ュ彛鏂囨。绠＄悊妯″潡
+- 瀵煎叆鎺ュ彛鏂囨。锛圫wagger/OpenAPI锛?- 鏂囨。鍒楄〃灞曠ず
+- 鏂囨。璇︽儏鏌ョ湅
+- 鍒犻櫎鏂囨。
 
-#### 接口文档管理模块
-- 导入接口文档（Swagger/OpenAPI）
-- 文档列表展示
-- 文档详情查看
-- 删除文档
+#### 鎺ュ彛瀹氫箟绠＄悊妯″潡
+- 鎺ュ彛鍒楄〃灞曠ず
+- 鎺ュ彛璇︽儏鏌ョ湅
+- 鎺ュ彛鎼滅储
+- 鎺ュ彛杩囨护锛堟寜鏂规硶锛?
+#### 鏅鸿兘鍦烘櫙缁勮妯″潡
+- 鎺ュ彛渚濊禆鍒嗘瀽锛堝熀浜庡垎缁勭殑寮傛鍒嗘瀽锛?- 涓氬姟閾捐矾璇嗗埆
+- 鍦烘櫙鑷姩鐢熸垚
+- 鍦烘櫙渚濊禆鍥惧彲瑙嗗寲
+- 鍦烘櫙鎵ц锛堟敮鎸佸彉閲忎紶閫掞級
 
-#### 接口定义管理模块
-- 接口列表展示
-- 接口详情查看
-- 接口搜索
-- 接口过滤（按方法）
-
-#### 智能场景组装模块
-- 接口依赖分析（基于分组的异步分析）
-- 业务链路识别
-- 场景自动生成
-- 场景依赖图可视化
-- 场景执行（支持变量传递）
-
-#### 模块依赖分析模块
-- **基于资源生命周期的模块内链路生成**
-  - 资源聚类：按 URL 路径识别资源实体
-  - 操作分类：Creator/Reader/Updater/Deleter/Action
-  - 生命周期链路：POST → GET → PUT/PATCH → DELETE
-  - 优化效果：从 96,337 条链路优化到 5-8 条核心链路
-
-- **基于资源上下文的模块间依赖分析（通用算法）**
-  - **算法特点**：
-    - ✅ 高度通用：适用于任何基于 OpenAPI/Swagger 规范的 RESTful API 系统
-    - ✅ 核心算法抽象：倒排索引、资源上下文分析、多级匹配策略
-    - ✅ 可配置化：语义映射表、资源类型定义、权重系数均可定制
-    - ✅ 智能化：支持自动提取资源类型、智能推荐语义别名
-    - ✅ 性能优化：从 O(N²) 优化到接近 O(M) 的线性复杂度
-    - ✅ 高质量：只保留高置信度依赖，避免组合爆炸
+#### 妯″潡渚濊禆鍒嗘瀽妯″潡
+- **鍩轰簬璧勬簮鐢熷懡鍛ㄦ湡鐨勬ā鍧楀唴閾捐矾鐢熸垚**
+  - 璧勬簮鑱氱被锛氭寜 URL 璺緞璇嗗埆璧勬簮瀹炰綋
+  - 鎿嶄綔鍒嗙被锛欳reator/Reader/Updater/Deleter/Action
+  - 鐢熷懡鍛ㄦ湡閾捐矾锛歅OST 鈫?GET 鈫?PUT/PATCH 鈫?DELETE
+  - 浼樺寲鏁堟灉锛氫粠 96,337 鏉￠摼璺紭鍖栧埌 5-8 鏉℃牳蹇冮摼璺?
+- **鍩轰簬璧勬簮涓婁笅鏂囩殑妯″潡闂翠緷璧栧垎鏋愶紙閫氱敤绠楁硶锛?*
+  - **绠楁硶鐗圭偣**锛?    - 鉁?楂樺害閫氱敤锛氶€傜敤浜庝换浣曞熀浜?OpenAPI/Swagger 瑙勮寖鐨?RESTful API 绯荤粺
+    - 鉁?鏍稿績绠楁硶鎶借薄锛氬€掓帓绱㈠紩銆佽祫婧愪笂涓嬫枃鍒嗘瀽銆佸绾у尮閰嶇瓥鐣?    - 鉁?鍙厤缃寲锛氳涔夋槧灏勮〃銆佽祫婧愮被鍨嬪畾涔夈€佹潈閲嶇郴鏁板潎鍙畾鍒?    - 鉁?鏅鸿兘鍖栵細鏀寔鑷姩鎻愬彇璧勬簮绫诲瀷銆佹櫤鑳芥帹鑽愯涔夊埆鍚?    - 鉁?鎬ц兘浼樺寲锛氫粠 O(N虏) 浼樺寲鍒版帴杩?O(M) 鐨勭嚎鎬у鏉傚害
+    - 鉁?楂樿川閲忥細鍙繚鐣欓珮缃俊搴︿緷璧栵紝閬垮厤缁勫悎鐖嗙偢
   
-  - **适用系统**：
-    - 🟢 **高度适用**：电商系统（Product, Order, Customer）、CRM 系统、ERP 系统
-    - 🟡 **中等适用**：社交平台（User, Post, Comment）、微服务架构
-    - ❌ **不适用**：没有 API 文档规范的遗留系统、非 RESTful 系统（RPC/GraphQL）
-
-  - **调整步骤**：
-    1. **定义语义映射表**（必填）：
-       ```python
+  - **閫傜敤绯荤粺**锛?    - 馃煝 **楂樺害閫傜敤**锛氱數鍟嗙郴缁燂紙Product, Order, Customer锛夈€丆RM 绯荤粺銆丒RP 绯荤粺
+    - 馃煛 **涓瓑閫傜敤**锛氱ぞ浜ゅ钩鍙帮紙User, Post, Comment锛夈€佸井鏈嶅姟鏋舵瀯
+    - 鉂?**涓嶉€傜敤**锛氭病鏈?API 鏂囨。瑙勮寖鐨勯仐鐣欑郴缁熴€侀潪 RESTful 绯荤粺锛圧PC/GraphQL锛?
+  - **璋冩暣姝ラ**锛?    1. **瀹氫箟璇箟鏄犲皠琛?*锛堝繀濉級锛?       ```python
        semantic_map = {
            'Product': ['product', 'item', 'goods', 'sku', 'product_id'],
            'Order': ['order', 'purchase_order', 'transaction'],
            'Customer': ['customer', 'user', 'buyer', 'client'],
        }
        ```
-    2. **自动提取资源类型**（推荐）：
-       ```python
+    2. **鑷姩鎻愬彇璧勬簮绫诲瀷**锛堟帹鑽愶級锛?       ```python
        analyzer = ResourceContextAnalyzer(db)
        analyzer.auto_extract_resources_from_schemas(endpoints)
        ```
-    3. **智能推荐语义别名**（可选）：
-       ```python
+    3. **鏅鸿兘鎺ㄨ崘璇箟鍒悕**锛堝彲閫夛級锛?       ```python
        analyzer.infer_semantic_aliases('Product', field_names)
        ```
-    4. **可选：调整权重系数**（根据业务需求微调）
+    4. **鍙€夛細璋冩暣鏉冮噸绯绘暟**锛堟牴鎹笟鍔￠渶姹傚井璋冿級
 
-  - **核心算法流程**：
-    - 第一阶段：静态语义解析与索引构建（倒排索引）
-    - 第二阶段：生产者遍历与匹配（O(1) 查找）
-    - 第三阶段：评分与过滤（必填项 + Action 接口加权）
+  - **鏍稿績绠楁硶娴佺▼**锛?    - 绗竴闃舵锛氶潤鎬佽涔夎В鏋愪笌绱㈠紩鏋勫缓锛堝€掓帓绱㈠紩锛?    - 绗簩闃舵锛氱敓浜ц€呴亶鍘嗕笌鍖归厤锛圤(1) 鏌ユ壘锛?    - 绗笁闃舵锛氳瘎鍒嗕笌杩囨护锛堝繀濉」 + Action 鎺ュ彛鍔犳潈锛?
+  - **渚濊禆绫诲瀷鏍囪**锛?    - HARD锛氬己渚濊禆锛坰trength 鈮?0.8 鎴?Action 鎺ュ彛鎴栧繀濉」锛?    - SOFT锛氬急渚濊禆锛堝叾浠栨儏鍐碉級
 
-  - **依赖类型标记**：
-    - HARD：强依赖（strength ≥ 0.8 或 Action 接口或必填项）
-    - SOFT：弱依赖（其他情况）
+  - **涓夎渚濊禆淇濈暀**锛氱‘淇濆叧閿笟鍔￠摼璺笉涓㈠け
 
-  - **三角依赖保留**：确保关键业务链路不丢失
+### 寰呭疄鐜?
+- 娴嬭瘯鑴氭湰鑷姩鐢熸垚
+- Mock 鏈嶅姟绠＄悊
+- 娴嬭瘯濂椾欢绠＄悊
+- 娴嬭瘯鎶ュ憡鐢熸垚
+- CI/CD 闆嗘垚
+- 绮惧噯娴嬭瘯锛圱IA锛?- 璐ㄩ噺闂ㄧ
 
-### 待实现
+## Docker 鏈嶅姟璇存槑
 
-- 测试脚本自动生成
-- Mock 服务管理
-- 测试套件管理
-- 测试报告生成
-- CI/CD 集成
-- 精准测试（TIA）
-- 质量门禁
+### 鏈嶅姟鏋舵瀯
 
-## Docker 服务说明
-
-### 服务架构
-
-BugSeek 使用 Docker 管理以下服务：
-
-| 服务 | 容器名 | 端口 | 用途 |
+BugSeek 浣跨敤 Docker 绠＄悊浠ヤ笅鏈嶅姟锛?
+| 鏈嶅姟 | 瀹瑰櫒鍚?| 绔彛 | 鐢ㄩ€?|
 |------|--------|------|------|
-| PostgreSQL | bugseek-postgres | 5432:5432 | 主数据库 |
-| Redis | bugseek-redis | 6380:6379 | Celery 任务队列 |
+| PostgreSQL | bugseek-postgres | 5432:5432 | 涓绘暟鎹簱 |
+| Redis | bugseek-redis | 6380:6379 | Celery 浠诲姟闃熷垪 |
 
-**Celery Worker** 通过命令行直接运行（不使用 Docker）
+**Celery Worker** 閫氳繃鍛戒护琛岀洿鎺ヨ繍琛岋紙涓嶄娇鐢?Docker锛?
+### 绔彛璇存槑
 
-### 端口说明
+- **5432**: PostgreSQL 鏁版嵁搴?- **6380**: BugSeek Redis锛堟槧灏勫埌瀹瑰櫒鍐呯殑 6379锛屼笌鍏朵粬椤圭洰鐨?Redis 鍒嗗紑锛岄伩鍏嶅啿绐侊級
+- **8000**: FastAPI 鍚庣鏈嶅姟
+- **3000**: 鍓嶇鏈嶅姟
 
-- **5432**: PostgreSQL 数据库
-- **6380**: BugSeek Redis（映射到容器内的 6379，与其他项目的 Redis 分开，避免冲突）
-- **8000**: FastAPI 后端服务
-- **3000**: 前端服务
-
-### 常用命令
+### 甯哥敤鍛戒护
 
 ```bash
-# 启动 Redis
+# 鍚姩 Redis
 docker start bugseek-redis
 
-# 停止 Redis
+# 鍋滄 Redis
 docker stop bugseek-redis
 
-# 启动 PostgreSQL
+# 鍚姩 PostgreSQL
 docker start bugseek-postgres
 
-# 停止 PostgreSQL
+# 鍋滄 PostgreSQL
 docker stop bugseek-postgres
 
-# 查看 Redis 日志
+# 鏌ョ湅 Redis 鏃ュ織
 docker logs -f bugseek-redis
 
-# 查看 PostgreSQL 日志
+# 鏌ョ湅 PostgreSQL 鏃ュ織
 docker logs -f bugseek-postgres
 
-# 进入 Redis 容器
+# 杩涘叆 Redis 瀹瑰櫒
 docker exec -it bugseek-redis redis-cli
 
-# 进入 PostgreSQL 容器
+# 杩涘叆 PostgreSQL 瀹瑰櫒
 docker exec -it bugseek-postgres psql -U bugseek -d bugseek
 ```
 
-## 开发说明
+## 寮€鍙戣鏄?
+### 鍚庣寮€鍙?
+- API 璺敱瀹氫箟鍦?`backend/app/api/v1/` 鐩綍涓?
+- 褰撳墠 SQLAlchemy 妯″瀷瀹氫箟鍦?`backend/app/platform/db/base.py`
+- 鏁版嵁搴撹繛鎺ュ拰 Session 鍦?`backend/app/platform/db/session.py`
+- 閰嶇疆鏂囦欢鍦?`backend/app/platform/config/settings.py`
+- 渚濊禆娉ㄥ叆锛?`backend/app/dependencies.py`
+### 鍓嶇寮€鍙?
+- 椤甸潰缁勪欢锛歚frontend/src/pages/`
+- 閫氱敤缁勪欢锛歚frontend/src/components/`
+- 鐘舵€佺鐞嗭細`frontend/src/store/`
+- API 鏈嶅姟锛歚frontend/src/services/`
+- 绫诲瀷瀹氫箟锛歚frontend/src/types/`
 
-### 后端开发
+## 鐜鍙橀噺
 
-- API 路由定义在 `backend/app/api/v1/` 目录下
-- 数据模型定义在 `backend/app/db/base.py`
-- 配置文件：`backend/app/config.py`
-- 依赖注入：`backend/app/dependencies.py`
-
-### 前端开发
-
-- 页面组件：`frontend/src/pages/`
-- 通用组件：`frontend/src/components/`
-- 状态管理：`frontend/src/store/`
-- API 服务：`frontend/src/services/`
-- 类型定义：`frontend/src/types/`
-
-## 环境变量
-
-### 后端环境变量（.env）
-
+### 鍚庣鐜鍙橀噺锛?env锛?
 ```bash
-# 数据库配置
-DATABASE_URL=postgresql://bugseek:bugseek@localhost:5432/bugseek
+# 鏁版嵁搴撻厤缃?DATABASE_URL=postgresql://bugseek:bugseek@localhost:5432/bugseek
 
-# JWT 配置
+# JWT 閰嶇疆
 SECRET_KEY=your-secret-key-change-in-production
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 
-# Redis 配置（用于 Celery 异步任务队列，端口 6380）
-REDIS_URL=redis://localhost:6380/0
+# Redis 閰嶇疆锛堢敤浜?Celery 寮傛浠诲姟闃熷垪锛岀鍙?6380锛?REDIS_URL=redis://localhost:6380/0
 
-# 文件上传配置
+# 鏂囦欢涓婁紶閰嶇疆
 UPLOAD_DIR=./uploads
 MAX_UPLOAD_SIZE=10485760
 
-# 日志配置
+# 鏃ュ織閰嶇疆
 LOG_DIR=./logs
 ```
 
-### 前端环境变量（.env）
-
+### 鍓嶇鐜鍙橀噺锛?env锛?
 ```bash
 VITE_API_BASE_URL=http://localhost:8000/api/v1
 ```
 
-## 许可证
-
+## 璁稿彲璇?
 MIT
 
 ## Frontend Build And Deploy
