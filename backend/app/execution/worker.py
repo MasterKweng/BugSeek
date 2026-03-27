@@ -1,4 +1,4 @@
-"""
+﻿"""
 用例执行引擎
 
 提供单用例执行和批量执行功能，用于执行 API 测试用例。
@@ -448,22 +448,36 @@ class CaseExecutor:
         """
         start_time = time.time()
         batch_trace_id = get_trace_id()
+        environment = next(iter(environments.values()))
+        parent_execution = self._create_batch_execution(
+            cases=cases,
+            environment=environment,
+            db=db,
+            project_id=project_id,
+            version_id=version_id,
+            operator_user_id=operator_user_id,
+            triggered_by=triggered_by,
+        )
 
         logger.info(f"[{batch_trace_id}] 开始批量执行: count={len(cases)}, max_concurrent={max_concurrent}")
 
         # 创建任务列表
         tasks = []
-        for case in cases:
+        for index, case in enumerate(cases):
             definition = definitions.get(case.definition_id)
-            environment = next(iter(environments.values()))  # 使用第一个环境
 
             task = self.execute_case(
                 case=case,
                 definition=definition,
                 environment=environment,
-                variables=variables,
+                variables=copy.deepcopy(variables),
                 db=db,
-                project_id=environment.project_id
+                project_id=environment.project_id,
+                version_id=version_id,
+                operator_user_id=operator_user_id,
+                parent_execution_id=parent_execution.id,
+                triggered_by=triggered_by,
+                sort_order=index,
             )
             tasks.append(task)
 
@@ -495,9 +509,18 @@ class CaseExecutor:
 
         # 计算总耗时
         total_time = int((time.time() - start_time) * 1000)
+        self._finalize_batch_execution(
+            execution=parent_execution,
+            total=len(cases),
+            success=success,
+            failed=failed,
+            total_time=total_time,
+            db=db,
+        )
 
         # 构建结果
         batch_result = {
+            "execution_id": parent_execution.id,
             "total": len(cases),
             "success": success,
             "failed": failed,
@@ -1456,9 +1479,14 @@ class CaseExecutor:
     async def _save_execution_record(
         self,
         case: ApiCase,
+        definition: ApiDefinition,
         environment: Environment,
         result: Dict[str, Any],
-        db: Session
+        db: Session,
+        version_id: Optional[int] = None,
+        operator_user_id: Optional[int] = None,
+        parent_execution_id: Optional[int] = None,
+        triggered_by: str = "manual",
     ):
         """
         保存执行记录
@@ -1473,12 +1501,30 @@ class CaseExecutor:
             # 创建执行记录
             execution = TestExecution(
                 project_id=case.project_id,
+                version_id=version_id,
                 execution_type=ExecutionType.SINGLE,
                 target_id=case.id,
+                parent_execution_id=parent_execution_id,
+                operator_user_id=operator_user_id,
+                title=case.name,
+                summary_json={
+                    "case_id": case.id,
+                    "case_name": case.name,
+                    "definition_id": definition.id,
+                    "method": definition.method,
+                    "path": definition.path,
+                },
+                result_status=self._aggregate_result_status(
+                    passed=1 if result["status"] == "passed" else 0,
+                    failed=0 if result["status"] == "passed" else 1,
+                    skipped=0,
+                ),
                 environment_id=environment.id,
                 execution_mode="sequential",
-                triggered_by="manual",
+                triggered_by=triggered_by,
                 status=ExecutionStatus.COMPLETED if result["status"] == "passed" else ExecutionStatus.FAILED,
+                started_at=datetime.utcnow(),
+                finished_at=datetime.utcnow(),
                 total=1,
                 passed=1 if result["status"] == "passed" else 0,
                 failed=0 if result["status"] == "passed" else 1,
@@ -1493,15 +1539,25 @@ class CaseExecutor:
             execution_result = TestExecutionResult(
                 execution_id=execution.id,
                 target_type="endpoint",
-                target_id=case.definition_id,
+                target_id=definition.id,
+                case_id=case.id,
+                definition_id=definition.id,
+                target_name=result.get("target_name"),
                 status=result["status"],
                 response_time=result["response_time"],
                 response_code=result["response_code"],
-                response_body={"raw": result["response_body"]},
-                request_body={"raw": result["request_body"]},
+                response_body=result["response_payload"],
+                request_body=result["request_payload"],
+                response_headers=result.get("response_headers") or {},
+                request_headers=result.get("request_headers") or {},
+                request_display_type=result["request_payload"].get("display_type"),
+                response_display_type=result["response_payload"].get("display_type"),
                 assertion_results=result["assertion_results"],
+                assertion_passed_count=result.get("assertion_passed_count", 0),
+                assertion_total_count=result.get("assertion_total_count", 0),
                 extracted_variables=result.get("extracted_variables", {}),
-                error_message=result.get("error_message")
+                error_message=result.get("error_message"),
+                sort_order=result.get("sort_order", 0),
             )
 
             db.add(execution_result)
@@ -1512,6 +1568,105 @@ class CaseExecutor:
         except Exception as e:
             db.rollback()
             logger.error(f"保存执行记录失败: {str(e)}")
+
+    def _build_display_payload(self, raw_body: Any) -> Dict[str, Any]:
+        if raw_body is None:
+            return {"raw": None, "json": None, "display_type": "unknown"}
+
+        if isinstance(raw_body, (dict, list)):
+            return {"raw": json.dumps(raw_body, ensure_ascii=False), "json": raw_body, "display_type": "json"}
+
+        if not isinstance(raw_body, str):
+            return {"raw": str(raw_body), "json": None, "display_type": "text"}
+
+        body = raw_body.strip()
+        if not body:
+            return {"raw": raw_body, "json": None, "display_type": "text"}
+
+        try:
+            parsed = json.loads(body)
+            return {"raw": raw_body, "json": parsed, "display_type": "json"}
+        except Exception:
+            lowered = body.lower()
+            display_type = "html" if lowered.startswith("<!doctype html") or lowered.startswith("<html") else "text"
+            return {"raw": raw_body, "json": None, "display_type": display_type}
+
+    def _count_total_assertions(self, assertion_results: Optional[Dict[str, Any]]) -> int:
+        return len((assertion_results or {}).get("assertions") or [])
+
+    def _count_passed_assertions(self, assertion_results: Optional[Dict[str, Any]]) -> int:
+        assertions = (assertion_results or {}).get("assertions") or []
+        return len([item for item in assertions if item.get("passed")])
+
+    def _aggregate_result_status(self, passed: int, failed: int, skipped: int) -> str:
+        if failed > 0 and passed > 0:
+            return "partial_failed"
+        if failed > 0:
+            return "failed"
+        if passed > 0:
+            return "passed"
+        if skipped > 0:
+            return "skipped"
+        return "unknown"
+
+    def _create_batch_execution(
+        self,
+        cases: List[ApiCase],
+        environment: Environment,
+        db: Session,
+        project_id: int,
+        version_id: Optional[int],
+        operator_user_id: Optional[int],
+        triggered_by: str,
+    ) -> TestExecution:
+        execution = TestExecution(
+            project_id=project_id,
+            version_id=version_id,
+            execution_type=ExecutionType.BATCH,
+            target_id=0,
+            environment_id=environment.id,
+            operator_user_id=operator_user_id,
+            title=f"Batch execution: {len(cases)} cases",
+            summary_json={
+                "batch_size": len(cases),
+                "case_ids": [case.id for case in cases],
+            },
+            execution_mode="parallel" if len(cases) > 1 else "sequential",
+            triggered_by=triggered_by,
+            status=ExecutionStatus.RUNNING,
+            started_at=datetime.utcnow(),
+            total=len(cases),
+            passed=0,
+            failed=0,
+            skipped=0,
+            result_status="unknown",
+        )
+        db.add(execution)
+        db.commit()
+        db.refresh(execution)
+        execution.target_id = execution.id
+        db.commit()
+        db.refresh(execution)
+        return execution
+
+    def _finalize_batch_execution(
+        self,
+        execution: TestExecution,
+        total: int,
+        success: int,
+        failed: int,
+        total_time: int,
+        db: Session,
+    ) -> None:
+        execution.finished_at = datetime.utcnow()
+        execution.duration = total_time
+        execution.total = total
+        execution.passed = success
+        execution.failed = failed
+        execution.skipped = 0
+        execution.status = ExecutionStatus.COMPLETED if failed == 0 else ExecutionStatus.FAILED
+        execution.result_status = self._aggregate_result_status(success, failed, 0)
+        db.commit()
 
     def _replace_variables(
         self,

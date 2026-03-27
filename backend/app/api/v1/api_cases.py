@@ -812,6 +812,7 @@ async def execute_case(
 
         # 创建执行器
         executor = CaseExecutor()
+        version_id = get_current_version_id(db, current_user)
 
         # 执行用例（传入 db 和 project_id 以支持自动鉴权）
         result = await executor.execute_case(
@@ -820,7 +821,10 @@ async def execute_case(
             environment=environment,
             variables=request.variables or {},
             db=db,
-            project_id=case.project_id
+            project_id=case.project_id,
+            version_id=version_id,
+            operator_user_id=current_user.id,
+            triggered_by="manual",
         )
 
         # 记录执行结果（可以保存到数据库）
@@ -908,6 +912,7 @@ async def batch_execute_cases(
 
         # 创建执行器
         executor = CaseExecutor()
+        version_id = get_current_version_id(db, current_user)
 
         # 批量执行（传入 db 和 project_id 以支持自动鉴权）
         environments_dict = {environment.id: environment}
@@ -918,7 +923,10 @@ async def batch_execute_cases(
             variables=request.variables or {},
             max_concurrent=request.max_concurrent,
             db=db,
-            project_id=project_id
+            project_id=project_id,
+            version_id=version_id,
+            operator_user_id=current_user.id,
+            triggered_by="manual",
         )
 
         # 记录执行结果
