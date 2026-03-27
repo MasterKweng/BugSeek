@@ -1,4 +1,9 @@
 -- Full database initialization script generated from the live database schema.
+--
+-- Field mapping engine note:
+-- The current lineage/runtime verification upgrade reuses
+-- public.field_mapping_runtime_evidence (via evidence_type + payload_json)
+-- and does not introduce extra tables or columns yet.
 
 CREATE SCHEMA IF NOT EXISTS public;
 

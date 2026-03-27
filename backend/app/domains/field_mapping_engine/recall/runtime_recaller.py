@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.domains.data_impact.impact_repository import ImpactRepository
 from app.domains.data_impact.schema_mapper import SchemaMapper
 from app.platform.db.base import FieldMappingRuntimeEvidence
+from ..runtime.runtime_verification_service import RuntimeVerificationService
 
 
 class RuntimeEvidenceRecaller:
@@ -17,6 +18,7 @@ class RuntimeEvidenceRecaller:
     def __init__(self, db: Session):
         self.db = db
         self.repo = ImpactRepository(db)
+        self.runtime_verification_service = RuntimeVerificationService(db)
 
     def get_table_prior_map(self, definition_id: int) -> Dict[str, float]:
         return self.get_field_table_prior_map(definition_id)
@@ -61,9 +63,6 @@ class RuntimeEvidenceRecaller:
             return []
 
         table_prior = self.get_field_table_prior_map(definition_id, str(field_spec.get("field_path") or ""))
-        if not table_prior:
-            return []
-
         mapper = SchemaMapper(schema_snapshot)
         tables = schema_snapshot.get("tables", {}) if isinstance(schema_snapshot, dict) else {}
         candidates: List[dict] = []
@@ -114,4 +113,75 @@ class RuntimeEvidenceRecaller:
                 }
             )
 
-        return candidates[:top_k]
+        verification_evidence = self.runtime_verification_service.build_runtime_field_evidence(
+            definition_id=definition_id,
+            api_field_path=str(field_spec.get("field_path") or ""),
+            candidates=candidates,
+        )
+        candidates.extend(self._convert_runtime_verification_evidence(verification_evidence))
+        merged = self._merge_candidates(candidates)
+        return merged[:top_k]
+
+    def _convert_runtime_verification_evidence(self, evidence_rows: List[Dict[str, Any]]) -> List[dict]:
+        converted: List[dict] = []
+        for row in evidence_rows:
+            db_table = str(row.get("db_table") or "")
+            db_column = str(row.get("db_column") or "")
+            if not db_column:
+                continue
+            verification_type = str(row.get("verification_type") or "")
+            confidence = round(float(row.get("confidence", 0.0) or 0.0), 4)
+            features: Dict[str, float] = {}
+            recall_sources = ["runtime_verified"]
+            explanations = [verification_type or "runtime_verified"]
+            if verification_type == "runtime_column_verified":
+                features["f_runtime_column_verified"] = confidence
+                features["f_runtime_field_hit"] = max(1.0, confidence)
+            elif verification_type == "response_value_match":
+                features["f_response_value_match"] = confidence
+            elif verification_type == "sql_projection_verified":
+                features["f_sql_projection_verified"] = confidence
+            elif verification_type == "code_assignment_verified":
+                features["f_code_assignment_verified"] = confidence
+            else:
+                features["f_runtime_field_hit"] = confidence
+            converted.append(
+                {
+                    "db_table": db_table,
+                    "db_column": db_column,
+                    "features": features,
+                    "recall_sources": recall_sources,
+                    "explanations": explanations,
+                    "raw_payload": {"runtime_verification": row.get("payload", {})},
+                }
+            )
+        return converted
+
+    def _merge_candidates(self, candidates: List[dict]) -> List[dict]:
+        merged: Dict[str, dict] = {}
+        for candidate in candidates:
+            key = f"{candidate.get('db_table')}.{candidate.get('db_column')}"
+            bucket = merged.setdefault(
+                key,
+                {
+                    "db_table": candidate.get("db_table"),
+                    "db_column": candidate.get("db_column"),
+                    "features": {},
+                    "recall_sources": [],
+                    "explanations": [],
+                    "raw_payload": {},
+                },
+            )
+            for feature_name, feature_value in candidate.get("features", {}).items():
+                bucket["features"][feature_name] = max(
+                    float(bucket["features"].get(feature_name, 0.0)),
+                    float(feature_value),
+                )
+            for source in candidate.get("recall_sources", []):
+                if source not in bucket["recall_sources"]:
+                    bucket["recall_sources"].append(source)
+            for explanation in candidate.get("explanations", []):
+                if explanation not in bucket["explanations"]:
+                    bucket["explanations"].append(explanation)
+            bucket["raw_payload"].update(candidate.get("raw_payload", {}))
+        return list(merged.values())

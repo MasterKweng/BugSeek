@@ -10,6 +10,7 @@ from app.platform.db.base import (
     TableImpact,
     FieldImpact,
     ApiTableImpact,
+    FieldMappingRuntimeEvidence,
 )
 
 
@@ -155,3 +156,24 @@ class ImpactRepository:
             .order_by(SqlTrace.id.asc())
             .all()
         )
+
+    def get_runtime_verification_evidence(
+        self,
+        *,
+        definition_id: int,
+        api_field_path: str | None = None,
+    ) -> List[FieldMappingRuntimeEvidence]:
+        query = self.db.query(FieldMappingRuntimeEvidence).filter(
+            FieldMappingRuntimeEvidence.definition_id == definition_id,
+            FieldMappingRuntimeEvidence.evidence_type.in_(
+                [
+                    "runtime_column_verified",
+                    "response_value_match",
+                    "sql_projection_verified",
+                    "code_assignment_verified",
+                ]
+            ),
+        )
+        if api_field_path:
+            query = query.filter(FieldMappingRuntimeEvidence.api_field_path == api_field_path)
+        return query.order_by(FieldMappingRuntimeEvidence.id.asc()).all()

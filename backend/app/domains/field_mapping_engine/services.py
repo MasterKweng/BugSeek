@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+import re
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
@@ -16,10 +17,16 @@ from .orchestration.job_runner import (
 )
 from .extractor.api_schema_extractor import ApiSchemaExtractor
 from .extractor.db_schema_extractor import DbSchemaExtractor
+from .evidence.context_builder import ContextBuilder
+from .evidence.feature_builder import FeatureBuilder
+from .evidence.relation_classifier import RelationClassifier
 from .recall.history_recaller import HistoryRecaller
+from .recall.code_lineage_recaller import CodeLineageRecaller
 from .recall.lexical_recaller import LexicalRecaller
 from .recall.runtime_recaller import RuntimeEvidenceRecaller
+from .recall.sql_lineage_recaller import SQLLineageRecaller
 from .recall.vector_recaller import VectorRecaller
+from .ranking.confidence_calibrator import ConfidenceCalibrator
 from .ranking.deterministic_rules import DeterministicRules
 from .ranking.ranker import CandidateRanker
 
@@ -35,8 +42,14 @@ class FieldMappingAppService:
         self.lexical_recaller = LexicalRecaller()
         self.vector_recaller = VectorRecaller()
         self.runtime_recaller = RuntimeEvidenceRecaller(db)
+        self.sql_lineage_recaller = SQLLineageRecaller(db)
+        self.code_lineage_recaller = CodeLineageRecaller(db)
+        self.context_builder = ContextBuilder()
+        self.feature_builder = FeatureBuilder()
         self.deterministic_rules = DeterministicRules()
         self.ranker = CandidateRanker()
+        self.confidence_calibrator = ConfidenceCalibrator()
+        self.relation_classifier = RelationClassifier()
         self.ai_enricher = AIFieldMappingEnricher()
 
     async def suggest_field_mappings(
@@ -93,7 +106,10 @@ class FieldMappingAppService:
                 include_query=include_query,
                 include_body=include_body,
             )
-            items.extend([asdict(field_spec) for field_spec in field_specs])
+            for field_spec in field_specs:
+                field_spec_dict = asdict(field_spec)
+                field_spec_dict["metadata"] = self._build_field_context_metadata(field_spec_dict)
+                items.append(field_spec_dict)
         return items
 
     def build_recall_artifacts(
@@ -110,6 +126,8 @@ class FieldMappingAppService:
 
         items: List[Dict[str, Any]] = []
         for field_spec in field_specs:
+            metadata = dict(field_spec.get("metadata") or {})
+            field_context = self.context_builder.build_field_context(field_spec=field_spec)
             history_prior = self._resolve_history_prior(
                 field_spec["field_path"],
                 field_spec["field_name"],
@@ -124,19 +142,29 @@ class FieldMappingAppService:
                 int(field_spec["definition_id"]),
                 field_spec["field_path"],
             )
-            lexical_candidates = self.lexical_recaller.recall_from_dict(field_spec, db_columns, history_prior)
+            lexical_candidates = self.lexical_recaller.recall_from_dict(
+                field_spec,
+                db_columns,
+                history_prior,
+                context=field_context,
+            )
             lexical_candidates = self._apply_runtime_table_prior(lexical_candidates, runtime_table_prior)
             vector_candidates = self.vector_recaller.recall_from_dict(
                 field_spec,
                 schema_snapshot,
-                allowed_tables=list(runtime_table_prior.keys()) or None,
+                context=field_context,
+                allowed_tables=list(metadata.get("allowed_tables") or runtime_table_prior.keys()) or None,
             )
             vector_candidates = self.vector_recaller.attach_table_prior(vector_candidates, runtime_table_prior)
             runtime_candidates = self.runtime_recaller.recall_from_dict(field_spec, schema_snapshot)
+            sql_lineage_candidates = self.sql_lineage_recaller.recall_from_dict(field_spec, schema_snapshot)
+            code_lineage_candidates = self.code_lineage_recaller.recall_from_dict(field_spec)
             candidate_evidence = self._merge_candidate_evidence(
                 lexical_candidates,
                 vector_candidates,
                 runtime_candidates,
+                sql_lineage_candidates,
+                code_lineage_candidates,
             )
             items.append(
                 {
@@ -145,8 +173,16 @@ class FieldMappingAppService:
                     "definition_path": field_spec["path"],
                     "api_field_path": field_spec["field_path"],
                     "field_name": field_spec["field_name"],
+                    "source_type": field_spec.get("source_type"),
                     "field_description": field_spec.get("description"),
                     "sibling_paths": field_spec.get("sibling_paths", []),
+                    "field_metadata": metadata,
+                    "field_context": field_context,
+                    "risk_level": metadata.get("risk_level", "medium"),
+                    "domain_anchor": metadata.get("domain_anchor"),
+                    "allowed_tables": list(metadata.get("allowed_tables") or list(runtime_table_prior.keys())),
+                    "api_summary": metadata.get("api_summary"),
+                    "module_tag": metadata.get("module_tag"),
                     "runtime_table_prior": runtime_table_prior,
                     "rejected_history_prior": rejected_prior,
                     "candidate_evidence": candidate_evidence,
@@ -159,6 +195,7 @@ class FieldMappingAppService:
         for item in recall_items:
             candidate_evidence = [dict(candidate) for candidate in item.get("candidate_evidence", [])]
             for candidate in candidate_evidence:
+                self.feature_builder.enrich_candidate(field_item=item, candidate=candidate)
                 self.deterministic_rules.apply_from_dict(item, candidate)
             ranked_candidates = self.ranker.rank_from_dict(candidate_evidence)
             ranked_items.append({**item, "rule_candidates": ranked_candidates[:10]})
@@ -255,6 +292,8 @@ class FieldMappingAppService:
                     "candidate_list": decision_artifact["candidate_list"],
                     "relation_type": decision_artifact["relation_type"],
                     "confidence": decision_artifact["confidence"],
+                    "confidence_bucket": decision_artifact["confidence_bucket"],
+                    "review_policy": decision_artifact["review_policy"],
                     "decision_source": decision_artifact["decision_source"],
                     "decision_artifact": decision_artifact,
                     "candidates": final_candidates[:10],
@@ -271,6 +310,11 @@ class FieldMappingAppService:
                         "field_name": item["field_name"],
                         "field_description": item.get("field_description"),
                         "sibling_paths": item.get("sibling_paths", []),
+                        "risk_level": item.get("risk_level"),
+                        "domain_anchor": item.get("domain_anchor"),
+                        "allowed_tables": item.get("allowed_tables", []),
+                        "api_summary": item.get("api_summary"),
+                        "module_tag": item.get("module_tag"),
                         "runtime_table_prior": item.get("runtime_table_prior", {}),
                         "ai_triggered": item.get("ai_triggered", False),
                         "fallback_reason": item.get("fallback_reason"),
@@ -290,15 +334,21 @@ class FieldMappingAppService:
     ) -> Dict[str, Any]:
         candidate_list = [self._normalize_decision_candidate(candidate) for candidate in final_candidates[:10]]
         top_candidate = candidate_list[0] if candidate_list else None
-        relation_type = self._infer_relation_type(item, top_candidate)
+        relation_type = self.relation_classifier.classify(field_item=item, top_candidate=top_candidate)
         if top_candidate is not None:
             top_candidate["relation_type"] = relation_type
-        confidence = self._calibrate_confidence(
-            item,
-            top_candidate,
-            rule_top_score=float(item.get("rule_top_score", 0.0) or 0.0),
+        calibration = self.confidence_calibrator.calibrate(
+            field_item=item,
+            ranked_candidates=candidate_list,
             decision_source=str(item.get("decision_source") or "rule"),
+            rule_top_score=float(item.get("rule_top_score", 0.0) or 0.0),
         )
+        confidence = calibration["confidence"]
+        confidence_bucket = calibration["confidence_bucket"]
+        review_policy = calibration["review_policy"]
+        if top_candidate is not None:
+            top_candidate["confidence_bucket"] = confidence_bucket
+            top_candidate["review_policy"] = review_policy
 
         artifact = DecisionArtifact(
             definition_id=int(item["definition_id"]),
@@ -310,6 +360,8 @@ class FieldMappingAppService:
             candidate_list=[DecisionCandidate(**candidate) for candidate in candidate_list],
             relation_type=relation_type,
             confidence=confidence,
+            confidence_bucket=confidence_bucket,
+            review_policy=review_policy,
             decision_source=str(item.get("decision_source") or "rule"),
             decision_trace={},
         )
@@ -320,6 +372,12 @@ class FieldMappingAppService:
             "field_name": item["field_name"],
             "field_description": item.get("field_description"),
             "sibling_paths": item.get("sibling_paths", []),
+            "margin": calibration.get("margin"),
+            "risk_level": item.get("risk_level"),
+            "domain_anchor": item.get("domain_anchor"),
+            "allowed_tables": item.get("allowed_tables", []),
+            "api_summary": item.get("api_summary"),
+            "module_tag": item.get("module_tag"),
             "runtime_table_prior": item.get("runtime_table_prior", {}),
             "ai_triggered": item.get("ai_triggered", False),
             "fallback_reason": item.get("fallback_reason"),
@@ -348,80 +406,9 @@ class FieldMappingAppService:
             "ai_reason": candidate.get("ai_reason"),
             "hard_reject": bool(candidate.get("hard_reject", False)),
             "short_circuit_reason": candidate.get("short_circuit_reason"),
+            "review_policy": candidate.get("review_policy"),
+            "confidence_bucket": candidate.get("confidence_bucket"),
         }
-
-    def _calibrate_confidence(
-        self,
-        item: Dict[str, Any],
-        top_candidate: Optional[Dict[str, Any]],
-        *,
-        rule_top_score: float,
-        decision_source: str,
-    ) -> Optional[float]:
-        if not top_candidate:
-            return None
-        base_score = float(top_candidate.get("score", 0.0) or 0.0)
-        adjusted = base_score
-        negative_evidence = top_candidate.get("negative_evidence", []) or []
-        reject_reasons = top_candidate.get("reject_reasons", []) or []
-        features = top_candidate.get("features", {}) or {}
-
-        if top_candidate.get("hard_reject"):
-            return 0.0
-
-        if top_candidate.get("short_circuit_reason"):
-            adjusted = max(adjusted, 0.98)
-
-        if decision_source == "ai":
-            adjusted = min(1.0, adjusted * 0.96)
-        elif decision_source == "fallback":
-            adjusted = min(1.0, max(adjusted, rule_top_score) * 0.93)
-
-        if features.get("f_runtime_field_hit", 0.0) >= 1.0:
-            adjusted += 0.03
-        elif features.get("f_runtime_table_hit", 0.0) >= 0.8:
-            adjusted += 0.015
-
-        if features.get("f_history_prior", 0.0) >= 0.95:
-            adjusted += 0.02
-
-        if negative_evidence:
-            adjusted -= 0.05 * len(negative_evidence)
-
-        if reject_reasons:
-            adjusted -= 0.08 * len(reject_reasons)
-
-        if item.get("fallback_reason") == "ai_guardrail_rejected":
-            adjusted -= 0.03
-
-        return round(min(max(adjusted, 0.0), 1.0), 4)
-
-    def _infer_relation_type(
-        self,
-        item: Dict[str, Any],
-        top_candidate: Optional[Dict[str, Any]],
-    ) -> str:
-        if not top_candidate:
-            return "direct"
-
-        field_name = str(item.get("field_name") or "").lower()
-        db_column = str(top_candidate.get("db_column") or "").lower()
-        features = top_candidate.get("features", {}) or {}
-        recall_sources = set(top_candidate.get("recall_sources", []) or [])
-
-        if field_name.endswith("_id") and db_column.endswith("_id") and db_column != field_name:
-            return "fk"
-
-        if "runtime" in recall_sources and features.get("f_runtime_field_hit", 0.0) >= 1.0:
-            return "direct"
-
-        if features.get("f_name_exact", 0.0) > 0 or field_name == db_column:
-            return "direct"
-
-        if features.get("f_comment_similarity", 0.0) >= 0.6 or "ai" in recall_sources:
-            return "derived"
-
-        return "direct"
 
     def _float_or_none(self, value: Any) -> Optional[float]:
         try:
@@ -460,6 +447,54 @@ class FieldMappingAppService:
         if definition_ids:
             definitions_query = definitions_query.filter(ApiDefinition.id.in_(definition_ids))
         return definitions_query.all()
+
+    def _build_field_context_metadata(self, field_spec: Dict[str, Any]) -> Dict[str, Any]:
+        definition_path = str(field_spec.get("path") or "")
+        sibling_paths = list(field_spec.get("sibling_paths", []) or [])
+        source_type = str(field_spec.get("source_type") or "")
+        field_name = str(field_spec.get("field_name") or "")
+        field_path = str(field_spec.get("field_path") or "")
+        domain_anchor = self._infer_domain_anchor(definition_path, field_name, sibling_paths)
+        allowed_tables = [domain_anchor] if domain_anchor else []
+        return {
+            "risk_level": self._infer_risk_level(field_name, field_path),
+            "domain_anchor": domain_anchor,
+            "allowed_tables": allowed_tables,
+            "api_summary": self._build_api_summary(field_spec),
+            "module_tag": source_type or "unknown",
+        }
+
+    def _infer_domain_anchor(
+        self,
+        definition_path: str,
+        field_name: str,
+        sibling_paths: List[str],
+    ) -> Optional[str]:
+        text = f"{definition_path} {field_name} {' '.join(sibling_paths)}".lower()
+        tokens = re.findall(r"[a-z0-9]+", text)
+        ignored = {"api", "v1", "v2", "query", "body", "path", "response", "list", "get", "post", "put", "delete"}
+        for token in tokens:
+            if token in ignored or token.isdigit():
+                continue
+            return token
+        return None
+
+    def _infer_risk_level(self, field_name: str, field_path: str) -> str:
+        normalized = f"{field_name}.{field_path}".lower()
+        high_markers = ("amount", "balance", "status", "role", "permission", "deleted", "user_id", "create_by", "update_by", "time")
+        medium_markers = ("code", "name", "type", "level", "id")
+        if any(marker in normalized for marker in high_markers):
+            return "high"
+        if any(marker in normalized for marker in medium_markers):
+            return "medium"
+        return "low"
+
+    def _build_api_summary(self, field_spec: Dict[str, Any]) -> str:
+        method = str(field_spec.get("method") or "").upper()
+        path = str(field_spec.get("path") or "")
+        source_type = str(field_spec.get("source_type") or "")
+        field_path = str(field_spec.get("field_path") or "")
+        return f"{method} {path} [{source_type}] -> {field_path}".strip()
 
     def _apply_runtime_table_prior(
         self,

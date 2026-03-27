@@ -1,4 +1,13 @@
-"""Generate a full database initialization script from the live database schema."""
+"""Generate a full database initialization script from the live database schema.
+
+Field mapping engine note:
+The current "highest-ceiling" upgrade for lineage and runtime verification does
+not introduce new tables or columns yet. The enhanced evidence is still stored in
+the existing ``public.field_mapping_runtime_evidence`` table via
+``evidence_type`` and ``payload_json``. If future iterations add dedicated
+lineage tables or stronger runtime materialized structures, update the ORM models
+first and then rerun this generator.
+"""
 
 from __future__ import annotations
 
@@ -62,7 +71,12 @@ def render_python(statements: list[str]) -> str:
         f"    {json.dumps(statement, ensure_ascii=False)}" for statement in statements
     )
 
-    return f'''"""Full database initialization script generated from the live database schema."""
+    return f'''"""Full database initialization script generated from the live database schema.
+
+Field mapping engine note:
+The current lineage/runtime verification upgrade reuses
+``public.field_mapping_runtime_evidence`` and does not emit additional DDL yet.
+"""
 
 from __future__ import annotations
 
@@ -94,7 +108,16 @@ if __name__ == "__main__":
 
 
 def render_sql(statements: list[str]) -> str:
-    return "-- Full database initialization script generated from the live database schema.\n\n" + "\n\n".join(statements) + "\n"
+    return (
+        "-- Full database initialization script generated from the live database schema.\n"
+        "--\n"
+        "-- Field mapping engine note:\n"
+        "-- The current lineage/runtime verification upgrade reuses\n"
+        "-- public.field_mapping_runtime_evidence (via evidence_type + payload_json)\n"
+        "-- and does not introduce extra tables or columns yet.\n\n"
+        + "\n\n".join(statements)
+        + "\n"
+    )
 
 
 def main() -> None:

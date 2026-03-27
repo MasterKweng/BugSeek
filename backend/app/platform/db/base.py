@@ -974,12 +974,19 @@ class TestExecution(Base, TimestampMixin):
 
     id = Column(Integer, primary_key=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    version_id = Column(Integer, ForeignKey("versions.id"), nullable=True)
 
-    # 执行类型：single | scenario | suite
+    # 执行类型：single | batch | scenario | suite
     execution_type = Column(String(20), nullable=False, index=True)
 
     # 关联ID（根据类型不同，指向不同的表）
     target_id = Column(Integer, nullable=False, index=True)  # script_id | scenario_id | suite_id
+    parent_execution_id = Column(Integer, ForeignKey("test_executions.id"), nullable=True)
+    operator_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    title = Column(String(255), nullable=True)
+    summary_json = Column(JSON, nullable=True)
+    result_status = Column(String(20), nullable=True, index=True)
+    source_execution_id = Column(Integer, ForeignKey("test_executions.id"), nullable=True)
 
     # 执行环境
     environment_id = Column(Integer, ForeignKey("environments.id"), nullable=True)
@@ -1011,8 +1018,17 @@ class TestExecution(Base, TimestampMixin):
 
     # 关系定义
     environment = relationship("Environment", foreign_keys=[environment_id])
+    version = relationship("Version", foreign_keys=[version_id])
+    operator = relationship("User", foreign_keys=[operator_user_id])
+    parent_execution = relationship("TestExecution", foreign_keys=[parent_execution_id], remote_side=[id])
+    source_execution = relationship("TestExecution", foreign_keys=[source_execution_id], remote_side=[id])
 
-    __table_args__ = ()
+    __table_args__ = (
+        Index("ix_test_executions_version_id", "version_id"),
+        Index("ix_test_executions_parent_execution_id", "parent_execution_id"),
+        Index("ix_test_executions_operator_user_id", "operator_user_id"),
+        Index("ix_test_executions_project_version_env", "project_id", "version_id", "environment_id"),
+    )
 
 
 class TestExecutionResult(Base, TimestampMixin):
@@ -1026,6 +1042,9 @@ class TestExecutionResult(Base, TimestampMixin):
     # 原始数据
     target_type = Column(String(20), index=True)  # script | endpoint
     target_id = Column(Integer, index=True)
+    case_id = Column(Integer, ForeignKey("api_cases.id"), nullable=True)
+    definition_id = Column(Integer, ForeignKey("api_definitions.id"), nullable=True)
+    target_name = Column(String(255), nullable=True)
 
     # 执行结果
     status = Column(String(20), index=True)
@@ -1033,16 +1052,29 @@ class TestExecutionResult(Base, TimestampMixin):
     response_code = Column(Integer)
     response_body = Column(JSON)
     request_body = Column(JSON)
+    response_headers = Column(JSON)
+    request_headers = Column(JSON)
+    request_display_type = Column(String(20), nullable=True)
+    response_display_type = Column(String(20), nullable=True)
 
     # 断言结果
     assertion_results = Column(JSON)
+    assertion_passed_count = Column(Integer, default=0)
+    assertion_total_count = Column(Integer, default=0)
     extracted_variables = Column(JSON)  # 提取的变量字典
     error_message = Column(Text)
+    sort_order = Column(Integer, default=0)
 
     # 关系定义
     execution = relationship("TestExecution", foreign_keys=[execution_id])
+    case = relationship("ApiCase", foreign_keys=[case_id])
+    definition = relationship("ApiDefinition", foreign_keys=[definition_id])
 
-    __table_args__ = ()
+    __table_args__ = (
+        Index("ix_test_execution_results_case_id", "case_id"),
+        Index("ix_test_execution_results_definition_id", "definition_id"),
+        Index("ix_test_execution_results_execution_status", "execution_id", "status"),
+    )
 
 
 class GraphNode(Base, TimestampMixin):

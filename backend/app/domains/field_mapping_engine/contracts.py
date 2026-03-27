@@ -76,6 +76,8 @@ class DecisionCandidate:
     ai_reason: Optional[str] = None
     hard_reject: bool = False
     short_circuit_reason: Optional[str] = None
+    review_policy: Optional[str] = None
+    confidence_bucket: Optional[str] = None
 
 
 @dataclass
@@ -90,6 +92,8 @@ class DecisionArtifact:
     relation_type: str = "direct"
     # confidence is the final decision confidence, separate from candidate ranking score.
     confidence: Optional[float] = None
+    confidence_bucket: Optional[str] = None
+    review_policy: Optional[str] = None
     decision_source: str = "rule"
     decision_trace: Dict[str, Any] = field(default_factory=dict)
     project_id: Optional[int] = None

@@ -1,4 +1,9 @@
-"""Full database initialization script generated from the live database schema."""
+"""Full database initialization script generated from the live database schema.
+
+Field mapping engine note:
+The current lineage/runtime verification upgrade reuses
+``public.field_mapping_runtime_evidence`` and does not emit additional DDL yet.
+"""
 
 from __future__ import annotations
 

@@ -85,6 +85,7 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
         self._mark_stage_complete(task, Stage.RULE_SCORING, get_stage_name(Stage.RULE_SCORING), {
             "artifact_type": "field_specs",
             "field_count": len(field_specs),
+            "context_enriched_count": sum(1 for item in field_specs if item.get("metadata")),
         }, 45, "字段规格已提取")
 
         recall_payload = self.artifact_store.load_artifact(
@@ -109,6 +110,8 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
         self._mark_stage_complete(task, Stage.INTELLIGENT_SCREENING, get_stage_name(Stage.INTELLIGENT_SCREENING), {
             "artifact_type": "recall_candidates",
             "field_count": len(recall_items),
+            "risk_enriched_count": sum(1 for item in recall_items if item.get("risk_level")),
+            "domain_anchor_count": sum(1 for item in recall_items if item.get("domain_anchor")),
         }, 70, "召回候选已生成")
 
         ranked_items = app_service.rank_recall_items(recall_items)
@@ -145,11 +148,14 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
             "artifact_type": "ai_ranked_items",
             "field_count": len(ranked_items),
             "ai_triggered_count": sum(1 for item in ranked_items if item.get("ai_triggered")),
+            "high_risk_count": sum(1 for item in ranked_items if item.get("risk_level") == "high"),
             "threshold": float(params.get("ai_confidence_threshold", 0.7)),
         }, 85, "AI low-confidence optimization complete")
         self._mark_stage_complete(task, Stage.RESULT_MERGE, get_stage_name(Stage.RESULT_MERGE), {
             "artifact_type": "final_suggestions",
             "total_suggestions": len(suggestions),
+            "auto_accept_count": sum(1 for item in suggestions if item.get("review_policy") == "auto_accept"),
+            "manual_review_count": sum(1 for item in suggestions if item.get("review_policy") == "manual_review"),
         }, 100, "最终建议已生成")
 
         result_payload = {

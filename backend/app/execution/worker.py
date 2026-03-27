@@ -24,6 +24,7 @@ V2.0 架构对齐:
 """
 
 import asyncio
+import copy
 import time
 import json
 import logging
@@ -67,6 +68,7 @@ class ExecutionStatus(str):
 class ExecutionType(str):
     """执行类型枚举"""
     SINGLE = "single"      # 单用例执行
+    BATCH = "batch"        # 批量执行
     SCENARIO = "scenario"  # 场景执行
     SUITE = "suite"        # 套件执行
 
@@ -113,7 +115,12 @@ class CaseExecutor:
         environment: Environment,
         variables: Dict[str, Any],
         db: Session,
-        project_id: int
+        project_id: int,
+        version_id: Optional[int] = None,
+        operator_user_id: Optional[int] = None,
+        parent_execution_id: Optional[int] = None,
+        triggered_by: str = "manual",
+        sort_order: int = 0,
     ) -> Dict[str, Any]:
         """
         执行单个用例
@@ -333,14 +340,23 @@ class CaseExecutor:
         # 构建结果
         result = {
             "case_id": case.id,
+            "definition_id": definition.id,
+            "target_name": case.name or definition.summary or definition.path,
             "status": "passed" if assertion_results["passed"] else "failed",
-            "response_time": duration_ms,
+            "response_time": response_data.get("elapsed_ms") or duration_ms,
             "response_code": response_data.get("status_code"),
             "response_body": response_data.get("body"),
             "request_body": request_data.get("body"),
+            "request_headers": request_data.get("headers") or {},
+            "response_headers": response_data.get("headers") or {},
             "assertion_results": assertion_results,
             "extracted_variables": extracted_variables,
-            "error_message": assertion_results.get("error_message")
+            "error_message": assertion_results.get("error_message"),
+            "request_payload": self._build_display_payload(request_data.get("body")),
+            "response_payload": self._build_display_payload(response_data.get("body")),
+            "assertion_passed_count": self._count_passed_assertions(assertion_results),
+            "assertion_total_count": self._count_total_assertions(assertion_results),
+            "sort_order": sort_order,
         }
 
         # 保存执行记录
@@ -348,9 +364,14 @@ class CaseExecutor:
             logger.info(f"[{case_trace_id}] [步骤8] 保存执行记录到数据库...")
             await self._save_execution_record(
                 case=case,
+                definition=definition,
                 environment=environment,
                 result=result,
-                db=db
+                db=db,
+                version_id=version_id,
+                operator_user_id=operator_user_id,
+                parent_execution_id=parent_execution_id,
+                triggered_by=triggered_by,
             )
             logger.info(f"[{case_trace_id}] [步骤8] 执行记录保存完成")
         except Exception as e:
@@ -398,7 +419,10 @@ class CaseExecutor:
         variables: Dict[str, Any],
         max_concurrent: int,
         db: Session,
-        project_id: int
+        project_id: int,
+        version_id: Optional[int] = None,
+        operator_user_id: Optional[int] = None,
+        triggered_by: str = "manual",
     ) -> Dict[str, Any]:
         """
         批量执行用例
