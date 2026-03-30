@@ -215,6 +215,10 @@ class ApiEndpointGroup(Base, TimestampMixin):
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
     sort_order = Column(Integer, default=0)
+    analysis_status = Column(String(20), nullable=False, default="pending")
+    input_endpoints = Column(JSON, nullable=True)
+    output_endpoints = Column(JSON, nullable=True)
+    internal_chains = Column(JSON, nullable=True)
 
     # 关系定义
     definitions = relationship("ApiDefinition", back_populates="group")
@@ -352,8 +356,15 @@ class ApiScenario(Base, TimestampMixin):
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     scenario_type = Column(String(50), nullable=False, default="business_flow")
+    category = Column(String(50), nullable=True)
+    endpoint_ids = Column(JSON, nullable=False, default=list)
+    execution_order = Column(JSON, nullable=False, default=list)
+    variables = Column(JSON, nullable=True)
+    timeout = Column(Integer, nullable=True)
     source_type = Column(String(50), nullable=False, default="manual")  # manual | intent | module_chain
+    source_module_chain_id = Column(Integer, nullable=True)
     source_ref_id = Column(Integer, nullable=True)
+    endpoint_count = Column(Integer, nullable=True)
 
     # 执行配置
     context_init = Column(JSON, nullable=True)
@@ -1223,6 +1234,8 @@ class Snapshot(Base, TimestampMixin):
     id = Column(Integer, primary_key=True, index=True)
     execution_id = Column(String(100), nullable=False, index=True)
     table_name = Column(String(255), nullable=False, index=True)
+    data_json = Column(JSON, nullable=False)
+    snapshot_time = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
 
 class AiMemory(Base, TimestampMixin):
@@ -1239,8 +1252,6 @@ class AiMemory(Base, TimestampMixin):
     __table_args__ = (
         Index("ix_ai_memory_project_type", "project_id", "memory_type"),
     )
-    data_json = Column(JSON, nullable=False)
-    snapshot_time = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
 
 class ApiTableImpact(Base, TimestampMixin):

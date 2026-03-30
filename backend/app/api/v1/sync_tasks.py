@@ -1,4 +1,4 @@
-﻿"""鍚屾浠诲姟绠＄悊鎺ュ彛锛圴2.0 灞傜骇涓€ - API 璧勪骇搴擄級
+"""鍚屾浠诲姟绠＄悊鎺ュ彛锛圴2.0 灞傜骇涓€ - API 璧勪骇搴擄級
 绗﹀悎鍚庣浠ｇ爜瑙勮寖锛?
 1. 缁熶竴鍝嶅簲浣擄細{ code, message, data }
 2. IDOR 闃插尽锛氭牎楠岃祫婧愬綊灞?
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 # ========== 鏋氫妇瀹氫箟锛堥伩鍏嶉瓟娉曞€硷級 ==========
 
 class SyncTaskStatus(str):
-    """鍚屾浠诲姟鐘舵€佹灇涓?""
+    """Sync task status."""
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -103,11 +103,11 @@ class ApplyChangesRequest(BaseModel):
 
 class ApplyChangesResponse(BaseModel):
     """搴旂敤鍙樻洿鍝嶅簲妯″瀷"""
-    applied_count: int = Field(..., description="鎴愬姛搴旂敤鐨勫彉鏇存暟閲?)
-    ignored_count: int = Field(..., description="蹇界暐鐨勫彉鏇存暟閲?)
-    added_count: int = Field(..., description="鏂板鐨勬帴鍙ｆ暟閲?)
-    updated_count: int = Field(..., description="鏇存柊鐨勬帴鍙ｆ暟閲?)
-    deprecated_count: int = Field(..., description="搴熷純鐨勬帴鍙ｆ暟閲?)
+    applied_count: int = Field(..., description="Applied change count")
+    ignored_count: int = Field(..., description="Ignored change count")
+    added_count: int = Field(..., description="Added endpoint count")
+    updated_count: int = Field(..., description="Updated endpoint count")
+    deprecated_count: int = Field(..., description="Deprecated endpoint count")
     errors: List[str] = Field(default_factory=list, description="閿欒淇℃伅鍒楄〃")
 
 
@@ -176,9 +176,9 @@ async def create_sync_task(
 
 @router.get("/sync-tasks", response_model=ApiResponse)
 async def get_sync_tasks(
-    skip: int = Query(0, ge=0, description="璺宠繃璁板綍鏁?),
-    limit: int = Query(50, ge=1, le=200, description="姣忛〉璁板綍鏁?),
-    status: Optional[str] = Query(None, description="鐘舵€佽繃婊?),
+    skip: int = Query(0, ge=0, description="Skip count"),
+    limit: int = Query(50, ge=1, le=200, description="Page size"),
+    status: Optional[str] = Query(None, description="Status filter"),
     source_type: Optional[str] = Query(None, description="鏉ユ簮绫诲瀷杩囨护"),
     project_id: Optional[int] = Query(None, description="椤圭洰ID杩囨护"),
     db: Session = Depends(get_db),
@@ -281,7 +281,7 @@ async def get_sync_task(
     if task.project_id != get_current_project_id(db, current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="鏃犳潈璁块棶璇ヨ祫婧?
+            detail="No permission to access this resource"
         )
 
     result = {
@@ -343,7 +343,7 @@ async def delete_sync_task(
     if task.project_id != get_current_project_id(db, current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="鏃犳潈鍒犻櫎璇ヨ祫婧?
+            detail="No permission to delete this resource"
         )
 
     # 鍙兘鍒犻櫎宸插畬鎴愭垨澶辫触鐨勪换鍔?
@@ -391,7 +391,7 @@ async def cancel_sync_task(
     if task.project_id != get_current_project_id(db, current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="鏃犳潈鎿嶄綔璇ヤ换鍔?
+            detail="No permission to operate this task"
         )
 
     # 鍙兘鍙栨秷寰呭鐞嗘垨杩愯涓殑浠诲姟
@@ -408,7 +408,7 @@ async def cancel_sync_task(
 
     return ApiResponse(
         code=0,
-        message="浠诲姟宸插彇娑?
+        message="Task cancelled"
     )
 
 
@@ -666,7 +666,10 @@ def _apply_changes_impl(
         # 鎻愪氦浜嬪姟
         db.commit()
 
-        logger.info(f"[{trace_id}] 鍙樻洿搴旂敤瀹屾垚: {result.applied_count} 涓彉鏇村凡搴旂敤, 鍒涘缓浜?{len(groups_map)} 涓垎缁?)
+        logger.info(
+            f"[{trace_id}] Apply changes completed: "
+            f"{result.applied_count} applied, {len(groups_map)} groups created"
+        )
 
     except Exception as e:
         db.rollback()
@@ -745,7 +748,7 @@ async def apply_changes(
     if task.project_id != get_current_project_id(db, current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="鏃犳潈鎿嶄綔璇ヤ换鍔?
+            detail="No permission to operate this task"
         )
 
     # 妫€鏌ヤ换鍔＄姸鎬?
@@ -759,7 +762,7 @@ async def apply_changes(
     if not task.diff_data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="璇ヤ换鍔℃病鏈夊彉鏇存暟鎹?
+            detail="This task has no diff data"
         )
 
     try:
@@ -771,7 +774,7 @@ async def apply_changes(
         except Exception as graph_error:
             logger.warning(f"[{trace_id}] Graph 鍚屾澶辫触锛堜笉褰卞搷涓绘祦绋嬶級: {graph_error}")
 
-        logger.info(f"[{trace_id}] 鍙樻洿搴旂敤鎴愬姛: {result.applied_count} 涓彉鏇?)
+        logger.info(f"[{trace_id}] Apply changes succeeded: {result.applied_count} applied")
 
         return ApiResponse(
             code=0,
@@ -783,6 +786,6 @@ async def apply_changes(
         logger.error(f"[{trace_id}] 搴旂敤鍙樻洿澶辫触: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"搴旂敤鍙樻洿澶辫触锛歿str(e)}"
+            detail=f"Apply changes failed: {str(e)}"
         )
 

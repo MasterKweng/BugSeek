@@ -3,6 +3,9 @@
 -- Execution center note:
 -- The baseline schema includes public.test_executions and
 -- public.test_execution_results.
+-- Scenario orchestration note:
+-- The baseline should preserve scenario execution linkage and node
+-- runtime control fields required by the current executor.
 
 CREATE SCHEMA IF NOT EXISTS public;
 
