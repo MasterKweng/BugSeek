@@ -4,6 +4,7 @@ import pytest
 from fastapi import HTTPException
 
 from app.api.v1.executions import (
+    _get_scenario_or_404,
     _resolve_version_id_for_rerun,
     _serialize_execution,
     _validate_environment,
@@ -23,9 +24,10 @@ class FakeQuery:
 
 
 class FakeDB:
-    def __init__(self, environments=None, versions=None):
+    def __init__(self, environments=None, versions=None, scenarios=None):
         self.environments = environments or []
         self.versions = versions or []
+        self.scenarios = scenarios or []
 
     def query(self, model):
         name = getattr(model, "__name__", "")
@@ -33,6 +35,8 @@ class FakeDB:
             return FakeQuery(self.environments)
         if name == "Version":
             return FakeQuery(self.versions)
+        if name == "ApiScenario":
+            return FakeQuery(self.scenarios)
         return FakeQuery([])
 
 
@@ -87,6 +91,15 @@ def test_validate_version_rejects_missing_version():
         _validate_version(db, project_id=1, version_id=9)
 
     assert exc.value.status_code == 404
+
+
+def test_get_scenario_rejects_foreign_project():
+    db = FakeDB(scenarios=[SimpleNamespace(id=3, project_id=2, name="foreign")])
+
+    with pytest.raises(HTTPException) as exc:
+        _get_scenario_or_404(db, project_id=1, scenario_id=3)
+
+    assert exc.value.status_code == 403
 
 
 def test_resolve_version_id_for_rerun_prefers_request_then_execution_then_context():

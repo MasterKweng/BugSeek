@@ -36,31 +36,11 @@ class AIFieldMappingEnricher:
         batch_input = {
             "schema_snapshot": schema_snapshot,
             "field_dictionary": [
-                {
-                    "api_field_path": item["api_field_path"],
-                    "field_name": item["field_name"],
-                    "field_description": item.get("field_description"),
-                    "sibling_paths": item.get("sibling_paths", []),
-                }
+                self._build_field_dictionary_entry(item)
                 for item in low_confidence_items
             ],
             "field_mappings": [
-                {
-                    "api_field_path": item["api_field_path"],
-                    "method": item["definition_method"],
-                    "path": item["definition_path"],
-                    "field_name": item["field_name"],
-                    "field_description": item.get("field_description") or "",
-                    "rule_candidates": [
-                        {
-                            "db_table": candidate.get("db_table"),
-                            "db_column": candidate.get("db_column"),
-                            "score": candidate.get("score", 0.0),
-                            "reasons": candidate.get("reasons", []),
-                        }
-                        for candidate in item.get("rule_candidates", [])[:3]
-                    ],
-                }
+                self._build_field_mapping_entry(item)
                 for item in low_confidence_items
             ],
         }
@@ -142,6 +122,92 @@ class AIFieldMappingEnricher:
             candidate_map[key] = merged
 
         return sorted(candidate_map.values(), key=lambda item: item.get("score", 0.0), reverse=True)[:10]
+
+    def _build_field_dictionary_entry(self, item: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "api_field_path": item["api_field_path"],
+            "field_name": item["field_name"],
+            "field_description": item.get("field_description"),
+            "sibling_paths": item.get("sibling_paths", []),
+            "risk_level": item.get("risk_level"),
+            "domain_anchor": item.get("domain_anchor"),
+            "allowed_tables": item.get("allowed_tables", []),
+            "api_summary": item.get("api_summary"),
+            "module_tag": item.get("module_tag"),
+            "runtime_verification_summary": self._build_runtime_summary(item),
+            "lineage_summary": self._build_lineage_summary(item),
+        }
+
+    def _build_field_mapping_entry(self, item: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "api_field_path": item["api_field_path"],
+            "method": item["definition_method"],
+            "path": item["definition_path"],
+            "field_name": item["field_name"],
+            "field_description": item.get("field_description") or "",
+            "risk_level": item.get("risk_level"),
+            "domain_anchor": item.get("domain_anchor"),
+            "allowed_tables": item.get("allowed_tables", []),
+            "runtime_verification_summary": self._build_runtime_summary(item),
+            "lineage_summary": self._build_lineage_summary(item),
+            "rule_candidates": [
+                {
+                    "db_table": candidate.get("db_table"),
+                    "db_column": candidate.get("db_column"),
+                    "score": candidate.get("score", 0.0),
+                    "reasons": candidate.get("reasons", []),
+                    "negative_evidence": candidate.get("negative_evidence", []),
+                    "reject_reasons": candidate.get("reject_reasons", []),
+                    "lineage_signals": self._extract_lineage_signals(candidate),
+                    "runtime_signals": self._extract_runtime_signals(candidate),
+                }
+                for candidate in item.get("rule_candidates", [])[:3]
+            ],
+        }
+
+    def _build_lineage_summary(self, item: Dict[str, Any]) -> Dict[str, Any]:
+        top_candidate = (item.get("rule_candidates") or [{}])[0] if item.get("rule_candidates") else {}
+        features = top_candidate.get("features", {}) or {}
+        return {
+            "sql_lineage_exact": float(features.get("f_sql_lineage_exact", 0.0) or 0.0),
+            "sql_projection_hit": float(features.get("f_sql_projection_hit", 0.0) or 0.0),
+            "code_assignment_hit": float(features.get("f_code_assignment_hit", 0.0) or 0.0),
+            "mapper_annotation_hit": float(features.get("f_mapper_annotation_hit", 0.0) or 0.0),
+            "top_candidate_sources": list(top_candidate.get("recall_sources", []) or []),
+        }
+
+    def _build_runtime_summary(self, item: Dict[str, Any]) -> Dict[str, Any]:
+        top_candidate = (item.get("rule_candidates") or [{}])[0] if item.get("rule_candidates") else {}
+        features = top_candidate.get("features", {}) or {}
+        verification_evidence = item.get("runtime_verification_evidence", []) or []
+        return {
+            "runtime_table_prior": item.get("runtime_table_prior", {}),
+            "runtime_field_hit": float(features.get("f_runtime_field_hit", 0.0) or 0.0),
+            "runtime_column_verified": float(features.get("f_runtime_column_verified", 0.0) or 0.0),
+            "runtime_projection_verified": float(features.get("f_runtime_projection_verified", 0.0) or 0.0),
+            "verification_types": [
+                str(evidence.get("verification_type") or "")
+                for evidence in verification_evidence[:5]
+                if evidence.get("verification_type")
+            ],
+        }
+
+    def _extract_lineage_signals(self, candidate: Dict[str, Any]) -> Dict[str, float]:
+        features = candidate.get("features", {}) or {}
+        return {
+            "f_sql_lineage_exact": float(features.get("f_sql_lineage_exact", 0.0) or 0.0),
+            "f_sql_projection_hit": float(features.get("f_sql_projection_hit", 0.0) or 0.0),
+            "f_code_assignment_hit": float(features.get("f_code_assignment_hit", 0.0) or 0.0),
+            "f_code_field_hint": float(features.get("f_code_field_hint", 0.0) or 0.0),
+        }
+
+    def _extract_runtime_signals(self, candidate: Dict[str, Any]) -> Dict[str, float]:
+        features = candidate.get("features", {}) or {}
+        return {
+            "f_runtime_field_hit": float(features.get("f_runtime_field_hit", 0.0) or 0.0),
+            "f_runtime_column_verified": float(features.get("f_runtime_column_verified", 0.0) or 0.0),
+            "f_runtime_projection_verified": float(features.get("f_runtime_projection_verified", 0.0) or 0.0),
+        }
 
     def _parse_result(self, result: Any) -> Any:
         if isinstance(result, dict):

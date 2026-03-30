@@ -32,7 +32,10 @@ class FieldMappingCreate(BaseModel):
     api_field_path: str = Field(..., description="API field path, for example body.order_id")
     db_table: str = Field(..., description="Database table name")
     db_column: str = Field(..., description="Database column name")
-    relation_type: Optional[str] = Field("direct", description="Relation type enum: direct/fk/derived")
+    relation_type: Optional[str] = Field(
+        "direct",
+        description="Relation type enum: direct/fk/joined/alias/derived/conditional/enum_transform/runtime_verified/uncertain",
+    )
     confidence: Optional[float] = Field(None, description="Final mapping confidence, not the candidate ranking score")
     source: Optional[str] = Field("manual", description="Source: manual/ai")
 
@@ -42,7 +45,10 @@ class FieldMappingUpdate(BaseModel):
     api_field_path: Optional[str] = Field(None, description="API field path")
     db_table: Optional[str] = Field(None, description="Database table name")
     db_column: Optional[str] = Field(None, description="Database column name")
-    relation_type: Optional[str] = Field(None, description="Relation type enum: direct/fk/derived")
+    relation_type: Optional[str] = Field(
+        None,
+        description="Relation type enum: direct/fk/joined/alias/derived/conditional/enum_transform/runtime_verified/uncertain",
+    )
     confidence: Optional[float] = Field(None, description="Final mapping confidence, not the candidate ranking score")
     source: Optional[str] = Field(None, description="Source")
 
@@ -74,7 +80,10 @@ class FieldMappingSuggestion(BaseModel):
     api_field_path: str = Field(..., description="API field path")
     top_candidate: Optional[Dict[str, Any]] = Field(None, description="Normalized top candidate")
     candidate_list: Optional[List[Dict[str, Any]]] = Field(None, description="Normalized candidate list")
-    relation_type: Optional[str] = Field(None, description="Normalized relation type enum: direct/fk/derived")
+    relation_type: Optional[str] = Field(
+        None,
+        description="Normalized relation type enum: direct/fk/joined/alias/derived/conditional/enum_transform/runtime_verified/uncertain",
+    )
     confidence: Optional[float] = Field(None, description="Normalized final decision confidence")
     decision_source: Optional[str] = Field(None, description="Final decision source")
     decision_artifact: Optional[Dict[str, Any]] = Field(None, description="Normalized decision artifact")
@@ -89,7 +98,10 @@ class FieldMappingBatchApplyItem(BaseModel):
     api_field_path: str = Field(..., description="API field path")
     db_table: str = Field(..., description="Database table name")
     db_column: str = Field(..., description="Database column name")
-    relation_type: Optional[str] = Field("direct", description="Relation type enum: direct/fk/derived")
+    relation_type: Optional[str] = Field(
+        "direct",
+        description="Relation type enum: direct/fk/joined/alias/derived/conditional/enum_transform/runtime_verified/uncertain",
+    )
     source: Optional[str] = Field("ai", description="Source")
 
 

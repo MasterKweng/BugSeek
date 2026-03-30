@@ -33,6 +33,7 @@ class CandidateRanker:
                     "features": features,
                     "recall_sources": list(candidate.get("recall_sources", [])),
                     "rank_score": round(min(score, 1.0), 4),
+                    "raw_payload": dict(candidate.get("raw_payload", {}) or {}),
                 }
             )
         ranked.sort(key=lambda item: item["score"], reverse=True)
@@ -51,6 +52,7 @@ class CandidateRanker:
                     "reasons": candidate.explanations[:],
                     "features": features,
                     "recall_sources": candidate.recall_sources[:],
+                    "raw_payload": {},
                 }
             )
         ranked.sort(key=lambda item: item["score"], reverse=True)
@@ -63,6 +65,8 @@ class CandidateRanker:
             if (
                 features.get("f_sql_lineage_exact", 0.0) >= 0.95
                 or features.get("f_code_assignment_hit", 0.0) >= 0.95
+                or features.get("f_sql_transform_strength", 0.0) >= 0.9
+                or features.get("f_code_trace_strength", 0.0) >= 0.9
                 or (
                     features.get("f_runtime_field_hit", 0.0) >= 1.0
                     and features.get("f_name_exact", 0.0) > 0
@@ -95,7 +99,10 @@ class CandidateRanker:
             + features.get("f_runtime_field_hit", 0.0) * 0.06
             + features.get("f_sql_lineage_exact", 0.0) * 0.22
             + features.get("f_sql_projection_hit", 0.0) * 0.05
+            + features.get("f_sql_transform_strength", 0.0) * 0.08
             + features.get("f_code_assignment_hit", 0.0) * 0.18
+            + features.get("f_code_trace_strength", 0.0) * 0.09
+            + features.get("f_code_field_hint", 0.0) * 0.06
             + features.get("f_field_position_match", 0.0) * 0.05
             + features.get("f_sibling_context_match", 0.0) * 0.04
             + features.get("f_domain_anchor_match", 0.0) * 0.05

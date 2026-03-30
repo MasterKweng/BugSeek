@@ -13,7 +13,17 @@ from app.domains.field_mapping_engine.recall.vector_recaller import VectorRecall
 
 def test_feature_builder_enriches_contextual_features():
     builder = FeatureBuilder()
-    candidate = {"db_table": "orders", "db_column": "status", "features": {}}
+    candidate = {
+        "db_table": "orders",
+        "db_column": "status",
+        "features": {
+            "f_sql_expression_hit": 1.0,
+            "f_sql_case_when_hit": 1.0,
+            "f_code_assignment_hit": 0.9,
+            "f_code_nested_assignment_hit": 1.0,
+            "f_code_chain_depth": 0.5,
+        },
+    }
     field_item = {
         "field_name": "status",
         "api_field_path": "query.status",
@@ -28,6 +38,36 @@ def test_feature_builder_enriches_contextual_features():
     assert enriched["features"]["f_field_position_match"] == 0.8
     assert enriched["features"]["f_domain_anchor_match"] == 1.0
     assert enriched["features"]["f_data_type_match"] == 0.8
+    assert enriched["features"]["f_sql_transform_strength"] >= 1.0 - 1e-4
+    assert enriched["features"]["f_code_trace_strength"] > 0.7
+
+
+def test_feature_builder_includes_stream_and_collection_code_trace_strength():
+    builder = FeatureBuilder()
+    candidate = {
+        "db_table": "orders",
+        "db_column": "tags",
+        "features": {
+            "f_code_assignment_hit": 0.88,
+            "f_code_stream_transform_hit": 1.0,
+            "f_code_collection_copy_hit": 1.0,
+            "f_code_chain_depth": 0.5,
+        },
+    }
+
+    enriched = builder.enrich_candidate(
+        field_item={
+            "field_name": "tags",
+            "api_field_path": "body.tags",
+            "source_type": "body",
+            "allowed_tables": ["orders"],
+            "domain_anchor": "order",
+            "sibling_paths": [],
+        },
+        candidate=candidate,
+    )
+
+    assert enriched["features"]["f_code_trace_strength"] > 0.8
 
 
 def test_deterministic_rules_block_high_risk_without_strong_evidence():
@@ -162,6 +202,68 @@ def test_relation_classifier_recognizes_alias_and_runtime_verified():
 
     assert alias_relation == "alias"
     assert runtime_relation == "runtime_verified"
+
+
+def test_relation_classifier_uses_complex_sql_and_code_trace_features():
+    classifier = RelationClassifier()
+
+    derived_relation = classifier.classify(
+        field_item={"field_name": "latestOrderDate"},
+        top_candidate={
+            "db_column": "create_time",
+            "features": {
+                "f_sql_transform_strength": 0.78,
+                "f_sql_function_wrap_hit": 1.0,
+            },
+            "recall_sources": ["sql_lineage"],
+        },
+    )
+    direct_relation = classifier.classify(
+        field_item={"field_name": "statusText"},
+        top_candidate={
+            "db_column": "status",
+            "features": {
+                "f_code_trace_strength": 0.76,
+                "f_code_nested_assignment_hit": 1.0,
+            },
+            "recall_sources": ["code_lineage"],
+        },
+    )
+
+    assert derived_relation == "derived"
+    assert direct_relation == "direct"
+
+
+def test_candidate_ranker_prefers_complex_lineage_signal_candidate():
+    ranker = CandidateRanker()
+    ranked = ranker.rank_from_dict(
+        [
+            {
+                "db_table": "orders",
+                "db_column": "latest_order_date",
+                "features": {"f_name_similarity": 0.82},
+                "explanations": [],
+                "negative_evidence": [],
+                "reject_reasons": [],
+                "recall_sources": ["lexical"],
+            },
+            {
+                "db_table": "orders",
+                "db_column": "create_time",
+                "features": {
+                    "f_name_similarity": 0.55,
+                    "f_sql_lineage_exact": 0.84,
+                    "f_sql_transform_strength": 0.78,
+                },
+                "explanations": [],
+                "negative_evidence": [],
+                "reject_reasons": [],
+                "recall_sources": ["sql_lineage"],
+            },
+        ]
+    )
+
+    assert ranked[0]["db_column"] == "create_time"
 
 
 def test_history_recaller_weights_cross_version_and_feedback():

@@ -670,6 +670,9 @@ async def execute_scenario(
         graph_data=None,
         variables=variables or {},
         environment_id=resolved_environment_id,
+        version_id=scenario.version_id,
+        operator_user_id=current_user.id,
+        triggered_by="manual",
         db=db
     )
 

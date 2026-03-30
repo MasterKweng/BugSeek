@@ -147,6 +147,7 @@ class CaseExecutor:
                     "error_message": Optional[str]
                 }
         """
+        execution_started_at = datetime.utcnow()
         start_time = time.time()
         case_trace_id = get_trace_id()
 
@@ -335,9 +336,6 @@ class CaseExecutor:
             logger.error(f"[{case_trace_id}] 异常堆栈:\n{traceback.format_exc()}")
             extracted_variables = {}  # 提取失败不影响整体流程
 
-        # 计算耗时
-        duration_ms = int((time.time() - start_time) * 1000)
-
         # 构建结果
         result = {
             "case_id": case.id,
@@ -360,28 +358,6 @@ class CaseExecutor:
             "sort_order": sort_order,
         }
 
-        # 保存执行记录
-        try:
-            logger.info(f"[{case_trace_id}] [步骤8] 保存执行记录到数据库...")
-            await self._save_execution_record(
-                case=case,
-                definition=definition,
-                environment=environment,
-                result=result,
-                db=db,
-                version_id=version_id,
-                operator_user_id=operator_user_id,
-                parent_execution_id=parent_execution_id,
-                source_execution_id=source_execution_id,
-                triggered_by=triggered_by,
-            )
-            logger.info(f"[{case_trace_id}] [步骤8] 执行记录保存完成")
-        except Exception as e:
-            logger.error(f"[{case_trace_id}] [步骤8] 保存执行记录失败: {str(e)}")
-            import traceback
-            logger.error(f"[{case_trace_id}] 异常堆栈:\n{traceback.format_exc()}")
-            # 保存记录失败不影响返回结果
-
         # 执行后置 SQL
         try:
             if case.post_sql:
@@ -402,6 +378,34 @@ class CaseExecutor:
             import traceback
             logger.error(f"[{case_trace_id}] 异常堆栈:\n{traceback.format_exc()}")
             # 后置SQL失败不影响返回结果
+
+        execution_finished_at = datetime.utcnow()
+        duration_ms = int((time.time() - start_time) * 1000)
+        result["duration"] = duration_ms
+
+        # 保存执行记录
+        try:
+            logger.info(f"[{case_trace_id}] [步骤8] 保存执行记录到数据库...")
+            await self._save_execution_record(
+                case=case,
+                definition=definition,
+                environment=environment,
+                result=result,
+                db=db,
+                started_at=execution_started_at,
+                finished_at=execution_finished_at,
+                version_id=version_id,
+                operator_user_id=operator_user_id,
+                parent_execution_id=parent_execution_id,
+                source_execution_id=source_execution_id,
+                triggered_by=triggered_by,
+            )
+            logger.info(f"[{case_trace_id}] [步骤8] 执行记录保存完成")
+        except Exception as e:
+            logger.error(f"[{case_trace_id}] [步骤8] 保存执行记录失败: {str(e)}")
+            import traceback
+            logger.error(f"[{case_trace_id}] 异常堆栈:\n{traceback.format_exc()}")
+            # 保存记录失败不影响返回结果
 
         logger.info(f"[{case_trace_id}] ========== 用例执行完成 ==========")
         logger.info(f"[{case_trace_id}] 最终状态: {result['status']}")
@@ -1492,6 +1496,8 @@ class CaseExecutor:
         environment: Environment,
         result: Dict[str, Any],
         db: Session,
+        started_at: Optional[datetime] = None,
+        finished_at: Optional[datetime] = None,
         version_id: Optional[int] = None,
         operator_user_id: Optional[int] = None,
         parent_execution_id: Optional[int] = None,
@@ -1533,14 +1539,14 @@ class CaseExecutor:
                 environment_id=environment.id,
                 execution_mode="sequential",
                 triggered_by=triggered_by,
-                status=ExecutionStatus.COMPLETED if result["status"] == "passed" else ExecutionStatus.FAILED,
-                started_at=datetime.utcnow(),
-                finished_at=datetime.utcnow(),
+                status=ExecutionStatus.COMPLETED,
+                started_at=started_at or datetime.utcnow(),
+                finished_at=finished_at or datetime.utcnow(),
                 total=1,
                 passed=1 if result["status"] == "passed" else 0,
                 failed=0 if result["status"] == "passed" else 1,
                 skipped=0,
-                duration=result["response_time"]
+                duration=result.get("duration") or result["response_time"]
             )
 
             db.add(execution)
@@ -1677,7 +1683,7 @@ class CaseExecutor:
         execution.passed = success
         execution.failed = failed
         execution.skipped = 0
-        execution.status = ExecutionStatus.COMPLETED if failed == 0 else ExecutionStatus.FAILED
+        execution.status = ExecutionStatus.COMPLETED
         execution.result_status = self._aggregate_result_status(success, failed, 0)
         db.commit()
 

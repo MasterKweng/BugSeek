@@ -59,6 +59,32 @@ class LineageService:
     ) -> List[Dict[str, Any]]:
         return self.code_parser.parse_assignment_chain(source_payload=payload)
 
+    def infer_code_lineage_tables(
+        self,
+        *,
+        definition_id: int,
+        api_field_path: str,
+        source_field: str,
+    ) -> List[str]:
+        if not source_field:
+            return []
+        sql_candidates = self.list_sql_lineage_candidates(
+            definition_id=definition_id,
+            api_field_path=api_field_path,
+        )
+        matched_tables: List[str] = []
+        for candidate in sql_candidates:
+            candidate_names = [
+                str(candidate.get("source_column") or ""),
+                str(candidate.get("projection_alias") or ""),
+            ]
+            if not self._is_field_name_match(source_field, [name for name in candidate_names if name]):
+                continue
+            table_name = str(candidate.get("source_table") or "").strip()
+            if table_name and table_name not in matched_tables:
+                matched_tables.append(table_name)
+        return matched_tables
+
     def build_and_persist_code_lineage_from_workspace(
         self,
         *,
@@ -109,6 +135,22 @@ class LineageService:
                         edges=matched_edges,
                     )
                 continue
+
+            orm_like_edges = self.orm_parser.parse_mapper_text(mapper_text=source_text)
+            grouped_orm_like = self._group_code_like_edges_by_field_path(
+                orm_like_edges,
+                field_leaf_map=field_leaf_map,
+                source_path=str(file_path),
+            )
+            for api_field_path, matched_edges in grouped_orm_like.items():
+                created += self.repo.save_lineage_edges(
+                    project_id=project_id,
+                    version_id=version_id,
+                    definition_id=definition_id,
+                    api_field_path=api_field_path,
+                    evidence_type="code_lineage",
+                    edges=matched_edges,
+                )
 
             code_edges = self.code_parser.parse_source_text(source_text=source_text)
             grouped_code = self._group_code_like_edges_by_field_path(
@@ -209,9 +251,24 @@ class LineageService:
     ) -> Dict[str, List[Dict[str, Any]]]:
         grouped: Dict[str, List[Dict[str, Any]]] = {}
         for edge in edges:
-            target_field = str(edge.get("target_field") or edge.get("api_field_path") or "").split(".")[-1]
+            if str(edge.get("target_field") or "") == "*":
+                self._expand_wildcard_code_edge(
+                    grouped=grouped,
+                    edge=edge,
+                    field_leaf_map=field_leaf_map,
+                    source_path=source_path,
+                )
+                continue
+            target_path = self._normalize_property_path(str(edge.get("target_field") or edge.get("api_field_path") or ""))
+            target_leaf = target_path.split(".")[-1] if target_path else ""
             for api_field_path, field_leaf in field_leaf_map.items():
-                if not self._is_field_name_match(field_leaf, [target_field]):
+                normalized_api_path = self._normalize_property_path(api_field_path)
+                if not self._is_property_path_match(
+                    api_field_path=normalized_api_path,
+                    field_leaf=field_leaf,
+                    target_path=target_path,
+                    target_leaf=target_leaf,
+                ):
                     continue
                 grouped.setdefault(api_field_path, []).append(
                     {
@@ -224,6 +281,62 @@ class LineageService:
                     }
                 )
         return grouped
+
+    def _expand_wildcard_code_edge(
+        self,
+        *,
+        grouped: Dict[str, List[Dict[str, Any]]],
+        edge: Dict[str, Any],
+        field_leaf_map: Dict[str, str],
+        source_path: str,
+    ) -> None:
+        payload = dict(edge.get("payload") or {})
+        ignored = {self._normalize_property_path(field_name) for field_name in payload.get("ignore_fields") or [] if field_name}
+        included = {self._normalize_property_path(field_name) for field_name in payload.get("include_fields") or [] if field_name}
+        for api_field_path, field_leaf in field_leaf_map.items():
+            normalized_field_path = self._normalize_property_path(api_field_path)
+            normalized_field_leaf = self._normalize_property_path(field_leaf)
+            if included and normalized_field_path not in included and normalized_field_leaf not in included:
+                continue
+            if normalized_field_path in ignored or normalized_field_leaf in ignored:
+                continue
+            expanded_edge = {
+                **edge,
+                "api_field_path": api_field_path,
+                "target_field": field_leaf,
+                "source_field": field_leaf,
+                "db_column": field_leaf,
+                "payload": {
+                    **dict(edge.get("payload") or {}),
+                    "source_path": source_path,
+                    "expanded_from_wildcard": True,
+                },
+            }
+            grouped.setdefault(api_field_path, []).append(expanded_edge)
+
+    def _is_property_path_match(
+        self,
+        *,
+        api_field_path: str,
+        field_leaf: str,
+        target_path: str,
+        target_leaf: str,
+    ) -> bool:
+        if target_path:
+            if api_field_path == target_path:
+                return True
+            if api_field_path.endswith(f".{target_path}"):
+                return True
+            if "." in target_path:
+                return False
+        candidate_names = [name for name in (target_leaf, target_path.split(".")[-1] if target_path else "") if name]
+        return self._is_field_name_match(field_leaf, candidate_names)
+
+    def _normalize_property_path(self, value: str) -> str:
+        normalized = str(value or "").strip()
+        if normalized.startswith("body."):
+            normalized = normalized[5:]
+        return normalized.replace("[]", "")
 
     def _match_api_field_paths(self, edge: Dict[str, Any], response_field_paths: List[str]) -> List[str]:
         projection_alias = str(edge.get("projection_alias") or "")

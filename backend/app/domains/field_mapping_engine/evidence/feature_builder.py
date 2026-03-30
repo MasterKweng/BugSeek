@@ -32,6 +32,8 @@ class FeatureBuilder:
             float(features.get("f_sql_lineage_exact", 0.0) or 0.0),
             float(features.get("f_code_assignment_hit", 0.0) or 0.0),
         )
+        features["f_sql_transform_strength"] = self._sql_transform_strength(features)
+        features["f_code_trace_strength"] = self._code_trace_strength(features)
         return candidate
 
     def _field_position_match(self, source_type: str, field_name: str, db_column: str) -> float:
@@ -73,3 +75,51 @@ class FeatureBuilder:
         if hit_count <= 0:
             return 0.0
         return min(1.0, 0.3 + 0.2 * hit_count)
+
+    def _sql_transform_strength(self, features: Dict[str, Any]) -> float:
+        aggregate_hit = float(features.get("f_sql_aggregate_hit", 0.0) or 0.0)
+        conditional_hit = float(features.get("f_sql_case_when_hit", 0.0) or 0.0)
+        function_wrap_hit = float(features.get("f_sql_function_wrap_hit", 0.0) or 0.0)
+        window_hit = float(features.get("f_sql_window_hit", 0.0) or 0.0)
+        subquery_hit = float(features.get("f_sql_subquery_hit", 0.0) or 0.0)
+        cte_projection_hit = float(features.get("f_cte_projection_hit", 0.0) or 0.0)
+        union_projection_hit = float(features.get("f_union_projection_hit", 0.0) or 0.0)
+        expression_hit = float(features.get("f_sql_expression_hit", 0.0) or 0.0)
+        return round(
+            min(
+                1.0,
+                aggregate_hit * 0.9
+                + conditional_hit * 0.85
+                + function_wrap_hit * 0.75
+                + window_hit * 0.82
+                + subquery_hit * 0.78
+                + cte_projection_hit * 0.45
+                + union_projection_hit * 0.35
+                + expression_hit * 0.2,
+            ),
+            4,
+        )
+
+    def _code_trace_strength(self, features: Dict[str, Any]) -> float:
+        assignment_hit = float(features.get("f_code_assignment_hit", 0.0) or 0.0)
+        nested_hit = float(features.get("f_code_nested_assignment_hit", 0.0) or 0.0)
+        builder_hit = float(features.get("f_code_builder_hit", 0.0) or 0.0)
+        intermediate_hit = float(features.get("f_code_intermediate_variable_hit", 0.0) or 0.0)
+        converter_hit = float(features.get("f_code_converter_hit", 0.0) or 0.0)
+        stream_hit = float(features.get("f_code_stream_transform_hit", 0.0) or 0.0)
+        collection_copy_hit = float(features.get("f_code_collection_copy_hit", 0.0) or 0.0)
+        chain_depth = float(features.get("f_code_chain_depth", 0.0) or 0.0)
+        return round(
+            min(
+                1.0,
+                assignment_hit * 0.65
+                + nested_hit * 0.16
+                + builder_hit * 0.12
+                + intermediate_hit * 0.12
+                + converter_hit * 0.15
+                + stream_hit * 0.16
+                + collection_copy_hit * 0.11
+                + chain_depth * 0.08,
+            ),
+            4,
+        )

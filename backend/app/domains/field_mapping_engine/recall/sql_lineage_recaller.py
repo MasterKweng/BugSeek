@@ -36,6 +36,7 @@ class SQLLineageRecaller:
             if not db_table or not db_column:
                 continue
             expression_type = str(candidate.get("expression_type") or "projection")
+            transform_type = str(candidate.get("transform_type") or "direct")
             join_hit = bool(candidate.get("join_hit"))
             normalized.append(
                 {
@@ -47,9 +48,20 @@ class SQLLineageRecaller:
                         "f_sql_alias_match": 1.0 if expression_type == "alias" else 0.0,
                         "f_sql_expression_hit": 1.0 if expression_type == "expression" else 0.0,
                         "f_join_path_match": 1.0 if join_hit else 0.0,
+                        "f_sql_aggregate_hit": 1.0 if transform_type == "aggregate" else 0.0,
+                        "f_sql_case_when_hit": 1.0 if transform_type == "conditional" else 0.0,
+                        "f_sql_function_wrap_hit": 1.0 if transform_type == "function_wrap" else 0.0,
+                        "f_sql_window_hit": 1.0 if transform_type == "window" else 0.0,
+                        "f_sql_subquery_hit": 1.0 if transform_type == "correlated_subquery" else 0.0,
+                        "f_cte_projection_hit": 1.0 if candidate.get("cte_hit") else 0.0,
+                        "f_union_projection_hit": 1.0 if candidate.get("union_hit") else 0.0,
                     },
                     "recall_sources": ["sql_lineage"],
-                    "explanations": ["sql_lineage_hit", expression_type] + (["join_path_hit"] if join_hit else []),
+                    "explanations": [
+                        "sql_lineage_hit",
+                        expression_type,
+                        transform_type,
+                    ] + (["join_path_hit"] if join_hit else []) + (["cte_projection_hit"] if candidate.get("cte_hit") else []),
                     "raw_payload": {"sql_lineage": candidate},
                 }
             )

@@ -163,6 +163,10 @@ class FieldMappingAppService:
             runtime_candidates = self.runtime_recaller.recall_from_dict(field_spec, schema_snapshot)
             sql_lineage_candidates = self.sql_lineage_recaller.recall_from_dict(field_spec, schema_snapshot)
             code_lineage_candidates = self.code_lineage_recaller.recall_from_dict(field_spec)
+            code_lineage_candidates = self._attach_weak_code_lineage_hints(
+                code_lineage_candidates=code_lineage_candidates,
+                candidate_groups=[lexical_candidates, vector_candidates, runtime_candidates, sql_lineage_candidates],
+            )
             candidate_evidence = self._merge_candidate_evidence(
                 lexical_candidates,
                 vector_candidates,
@@ -691,6 +695,48 @@ class FieldMappingAppService:
                         bucket["explanations"].append(explanation)
                 bucket["raw_payload"].update(candidate.get("raw_payload", {}))
         return list(merged.values())
+
+    def _attach_weak_code_lineage_hints(
+        self,
+        *,
+        code_lineage_candidates: List[Dict[str, Any]],
+        candidate_groups: List[List[Dict[str, Any]]],
+    ) -> List[Dict[str, Any]]:
+        strong_candidates = [candidate for candidate in code_lineage_candidates if not candidate.get("weak_hint_only")]
+        weak_candidates = [candidate for candidate in code_lineage_candidates if candidate.get("weak_hint_only")]
+        if not weak_candidates:
+            return strong_candidates
+
+        attachable_candidates: List[Dict[str, Any]] = []
+        for group in candidate_groups:
+            attachable_candidates.extend(group)
+
+        for weak_candidate in weak_candidates:
+            db_column = str(weak_candidate.get("db_column") or "")
+            if not db_column:
+                continue
+            weak_features = dict(weak_candidate.get("features", {}) or {})
+            weak_score = float(weak_features.get("f_code_field_hint", 0.0) or 0.0)
+            weak_payload = dict(weak_candidate.get("raw_payload", {}) or {})
+            weak_explanations = list(weak_candidate.get("explanations", []) or [])
+
+            for candidate in attachable_candidates:
+                candidate_column = str(candidate.get("db_column") or "")
+                if candidate_column != db_column:
+                    continue
+                features = candidate.setdefault("features", {})
+                features["f_code_field_hint"] = max(float(features.get("f_code_field_hint", 0.0) or 0.0), weak_score)
+                explanations = candidate.setdefault("explanations", [])
+                for explanation in weak_explanations:
+                    weak_reason = f"{explanation}_attached"
+                    if weak_reason not in explanations:
+                        explanations.append(weak_reason)
+                raw_payload = candidate.setdefault("raw_payload", {})
+                raw_payload.setdefault("weak_code_lineage", []).append(weak_payload)
+                recall_sources = candidate.setdefault("recall_sources", [])
+                if "code_lineage_hint" not in recall_sources:
+                    recall_sources.append("code_lineage_hint")
+        return strong_candidates
 
     def _apply_runtime_verification_evidence(
         self,

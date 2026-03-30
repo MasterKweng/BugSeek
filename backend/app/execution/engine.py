@@ -7,6 +7,7 @@ import time
 import json
 import logging
 import re
+from datetime import datetime
 from collections import defaultdict
 from typing import Dict, Any, List, Optional
 
@@ -36,9 +37,14 @@ class ScenarioExecutor:
         variables: Optional[Dict[str, Any]],
         db: Session,
         environment_id: Optional[int] = None,
+        version_id: Optional[int] = None,
+        operator_user_id: Optional[int] = None,
+        source_execution_id: Optional[int] = None,
+        triggered_by: str = "manual",
     ) -> Dict[str, Any]:
         """Execute scenario with DAG ordering and shared context bus."""
         trace_id = get_trace_id()
+        execution_started_at = datetime.utcnow()
         started_at = time.time()
         variables = variables or {}
 
@@ -83,6 +89,9 @@ class ScenarioExecutor:
                     node=node,
                     context=context_snapshot,
                     environment_id=environment_id,
+                    version_id=version_id or scenario.version_id,
+                    operator_user_id=operator_user_id,
+                    triggered_by=triggered_by,
                     db=db
                 )
                 for node in level_nodes
@@ -127,19 +136,27 @@ class ScenarioExecutor:
                 response_time = item.get("response_time")
             if isinstance(response_time, (int, float)):
                 summed_response_time += int(response_time)
-        final_status = "completed" if failed == 0 else "failed"
+        result_status = self._aggregate_result_status(passed=passed, failed=failed, skipped=skipped)
+        final_status = "completed"
+        execution_finished_at = datetime.utcnow()
 
         execution_id = self._save_scenario_execution_record(
             db=db,
             scenario=scenario,
             node_results=node_results,
-            final_status=final_status,
+            result_status=result_status,
             environment_id=environment_id or scenario.environment_id,
             duration=duration,
             total=total,
             passed=passed,
             failed=failed,
-            skipped=skipped
+            skipped=skipped,
+            started_at=execution_started_at,
+            finished_at=execution_finished_at,
+            version_id=version_id or scenario.version_id,
+            operator_user_id=operator_user_id,
+            source_execution_id=source_execution_id,
+            triggered_by=triggered_by,
         )
 
         await self.case_executor.close()
@@ -148,6 +165,7 @@ class ScenarioExecutor:
             "scenario_id": scenario_id,
             "execution_id": execution_id,
             "status": final_status,
+            "result_status": result_status,
             "total_nodes": total,
             "passed_nodes": passed,
             "failed_nodes": failed,
@@ -258,6 +276,17 @@ class ScenarioExecutor:
         if visited != len(nodes):
             raise ValueError("Cycle detected in scenario graph")
 
+    def _aggregate_result_status(self, passed: int, failed: int, skipped: int) -> str:
+        if failed > 0 and passed > 0:
+            return "partial_failed"
+        if failed > 0:
+            return "failed"
+        if passed > 0:
+            return "passed"
+        if skipped > 0:
+            return "skipped"
+        return "unknown"
+
         # 检查 6: 检测孤立节点（可选，发出警告）
         isolated_nodes = [
             key for key in node_key_set 
@@ -310,6 +339,9 @@ class ScenarioExecutor:
         node: Dict[str, Any],
         context: Dict[str, Any],
         environment_id: Optional[int],
+        version_id: Optional[int],
+        operator_user_id: Optional[int],
+        triggered_by: str,
         db: Session
     ) -> Dict[str, Any]:
         node_key = node["node_key"]
@@ -338,7 +370,10 @@ class ScenarioExecutor:
                 environment=environment,
                 variables=execution_variables,
                 db=db,
-                project_id=scenario.project_id
+                project_id=scenario.project_id,
+                version_id=version_id,
+                operator_user_id=operator_user_id,
+                triggered_by=f"scenario:{triggered_by}",
             )
 
             return {
@@ -497,23 +532,41 @@ class ScenarioExecutor:
         db: Session,
         scenario: ApiScenario,
         node_results: List[Dict[str, Any]],
-        final_status: str,
+        result_status: str,
         environment_id: Optional[int],
         duration: int,
         total: int,
         passed: int,
         failed: int,
         skipped: int,
+        started_at: Optional[datetime] = None,
+        finished_at: Optional[datetime] = None,
+        version_id: Optional[int] = None,
+        operator_user_id: Optional[int] = None,
+        source_execution_id: Optional[int] = None,
+        triggered_by: str = "manual",
     ) -> Optional[int]:
         try:
             execution = TestExecution(
                 project_id=scenario.project_id,
+                version_id=version_id,
                 execution_type=ExecutionType.SCENARIO,
                 target_id=scenario.id,
+                operator_user_id=operator_user_id,
+                source_execution_id=source_execution_id,
+                title=scenario.name,
+                summary_json={
+                    "scenario_id": scenario.id,
+                    "scenario_name": scenario.name,
+                    "node_count": total,
+                },
+                result_status=result_status,
                 environment_id=environment_id,
                 execution_mode=scenario.execution_mode,
-                triggered_by="manual",
-                status=ExecutionStatus.COMPLETED if final_status == "completed" else ExecutionStatus.FAILED,
+                triggered_by=triggered_by,
+                status=ExecutionStatus.COMPLETED,
+                started_at=started_at or datetime.utcnow(),
+                finished_at=finished_at or datetime.utcnow(),
                 total=total,
                 passed=passed,
                 failed=failed,

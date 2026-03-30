@@ -33,19 +33,43 @@ class CodeLineageRecaller:
             db_column = str(candidate.get("db_column") or candidate.get("source_field") or "")
             if not db_column:
                 continue
+            inferred_tables: List[str] = []
+            if not db_table:
+                inferred_tables = self.lineage_service.infer_code_lineage_tables(
+                    definition_id=definition_id,
+                    api_field_path=api_field_path,
+                    source_field=db_column,
+                )
+                if inferred_tables:
+                    db_table = inferred_tables[0]
             chain_depth = max(int(candidate.get("chain_depth", 1) or 1), 1)
+            assignment_kind = str(candidate.get("assignment_kind") or "direct")
+            features = {
+                "f_code_assignment_hit": round(float(candidate.get("confidence", 0.9) or 0.9), 4),
+                "f_mapper_annotation_hit": 1.0 if candidate.get("evidence_type") in {"orm_mapping", "mapper_annotation"} else 0.0,
+                "f_code_chain_depth": round(min(1.0, 1.0 / chain_depth), 4),
+                "f_code_intermediate_variable_hit": 1.0 if candidate.get("intermediate_variable_hit") else 0.0,
+                "f_code_builder_hit": 1.0 if assignment_kind == "builder" else 0.0,
+                "f_code_nested_assignment_hit": 1.0 if assignment_kind == "nested" else 0.0,
+                "f_code_converter_hit": 1.0 if assignment_kind == "converter" or candidate.get("transform_hint") else 0.0,
+                "f_code_stream_transform_hit": 1.0 if assignment_kind == "stream_map" else 0.0,
+                "f_code_collection_copy_hit": 1.0 if assignment_kind in {"collection_copy", "foreach_add"} else 0.0,
+            }
+            if not db_table:
+                features["f_code_field_hint"] = max(features["f_code_assignment_hit"], 0.6)
             normalized.append(
                 {
                     "db_table": db_table,
                     "db_column": db_column,
-                    "features": {
-                        "f_code_assignment_hit": round(float(candidate.get("confidence", 0.9) or 0.9), 4),
-                        "f_mapper_annotation_hit": 1.0 if candidate.get("evidence_type") in {"orm_mapping", "mapper_annotation"} else 0.0,
-                        "f_code_chain_depth": round(min(1.0, 1.0 / chain_depth), 4),
-                    },
+                    "features": features,
                     "recall_sources": ["code_lineage"],
-                    "explanations": ["code_lineage_hit", str(candidate.get("evidence_type") or "code_assignment")],
-                    "raw_payload": {"code_lineage": candidate},
+                    "explanations": [
+                        "code_lineage_hit",
+                        str(candidate.get("evidence_type") or "code_assignment"),
+                        assignment_kind,
+                    ],
+                    "raw_payload": {"code_lineage": candidate, "inferred_db_tables": inferred_tables if not candidate.get("db_table") else []},
+                    "weak_hint_only": not bool(db_table),
                 }
             )
         return normalized
