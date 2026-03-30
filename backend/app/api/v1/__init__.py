@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from app.api.v1 import auth, projects, versions, environments, variables, context
 from app.api.v1 import api_definitions, api_cases, sync_tasks, version_snapshots, db_schemas, field_mappings, field_mappings_async
 from app.api.v1 import auth_config, auth_config_append
-from app.api.v1 import scenarios, intent_workbench, reports, ai_testing, executions
+from app.api.v1 import scenarios, intent_workbench, reports, ai_testing, executions, execution_reports
 from app.api.v1 import health, execution_triggers, knowledge_graph, data_impact, task_status, ui_testing
 from app.ai import router as ai_router
 
@@ -39,3 +39,4 @@ api_router.include_router(health.router, tags=["系统监控"])
 
 api_router.include_router(ai_testing.router, tags=["AI Testing Engine"])
 api_router.include_router(executions.router, tags=["执行中心"])
+api_router.include_router(execution_reports.router, tags=["执行报表"])

@@ -16,3 +16,27 @@ def analyze_data_impact(execution_id: str, api_id: Optional[int] = None):
         return {"status": "ok", "result": result}
     finally:
         db.close()
+
+
+@celery_app.task(name="build_lineage_assets")
+def build_lineage_assets(
+    definition_id: int,
+    execution_id: Optional[str] = None,
+    workspace_root: Optional[str] = None,
+    version_id: Optional[int] = None,
+    max_files: int = 200,
+):
+    db = SessionLocal()
+    try:
+        engine = DataImpactEngine(db, db_engine)
+        result = engine.build_lineage_assets(
+            definition_id=definition_id,
+            execution_id=execution_id,
+            workspace_root=workspace_root,
+            version_id=version_id,
+            max_files=max_files,
+        )
+        db.commit()
+        return {"status": "ok", "result": result}
+    finally:
+        db.close()

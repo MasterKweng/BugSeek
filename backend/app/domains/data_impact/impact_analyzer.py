@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.domains.data_impact.change_detector import diff_rows
 from app.domains.data_impact.impact_repository import ImpactRepository
+from app.domains.data_impact.lineage_service import LineageService
 from app.domains.data_impact.snapshot_manager import SnapshotManager
 from app.domains.data_impact.schema_mapper import SchemaMapper
 from app.platform.db.base import ApiExecutionTrace, Snapshot, ApiDefinition, DbSchemaVersion
@@ -18,6 +19,7 @@ class ImpactAnalyzer:
         self.db = db
         self.repo = ImpactRepository(db)
         self.snapshots = SnapshotManager(db)
+        self.lineage_service = LineageService(db)
 
     def analyze_execution(
         self,
@@ -37,10 +39,16 @@ class ImpactAnalyzer:
         if api_id is None:
             raise ValueError("api_id is required for impact analysis.")
 
-        schema_snapshot = self._get_latest_schema_snapshot(api_id)
+        definition = self.db.query(ApiDefinition).filter(ApiDefinition.id == api_id).first()
+        schema_snapshot = self._get_latest_schema_snapshot(api_id, definition=definition)
         mapper = SchemaMapper(schema_snapshot)
 
         sql_traces = self.repo.get_sql_traces(execution_id)
+        if definition is not None and sql_traces:
+            self.lineage_service.build_and_persist_sql_lineage_for_execution(
+                execution_id=execution_id,
+                definition=definition,
+            )
         table_operations: Dict[str, Optional[str]] = {}
         for trace in sql_traces:
             if trace.table_name:
@@ -99,8 +107,8 @@ class ImpactAnalyzer:
             result["assertions"] = assertions
         return result
 
-    def _get_latest_schema_snapshot(self, api_id: int) -> Dict[str, Any]:
-        definition = self.db.query(ApiDefinition).filter(ApiDefinition.id == api_id).first()
+    def _get_latest_schema_snapshot(self, api_id: int, *, definition: ApiDefinition | None = None) -> Dict[str, Any]:
+        definition = definition or self.db.query(ApiDefinition).filter(ApiDefinition.id == api_id).first()
         if not definition:
             return {}
         schema = (

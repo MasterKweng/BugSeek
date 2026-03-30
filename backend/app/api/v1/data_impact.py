@@ -36,6 +36,14 @@ class AnalyzeRequest(BaseModel):
     include_assertions: bool = Field(False, description="Include assertion suggestions")
 
 
+class LineageBuildRequest(BaseModel):
+    definition_id: int = Field(..., description="API definition ID")
+    execution_id: Optional[str] = Field(None, description="Execution ID for SQL lineage extraction")
+    workspace_root: Optional[str] = Field(None, description="Workspace root for mapper/code scanning")
+    version_id: Optional[int] = Field(None, description="Version ID")
+    max_files: int = Field(200, description="Maximum files to scan from workspace")
+
+
 @router.get("/impact/api/{api_id}", response_model=ApiResponse)
 def get_impacts_by_api(api_id: int, db: Session = Depends(get_db)):
     trace_id = get_trace_id()
@@ -124,6 +132,26 @@ def analyze_execution(execution_id: str, request: AnalyzeRequest, db: Session = 
             execution_id,
             request.api_id,
             include_assertions=request.include_assertions,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    return ApiResponse(data=result)
+
+
+@router.post("/impact/lineage/build", response_model=ApiResponse)
+def build_lineage_assets(request: LineageBuildRequest, db: Session = Depends(get_db)):
+    trace_id = get_trace_id()
+    logger.info(
+        f"[{trace_id}] Build lineage assets: definition_id={request.definition_id} execution_id={request.execution_id}"
+    )
+    engine = DataImpactEngine(db, db_engine)
+    try:
+        result = engine.build_lineage_assets(
+            definition_id=request.definition_id,
+            execution_id=request.execution_id,
+            workspace_root=request.workspace_root,
+            version_id=request.version_id,
+            max_files=request.max_files,
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc

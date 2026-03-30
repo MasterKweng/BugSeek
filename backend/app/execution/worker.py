@@ -119,6 +119,7 @@ class CaseExecutor:
         version_id: Optional[int] = None,
         operator_user_id: Optional[int] = None,
         parent_execution_id: Optional[int] = None,
+        source_execution_id: Optional[int] = None,
         triggered_by: str = "manual",
         sort_order: int = 0,
     ) -> Dict[str, Any]:
@@ -371,6 +372,7 @@ class CaseExecutor:
                 version_id=version_id,
                 operator_user_id=operator_user_id,
                 parent_execution_id=parent_execution_id,
+                source_execution_id=source_execution_id,
                 triggered_by=triggered_by,
             )
             logger.info(f"[{case_trace_id}] [步骤8] 执行记录保存完成")
@@ -422,6 +424,8 @@ class CaseExecutor:
         project_id: int,
         version_id: Optional[int] = None,
         operator_user_id: Optional[int] = None,
+        source_execution_id: Optional[int] = None,
+        child_source_execution_ids: Optional[List[Optional[int]]] = None,
         triggered_by: str = "manual",
     ) -> Dict[str, Any]:
         """
@@ -456,6 +460,7 @@ class CaseExecutor:
             project_id=project_id,
             version_id=version_id,
             operator_user_id=operator_user_id,
+            source_execution_id=source_execution_id,
             triggered_by=triggered_by,
         )
 
@@ -465,6 +470,9 @@ class CaseExecutor:
         tasks = []
         for index, case in enumerate(cases):
             definition = definitions.get(case.definition_id)
+            child_source_execution_id = None
+            if child_source_execution_ids and index < len(child_source_execution_ids):
+                child_source_execution_id = child_source_execution_ids[index]
 
             task = self.execute_case(
                 case=case,
@@ -476,6 +484,7 @@ class CaseExecutor:
                 version_id=version_id,
                 operator_user_id=operator_user_id,
                 parent_execution_id=parent_execution.id,
+                source_execution_id=child_source_execution_id,
                 triggered_by=triggered_by,
                 sort_order=index,
             )
@@ -1486,6 +1495,7 @@ class CaseExecutor:
         version_id: Optional[int] = None,
         operator_user_id: Optional[int] = None,
         parent_execution_id: Optional[int] = None,
+        source_execution_id: Optional[int] = None,
         triggered_by: str = "manual",
     ):
         """
@@ -1506,6 +1516,7 @@ class CaseExecutor:
                 target_id=case.id,
                 parent_execution_id=parent_execution_id,
                 operator_user_id=operator_user_id,
+                source_execution_id=source_execution_id,
                 title=case.name,
                 summary_json={
                     "case_id": case.id,
@@ -1617,6 +1628,7 @@ class CaseExecutor:
         project_id: int,
         version_id: Optional[int],
         operator_user_id: Optional[int],
+        source_execution_id: Optional[int],
         triggered_by: str,
     ) -> TestExecution:
         execution = TestExecution(
@@ -1626,6 +1638,7 @@ class CaseExecutor:
             target_id=0,
             environment_id=environment.id,
             operator_user_id=operator_user_id,
+            source_execution_id=source_execution_id,
             title=f"Batch execution: {len(cases)} cases",
             summary_json={
                 "batch_size": len(cases),

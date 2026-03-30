@@ -1,9 +1,8 @@
 -- Full database initialization script generated from the live database schema.
 --
--- Field mapping engine note:
--- The current lineage/runtime verification upgrade reuses
--- public.field_mapping_runtime_evidence (via evidence_type + payload_json)
--- and does not introduce extra tables or columns yet.
+-- Execution center note:
+-- The baseline schema includes public.test_executions and
+-- public.test_execution_results.
 
 CREATE SCHEMA IF NOT EXISTS public;
 
@@ -384,6 +383,22 @@ CREATE TABLE public.api_endpoints (
 	CONSTRAINT api_endpoints_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id)
 );
 
+CREATE TABLE public.api_endpoint_groups (
+	id SERIAL NOT NULL, 
+	project_id INTEGER NOT NULL, 
+	name VARCHAR(100) NOT NULL, 
+	description TEXT, 
+	sort_order INTEGER DEFAULT 0, 
+	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
+	analysis_status VARCHAR(20) DEFAULT 'pending'::character varying NOT NULL, 
+	input_endpoints JSONB, 
+	output_endpoints JSONB, 
+	internal_chains JSONB, 
+	CONSTRAINT api_endpoint_groups_pkey PRIMARY KEY (id), 
+	CONSTRAINT api_endpoint_groups_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id)
+);
+
 CREATE TABLE public.test_types (
 	id SERIAL NOT NULL, 
 	project_id INTEGER NOT NULL, 
@@ -400,20 +415,43 @@ CREATE TABLE public.test_types (
 	CONSTRAINT uq_project_type_code UNIQUE NULLS DISTINCT (project_id, code)
 );
 
-CREATE TABLE public.api_endpoint_groups (
+CREATE TABLE public.test_executions (
 	id SERIAL NOT NULL, 
 	project_id INTEGER NOT NULL, 
-	name VARCHAR(100) NOT NULL, 
-	description TEXT, 
-	sort_order INTEGER DEFAULT 0, 
-	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
-	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
-	analysis_status VARCHAR(20) DEFAULT 'pending'::character varying NOT NULL, 
-	input_endpoints JSONB, 
-	output_endpoints JSONB, 
-	internal_chains JSONB, 
-	CONSTRAINT api_endpoint_groups_pkey PRIMARY KEY (id), 
-	CONSTRAINT api_endpoint_groups_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id)
+	version_id INTEGER, 
+	execution_type VARCHAR(20) NOT NULL, 
+	target_id INTEGER NOT NULL, 
+	parent_execution_id INTEGER, 
+	operator_user_id INTEGER, 
+	title VARCHAR(255), 
+	summary_json JSON, 
+	result_status VARCHAR(20), 
+	source_execution_id INTEGER, 
+	environment_id INTEGER, 
+	execution_mode VARCHAR(20), 
+	triggered_by VARCHAR(50), 
+	status VARCHAR(20), 
+	started_at TIMESTAMP WITHOUT TIME ZONE, 
+	finished_at TIMESTAMP WITHOUT TIME ZONE, 
+	duration INTEGER, 
+	total INTEGER, 
+	passed INTEGER, 
+	failed INTEGER, 
+	skipped INTEGER, 
+	jenkins_job_name VARCHAR(100), 
+	jenkins_build_number INTEGER, 
+	jenkins_build_url VARCHAR(255), 
+	webhook_url VARCHAR(255), 
+	callback_status VARCHAR(20), 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	CONSTRAINT test_executions_pkey PRIMARY KEY (id), 
+	CONSTRAINT test_executions_environment_id_fkey FOREIGN KEY(environment_id) REFERENCES public.environments (id), 
+	CONSTRAINT test_executions_operator_user_id_fkey FOREIGN KEY(operator_user_id) REFERENCES public.users (id), 
+	CONSTRAINT test_executions_parent_execution_id_fkey FOREIGN KEY(parent_execution_id) REFERENCES public.test_executions (id), 
+	CONSTRAINT test_executions_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id), 
+	CONSTRAINT test_executions_source_execution_id_fkey FOREIGN KEY(source_execution_id) REFERENCES public.test_executions (id), 
+	CONSTRAINT test_executions_version_id_fkey FOREIGN KEY(version_id) REFERENCES public.versions (id)
 );
 
 CREATE TABLE public.global_vars (
@@ -475,6 +513,41 @@ CREATE TABLE public.api_test_scripts (
 	CONSTRAINT api_test_scripts_pkey PRIMARY KEY (id), 
 	CONSTRAINT api_test_scripts_endpoint_id_fkey FOREIGN KEY(endpoint_id) REFERENCES public.api_endpoints (id), 
 	CONSTRAINT api_test_scripts_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id)
+);
+
+CREATE TABLE public.api_definitions (
+	id SERIAL NOT NULL, 
+	project_id INTEGER NOT NULL, 
+	group_id INTEGER, 
+	method VARCHAR(10) NOT NULL, 
+	path VARCHAR(500) NOT NULL, 
+	summary VARCHAR(200), 
+	description TEXT, 
+	tags JSONB, 
+	version_hash VARCHAR(64), 
+	content_hash VARCHAR(64), 
+	source_type VARCHAR(20), 
+	source_url VARCHAR(500), 
+	source_version VARCHAR(50), 
+	schema_snapshot JSONB, 
+	request_schema JSONB, 
+	response_schema JSONB, 
+	mock_data JSONB, 
+	mock_rules JSONB, 
+	status VARCHAR(20) DEFAULT 'active'::character varying, 
+	sync_status VARCHAR(20) DEFAULT 'synced'::character varying, 
+	lock_status VARCHAR(20) DEFAULT 'unlocked'::character varying, 
+	last_sync_at TIMESTAMP WITHOUT TIME ZONE, 
+	created_by INTEGER, 
+	updated_by INTEGER, 
+	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
+	CONSTRAINT api_definitions_pkey PRIMARY KEY (id), 
+	CONSTRAINT api_definitions_created_by_fkey FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
+	CONSTRAINT api_definitions_group_id_fkey FOREIGN KEY(group_id) REFERENCES public.api_endpoint_groups (id) ON DELETE SET NULL, 
+	CONSTRAINT api_definitions_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE, 
+	CONSTRAINT api_definitions_updated_by_fkey FOREIGN KEY(updated_by) REFERENCES public.users (id) ON DELETE SET NULL, 
+	CONSTRAINT uq_project_path_method UNIQUE NULLS DISTINCT (project_id, path, method)
 );
 
 CREATE TABLE public.user_contexts (
@@ -581,41 +654,6 @@ CREATE TABLE public.api_internal_chains (
 	CONSTRAINT api_internal_chains_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE, 
 	CONSTRAINT api_internal_chains_related_scenario_id_fkey FOREIGN KEY(related_scenario_id) REFERENCES public.api_scenarios (id) ON DELETE SET NULL, 
 	CONSTRAINT uq_internal_chain UNIQUE NULLS DISTINCT (group_id, name)
-);
-
-CREATE TABLE public.api_definitions (
-	id SERIAL NOT NULL, 
-	project_id INTEGER NOT NULL, 
-	group_id INTEGER, 
-	method VARCHAR(10) NOT NULL, 
-	path VARCHAR(500) NOT NULL, 
-	summary VARCHAR(200), 
-	description TEXT, 
-	tags JSONB, 
-	version_hash VARCHAR(64), 
-	content_hash VARCHAR(64), 
-	source_type VARCHAR(20), 
-	source_url VARCHAR(500), 
-	source_version VARCHAR(50), 
-	schema_snapshot JSONB, 
-	request_schema JSONB, 
-	response_schema JSONB, 
-	mock_data JSONB, 
-	mock_rules JSONB, 
-	status VARCHAR(20) DEFAULT 'active'::character varying, 
-	sync_status VARCHAR(20) DEFAULT 'synced'::character varying, 
-	lock_status VARCHAR(20) DEFAULT 'unlocked'::character varying, 
-	last_sync_at TIMESTAMP WITHOUT TIME ZONE, 
-	created_by INTEGER, 
-	updated_by INTEGER, 
-	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
-	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
-	CONSTRAINT api_definitions_pkey PRIMARY KEY (id), 
-	CONSTRAINT api_definitions_created_by_fkey FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
-	CONSTRAINT api_definitions_group_id_fkey FOREIGN KEY(group_id) REFERENCES public.api_endpoint_groups (id) ON DELETE SET NULL, 
-	CONSTRAINT api_definitions_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE, 
-	CONSTRAINT api_definitions_updated_by_fkey FOREIGN KEY(updated_by) REFERENCES public.users (id) ON DELETE SET NULL, 
-	CONSTRAINT uq_project_path_method UNIQUE NULLS DISTINCT (project_id, path, method)
 );
 
 CREATE TABLE public.sync_tasks (
@@ -887,6 +925,87 @@ CREATE TABLE public.field_mapping_runtime_evidence (
 	CONSTRAINT fk_field_mapping_runtime_evidence_version FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE CASCADE
 );
 
+CREATE TABLE public.sql_lineage_edges (
+	id BIGSERIAL NOT NULL, 
+	project_id INTEGER NOT NULL, 
+	version_id INTEGER, 
+	definition_id INTEGER NOT NULL, 
+	api_field_path VARCHAR(255) NOT NULL, 
+	source_table VARCHAR(255) NOT NULL, 
+	source_column VARCHAR(255) NOT NULL, 
+	projection_alias VARCHAR(255), 
+	expression_type VARCHAR(50), 
+	join_hit BOOLEAN DEFAULT false NOT NULL, 
+	join_path JSON, 
+	confidence DOUBLE PRECISION, 
+	payload_json JSON, 
+	created_by INTEGER, 
+	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+	CONSTRAINT sql_lineage_edges_pkey PRIMARY KEY (id), 
+	CONSTRAINT fk_sql_lineage_edges_definition FOREIGN KEY(definition_id) REFERENCES public.api_definitions (id) ON DELETE CASCADE, 
+	CONSTRAINT fk_sql_lineage_edges_project FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE, 
+	CONSTRAINT fk_sql_lineage_edges_user FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
+	CONSTRAINT fk_sql_lineage_edges_version FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE CASCADE
+);
+
+CREATE TABLE public.code_lineage_edges (
+	id BIGSERIAL NOT NULL, 
+	project_id INTEGER NOT NULL, 
+	version_id INTEGER, 
+	definition_id INTEGER NOT NULL, 
+	api_field_path VARCHAR(255) NOT NULL, 
+	target_field VARCHAR(255) NOT NULL, 
+	target_object VARCHAR(255), 
+	source_field VARCHAR(255) NOT NULL, 
+	source_object VARCHAR(255), 
+	db_table VARCHAR(255), 
+	db_column VARCHAR(255), 
+	evidence_type VARCHAR(50) DEFAULT 'code_assignment'::character varying NOT NULL, 
+	chain_depth INTEGER, 
+	confidence DOUBLE PRECISION, 
+	payload_json JSON, 
+	created_by INTEGER, 
+	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+	CONSTRAINT code_lineage_edges_pkey PRIMARY KEY (id), 
+	CONSTRAINT fk_code_lineage_edges_definition FOREIGN KEY(definition_id) REFERENCES public.api_definitions (id) ON DELETE CASCADE, 
+	CONSTRAINT fk_code_lineage_edges_project FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE, 
+	CONSTRAINT fk_code_lineage_edges_user FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
+	CONSTRAINT fk_code_lineage_edges_version FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE CASCADE
+);
+
+CREATE TABLE public.test_execution_results (
+	id SERIAL NOT NULL, 
+	execution_id INTEGER NOT NULL, 
+	target_type VARCHAR(20), 
+	target_id INTEGER, 
+	case_id INTEGER, 
+	definition_id INTEGER, 
+	target_name VARCHAR(255), 
+	status VARCHAR(20), 
+	response_time INTEGER, 
+	response_code INTEGER, 
+	response_body JSON, 
+	request_body JSON, 
+	response_headers JSON, 
+	request_headers JSON, 
+	request_display_type VARCHAR(20), 
+	response_display_type VARCHAR(20), 
+	assertion_results JSON, 
+	assertion_passed_count INTEGER, 
+	assertion_total_count INTEGER, 
+	extracted_variables JSON, 
+	error_message TEXT, 
+	sort_order INTEGER, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	CONSTRAINT test_execution_results_pkey PRIMARY KEY (id), 
+	CONSTRAINT test_execution_results_case_id_fkey FOREIGN KEY(case_id) REFERENCES public.api_cases (id), 
+	CONSTRAINT test_execution_results_definition_id_fkey FOREIGN KEY(definition_id) REFERENCES public.api_definitions (id), 
+	CONSTRAINT test_execution_results_execution_id_fkey FOREIGN KEY(execution_id) REFERENCES public.test_executions (id)
+);
+
 CREATE TABLE public.auth_input_mappings (
 	id SERIAL NOT NULL, 
 	auth_config_id INTEGER NOT NULL, 
@@ -982,13 +1101,13 @@ CREATE TABLE public.field_mapping_feedback (
 	CONSTRAINT fk_field_mapping_feedback_version FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE CASCADE
 );
 
-ALTER TABLE public.api_module_chains ADD CONSTRAINT api_module_chains_related_scenario_id_fkey FOREIGN KEY(related_scenario_id) REFERENCES public.api_scenarios (id) ON DELETE SET NULL;
-
-ALTER TABLE public.api_module_chains ADD CONSTRAINT api_module_chains_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE;
-
 ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_source_module_chain_id_fkey FOREIGN KEY(source_module_chain_id) REFERENCES public.api_module_chains (id);
 
 ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id);
+
+ALTER TABLE public.api_module_chains ADD CONSTRAINT api_module_chains_related_scenario_id_fkey FOREIGN KEY(related_scenario_id) REFERENCES public.api_scenarios (id) ON DELETE SET NULL;
+
+ALTER TABLE public.api_module_chains ADD CONSTRAINT api_module_chains_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE;
 
 CREATE UNIQUE INDEX ix_users_email ON public.users (email);
 
@@ -1009,6 +1128,26 @@ CREATE INDEX ix_versions_parent_version_id ON public.versions (parent_version_id
 CREATE INDEX ix_versions_project_id ON public.versions (project_id);
 
 CREATE INDEX ix_versions_status ON public.versions (status);
+
+CREATE INDEX ix_test_executions_execution_type ON public.test_executions (execution_type);
+
+CREATE INDEX ix_test_executions_id ON public.test_executions (id);
+
+CREATE INDEX ix_test_executions_operator_user_id ON public.test_executions (operator_user_id);
+
+CREATE INDEX ix_test_executions_parent_execution_id ON public.test_executions (parent_execution_id);
+
+CREATE INDEX ix_test_executions_project_version_env ON public.test_executions (project_id, version_id, environment_id);
+
+CREATE INDEX ix_test_executions_result_status ON public.test_executions (result_status);
+
+CREATE INDEX ix_test_executions_status ON public.test_executions (status);
+
+CREATE INDEX ix_test_executions_target_id ON public.test_executions (target_id);
+
+CREATE INDEX ix_test_executions_triggered_by ON public.test_executions (triggered_by);
+
+CREATE INDEX ix_test_executions_version_id ON public.test_executions (version_id);
 
 CREATE INDEX ix_environments_id ON public.environments (id);
 
@@ -1075,6 +1214,52 @@ CREATE INDEX ix_script_executions_id ON public.script_executions (id);
 CREATE INDEX ix_script_executions_project_id ON public.script_executions (project_id);
 
 CREATE INDEX ix_script_executions_script_id ON public.script_executions (script_id);
+
+CREATE INDEX ix_test_execution_results_case_id ON public.test_execution_results (case_id);
+
+CREATE INDEX ix_test_execution_results_definition_id ON public.test_execution_results (definition_id);
+
+CREATE INDEX ix_test_execution_results_execution_id ON public.test_execution_results (execution_id);
+
+CREATE INDEX ix_test_execution_results_execution_status ON public.test_execution_results (execution_id, status);
+
+CREATE INDEX ix_test_execution_results_id ON public.test_execution_results (id);
+
+CREATE INDEX ix_test_execution_results_status ON public.test_execution_results (status);
+
+CREATE INDEX ix_test_execution_results_target_id ON public.test_execution_results (target_id);
+
+CREATE INDEX ix_test_execution_results_target_type ON public.test_execution_results (target_type);
+
+CREATE INDEX ix_api_cases_ai_generated ON public.api_cases (ai_generated);
+
+CREATE INDEX ix_api_cases_definition_id ON public.api_cases (definition_id);
+
+CREATE INDEX ix_api_cases_environment_id ON public.api_cases (environment_id);
+
+CREATE INDEX ix_api_cases_priority ON public.api_cases (priority);
+
+CREATE INDEX ix_api_cases_project_id ON public.api_cases (project_id);
+
+CREATE INDEX ix_api_cases_status ON public.api_cases (status);
+
+CREATE INDEX ix_api_definitions_content_hash ON public.api_definitions (content_hash);
+
+CREATE INDEX ix_api_definitions_group_id ON public.api_definitions (group_id);
+
+CREATE INDEX ix_api_definitions_lock_status ON public.api_definitions (lock_status);
+
+CREATE INDEX ix_api_definitions_path_method ON public.api_definitions (path, method);
+
+CREATE INDEX ix_api_definitions_project_id ON public.api_definitions (project_id);
+
+CREATE INDEX ix_api_definitions_status ON public.api_definitions (status);
+
+CREATE INDEX ix_api_definitions_sync_status ON public.api_definitions (sync_status);
+
+CREATE INDEX ix_api_endpoint_groups_project_id ON public.api_endpoint_groups (project_id);
+
+CREATE UNIQUE INDEX uq_project_group_name ON public.api_endpoint_groups (project_id, name);
 
 CREATE INDEX ix_user_contexts_current_project_id ON public.user_contexts (current_project_id);
 
@@ -1152,10 +1337,6 @@ CREATE INDEX ix_api_module_dependencies_source_group_id ON public.api_module_dep
 
 CREATE INDEX ix_api_module_dependencies_target_group_id ON public.api_module_dependencies (target_group_id);
 
-CREATE INDEX ix_api_endpoint_groups_project_id ON public.api_endpoint_groups (project_id);
-
-CREATE UNIQUE INDEX uq_project_group_name ON public.api_endpoint_groups (project_id, name);
-
 CREATE INDEX ix_internal_chains_auto_generated ON public.api_internal_chains (auto_generated);
 
 CREATE INDEX ix_internal_chains_group_id ON public.api_internal_chains (group_id);
@@ -1179,32 +1360,6 @@ CREATE INDEX ix_async_tasks_user_id ON public.async_tasks (user_id);
 CREATE INDEX ix_chain_scenarios_chain_id ON public.api_chain_scenarios (chain_id, chain_type);
 
 CREATE INDEX ix_chain_scenarios_scenario_id ON public.api_chain_scenarios (scenario_id);
-
-CREATE INDEX ix_api_definitions_content_hash ON public.api_definitions (content_hash);
-
-CREATE INDEX ix_api_definitions_group_id ON public.api_definitions (group_id);
-
-CREATE INDEX ix_api_definitions_lock_status ON public.api_definitions (lock_status);
-
-CREATE INDEX ix_api_definitions_path_method ON public.api_definitions (path, method);
-
-CREATE INDEX ix_api_definitions_project_id ON public.api_definitions (project_id);
-
-CREATE INDEX ix_api_definitions_status ON public.api_definitions (status);
-
-CREATE INDEX ix_api_definitions_sync_status ON public.api_definitions (sync_status);
-
-CREATE INDEX ix_api_cases_ai_generated ON public.api_cases (ai_generated);
-
-CREATE INDEX ix_api_cases_definition_id ON public.api_cases (definition_id);
-
-CREATE INDEX ix_api_cases_environment_id ON public.api_cases (environment_id);
-
-CREATE INDEX ix_api_cases_priority ON public.api_cases (priority);
-
-CREATE INDEX ix_api_cases_project_id ON public.api_cases (project_id);
-
-CREATE INDEX ix_api_cases_status ON public.api_cases (status);
 
 CREATE INDEX ix_sync_tasks_celery_task_id ON public.sync_tasks (celery_task_id);
 
@@ -1341,6 +1496,14 @@ CREATE INDEX ix_sql_traces_trace_id ON public.sql_traces (trace_id);
 CREATE INDEX ix_field_mapping_runtime_evidence_task_field ON public.field_mapping_runtime_evidence (task_id, definition_id, api_field_path);
 
 CREATE INDEX ix_field_mapping_runtime_evidence_type_source ON public.field_mapping_runtime_evidence (evidence_type, source);
+
+CREATE INDEX ix_sql_lineage_edges_definition_field ON public.sql_lineage_edges (definition_id, api_field_path);
+
+CREATE INDEX ix_sql_lineage_edges_source ON public.sql_lineage_edges (source_table, source_column);
+
+CREATE INDEX ix_code_lineage_edges_definition_field ON public.code_lineage_edges (definition_id, api_field_path);
+
+CREATE INDEX ix_code_lineage_edges_source ON public.code_lineage_edges (db_table, db_column);
 
 CREATE INDEX ix_table_impacts_execution_id ON public.table_impacts (execution_id);
 

@@ -189,6 +189,11 @@ const ScenarioExecution: React.FC = () => {
         <Button icon={<RedoOutlined />} onClick={() => void handleRetry()} loading={loading}>
           重新执行
         </Button>
+        {!Number.isNaN(Number(executionId)) ? (
+          <Button onClick={() => navigate(`/operations/executions/${executionId}`)}>
+            查看执行中心记录
+          </Button>
+        ) : null}
       </Space>
 
       <Card title="场景执行详情">

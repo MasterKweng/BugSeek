@@ -1,4 +1,5 @@
 from app.domains.data_impact.code_lineage_parser import CodeLineageParser
+from app.domains.data_impact.orm_lineage_parser import ORMLineageParser
 from app.domains.data_impact.sql_lineage_parser import SQLLineageParser
 from app.domains.field_mapping_engine.recall.code_lineage_recaller import CodeLineageRecaller
 from app.domains.field_mapping_engine.recall.sql_lineage_recaller import SQLLineageRecaller
@@ -37,6 +38,37 @@ def test_code_lineage_parser_extracts_setter_assignment_and_mapper_annotation():
     assert any(edge["target_field"] == "user_name" and edge["source_field"] == "name" for edge in edges)
     assert any(edge["evidence_type"] == "mapper_annotation" and edge["target_field"] == "statusText" for edge in edges)
     assert any(edge["target_field"] == "orderCode" and edge["source_field"] == "code" for edge in edges)
+
+
+def test_code_lineage_parser_extracts_multiple_edges_from_source_text():
+    parser = CodeLineageParser()
+    edges = parser.parse_source_text(
+        source_text="""
+            dto.setUserName(user.name);
+            vo.orderCode = entity.code;
+        """
+    )
+
+    assert any(edge["api_field_path"] == "body.user_name" and edge["source_field"] == "name" for edge in edges)
+    assert any(edge["api_field_path"] == "body.orderCode" and edge["source_field"] == "code" for edge in edges)
+
+
+def test_orm_lineage_parser_extracts_mapper_result_entries():
+    parser = ORMLineageParser()
+    edges = parser.parse_mapper_text(
+        mapper_text="""
+            <resultMap id="UserMap" type="UserVO">
+                <result property="userName" column="user_name"/>
+                <result property="statusText" column="status"/>
+            </resultMap>
+            <select id="queryUser">
+                select u.user_name, u.status from users u
+            </select>
+        """
+    )
+
+    assert any(edge["api_field_path"] == "body.userName" and edge["source_column"] == "user_name" for edge in edges)
+    assert any(edge["source_table"] == "users" for edge in edges)
 
 
 def test_sql_lineage_recaller_emits_join_and_expression_features():

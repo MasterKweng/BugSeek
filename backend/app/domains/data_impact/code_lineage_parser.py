@@ -35,6 +35,37 @@ class CodeLineageParser:
                 edges.append(edge)
         return edges
 
+    def parse_source_text(
+        self,
+        *,
+        source_text: str,
+        default_api_prefix: str = "body",
+    ) -> List[Dict[str, Any]]:
+        edges: List[Dict[str, Any]] = []
+        if not source_text:
+            return edges
+
+        seen: set[tuple[str, str, str]] = set()
+        for raw_line in source_text.splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            edge = self._parse_assignment_text(line)
+            if not edge:
+                continue
+            target_field = str(edge.get("target_field") or "").strip()
+            source_field = str(edge.get("source_field") or "").strip()
+            evidence_type = str(edge.get("evidence_type") or "")
+            dedupe_key = (target_field, source_field, evidence_type)
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            api_field_path = str(edge.get("api_field_path") or target_field)
+            if api_field_path and "." not in api_field_path:
+                edge["api_field_path"] = f"{default_api_prefix}.{api_field_path}"
+            edges.append(edge)
+        return edges
+
     def _parse_assignment_dict(self, assignment: Dict[str, Any]) -> Dict[str, Any] | None:
         target_field = str(assignment.get("target_field") or "").strip()
         source_field = str(assignment.get("source_field") or "").strip()

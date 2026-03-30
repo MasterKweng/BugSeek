@@ -17,6 +17,9 @@ const FieldMapping = lazy(() => import('./pages/version-center/FieldMapping'))
 const KnowledgeGraph = lazy(() => import('./pages/KnowledgeGraph'))
 const EnvironmentManagement = lazy(() => import('./pages/project-center/EnvironmentManagement'))
 const OperationsCenter = lazy(() => import('./pages/operations/OperationsCenter'))
+const ExecutionCenter = lazy(() => import('./pages/operations/ExecutionCenter'))
+const ExecutionDetail = lazy(() => import('./pages/operations/ExecutionDetail'))
+const ExecutionReports = lazy(() => import('./pages/operations/ExecutionReports'))
 const UIAutomationWorkbench = lazy(() => import('./pages/ui-automation/UIAutomationWorkbench'))
 
 // API Hub 模块 (V2.0)
@@ -84,6 +87,9 @@ function App() {
           {/* 鉴权配置模块 */}
           <Route path="projects/:projectId/auth-config" element={<ProjectVersionGuard><AuthConfig /></ProjectVersionGuard>} />
           <Route path="operations" element={<ProjectVersionGuard><OperationsCenter /></ProjectVersionGuard>} />
+          <Route path="operations/executions" element={<ProjectVersionGuard><ExecutionCenter /></ProjectVersionGuard>} />
+          <Route path="operations/executions/:executionId" element={<ProjectVersionGuard><ExecutionDetail /></ProjectVersionGuard>} />
+          <Route path="operations/reports" element={<ProjectVersionGuard><ExecutionReports /></ProjectVersionGuard>} />
           {/* UI 自动化模块 */}
           <Route path="ui-automation" element={<ProjectVersionGuard><UIAutomationWorkbench /></ProjectVersionGuard>} />
           {/* 流程编排模块 */}

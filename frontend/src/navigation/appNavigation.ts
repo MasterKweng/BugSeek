@@ -223,7 +223,7 @@ export const navigationSections: NavigationSection[] = [
         descriptionKey: 'nav.operations.items.center.description',
         icon: DeploymentUnitOutlined,
         matchers: ['/operations', '/operations/*'],
-        getPath: () => '/operations',
+        getPath: () => '/operations/executions',
       },
     ],
   },

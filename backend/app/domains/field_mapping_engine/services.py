@@ -20,6 +20,7 @@ from .extractor.db_schema_extractor import DbSchemaExtractor
 from .evidence.context_builder import ContextBuilder
 from .evidence.feature_builder import FeatureBuilder
 from .evidence.relation_classifier import RelationClassifier
+from .evidence.risk_policy import RiskPolicy
 from .recall.history_recaller import HistoryRecaller
 from .recall.code_lineage_recaller import CodeLineageRecaller
 from .recall.lexical_recaller import LexicalRecaller
@@ -29,6 +30,7 @@ from .recall.vector_recaller import VectorRecaller
 from .ranking.confidence_calibrator import ConfidenceCalibrator
 from .ranking.deterministic_rules import DeterministicRules
 from .ranking.ranker import CandidateRanker
+from .runtime.runtime_verification_service import RuntimeVerificationService
 
 
 class FieldMappingAppService:
@@ -50,6 +52,8 @@ class FieldMappingAppService:
         self.ranker = CandidateRanker()
         self.confidence_calibrator = ConfidenceCalibrator()
         self.relation_classifier = RelationClassifier()
+        self.risk_policy = RiskPolicy()
+        self.runtime_verification_service = RuntimeVerificationService(db)
         self.ai_enricher = AIFieldMappingEnricher()
 
     async def suggest_field_mappings(
@@ -198,7 +202,24 @@ class FieldMappingAppService:
                 self.feature_builder.enrich_candidate(field_item=item, candidate=candidate)
                 self.deterministic_rules.apply_from_dict(item, candidate)
             ranked_candidates = self.ranker.rank_from_dict(candidate_evidence)
-            ranked_items.append({**item, "rule_candidates": ranked_candidates[:10]})
+            verified_evidence = self.runtime_verification_service.build_runtime_field_evidence(
+                definition_id=int(item["definition_id"]),
+                api_field_path=str(item["api_field_path"]),
+                candidates=ranked_candidates[:10],
+            )
+            if verified_evidence:
+                ranked_candidates = self._apply_runtime_verification_evidence(
+                    ranked_candidates,
+                    verified_evidence,
+                )
+                ranked_candidates = self.ranker.rank_from_dict(ranked_candidates)
+            ranked_items.append(
+                {
+                    **item,
+                    "rule_candidates": ranked_candidates[:10],
+                    "runtime_verification_evidence": verified_evidence,
+                }
+            )
         return ranked_items
 
     async def optimize_ranked_items(
@@ -211,27 +232,24 @@ class FieldMappingAppService:
         ai_confidence_threshold: float,
     ) -> List[Dict[str, Any]]:
         if not use_ai:
-            return [
-                {
-                    **item,
-                    "final_candidates": item.get("rule_candidates", []),
-                    "decision_source": "rule",
-                    "ai_candidates": [],
-                    "ai_triggered": False,
-                    "ai_threshold": ai_confidence_threshold,
-                    "rule_top_score": item.get("rule_candidates", [{}])[0].get("score", 0.0)
-                    if item.get("rule_candidates")
-                    else 0.0,
-                    "ai_top_score": 0.0,
-                }
-                for item in ranked_items
-            ]
+            return [self._build_rule_only_optimized_item(item, ai_confidence_threshold) for item in ranked_items]
 
         schema_snapshot = self._load_db_schema(project_id, version_id)
+        ai_eligible_items = [
+            item
+            for item in ranked_items
+            if self._should_trigger_ai(
+                item=item,
+                rule_candidates=item.get("rule_candidates", []),
+                ai_confidence_threshold=ai_confidence_threshold,
+            )
+        ]
+        if not ai_eligible_items:
+            return [self._build_rule_only_optimized_item(item, ai_confidence_threshold) for item in ranked_items]
         ai_results = await self.ai_enricher.enrich_low_confidence_items(
             project_id=project_id,
             schema_snapshot=schema_snapshot,
-            ranked_items=ranked_items,
+            ranked_items=ai_eligible_items,
             ai_confidence_threshold=ai_confidence_threshold,
         )
 
@@ -248,12 +266,16 @@ class FieldMappingAppService:
             final_candidates = rule_candidates
             fallback_reason = None
             if ai_candidates:
-                if not rule_candidates or ai_top >= rule_top:
+                if self._should_prefer_ai_candidates(
+                    item=item,
+                    rule_candidates=rule_candidates,
+                    ai_candidates=ai_candidates,
+                ):
                     decision_source = "ai"
                     final_candidates = ai_candidates
                 else:
                     decision_source = "fallback"
-                    fallback_reason = "rule_score_stronger"
+                    fallback_reason = "rule_guardrail_stronger"
             elif rejected_ai_candidates:
                 decision_source = "fallback"
                 fallback_reason = "ai_guardrail_rejected"
@@ -282,6 +304,7 @@ class FieldMappingAppService:
             if not final_candidates:
                 continue
             decision_artifact = self._build_decision_artifact(item, final_candidates)
+            top_candidate = decision_artifact.get("top_candidate")
             suggestions.append(
                 {
                     "definition_id": item["definition_id"],
@@ -297,32 +320,11 @@ class FieldMappingAppService:
                     "decision_source": decision_artifact["decision_source"],
                     "decision_artifact": decision_artifact,
                     "candidates": final_candidates[:10],
-                    "decision_trace": {
-                        "engine_version": "engine_v2_phase5",
-                        "decision_source": item.get("decision_source", "rule"),
-                        "relation_type": decision_artifact["relation_type"],
-                        "confidence": decision_artifact["confidence"],
-                        "top_candidate_key": (
-                            f"{decision_artifact['top_candidate']['db_table']}.{decision_artifact['top_candidate']['db_column']}"
-                            if decision_artifact.get("top_candidate")
-                            else None
-                        ),
-                        "field_name": item["field_name"],
-                        "field_description": item.get("field_description"),
-                        "sibling_paths": item.get("sibling_paths", []),
-                        "risk_level": item.get("risk_level"),
-                        "domain_anchor": item.get("domain_anchor"),
-                        "allowed_tables": item.get("allowed_tables", []),
-                        "api_summary": item.get("api_summary"),
-                        "module_tag": item.get("module_tag"),
-                        "runtime_table_prior": item.get("runtime_table_prior", {}),
-                        "ai_triggered": item.get("ai_triggered", False),
-                        "fallback_reason": item.get("fallback_reason"),
-                        "ai_threshold": item.get("ai_threshold"),
-                        "rule_top_score": item.get("rule_top_score"),
-                        "ai_top_score": item.get("ai_top_score"),
-                        "rejected_ai_candidates": item.get("rejected_ai_candidates", []),
-                    },
+                    "decision_trace": self._build_suggestion_trace(
+                        item=item,
+                        decision_artifact=decision_artifact,
+                        top_candidate=top_candidate,
+                    ),
                 }
             )
         return suggestions
@@ -346,6 +348,14 @@ class FieldMappingAppService:
         confidence = calibration["confidence"]
         confidence_bucket = calibration["confidence_bucket"]
         review_policy = calibration["review_policy"]
+        risk_gate_applied = False
+        if (
+            top_candidate is not None
+            and review_policy == "auto_accept"
+            and not self.risk_policy.should_allow_auto_accept(item, top_candidate)
+        ):
+            review_policy = "manual_review"
+            risk_gate_applied = True
         if top_candidate is not None:
             top_candidate["confidence_bucket"] = confidence_bucket
             top_candidate["review_policy"] = review_policy
@@ -366,26 +376,12 @@ class FieldMappingAppService:
             decision_trace={},
         )
         artifact_dict = asdict(artifact)
-        artifact_dict["decision_trace"] = {
-            "engine_version": "engine_v2_phase5",
-            "decision_source": artifact.decision_source,
-            "field_name": item["field_name"],
-            "field_description": item.get("field_description"),
-            "sibling_paths": item.get("sibling_paths", []),
-            "margin": calibration.get("margin"),
-            "risk_level": item.get("risk_level"),
-            "domain_anchor": item.get("domain_anchor"),
-            "allowed_tables": item.get("allowed_tables", []),
-            "api_summary": item.get("api_summary"),
-            "module_tag": item.get("module_tag"),
-            "runtime_table_prior": item.get("runtime_table_prior", {}),
-            "ai_triggered": item.get("ai_triggered", False),
-            "fallback_reason": item.get("fallback_reason"),
-            "ai_threshold": item.get("ai_threshold"),
-            "rule_top_score": item.get("rule_top_score"),
-            "ai_top_score": item.get("ai_top_score"),
-            "rejected_ai_candidates": item.get("rejected_ai_candidates", []),
-        }
+        artifact_dict["decision_trace"] = self._build_decision_trace(
+            item=item,
+            decision_source=artifact.decision_source,
+            margin=calibration.get("margin"),
+            risk_gate_applied=risk_gate_applied,
+        )
         return artifact_dict
 
     def _normalize_decision_candidate(self, candidate: Dict[str, Any]) -> Dict[str, Any]:
@@ -454,8 +450,8 @@ class FieldMappingAppService:
         source_type = str(field_spec.get("source_type") or "")
         field_name = str(field_spec.get("field_name") or "")
         field_path = str(field_spec.get("field_path") or "")
-        domain_anchor = self._infer_domain_anchor(definition_path, field_name, sibling_paths)
-        allowed_tables = [domain_anchor] if domain_anchor else []
+        domain_anchor = self._resolve_domain_anchor(definition_path, field_name, sibling_paths)
+        allowed_tables = self._resolve_allowed_tables(domain_anchor)
         return {
             "risk_level": self._infer_risk_level(field_name, field_path),
             "domain_anchor": domain_anchor,
@@ -463,6 +459,17 @@ class FieldMappingAppService:
             "api_summary": self._build_api_summary(field_spec),
             "module_tag": source_type or "unknown",
         }
+
+    def _resolve_domain_anchor(
+        self,
+        definition_path: str,
+        field_name: str,
+        sibling_paths: List[str],
+    ) -> Optional[str]:
+        return self._infer_domain_anchor(definition_path, field_name, sibling_paths)
+
+    def _resolve_allowed_tables(self, domain_anchor: Optional[str]) -> List[str]:
+        return [domain_anchor] if domain_anchor else []
 
     def _infer_domain_anchor(
         self,
@@ -518,6 +525,139 @@ class FieldMappingAppService:
                 recall_sources.append("runtime_table")
         return candidates
 
+    def _build_rule_only_optimized_item(
+        self,
+        item: Dict[str, Any],
+        ai_confidence_threshold: float,
+    ) -> Dict[str, Any]:
+        return {
+            **item,
+            "final_candidates": item.get("rule_candidates", []),
+            "decision_source": "rule",
+            "ai_candidates": [],
+            "rejected_ai_candidates": [],
+            "ai_triggered": False,
+            "ai_threshold": ai_confidence_threshold,
+            "rule_top_score": item.get("rule_candidates", [{}])[0].get("score", 0.0)
+            if item.get("rule_candidates")
+            else 0.0,
+            "ai_top_score": 0.0,
+        }
+
+    def _should_trigger_ai(
+        self,
+        *,
+        item: Dict[str, Any],
+        rule_candidates: List[Dict[str, Any]],
+        ai_confidence_threshold: float,
+    ) -> bool:
+        if not rule_candidates:
+            return True
+
+        top_candidate = rule_candidates[0]
+        top_score = float(top_candidate.get("score", 0.0) or 0.0)
+        second_score = float(rule_candidates[1].get("score", 0.0) or 0.0) if len(rule_candidates) > 1 else 0.0
+        margin = round(max(0.0, top_score - second_score), 4)
+        risk_level = str(item.get("risk_level") or "medium")
+        features = top_candidate.get("features", {}) or {}
+
+        if self._has_strong_non_ai_evidence(top_candidate):
+            return False
+
+        if risk_level == "high":
+            return top_score < 0.95 or margin < 0.12
+
+        return top_score < ai_confidence_threshold or margin < 0.08 or float(features.get("f_ai_confidence", 0.0) or 0.0) < 0.5
+
+    def _should_prefer_ai_candidates(
+        self,
+        *,
+        item: Dict[str, Any],
+        rule_candidates: List[Dict[str, Any]],
+        ai_candidates: List[Dict[str, Any]],
+    ) -> bool:
+        if not ai_candidates:
+            return False
+        if not rule_candidates:
+            return True
+
+        top_rule = rule_candidates[0]
+        top_ai = ai_candidates[0]
+        rule_score = float(top_rule.get("score", 0.0) or 0.0)
+        ai_score = float(top_ai.get("score", 0.0) or 0.0)
+
+        if self._has_strong_non_ai_evidence(top_rule):
+            return False
+        if str(item.get("risk_level") or "medium") == "high" and ai_score < 0.95:
+            return False
+        return ai_score >= rule_score
+
+    def _has_strong_non_ai_evidence(self, candidate: Dict[str, Any]) -> bool:
+        features = candidate.get("features", {}) or {}
+        return (
+            float(features.get("f_sql_lineage_exact", 0.0) or 0.0) >= 0.9
+            or float(features.get("f_code_assignment_hit", 0.0) or 0.0) >= 0.9
+            or float(features.get("f_runtime_field_hit", 0.0) or 0.0) >= 1.0
+            or float(features.get("f_history_prior", 0.0) or 0.0) >= 0.95
+        )
+
+    def _build_decision_trace(
+        self,
+        *,
+        item: Dict[str, Any],
+        decision_source: str,
+        margin: Any,
+        risk_gate_applied: bool,
+    ) -> Dict[str, Any]:
+        return {
+            "engine_version": "engine_v2_phase5",
+            "decision_source": decision_source,
+            "field_name": item["field_name"],
+            "field_description": item.get("field_description"),
+            "sibling_paths": item.get("sibling_paths", []),
+            "margin": margin,
+            "risk_level": item.get("risk_level"),
+            "domain_anchor": item.get("domain_anchor"),
+            "allowed_tables": item.get("allowed_tables", []),
+            "api_summary": item.get("api_summary"),
+            "module_tag": item.get("module_tag"),
+            "runtime_table_prior": item.get("runtime_table_prior", {}),
+            "runtime_verification_evidence": item.get("runtime_verification_evidence", []),
+            "risk_gate_applied": risk_gate_applied,
+            "ai_triggered": item.get("ai_triggered", False),
+            "fallback_reason": item.get("fallback_reason"),
+            "ai_threshold": item.get("ai_threshold"),
+            "rule_top_score": item.get("rule_top_score"),
+            "ai_top_score": item.get("ai_top_score"),
+            "rejected_ai_candidates": item.get("rejected_ai_candidates", []),
+        }
+
+    def _build_suggestion_trace(
+        self,
+        *,
+        item: Dict[str, Any],
+        decision_artifact: Dict[str, Any],
+        top_candidate: Dict[str, Any] | None,
+    ) -> Dict[str, Any]:
+        trace = self._build_decision_trace(
+            item=item,
+            decision_source=str(item.get("decision_source", "rule")),
+            margin=decision_artifact.get("decision_trace", {}).get("margin"),
+            risk_gate_applied=bool(decision_artifact.get("decision_trace", {}).get("risk_gate_applied", False)),
+        )
+        trace.update(
+            {
+                "relation_type": decision_artifact["relation_type"],
+                "confidence": decision_artifact["confidence"],
+                "top_candidate_key": (
+                    f"{top_candidate['db_table']}.{top_candidate['db_column']}"
+                    if top_candidate
+                    else None
+                ),
+            }
+        )
+        return trace
+
     def _merge_candidate_evidence(self, *candidate_groups: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         merged: Dict[str, Dict[str, Any]] = {}
         for group in candidate_groups:
@@ -551,6 +691,76 @@ class FieldMappingAppService:
                         bucket["explanations"].append(explanation)
                 bucket["raw_payload"].update(candidate.get("raw_payload", {}))
         return list(merged.values())
+
+    def _apply_runtime_verification_evidence(
+        self,
+        candidates: List[Dict[str, Any]],
+        verified_evidence: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        if not verified_evidence:
+            return candidates
+
+        evidence_map: Dict[str, List[Dict[str, Any]]] = {}
+        for evidence in verified_evidence:
+            db_table = str(evidence.get("db_table") or "")
+            db_column = str(evidence.get("db_column") or "")
+            if not db_table or not db_column:
+                continue
+            evidence_map.setdefault(f"{db_table}.{db_column}", []).append(evidence)
+
+        updated_candidates: List[Dict[str, Any]] = []
+        for candidate in candidates:
+            candidate_copy = dict(candidate)
+            db_table = str(candidate_copy.get("db_table") or "")
+            db_column = str(candidate_copy.get("db_column") or "")
+            candidate_key = f"{db_table}.{db_column}"
+            matches = evidence_map.get(candidate_key, [])
+            if not matches:
+                updated_candidates.append(candidate_copy)
+                continue
+
+            features = dict(candidate_copy.get("features", {}) or {})
+            reasons = list(candidate_copy.get("reasons", []) or [])
+            explanations = list(candidate_copy.get("explanations", reasons) or [])
+            recall_sources = list(candidate_copy.get("recall_sources", []) or [])
+            raw_payload = dict(candidate_copy.get("raw_payload", {}) or {})
+
+            for evidence in matches:
+                verification_type = str(evidence.get("verification_type") or "")
+                confidence = round(float(evidence.get("confidence", 0.0) or 0.0), 4)
+                payload = evidence.get("payload") or {}
+
+                if verification_type in {"runtime_column_verified", "response_value_match"}:
+                    features["f_runtime_field_hit"] = max(features.get("f_runtime_field_hit", 0.0), confidence)
+                    features["f_runtime_column_verified"] = max(
+                        features.get("f_runtime_column_verified", 0.0),
+                        confidence,
+                    )
+                elif verification_type == "sql_projection_verified":
+                    features["f_runtime_projection_verified"] = max(
+                        features.get("f_runtime_projection_verified", 0.0),
+                        confidence,
+                    )
+                    features["f_sql_projection_hit"] = max(features.get("f_sql_projection_hit", 0.0), confidence)
+                elif verification_type == "code_assignment_verified":
+                    features["f_code_assignment_hit"] = max(features.get("f_code_assignment_hit", 0.0), confidence)
+
+                reason = f"runtime_verified:{verification_type}"
+                if reason not in reasons:
+                    reasons.append(reason)
+                if reason not in explanations:
+                    explanations.append(reason)
+                if "runtime_verification" not in recall_sources:
+                    recall_sources.append("runtime_verification")
+                raw_payload[f"runtime::{verification_type}"] = payload
+
+            candidate_copy["features"] = features
+            candidate_copy["reasons"] = reasons
+            candidate_copy["explanations"] = explanations
+            candidate_copy["recall_sources"] = recall_sources
+            candidate_copy["raw_payload"] = raw_payload
+            updated_candidates.append(candidate_copy)
+        return updated_candidates
 
 
 class FieldMappingJobService:

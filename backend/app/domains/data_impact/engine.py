@@ -13,6 +13,7 @@ from app.domains.data_impact.context import (
 )
 from app.domains.data_impact.impact_repository import ImpactRepository
 from app.domains.data_impact.impact_analyzer import ImpactAnalyzer
+from app.domains.data_impact.lineage_service import LineageService
 from app.domains.data_impact.log_tracer import collect_sql_traces_from_pg_log, LogTraceFilter
 from app.domains.data_impact.snapshot_manager import SnapshotManager
 from app.domains.data_impact.sql_tracer import SqlTracer
@@ -32,6 +33,7 @@ class DataImpactEngine:
         self.repo = ImpactRepository(db)
         self.snapshot_manager = SnapshotManager(db)
         self.analyzer = ImpactAnalyzer(db)
+        self.lineage_service = LineageService(db)
         self._ensure_tracer()
 
     def _ensure_tracer(self) -> None:
@@ -126,3 +128,39 @@ class DataImpactEngine:
         include_assertions: bool = False,
     ) -> Dict[str, Any]:
         return self.analyzer.analyze_execution(execution_id, api_id, include_assertions=include_assertions)
+
+    def build_lineage_assets(
+        self,
+        *,
+        definition_id: int,
+        execution_id: Optional[str] = None,
+        workspace_root: Optional[str] = None,
+        version_id: Optional[int] = None,
+        max_files: int = 200,
+    ) -> Dict[str, Any]:
+        definition = self.db.query(ApiDefinition).filter(ApiDefinition.id == definition_id).first()
+        if not definition:
+            raise ValueError(f"definition_id not found: {definition_id}")
+
+        sql_edges_created = 0
+        code_edges_created = 0
+        if execution_id:
+            sql_edges_created = self.lineage_service.build_and_persist_sql_lineage_for_execution(
+                execution_id=execution_id,
+                definition=definition,
+                version_id=version_id,
+            )
+        if workspace_root:
+            code_edges_created = self.lineage_service.build_and_persist_code_lineage_from_workspace(
+                workspace_root=workspace_root,
+                definition=definition,
+                version_id=version_id,
+                max_files=max_files,
+            )
+        return {
+            "definition_id": definition_id,
+            "execution_id": execution_id,
+            "workspace_root": workspace_root,
+            "sql_lineage_edges_created": sql_edges_created,
+            "code_lineage_edges_created": code_edges_created,
+        }

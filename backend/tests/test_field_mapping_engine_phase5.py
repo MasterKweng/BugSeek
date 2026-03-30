@@ -205,6 +205,119 @@ def test_optimize_ranked_items_rejects_ai_candidate_outside_runtime_prior():
     assert optimized[0]["rejected_ai_candidates"][0]["guardrail_reasons"] == ["runtime_table_conflict"]
 
 
+def test_optimize_ranked_items_skips_ai_when_rule_has_strong_runtime_evidence():
+    service = FieldMappingAppService(db=None)
+    service._load_db_schema = lambda project_id, version_id: {"tables": {}}
+
+    async def fake_enrich(**kwargs):
+        raise AssertionError("AI should not be triggered for strong runtime evidence")
+
+    service.ai_enricher.enrich_low_confidence_items = fake_enrich
+    ranked_items = [
+        {
+            "definition_id": 1,
+            "definition_method": "GET",
+            "definition_path": "/users/{id}",
+            "api_field_path": "body.user.name",
+            "field_name": "name",
+            "field_description": "User name",
+            "sibling_paths": [],
+            "risk_level": "medium",
+            "runtime_table_prior": {"users": 0.95},
+            "rule_candidates": [
+                {
+                    "db_table": "users",
+                    "db_column": "name",
+                    "score": 0.66,
+                    "reasons": ["runtime_verification"],
+                    "features": {"f_runtime_field_hit": 1.0},
+                    "recall_sources": ["runtime_verification"],
+                }
+            ],
+        }
+    ]
+
+    import asyncio
+
+    optimized = asyncio.run(
+        service.optimize_ranked_items(
+            project_id=1,
+            version_id=1,
+            ranked_items=ranked_items,
+            use_ai=True,
+            ai_confidence_threshold=0.7,
+        )
+    )
+
+    assert optimized[0]["ai_triggered"] is False
+    assert optimized[0]["decision_source"] == "rule"
+
+
+def test_optimize_ranked_items_does_not_allow_ai_to_override_high_risk_without_strong_score():
+    service = FieldMappingAppService(db=None)
+    service._load_db_schema = lambda project_id, version_id: {"tables": {}}
+
+    async def fake_enrich(**kwargs):
+        return {
+            "body.user_id": {
+                "ai_candidates": [
+                    {
+                        "db_table": "orders",
+                        "db_column": "customer_id",
+                        "score": 0.94,
+                        "reasons": ["AI 鎺ㄨ崘"],
+                        "features": {"f_ai_confidence": 0.94},
+                        "recall_sources": ["ai"],
+                        "ai_selected": True,
+                    }
+                ],
+                "raw_response": {"field_name": "user_id"},
+            }
+        }
+
+    service.ai_enricher.enrich_low_confidence_items = fake_enrich
+    ranked_items = [
+        {
+            "definition_id": 2,
+            "definition_method": "POST",
+            "definition_path": "/orders",
+            "api_field_path": "body.user_id",
+            "field_name": "user_id",
+            "field_description": "User id",
+            "sibling_paths": [],
+            "risk_level": "high",
+            "runtime_table_prior": {"orders": 0.9},
+            "rule_candidates": [
+                {
+                    "db_table": "orders",
+                    "db_column": "customer_id",
+                    "score": 0.9,
+                    "reasons": ["history"],
+                    "features": {},
+                    "recall_sources": ["history"],
+                }
+            ],
+        }
+    ]
+
+    import asyncio
+
+    optimized = asyncio.run(
+        service.optimize_ranked_items(
+            project_id=1,
+            version_id=1,
+            ranked_items=ranked_items,
+            use_ai=True,
+            ai_confidence_threshold=0.7,
+        )
+    )
+
+    assert optimized[0]["ai_triggered"] is True
+    assert optimized[0]["decision_source"] == "fallback"
+    assert optimized[0]["fallback_reason"] == "rule_guardrail_stronger"
+    assert optimized[0]["final_candidates"][0]["score"] == 0.9
+
+
 def test_build_suggestions_from_ranked_items_marks_phase5_trace():
     service = FieldMappingAppService(db=None)
     suggestions = service.build_suggestions_from_ranked_items(
@@ -243,7 +356,7 @@ def test_build_suggestions_from_ranked_items_marks_phase5_trace():
     assert suggestions[0]["decision_trace"]["ai_triggered"] is True
     assert suggestions[0]["decision_source"] == "ai"
     assert suggestions[0]["relation_type"] == "direct"
-    assert suggestions[0]["confidence"] == 0.8908
+    assert suggestions[0]["confidence"] == 0.9008
     assert suggestions[0]["top_candidate"]["db_table"] == "common_projectcode"
     assert suggestions[0]["candidate_list"][0]["db_column"] == "code"
     assert suggestions[0]["candidate_list"][0]["negative_evidence"] == ["history_runtime_conflict"]
@@ -284,6 +397,76 @@ def test_build_suggestions_from_ranked_items_marks_fk_relation_type():
     assert suggestions[0]["top_candidate"]["relation_type"] == "fk"
 
 
+def test_build_suggestions_from_ranked_items_applies_final_risk_gate_for_high_risk_field():
+    service = FieldMappingAppService(db=None)
+    suggestions = service.build_suggestions_from_ranked_items(
+        [
+            {
+                "definition_id": 8,
+                "definition_method": "POST",
+                "definition_path": "/orders",
+                "api_field_path": "body.user_id",
+                "field_name": "user_id",
+                "field_description": "User id",
+                "sibling_paths": [],
+                "risk_level": "high",
+                "runtime_table_prior": {"orders": 0.9},
+                "final_candidates": [
+                    {
+                        "db_table": "orders",
+                        "db_column": "customer_id",
+                        "score": 0.98,
+                        "reasons": ["lexical"],
+                        "features": {},
+                    }
+                ],
+                "decision_source": "rule",
+                "rule_top_score": 0.98,
+                "ai_top_score": 0.0,
+            }
+        ]
+    )
+
+    assert suggestions[0]["confidence"] == 0.98
+    assert suggestions[0]["review_policy"] == "manual_review"
+    assert suggestions[0]["top_candidate"]["review_policy"] == "manual_review"
+    assert suggestions[0]["decision_artifact"]["decision_trace"]["risk_gate_applied"] is True
+
+
+def test_build_suggestions_from_ranked_items_keeps_auto_accept_for_high_risk_with_strong_runtime():
+    service = FieldMappingAppService(db=None)
+    suggestions = service.build_suggestions_from_ranked_items(
+        [
+            {
+                "definition_id": 9,
+                "definition_method": "POST",
+                "definition_path": "/orders",
+                "api_field_path": "body.user_id",
+                "field_name": "user_id",
+                "field_description": "User id",
+                "sibling_paths": [],
+                "risk_level": "high",
+                "runtime_table_prior": {"orders": 0.95},
+                "final_candidates": [
+                    {
+                        "db_table": "orders",
+                        "db_column": "customer_id",
+                        "score": 0.98,
+                        "reasons": ["runtime"],
+                        "features": {"f_runtime_field_hit": 1.0},
+                    }
+                ],
+                "decision_source": "rule",
+                "rule_top_score": 0.98,
+                "ai_top_score": 0.0,
+            }
+        ]
+    )
+
+    assert suggestions[0]["review_policy"] == "auto_accept"
+    assert suggestions[0]["decision_artifact"]["decision_trace"]["risk_gate_applied"] is False
+
+
 def test_build_suggestions_from_ranked_items_calibrates_confidence_down_with_negative_evidence():
     service = FieldMappingAppService(db=None)
     suggestions = service.build_suggestions_from_ranked_items(
@@ -315,7 +498,7 @@ def test_build_suggestions_from_ranked_items_calibrates_confidence_down_with_neg
         ]
     )
 
-    assert suggestions[0]["confidence"] == 0.777
+    assert suggestions[0]["confidence"] == 0.797
 
 
 def test_build_suggestions_from_ranked_items_calibrates_confidence_up_with_short_circuit():
@@ -349,7 +532,67 @@ def test_build_suggestions_from_ranked_items_calibrates_confidence_up_with_short
         ]
     )
 
-    assert suggestions[0]["confidence"] == 1.0
+    assert suggestions[0]["confidence"] == 0.98
+
+
+def test_rank_recall_items_applies_runtime_verification_to_top_candidates():
+    service = FieldMappingAppService(db=None)
+    service.runtime_verification_service.build_runtime_field_evidence = lambda **kwargs: [
+        {
+            "db_table": "users",
+            "db_column": "name",
+            "verification_type": "response_value_match",
+            "confidence": 1.0,
+            "payload": {"match_type": "exact_equal"},
+        },
+        {
+            "db_table": "users",
+            "db_column": "name",
+            "verification_type": "sql_projection_verified",
+            "confidence": 0.92,
+            "payload": {"projection_alias": "user_name"},
+        },
+    ]
+
+    recall_items = [
+        {
+            "definition_id": 1,
+            "definition_method": "GET",
+            "definition_path": "/users/{id}",
+            "api_field_path": "body.user.name",
+            "field_name": "name",
+            "field_description": "User name",
+            "sibling_paths": [],
+            "risk_level": "medium",
+            "domain_anchor": "users",
+            "allowed_tables": ["users"],
+            "runtime_table_prior": {},
+            "rejected_history_prior": {},
+            "candidate_evidence": [
+                {
+                    "db_table": "users",
+                    "db_column": "name",
+                    "features": {
+                        "f_name_similarity": 0.8,
+                        "f_name_exact": 1.0,
+                    },
+                    "recall_sources": ["lexical"],
+                    "explanations": ["lexical_match"],
+                }
+            ],
+        }
+    ]
+
+    ranked = service.rank_recall_items(recall_items)
+
+    top_candidate = ranked[0]["rule_candidates"][0]
+    assert top_candidate["features"]["f_runtime_field_hit"] == 1.0
+    assert top_candidate["features"]["f_runtime_column_verified"] == 1.0
+    assert top_candidate["features"]["f_runtime_projection_verified"] == 0.92
+    assert top_candidate["features"]["f_sql_projection_hit"] == 0.92
+    assert "runtime_verification" in top_candidate["recall_sources"]
+    assert "runtime_verified:response_value_match" in top_candidate["reasons"]
+    assert ranked[0]["runtime_verification_evidence"][0]["verification_type"] == "response_value_match"
 
 
 def test_build_task_params_defaults_to_engine_v2():

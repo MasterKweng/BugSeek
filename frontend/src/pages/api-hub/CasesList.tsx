@@ -36,7 +36,7 @@ import {
   PlayCircleOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDebounce } from '../../hooks/useDebounce';
 import api from '../../services/api';
 import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
@@ -82,6 +82,7 @@ interface Environment {
 }
 
 const CasesList: React.FC = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const definitionIdParam = searchParams.get('definition_id');
 
@@ -497,7 +498,7 @@ const CasesList: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 180,
+      width: 220,
       fixed: 'right',
       render: (_: any, record: ApiCase) => (
         <Space size="small">
@@ -518,6 +519,14 @@ const CasesList: React.FC = () => {
               size="small"
               icon={<EditOutlined />}
               onClick={() => openEditModal(record)}
+            />
+          </Tooltip>
+          <Tooltip title="查看执行记录">
+            <Button
+              type="link"
+              size="small"
+              icon={<PlayCircleOutlined />}
+              onClick={() => navigate(`/operations/executions?case_id=${record.id}&definition_id=${record.definition_id}`)}
             />
           </Tooltip>
           <Popconfirm

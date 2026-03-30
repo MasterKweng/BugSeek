@@ -764,6 +764,70 @@ class FieldMappingRuntimeEvidence(Base, TimestampMixin):
     )
 
 
+class SqlLineageEdge(Base, TimestampMixin):
+    """Persisted SQL lineage edges as independent lineage assets."""
+
+    __tablename__ = "sql_lineage_edges"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    version_id = Column(Integer, ForeignKey("versions.id", ondelete="CASCADE"), nullable=True, index=True)
+    definition_id = Column(Integer, ForeignKey("api_definitions.id", ondelete="CASCADE"), nullable=False, index=True)
+    api_field_path = Column(String(255), nullable=False, index=True)
+    source_table = Column(String(255), nullable=False, index=True)
+    source_column = Column(String(255), nullable=False, index=True)
+    projection_alias = Column(String(255), nullable=True)
+    expression_type = Column(String(50), nullable=True)
+    join_hit = Column(Boolean, default=False, nullable=False)
+    join_path = Column(JSON, nullable=True)
+    confidence = Column(Float, nullable=True)
+    payload_json = Column(JSON, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    project = relationship("Project", foreign_keys=[project_id])
+    version = relationship("Version", foreign_keys=[version_id])
+    definition = relationship("ApiDefinition", foreign_keys=[definition_id])
+    creator = relationship("User", foreign_keys=[created_by])
+
+    __table_args__ = (
+        Index("ix_sql_lineage_edges_definition_field", "definition_id", "api_field_path"),
+        Index("ix_sql_lineage_edges_source", "source_table", "source_column"),
+    )
+
+
+class CodeLineageEdge(Base, TimestampMixin):
+    """Persisted code lineage edges as independent lineage assets."""
+
+    __tablename__ = "code_lineage_edges"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    version_id = Column(Integer, ForeignKey("versions.id", ondelete="CASCADE"), nullable=True, index=True)
+    definition_id = Column(Integer, ForeignKey("api_definitions.id", ondelete="CASCADE"), nullable=False, index=True)
+    api_field_path = Column(String(255), nullable=False, index=True)
+    target_field = Column(String(255), nullable=False, index=True)
+    target_object = Column(String(255), nullable=True)
+    source_field = Column(String(255), nullable=False, index=True)
+    source_object = Column(String(255), nullable=True)
+    db_table = Column(String(255), nullable=True, index=True)
+    db_column = Column(String(255), nullable=True, index=True)
+    evidence_type = Column(String(50), nullable=False, default="code_assignment", index=True)
+    chain_depth = Column(Integer, nullable=True)
+    confidence = Column(Float, nullable=True)
+    payload_json = Column(JSON, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    project = relationship("Project", foreign_keys=[project_id])
+    version = relationship("Version", foreign_keys=[version_id])
+    definition = relationship("ApiDefinition", foreign_keys=[definition_id])
+    creator = relationship("User", foreign_keys=[created_by])
+
+    __table_args__ = (
+        Index("ix_code_lineage_edges_definition_field", "definition_id", "api_field_path"),
+        Index("ix_code_lineage_edges_source", "db_table", "db_column"),
+    )
+
+
 class AsyncTask(Base, TimestampMixin):
     """异步任务表"""
     __tablename__ = "async_tasks"
