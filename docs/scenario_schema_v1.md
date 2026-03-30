@@ -70,6 +70,10 @@ Store executable nodes and DAG dependencies under one scenario.
 - `continue_on_failure` (bool, required, default `false`)
 - `is_enabled` (bool, required, default `true`)
 - `extra_config` (JSON, optional; extension point)
+  - When `ref_type=api_definition`, `extra_config.case_selection` is required
+  - Supported strategies:
+    - `{"strategy": "case_id", "case_id": 123}`
+    - `{"strategy": "first_active"}`
 - `created_at` (timestamp with timezone, required)
 - `updated_at` (timestamp with timezone, required)
 
@@ -101,6 +105,13 @@ Store executable nodes and DAG dependencies under one scenario.
 - Execution mode: `sequential | dag`
 - Node ref type: `api_case | api_definition`
 
+## Api Definition Node Rule
+- `api_case` node: `ref_id` points directly to one executable case.
+- `api_definition` node: `ref_id` points to the API definition, but execution must still resolve to one concrete `ApiCase`.
+- V1 policy: no implicit default selection. Scenario authors must declare `extra_config.case_selection`.
+- Recommended default for stable scenarios: prefer `strategy=case_id`.
+- `strategy=first_active` is allowed only as an explicit choice for looser orchestration scenarios.
+
 ## Context Bus Contract (Schema-Adjacent)
 - `context_init` seeds runtime context.
 - node extraction output is merged to context under:
@@ -116,4 +127,3 @@ Store executable nodes and DAG dependencies under one scenario.
 - Schema is specific enough to implement migration directly.
 - Supports manual and AI-generated scenarios.
 - Supports both serial and DAG execution semantics.
-

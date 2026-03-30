@@ -266,6 +266,7 @@ CREATE TABLE public.projects (
 	backend_framework VARCHAR(100), 
 	database VARCHAR(50), 
 	frontend_framework VARCHAR(100), 
+	asset_config JSON DEFAULT '{}'::json NOT NULL, 
 	created_by INTEGER, 
 	owner_id INTEGER, 
 	is_deleted BOOLEAN, 
@@ -328,6 +329,7 @@ CREATE TABLE public.versions (
 	change_summary TEXT, 
 	requirement_doc TEXT, 
 	test_scope JSON, 
+	mapping_config JSON DEFAULT '{}'::json NOT NULL, 
 	endpoints_count INTEGER, 
 	test_cases_count INTEGER, 
 	notification_url VARCHAR(500), 
@@ -1105,6 +1107,36 @@ ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_source_module_chai
 
 ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id);
 
+ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_version_id_fkey FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE SET NULL;
+
+ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_environment_id_fkey FOREIGN KEY(environment_id) REFERENCES public.environments (id) ON DELETE SET NULL;
+
+ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_created_by_fkey FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL;
+
+ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_updated_by_fkey FOREIGN KEY(updated_by) REFERENCES public.users (id) ON DELETE SET NULL;
+
+ALTER TABLE public.api_scenarios ALTER COLUMN source_type SET DEFAULT 'manual';
+
+ALTER TABLE public.api_scenarios ALTER COLUMN execution_mode SET DEFAULT 'sequential';
+
+ALTER TABLE public.api_scenarios ALTER COLUMN timeout_seconds SET DEFAULT 600;
+
+ALTER TABLE public.api_scenarios ALTER COLUMN retry_count SET DEFAULT 0;
+
+ALTER TABLE public.api_scenarios ALTER COLUMN continue_on_failure SET DEFAULT false;
+
+ALTER TABLE public.api_scenarios ALTER COLUMN source_type SET NOT NULL;
+
+ALTER TABLE public.api_scenarios ALTER COLUMN execution_mode SET NOT NULL;
+
+ALTER TABLE public.api_scenarios ALTER COLUMN timeout_seconds SET NOT NULL;
+
+ALTER TABLE public.api_scenarios ALTER COLUMN retry_count SET NOT NULL;
+
+ALTER TABLE public.api_scenarios ALTER COLUMN continue_on_failure SET NOT NULL;
+
+ALTER TABLE public.scenario_nodes ADD CONSTRAINT scenario_nodes_scenario_id_fkey FOREIGN KEY(scenario_id) REFERENCES public.api_scenarios (id) ON DELETE CASCADE;
+
 ALTER TABLE public.api_module_chains ADD CONSTRAINT api_module_chains_related_scenario_id_fkey FOREIGN KEY(related_scenario_id) REFERENCES public.api_scenarios (id) ON DELETE SET NULL;
 
 ALTER TABLE public.api_module_chains ADD CONSTRAINT api_module_chains_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE;
@@ -1313,6 +1345,8 @@ CREATE INDEX ix_api_scenarios_source_type ON public.api_scenarios (source_type);
 
 CREATE INDEX ix_api_scenarios_status ON public.api_scenarios (status);
 
+CREATE INDEX ix_api_scenarios_updated_at ON public.api_scenarios (updated_at);
+
 CREATE INDEX ix_api_scenarios_version_id ON public.api_scenarios (version_id);
 
 CREATE INDEX ix_api_module_chains_project_id ON public.api_module_chains (project_id);
@@ -1476,6 +1510,8 @@ CREATE INDEX ix_ai_memory_memory_type ON public.ai_memory (memory_type);
 CREATE INDEX ix_ai_memory_project_id ON public.ai_memory (project_id);
 
 CREATE INDEX ix_ai_memory_project_type ON public.ai_memory (project_id, memory_type);
+
+CREATE INDEX ix_scenario_nodes_ref_type_ref_id ON public.scenario_nodes (ref_type, ref_id);
 
 CREATE INDEX ix_scenario_nodes_scenario_id ON public.scenario_nodes (scenario_id);
 

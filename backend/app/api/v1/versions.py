@@ -3,8 +3,8 @@
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import Optional, List
-from pydantic import BaseModel
+from typing import Any, Dict, Optional, List
+from pydantic import BaseModel, Field
 import logging
 from app.dependencies import get_db
 from app.platform.db.base import Project, Version, User
@@ -26,6 +26,7 @@ class VersionCreate(BaseModel):
     change_summary: Optional[str] = None
     requirement_doc: Optional[str] = None
     test_scope: Optional[List[str]] = None
+    mapping_config: Dict[str, Any] = Field(default_factory=dict)
 
 
 class VersionUpdate(BaseModel):
@@ -35,6 +36,7 @@ class VersionUpdate(BaseModel):
     change_summary: Optional[str] = None
     requirement_doc: Optional[str] = None
     test_scope: Optional[List[str]] = None
+    mapping_config: Optional[Dict[str, Any]] = None
 
 
 class VersionResponse(BaseModel):
@@ -48,6 +50,7 @@ class VersionResponse(BaseModel):
     requirement_doc: Optional[str]
     test_scope: Optional[List[str]]
     notification_url: Optional[str]
+    mapping_config: Dict[str, Any] = Field(default_factory=dict)
     created_at: str
     updated_at: str
     created_by: Optional[int]
@@ -109,7 +112,8 @@ async def create_version(
         status=request.status,
         change_summary=request.change_summary,
         requirement_doc=request.requirement_doc,
-        test_scope=request.test_scope
+        test_scope=request.test_scope,
+        mapping_config=request.mapping_config,
     )
     db.add(version)
     db.commit()
@@ -170,6 +174,7 @@ async def list_versions(
             "requirement_doc": version.requirement_doc,
             "test_scope": version.test_scope,
             "notification_url": version.notification_url,
+            "mapping_config": version.mapping_config or {},
             "created_at": version.created_at.isoformat() if version.created_at else "",
             "updated_at": version.updated_at.isoformat() if version.updated_at else "",
             "endpoints_count": getattr(version, 'endpoints_count', 0),  # 保持兼容性
@@ -223,6 +228,7 @@ async def get_version(
             "requirement_doc": version.requirement_doc,
             "test_scope": version.test_scope,
             "notification_url": version.notification_url,
+            "mapping_config": version.mapping_config or {},
             "created_at": version.created_at.isoformat() if version.created_at else "",
             "updated_at": version.updated_at.isoformat() if version.updated_at else ""
         }
@@ -258,6 +264,8 @@ async def update_version(
         version.requirement_doc = request.requirement_doc
     if request.test_scope is not None:
         version.test_scope = request.test_scope
+    if request.mapping_config is not None:
+        version.mapping_config = request.mapping_config
 
     version.updated_by = current_user.id
     db.commit()
@@ -268,6 +276,26 @@ async def update_version(
         "message": "更新成功",
         "data": {"id": version_id}
     }
+
+
+@router.put("/projects/{project_id}/versions/{version_id}", response_model=dict)
+async def update_version_for_project(
+    project_id: int,
+    version_id: int,
+    request: VersionUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    version = db.query(Version).filter(
+        Version.id == version_id,
+        Version.project_id == project_id
+    ).first()
+    if not version:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"鐗堟湰涓嶅瓨鍦細{version_id}"
+        )
+    return await update_version(version_id, request, db, current_user)
 
 
 @router.delete("/versions/{version_id}", response_model=dict)

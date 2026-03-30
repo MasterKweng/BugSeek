@@ -45,6 +45,13 @@ class FieldMappingSuggestTaskRequest(BaseModel):
     include_body: Optional[bool] = Field(True, description="是否包含请求体参数")
     use_ai: Optional[bool] = Field(True, description="是否使用AI推荐")
     ai_confidence_threshold: Optional[float] = Field(0.7, description="AI threshold", ge=0.0, le=1.0)
+    use_sql_lineage: Optional[bool] = Field(True, description="是否启用 SQL lineage")
+    use_code_lineage: Optional[bool] = Field(True, description="是否启用 code lineage")
+    use_runtime_verification: Optional[bool] = Field(True, description="是否启用 runtime verification")
+    evidence_mode: Optional[str] = Field("balanced", description="balanced/conservative/aggressive")
+    rebuild_lineage_before_run: Optional[bool] = Field(False, description="运行前是否重建 lineage")
+    selected_execution_ids: Optional[List[int]] = Field(None, description="重建 lineage 时使用的 execution IDs")
+    workspace_root: Optional[str] = Field(None, description="code lineage 使用的 workspace root")
     high_priority_enabled: Optional[bool] = Field(True, description="是否启用高优先级字段")
     medium_priority_enabled: Optional[bool] = Field(True, description="是否启用中优先级字段")
     low_priority_enabled: Optional[bool] = Field(True, description="是否启用低优先级字段")
@@ -306,6 +313,13 @@ async def create_suggest_task(
         include_query=request.include_query,
         include_body=request.include_body,
         use_ai=request.use_ai,
+        use_sql_lineage=request.use_sql_lineage,
+        use_code_lineage=request.use_code_lineage,
+        use_runtime_verification=request.use_runtime_verification,
+        evidence_mode=request.evidence_mode or "balanced",
+        rebuild_lineage_before_run=bool(request.rebuild_lineage_before_run),
+        selected_execution_ids=request.selected_execution_ids,
+        workspace_root=request.workspace_root,
         high_priority_enabled=request.high_priority_enabled,
         medium_priority_enabled=request.medium_priority_enabled,
         low_priority_enabled=request.low_priority_enabled,

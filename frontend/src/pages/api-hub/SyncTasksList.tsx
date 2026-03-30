@@ -34,7 +34,6 @@ import {
   DeleteOutlined,
   StopOutlined,
   SyncOutlined,
-  RobotOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import api from '../../services/api';
@@ -287,39 +286,6 @@ const SyncTasksList: React.FC = () => {
     setReviewModalVisible(true);
   };
 
-  // AI 自动修复
-  const handleAIAutoFix = async (record: SyncTask) => {
-    try {
-      const response = await api.post(`/sync-tasks/${record.id}/ai-auto-fix`);
-
-      if (response.code === 0) {
-        message.success('AI 自动修复成功');
-        // 显示修复结果的弹窗
-        Modal.info({
-          title: 'AI 自动修复结果',
-          width: 800,
-          content: (
-            <div>
-              <p>修复了 {response.data.fixes?.length || 0} 个用例</p>
-              {response.data.fixes?.map((fix: any, index: number) => (
-                <div key={index} style={{ marginBottom: 8 }}>
-                  <Tag color="blue">{fix.case_name}</Tag>
-                  <span> - {fix.fix_type}</span>
-                </div>
-              ))}
-            </div>
-          )
-        });
-        fetchTasks();
-      } else {
-        message.error(response.message || 'AI 自动修复失败');
-      }
-    } catch (error) {
-      console.error('AI 自动修复失败:', error);
-      message.error('AI 自动修复失败，请稍后重试');
-    }
-  };
-
   // 删除同步任务
   const handleDelete = async (record: SyncTask) => {
     try {
@@ -479,18 +445,8 @@ const SyncTasksList: React.FC = () => {
               />
             </Tooltip>
           )}
-          {record.status === 'completed' && record.conflict_count > 0 && (
-            <Tooltip title="AI 自动修复">
-              <Button
-                type="link"
-                size="small"
-                icon={<RobotOutlined />}
-                onClick={() => handleAIAutoFix(record)}
-              />
-            </Tooltip>
-          )}
-          {(record.status === 'completed' || record.status === 'failed' || record.status === 'cancelled') && (
-            <Tooltip title="删除任务">
+            {(record.status === 'completed' || record.status === 'failed' || record.status === 'cancelled') && (
+              <Tooltip title="删除任务">
               <Popconfirm
                 title="确认删除"
                 description={`确定要删除同步任务 "${record.name}" 吗？`}

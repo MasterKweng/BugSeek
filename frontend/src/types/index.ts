@@ -31,6 +31,52 @@ export interface ProjectEnvironment {
   base_url: string
 }
 
+export type FieldMappingEvidenceMode = 'balanced' | 'conservative' | 'aggressive'
+
+export interface ProjectAssetConfig {
+  repository?: {
+    repo_url?: string
+    default_branch?: string
+    workspace_root?: string
+    orm_framework?: string
+  }
+  dictionary?: {
+    enum_rules_text?: string
+    business_terms_text?: string
+  }
+  risk_policy?: {
+    high_risk_fields_text?: string
+    allow_ai_override?: boolean
+    require_manual_review?: boolean
+    auto_accept_min_confidence?: number
+  }
+  field_mapping_defaults?: {
+    use_ai?: boolean
+    use_sql_lineage?: boolean
+    use_code_lineage?: boolean
+    use_runtime_verification?: boolean
+    evidence_mode?: FieldMappingEvidenceMode
+  }
+}
+
+export interface VersionMappingConfig {
+  schema_binding?: {
+    selected_schema_id?: number | null
+  }
+  runtime_binding?: {
+    selected_execution_ids?: number[]
+    auto_build_sql_lineage?: boolean
+  }
+  field_mapping_overrides?: {
+    use_sql_lineage?: boolean
+    use_code_lineage?: boolean
+    use_runtime_verification?: boolean
+    allow_ai?: boolean
+    high_risk_manual_review?: boolean
+    rule_overrides_text?: string
+  }
+}
+
 // 项目相关类型
 export interface Project {
   id: number
@@ -45,6 +91,7 @@ export interface Project {
   created_by: number | null
   owner_id: number | null
   is_deleted: boolean
+  asset_config?: ProjectAssetConfig | null
   created_at: string
   updated_at: string
   // 环境列表
@@ -62,6 +109,7 @@ export interface ProjectCreate {
   backend_framework?: string
   database?: string
   frontend_framework?: string
+  asset_config?: ProjectAssetConfig
 }
 
 export interface ProjectUpdate {
@@ -73,6 +121,7 @@ export interface ProjectUpdate {
   backend_framework?: string
   database?: string
   frontend_framework?: string
+  asset_config?: ProjectAssetConfig
 }
 
 export interface TechStackUpdate {
@@ -102,6 +151,7 @@ export interface Version {
   endpoints_count: number
   test_cases_count: number
   notification_url: string | null
+  mapping_config?: VersionMappingConfig | null
   created_at: string
   updated_at: string
 }
@@ -113,6 +163,7 @@ export interface VersionCreate {
   change_summary?: string
   requirement_doc?: string
   test_scope?: string[]
+  mapping_config?: VersionMappingConfig
 }
 
 export interface VersionUpdate {
@@ -121,6 +172,7 @@ export interface VersionUpdate {
   change_summary?: string
   requirement_doc?: string
   test_scope?: string[]
+  mapping_config?: VersionMappingConfig
   endpoints_count?: number
   test_cases_count?: number
 }

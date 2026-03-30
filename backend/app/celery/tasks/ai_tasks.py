@@ -48,17 +48,13 @@ def execute_scenario_task(
                 graph_data=None,
                 variables={},
                 environment_id=environment_id,
+                execution_id=execution_id,
                 db=db,
+                triggered_by="jenkins",
             )
         )
 
-        execution.status = result["status"]
-        execution.finished_at = datetime.now(timezone.utc)
-        execution.duration = result["summary"].get("duration_ms", 0)
-        execution.total = result["summary"].get("total", 0)
-        execution.passed = result["summary"].get("passed", 0)
-        execution.failed = result["summary"].get("failed", 0)
-        execution.skipped = result["summary"].get("skipped", 0)
+        db.refresh(execution)
         if callback_url:
             execution.webhook_url = callback_url
             execution.callback_status = "pending"
@@ -72,6 +68,9 @@ def execute_scenario_task(
                     "execution_id": execution_id,
                     "scenario_id": scenario_id,
                     "status": result["status"],
+                    "result_status": result["result_status"],
+                    "success": result["success"],
+                    "error_message": result.get("error_message"),
                     "summary": result["summary"],
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
@@ -92,6 +91,12 @@ def execute_scenario_task(
             execution = db.query(TestExecution).filter(TestExecution.id == execution_id).first()
             if execution:
                 execution.status = "failed"
+                execution.result_status = "failed"
+                execution.summary_json = {
+                    **(execution.summary_json or {}),
+                    "error_message": str(exc),
+                    "success": False,
+                }
                 execution.finished_at = datetime.now(timezone.utc)
                 execution.callback_status = "failed" if callback_url else execution.callback_status
                 db.commit()

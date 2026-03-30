@@ -7,6 +7,8 @@ from typing import Any, Dict, List
 from sqlalchemy.orm import Session
 
 from app.platform.db.base import AsyncTask
+from app.dependencies import engine as db_engine
+from app.domains.data_impact.engine import DataImpactEngine
 from ..constants import Stage, get_stage_name
 from ..persistence.artifact_store import ArtifactStore
 
@@ -34,6 +36,7 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
         params = task.task_params or {}
         app_service = FieldMappingAppService(self.db)
         self._init_stages(task)
+        ai_threshold = self._resolve_ai_threshold(params)
 
         snapshot_payload = self.artifact_store.load_artifact(
             task_id=task.id, stage=Stage.FIELD_EXTRACTION, artifact_type="input_snapshot"
@@ -74,6 +77,8 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
                 include_body=params.get("include_body", True),
                 definition_ids=params.get("definition_ids"),
             )
+            if params.get("rebuild_lineage_before_run"):
+                self._rebuild_lineage_assets(params, field_specs)
             extracted_fields_payload = {"items": field_specs}
             self.artifact_store.save_artifact(
                 task_id=task.id,
@@ -98,6 +103,9 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
                 project_id=params["project_id"],
                 version_id=params["version_id"],
                 field_specs=field_specs,
+                use_sql_lineage=bool(params.get("use_sql_lineage", True)),
+                use_code_lineage=bool(params.get("use_code_lineage", True)),
+                use_runtime_verification=bool(params.get("use_runtime_verification", True)),
             )
             recall_payload = {"items": recall_items}
             self.artifact_store.save_artifact(
@@ -114,13 +122,16 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
             "domain_anchor_count": sum(1 for item in recall_items if item.get("domain_anchor")),
         }, 70, "召回候选已生成")
 
-        ranked_items = app_service.rank_recall_items(recall_items)
+        ranked_items = app_service.rank_recall_items(
+            recall_items,
+            use_runtime_verification=bool(params.get("use_runtime_verification", True)),
+        )
         ranked_items = await app_service.optimize_ranked_items(
             project_id=params["project_id"],
             version_id=params["version_id"],
             ranked_items=ranked_items,
             use_ai=params.get("use_ai", True),
-            ai_confidence_threshold=float(params.get("ai_confidence_threshold", 0.7)),
+            ai_confidence_threshold=ai_threshold,
         )
         suggestion_payload = self.artifact_store.load_artifact(
             task_id=task.id, stage=Stage.RESULT_MERGE, artifact_type="final_suggestions"
@@ -149,7 +160,7 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
             "field_count": len(ranked_items),
             "ai_triggered_count": sum(1 for item in ranked_items if item.get("ai_triggered")),
             "high_risk_count": sum(1 for item in ranked_items if item.get("risk_level") == "high"),
-            "threshold": float(params.get("ai_confidence_threshold", 0.7)),
+            "threshold": ai_threshold,
         }, 85, "AI low-confidence optimization complete")
         self._mark_stage_complete(task, Stage.RESULT_MERGE, get_stage_name(Stage.RESULT_MERGE), {
             "artifact_type": "final_suggestions",
@@ -175,6 +186,41 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
         task.statistics = result_payload["statistics"]
         self.db.commit()
         return result_payload
+
+    def _resolve_ai_threshold(self, params: Dict[str, Any]) -> float:
+        base_threshold = float(params.get("ai_confidence_threshold", 0.7))
+        evidence_mode = str(params.get("evidence_mode") or "balanced")
+        if evidence_mode == "conservative":
+            return min(0.95, round(base_threshold + 0.1, 4))
+        if evidence_mode == "aggressive":
+            return max(0.5, round(base_threshold - 0.1, 4))
+        return base_threshold
+
+    def _rebuild_lineage_assets(self, params: Dict[str, Any], field_specs: List[Dict[str, Any]]) -> None:
+        definition_ids = sorted({int(item.get("definition_id")) for item in field_specs if item.get("definition_id")})
+        if not definition_ids:
+            return
+        execution_ids = [str(item) for item in (params.get("selected_execution_ids") or []) if item is not None]
+        workspace_root = params.get("workspace_root")
+        if not execution_ids and not workspace_root:
+            return
+
+        engine = DataImpactEngine(self.db, db_engine)
+        for definition_id in definition_ids:
+            if execution_ids:
+                for execution_id in execution_ids:
+                    engine.build_lineage_assets(
+                        definition_id=definition_id,
+                        execution_id=execution_id,
+                        workspace_root=workspace_root,
+                        version_id=params.get("version_id"),
+                    )
+            else:
+                engine.build_lineage_assets(
+                    definition_id=definition_id,
+                    workspace_root=workspace_root,
+                    version_id=params.get("version_id"),
+                )
 
     def _init_stages(self, task: AsyncTask) -> None:
         task.stages = [

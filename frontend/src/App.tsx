@@ -14,6 +14,7 @@ const Projects = lazy(() => import('./pages/Projects'))
 const Versions = lazy(() => import('./pages/Versions'))
 const DbSchema = lazy(() => import('./pages/version-center/DbSchema'))
 const FieldMapping = lazy(() => import('./pages/version-center/FieldMapping'))
+const FieldMappingHelp = lazy(() => import('./pages/version-center/FieldMappingHelp'))
 const KnowledgeGraph = lazy(() => import('./pages/KnowledgeGraph'))
 const EnvironmentManagement = lazy(() => import('./pages/project-center/EnvironmentManagement'))
 const OperationsCenter = lazy(() => import('./pages/operations/OperationsCenter'))
@@ -68,6 +69,7 @@ function App() {
           <Route path="project-center/environments" element={<ProjectVersionGuard><EnvironmentManagement /></ProjectVersionGuard>} />
           <Route path="version-center/db-schema" element={<ProjectVersionGuard><DbSchema /></ProjectVersionGuard>} />
           <Route path="version-center/field-mapping" element={<ProjectVersionGuard><FieldMapping /></ProjectVersionGuard>} />
+          <Route path="version-center/field-mapping/help" element={<ProjectVersionGuard><FieldMappingHelp /></ProjectVersionGuard>} />
           <Route path="knowledge-graph" element={<ProjectVersionGuard><KnowledgeGraph /></ProjectVersionGuard>} />
           {/* 需求洞察模块 */}
           {/* 代码质量模块 */}

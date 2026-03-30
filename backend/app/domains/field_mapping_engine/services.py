@@ -67,6 +67,9 @@ class FieldMappingAppService:
         definition_ids: Optional[List[int]] = None,
         use_ai: bool = True,
         ai_confidence_threshold: float = 0.7,
+        use_sql_lineage: bool = True,
+        use_code_lineage: bool = True,
+        use_runtime_verification: bool = True,
     ) -> List[Dict[str, Any]]:
         field_specs = self.extract_field_specs(
             project_id=project_id,
@@ -80,8 +83,14 @@ class FieldMappingAppService:
             project_id=project_id,
             version_id=version_id,
             field_specs=field_specs,
+            use_sql_lineage=use_sql_lineage,
+            use_code_lineage=use_code_lineage,
+            use_runtime_verification=use_runtime_verification,
         )
-        ranked_items = self.rank_recall_items(recall_items)
+        ranked_items = self.rank_recall_items(
+            recall_items,
+            use_runtime_verification=use_runtime_verification,
+        )
         optimized_items = await self.optimize_ranked_items(
             project_id=project_id,
             version_id=version_id,
@@ -122,6 +131,9 @@ class FieldMappingAppService:
         project_id: int,
         version_id: int,
         field_specs: List[Dict[str, Any]],
+        use_sql_lineage: bool = True,
+        use_code_lineage: bool = True,
+        use_runtime_verification: bool = True,
     ) -> List[Dict[str, Any]]:
         schema_snapshot = self._load_db_schema(project_id, version_id)
         db_columns = self.db_extractor.extract_columns(schema_snapshot)
@@ -142,9 +154,13 @@ class FieldMappingAppService:
                 field_spec["field_name"],
                 rejected_prior_map,
             )
-            runtime_table_prior = self.runtime_recaller.get_field_table_prior_map(
-                int(field_spec["definition_id"]),
-                field_spec["field_path"],
+            runtime_table_prior = (
+                self.runtime_recaller.get_field_table_prior_map(
+                    int(field_spec["definition_id"]),
+                    field_spec["field_path"],
+                )
+                if use_runtime_verification
+                else {}
             )
             lexical_candidates = self.lexical_recaller.recall_from_dict(
                 field_spec,
@@ -160,9 +176,21 @@ class FieldMappingAppService:
                 allowed_tables=list(metadata.get("allowed_tables") or runtime_table_prior.keys()) or None,
             )
             vector_candidates = self.vector_recaller.attach_table_prior(vector_candidates, runtime_table_prior)
-            runtime_candidates = self.runtime_recaller.recall_from_dict(field_spec, schema_snapshot)
-            sql_lineage_candidates = self.sql_lineage_recaller.recall_from_dict(field_spec, schema_snapshot)
-            code_lineage_candidates = self.code_lineage_recaller.recall_from_dict(field_spec)
+            runtime_candidates = (
+                self.runtime_recaller.recall_from_dict(field_spec, schema_snapshot)
+                if use_runtime_verification
+                else []
+            )
+            sql_lineage_candidates = (
+                self.sql_lineage_recaller.recall_from_dict(field_spec, schema_snapshot)
+                if use_sql_lineage
+                else []
+            )
+            code_lineage_candidates = (
+                self.code_lineage_recaller.recall_from_dict(field_spec)
+                if use_code_lineage
+                else []
+            )
             code_lineage_candidates = self._attach_weak_code_lineage_hints(
                 code_lineage_candidates=code_lineage_candidates,
                 candidate_groups=[lexical_candidates, vector_candidates, runtime_candidates, sql_lineage_candidates],
@@ -198,7 +226,12 @@ class FieldMappingAppService:
             )
         return items
 
-    def rank_recall_items(self, recall_items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def rank_recall_items(
+        self,
+        recall_items: List[Dict[str, Any]],
+        *,
+        use_runtime_verification: bool = True,
+    ) -> List[Dict[str, Any]]:
         ranked_items: List[Dict[str, Any]] = []
         for item in recall_items:
             candidate_evidence = [dict(candidate) for candidate in item.get("candidate_evidence", [])]
@@ -206,10 +239,14 @@ class FieldMappingAppService:
                 self.feature_builder.enrich_candidate(field_item=item, candidate=candidate)
                 self.deterministic_rules.apply_from_dict(item, candidate)
             ranked_candidates = self.ranker.rank_from_dict(candidate_evidence)
-            verified_evidence = self.runtime_verification_service.build_runtime_field_evidence(
-                definition_id=int(item["definition_id"]),
-                api_field_path=str(item["api_field_path"]),
-                candidates=ranked_candidates[:10],
+            verified_evidence = (
+                self.runtime_verification_service.build_runtime_field_evidence(
+                    definition_id=int(item["definition_id"]),
+                    api_field_path=str(item["api_field_path"]),
+                    candidates=ranked_candidates[:10],
+                )
+                if use_runtime_verification
+                else []
             )
             if verified_evidence:
                 ranked_candidates = self._apply_runtime_verification_evidence(
@@ -824,6 +861,13 @@ class FieldMappingJobService:
         include_query: bool,
         include_body: bool,
         use_ai: bool,
+        use_sql_lineage: bool = True,
+        use_code_lineage: bool = True,
+        use_runtime_verification: bool = True,
+        evidence_mode: str = "balanced",
+        rebuild_lineage_before_run: bool = False,
+        selected_execution_ids: Optional[List[int]] = None,
+        workspace_root: Optional[str] = None,
         high_priority_enabled: bool,
         medium_priority_enabled: bool,
         low_priority_enabled: bool,
@@ -841,12 +885,21 @@ class FieldMappingJobService:
             "include_query": include_query,
             "include_body": include_body,
             "use_ai": use_ai,
+            "use_sql_lineage": use_sql_lineage,
+            "use_code_lineage": use_code_lineage,
+            "use_runtime_verification": use_runtime_verification,
+            "evidence_mode": evidence_mode,
+            "rebuild_lineage_before_run": rebuild_lineage_before_run,
             "high_priority_enabled": high_priority_enabled,
             "medium_priority_enabled": medium_priority_enabled,
             "low_priority_enabled": low_priority_enabled,
             "engine_version": engine_version,
             "ai_confidence_threshold": ai_confidence_threshold,
         }
+        if selected_execution_ids:
+            params["selected_execution_ids"] = selected_execution_ids
+        if workspace_root:
+            params["workspace_root"] = workspace_root
         if definition_ids:
             params["definition_ids"] = definition_ids
         if scenario_id:

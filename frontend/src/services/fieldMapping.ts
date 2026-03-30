@@ -330,6 +330,13 @@ export interface AsyncTaskCreateRequest {
   include_query?: boolean
   include_body?: boolean
   use_ai?: boolean
+  use_sql_lineage?: boolean
+  use_code_lineage?: boolean
+  use_runtime_verification?: boolean
+  evidence_mode?: 'balanced' | 'conservative' | 'aggressive'
+  rebuild_lineage_before_run?: boolean
+  selected_execution_ids?: number[]
+  workspace_root?: string
   high_priority_enabled?: boolean
   medium_priority_enabled?: boolean
   low_priority_enabled?: boolean

@@ -155,24 +155,3 @@ export const mapAiVariables = (projectId: number, inputData: Record<string, any>
     input_data: inputData,
   })
 }
-
-export const runAiFullFlow = (
-  projectId: number,
-  intentText: string,
-  environmentId?: number | null,
-  autoFix = false,
-) => {
-  return request.post('/ai/test/run-full', {
-    project_id: projectId,
-    intent_text: intentText,
-    environment_id: environmentId,
-    auto_fix: autoFix,
-  })
-}
-
-export const optimizeAiTests = (inputData: Record<string, any>) => {
-  return request.post('/ai/test/optimize', {
-    input_data: inputData,
-  })
-}
-

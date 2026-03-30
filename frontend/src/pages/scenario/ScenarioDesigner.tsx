@@ -49,6 +49,15 @@ interface NodeFormValues {
 
 const { TextArea } = Input
 const { Text } = Typography
+const DEFAULT_API_DEFINITION_EXTRA_CONFIG = JSON.stringify(
+  {
+    case_selection: {
+      strategy: 'first_active',
+    },
+  },
+  null,
+  2,
+)
 
 const safeJsonParse = (value?: string): Record<string, unknown> | null | undefined => {
   if (value === undefined) {
@@ -66,6 +75,8 @@ const stringifyJson = (value?: Record<string, unknown> | null) => {
   }
   return JSON.stringify(value, null, 2)
 }
+
+const isBlankJsonField = (value?: string) => !value || !value.trim()
 
 const normalizeNode = (values: NodeFormValues, currentCount: number, fallback?: ScenarioNode): ScenarioNode => ({
   id: fallback?.id,
@@ -99,6 +110,18 @@ const ScenarioDesigner: React.FC = () => {
   const [saving, setSaving] = useState(false)
   const [nodeModalVisible, setNodeModalVisible] = useState(false)
   const [editingNode, setEditingNode] = useState<ScenarioNode | null>(null)
+  const nodeRefType = Form.useWatch('ref_type', nodeForm)
+
+  useEffect(() => {
+    if (!nodeModalVisible || nodeRefType !== 'api_definition') {
+      return
+    }
+
+    const currentExtraConfig = nodeForm.getFieldValue('extra_config')
+    if (isBlankJsonField(currentExtraConfig)) {
+      nodeForm.setFieldValue('extra_config', DEFAULT_API_DEFINITION_EXTRA_CONFIG)
+    }
+  }, [nodeForm, nodeModalVisible, nodeRefType])
 
   useEffect(() => {
     void loadScenario()
@@ -221,6 +244,9 @@ const ScenarioDesigner: React.FC = () => {
   const openNodeModal = (node?: ScenarioNode) => {
     setEditingNode(node || null)
     setNodeModalVisible(true)
+    const defaultExtraConfig = !node || node.ref_type === 'api_definition'
+      ? (stringifyJson(node?.extra_config as Record<string, unknown> | null) || DEFAULT_API_DEFINITION_EXTRA_CONFIG)
+      : stringifyJson(node?.extra_config as Record<string, unknown> | null)
     nodeForm.setFieldsValue({
       node_key: node?.node_key,
       node_name: node?.node_name,
@@ -236,7 +262,7 @@ const ScenarioDesigner: React.FC = () => {
       retry_count: node?.retry_count ?? 0,
       continue_on_failure: node?.continue_on_failure ?? false,
       is_enabled: node?.is_enabled ?? true,
-      extra_config: stringifyJson(node?.extra_config as Record<string, unknown> | null),
+      extra_config: defaultExtraConfig,
     })
   }
 
@@ -463,8 +489,15 @@ const ScenarioDesigner: React.FC = () => {
             <Form.Item name="assertion_overrides" label="断言覆盖（JSON）">
               <TextArea rows={4} placeholder='例如：{"status_code": 200}' />
             </Form.Item>
-            <Form.Item name="extra_config" label="额外配置（JSON）">
-              <TextArea rows={4} placeholder='例如：{"note": "run after create_user"}' />
+            <Form.Item
+              name="extra_config"
+              label="额外配置（JSON）"
+              extra='当引用类型为 api_definition 时，必须声明 case_selection。示例：{"case_selection":{"strategy":"case_id","case_id":123}} 或 {"case_selection":{"strategy":"first_active"}}'
+            >
+              <TextArea
+                rows={4}
+                placeholder='例如：{"case_selection":{"strategy":"case_id","case_id":123}}'
+              />
             </Form.Item>
           </Form>
         </Modal>

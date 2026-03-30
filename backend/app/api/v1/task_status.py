@@ -304,6 +304,8 @@ def _serialize_scenario_execution(
         "failed": execution.failed or 0,
         "skipped": execution.skipped or 0,
         "duration_ms": execution.duration or 0,
+        "result_status": execution.result_status,
+        "success": execution.status == "completed" and execution.result_status == "passed",
     }
     progress_message = None
     if total_nodes > 0:
@@ -326,6 +328,8 @@ def _serialize_scenario_execution(
         for row in result_rows
     ]
     error_message = next((row.error_message for row in result_rows if row.error_message), None)
+    if not error_message and isinstance(execution.summary_json, dict):
+        error_message = execution.summary_json.get("error_message")
 
     detail = {
         "id": execution.id,
@@ -333,6 +337,8 @@ def _serialize_scenario_execution(
         "scenario_id": scenario.id,
         "environment_id": execution.environment_id,
         "status": execution.status,
+        "result_status": execution.result_status,
+        "success": execution.status == "completed" and execution.result_status == "passed",
         "started_at": _iso(execution.started_at),
         "finished_at": _iso(execution.finished_at),
         "duration_ms": execution.duration,
@@ -370,6 +376,7 @@ def _serialize_scenario_execution(
             "scenario_id": scenario.id,
             "environment_id": execution.environment_id,
             "callback_status": execution.callback_status,
+            "result_status": execution.result_status,
         },
         detail=detail,
     )

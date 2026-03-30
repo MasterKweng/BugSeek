@@ -1,18 +1,68 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Popconfirm, Drawer, Descriptions, Spin, Tabs, Empty, Switch } from 'antd'
+import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, InputNumber, message, Popconfirm, Drawer, Descriptions, Spin, Tabs, Empty, Switch } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined, MinusCircleOutlined, SafetyOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import * as projectService from '../services/project'
-import type { Project, ProjectCreate, ProjectUpdate } from '../types'
+import type { Project, ProjectAssetConfig, ProjectCreate, ProjectUpdate } from '../types'
 import { get, post, put, del } from '../services/request'
 import WorkspaceModuleHero from '../components/WorkspaceModuleHero'
+import { useProjectStore } from '../store/project'
 
 const { TextArea } = Input
 const { Option } = Select
 
+const createDefaultProjectAssetConfig = (): ProjectAssetConfig => ({
+  repository: {
+    repo_url: '',
+    default_branch: 'main',
+    workspace_root: '',
+    orm_framework: '',
+  },
+  dictionary: {
+    enum_rules_text: '',
+    business_terms_text: '',
+  },
+  risk_policy: {
+    high_risk_fields_text: '',
+    allow_ai_override: false,
+    require_manual_review: true,
+    auto_accept_min_confidence: 0.95,
+  },
+  field_mapping_defaults: {
+    use_ai: true,
+    use_sql_lineage: true,
+    use_code_lineage: true,
+    use_runtime_verification: true,
+    evidence_mode: 'balanced',
+  },
+})
+
+const normalizeProjectAssetConfig = (config?: ProjectAssetConfig | null): ProjectAssetConfig => {
+  const defaults = createDefaultProjectAssetConfig()
+  return {
+    repository: {
+      ...defaults.repository,
+      ...(config?.repository || {}),
+    },
+    dictionary: {
+      ...defaults.dictionary,
+      ...(config?.dictionary || {}),
+    },
+    risk_policy: {
+      ...defaults.risk_policy,
+      ...(config?.risk_policy || {}),
+    },
+    field_mapping_defaults: {
+      ...defaults.field_mapping_defaults,
+      ...(config?.field_mapping_defaults || {}),
+    },
+  }
+}
+
 const Projects: React.FC = () => {
   const navigate = useNavigate()
+  const { currentProject: activeProject, setCurrentProject: setActiveProject } = useProjectStore()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
@@ -45,6 +95,60 @@ const Projects: React.FC = () => {
 
   const businessDomains = ['电商', '金融', 'SaaS', '社交']
 
+  const renderAssetConfigFields = () => (
+    <>
+      <Form.Item name={['asset_config', 'repository', 'repo_url']} label="代码仓库地址">
+        <Input placeholder="例如: https://git.example.com/team/service.git" />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'repository', 'default_branch']} label="默认分支">
+        <Input placeholder="例如: main" />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'repository', 'workspace_root']} label="Workspace Root">
+        <Input placeholder="例如: /workspace/backend-service" />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'repository', 'orm_framework']} label="ORM / Mapper 类型">
+        <Input placeholder="例如: MyBatis / JPA / SQLAlchemy" />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'dictionary', 'business_terms_text']} label="业务术语字典">
+        <TextArea rows={3} placeholder="填写关键业务对象、别名、表意词，帮助字段映射理解领域含义" />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'dictionary', 'enum_rules_text']} label="枚举 / 状态字典">
+        <TextArea rows={4} placeholder="填写 status/type/role/code 等字段的取值规则和含义" />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'risk_policy', 'high_risk_fields_text']} label="高风险字段策略">
+        <TextArea rows={4} placeholder="填写需要严格审核的字段，如 amount、status、role、user_id、deleted、time 等" />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'risk_policy', 'auto_accept_min_confidence']} label="自动通过最低置信度">
+        <InputNumber min={0} max={1} step={0.01} style={{ width: '100%' }} />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'risk_policy', 'allow_ai_override']} label="高风险字段允许 AI 覆盖" valuePropName="checked">
+        <Switch />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'risk_policy', 'require_manual_review']} label="高风险字段默认人工复核" valuePropName="checked">
+        <Switch />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'field_mapping_defaults', 'use_ai']} label="默认启用 AI" valuePropName="checked">
+        <Switch />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'field_mapping_defaults', 'use_sql_lineage']} label="默认启用 SQL Lineage" valuePropName="checked">
+        <Switch />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'field_mapping_defaults', 'use_code_lineage']} label="默认启用 Code Lineage" valuePropName="checked">
+        <Switch />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'field_mapping_defaults', 'use_runtime_verification']} label="默认启用 Runtime Verification" valuePropName="checked">
+        <Switch />
+      </Form.Item>
+      <Form.Item name={['asset_config', 'field_mapping_defaults', 'evidence_mode']} label="默认证据模式">
+        <Select>
+          <Option value="balanced">balanced</Option>
+          <Option value="conservative">conservative</Option>
+          <Option value="aggressive">aggressive</Option>
+        </Select>
+      </Form.Item>
+    </>
+  )
+
   const fetchProjects = async () => {
     setLoading(true)
     try {
@@ -66,7 +170,10 @@ const Projects: React.FC = () => {
     try {
       const values = await createForm.validateFields()
       setCreateLoading(true)
-      await projectService.createProject(values)
+      await projectService.createProject({
+        ...values,
+        asset_config: normalizeProjectAssetConfig(values.asset_config),
+      })
       message.success('项目创建成功')
       setCreateModalVisible(false)
       createForm.resetFields()
@@ -87,8 +194,15 @@ const Projects: React.FC = () => {
     try {
       const values = await editForm.validateFields()
       setEditLoading(true)
-      await projectService.updateProject(currentProject.id, values)
+      await projectService.updateProject(currentProject.id, {
+        ...values,
+        asset_config: normalizeProjectAssetConfig(values.asset_config),
+      })
       message.success('项目更新成功')
+      const refreshed = await projectService.getProject(currentProject.id)
+      if (activeProject?.id === currentProject.id) {
+        setActiveProject(refreshed.data)
+      }
       setEditModalVisible(false)
       editForm.resetFields()
       setCurrentProject(null)
@@ -129,6 +243,7 @@ const Projects: React.FC = () => {
       backend_framework: project.backend_framework ?? undefined,
       database: project.database ?? undefined,
       frontend_framework: project.frontend_framework ?? undefined,
+      asset_config: normalizeProjectAssetConfig(project.asset_config),
     })
     fetchEnvironments(project.id)
     setEditModalVisible(true)
@@ -431,6 +546,7 @@ const Projects: React.FC = () => {
           form={createForm}
           layout="vertical"
           autoComplete="off"
+          initialValues={{ asset_config: createDefaultProjectAssetConfig() }}
         >
           <Form.Item
             name="name"
@@ -468,6 +584,7 @@ const Projects: React.FC = () => {
           <Form.Item name="frontend_framework" label="前端框架">
             <Input placeholder="例如: React" />
           </Form.Item>
+          {renderAssetConfigFields()}
         </Form>
       </Modal>
 
@@ -535,6 +652,25 @@ const Projects: React.FC = () => {
                   <Button onClick={() => setEditModalVisible(false)}>取消</Button>
                   <Button type="primary" onClick={handleEdit} loading={editLoading}>
                     保存项目信息
+                  </Button>
+                </div>
+              </Form>
+            )
+          },
+          {
+            key: 'mapping-assets',
+            label: '字段映射资产',
+            children: (
+              <Form
+                form={editForm}
+                layout="vertical"
+                autoComplete="off"
+              >
+                {renderAssetConfigFields()}
+                <div style={{ textAlign: 'right', marginTop: 16 }}>
+                  <Button onClick={() => setEditModalVisible(false)}>鍙栨秷</Button>
+                  <Button type="primary" onClick={handleEdit} loading={editLoading}>
+                    淇濆瓨字段映射资产
                   </Button>
                 </div>
               </Form>
@@ -654,6 +790,28 @@ const Projects: React.FC = () => {
               <Descriptions.Item label="后端框架">{currentProject.backend_framework || '-'}</Descriptions.Item>
               <Descriptions.Item label="数据库">{currentProject.database || '-'}</Descriptions.Item>
               <Descriptions.Item label="前端框架">{currentProject.frontend_framework || '-'}</Descriptions.Item>
+              <Descriptions.Item label="代码仓库">{currentProject.asset_config?.repository?.repo_url || '-'}</Descriptions.Item>
+              <Descriptions.Item label="默认分支">{currentProject.asset_config?.repository?.default_branch || '-'}</Descriptions.Item>
+              <Descriptions.Item label="Workspace Root">{currentProject.asset_config?.repository?.workspace_root || '-'}</Descriptions.Item>
+              <Descriptions.Item label="ORM / Mapper">{currentProject.asset_config?.repository?.orm_framework || '-'}</Descriptions.Item>
+              <Descriptions.Item label="字段映射默认策略">
+                <Space wrap>
+                  <Tag color={currentProject.asset_config?.field_mapping_defaults?.use_ai ? 'green' : 'default'}>AI</Tag>
+                  <Tag color={currentProject.asset_config?.field_mapping_defaults?.use_sql_lineage ? 'blue' : 'default'}>SQL Lineage</Tag>
+                  <Tag color={currentProject.asset_config?.field_mapping_defaults?.use_code_lineage ? 'purple' : 'default'}>Code Lineage</Tag>
+                  <Tag color={currentProject.asset_config?.field_mapping_defaults?.use_runtime_verification ? 'gold' : 'default'}>Runtime Verification</Tag>
+                  <Tag>{currentProject.asset_config?.field_mapping_defaults?.evidence_mode || 'balanced'}</Tag>
+                </Space>
+              </Descriptions.Item>
+              <Descriptions.Item label="高风险字段策略">
+                {currentProject.asset_config?.risk_policy?.high_risk_fields_text || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="业务术语字典">
+                {currentProject.asset_config?.dictionary?.business_terms_text || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="枚举 / 状态字典">
+                {currentProject.asset_config?.dictionary?.enum_rules_text || '-'}
+              </Descriptions.Item>
               <Descriptions.Item label="创建时间">
                 {new Date(currentProject.created_at).toLocaleString('zh-CN')}
               </Descriptions.Item>

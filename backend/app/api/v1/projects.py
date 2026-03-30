@@ -1,8 +1,8 @@
 """项目管理接口"""
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import Optional, List
-from pydantic import BaseModel, ConfigDict
+from typing import Any, Dict, Optional, List
+from pydantic import BaseModel, ConfigDict, Field
 import logging
 from app.dependencies import get_db
 from app.platform.db.base import Project, User, Environment
@@ -33,6 +33,7 @@ class ProjectCreate(BaseModel):
     backend_framework: Optional[str] = None  # Spring Boot/Django/Gin
     database: Optional[str] = None  # MySQL/PgSQL/Mongo
     frontend_framework: Optional[str] = None  # Vue/React
+    asset_config: Dict[str, Any] = Field(default_factory=dict)
 
 
 class ProjectUpdate(BaseModel):
@@ -45,6 +46,7 @@ class ProjectUpdate(BaseModel):
     backend_framework: Optional[str] = None
     database: Optional[str] = None
     frontend_framework: Optional[str] = None
+    asset_config: Optional[Dict[str, Any]] = None
 
 
 class TechStackUpdate(BaseModel):
@@ -86,6 +88,7 @@ class ProjectResponse(BaseModel):
     created_by: Optional[int] = None
     owner_id: Optional[int] = None
     is_deleted: bool = False
+    asset_config: Dict[str, Any] = Field(default_factory=dict)
     created_at: str
     updated_at: str
     # 环境列表（仅项目详情接口返回）
@@ -112,6 +115,7 @@ class ProjectResponse(BaseModel):
             "backend_framework": obj.backend_framework,
             "database": obj.database,
             "frontend_framework": obj.frontend_framework,
+            "asset_config": obj.asset_config or {},
             "created_by": obj.created_by,
             "owner_id": obj.owner_id,
             "is_deleted": obj.is_deleted,

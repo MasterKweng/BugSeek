@@ -64,7 +64,13 @@ export const useProjectStore = create<ProjectState>()(
         set({ loading: true })
         try {
           const response = await projectService.getProjects({ page: 1, page_size: 100 })
-          set({ projects: response.data?.items || [] })
+          const nextProjects = response.data?.items || []
+          const currentProjectId = get().currentProject?.id
+          const refreshedCurrentProject = nextProjects.find((item) => item.id === currentProjectId) || null
+          set({
+            projects: nextProjects,
+            currentProject: refreshedCurrentProject ?? get().currentProject,
+          })
         } catch (error) {
           console.error('获取项目列表失败:', error)
           message.error('获取项目列表失败，请稍后重试')
@@ -83,7 +89,13 @@ export const useProjectStore = create<ProjectState>()(
         set({ loading: true })
         try {
           const response = await versionService.getVersions(projectId, { page: 1, page_size: 100 })
-          set({ versions: response.data?.items || [] })
+          const nextVersions = response.data?.items || []
+          const currentVersionId = get().currentVersion?.id
+          const refreshedCurrentVersion = nextVersions.find((item) => item.id === currentVersionId) || null
+          set({
+            versions: nextVersions,
+            currentVersion: refreshedCurrentVersion ?? get().currentVersion,
+          })
 
           // 如果有版本列表但未选择当前版本，自动选择最新的版本
           const { currentVersion, versions } = get()

@@ -19,7 +19,7 @@ from app.context import get_current_project_id
 from app.platform.db.base import ApiScenario, ScenarioNode, ApiCase, ApiDefinition, Environment, User, Version
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
-from app.execution.engine import ScenarioExecutor
+from app.execution.engine import ScenarioExecutor, create_scenario_execution
 from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
 
 router = APIRouter()
@@ -147,6 +147,227 @@ class ScenarioExecuteRequest(BaseModel):
     variables: Dict[str, Any] = Field(default_factory=dict, description="??????")
 
 
+def _validate_api_definition_case_selection(
+    db: Session,
+    project_id: int,
+    node: ScenarioNodeCreate,
+    definition: ApiDefinition,
+) -> Optional[ApiCase]:
+    extra_config = node.extra_config or {}
+    case_selection = extra_config.get("case_selection")
+    if not isinstance(case_selection, dict):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Node '{node.node_key}' with ref_type=api_definition must declare "
+                "extra_config.case_selection"
+            ),
+        )
+
+    strategy = case_selection.get("strategy")
+    if strategy not in {"case_id", "first_active"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Unsupported case selection strategy for node '{node.node_key}': "
+                f"{strategy}"
+            ),
+        )
+
+    if strategy == "case_id":
+        case_id = case_selection.get("case_id")
+        if not isinstance(case_id, int):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Node '{node.node_key}' with strategy=case_id must provide "
+                    "extra_config.case_selection.case_id"
+                ),
+            )
+
+        case = db.query(ApiCase).filter(ApiCase.id == case_id).first()
+        if not case:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"ApiCase not found for node '{node.node_key}': {case_id}",
+            )
+        if case.project_id != project_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"ApiCase project mismatch for node '{node.node_key}'",
+            )
+        if case.definition_id != definition.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"ApiCase definition mismatch for node '{node.node_key}': "
+                    f"case_id={case_id}, definition_id={definition.id}"
+                ),
+            )
+        if case.status != "active":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"ApiCase selected by node '{node.node_key}' is not active: "
+                    f"{case_id}"
+                ),
+            )
+        return case
+
+    case = (
+        db.query(ApiCase)
+        .filter(
+            ApiCase.definition_id == definition.id,
+            ApiCase.project_id == project_id,
+            ApiCase.status == "active",
+        )
+        .order_by(ApiCase.id.asc())
+        .first()
+    )
+    if not case:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"No active ApiCase found for node '{node.node_key}' and "
+                f"definition '{definition.id}'"
+            ),
+        )
+    return case
+
+
+def validate_scenario_nodes(
+    db: Session,
+    project_id: int,
+    scenario_environment_id: Optional[int],
+    nodes: List[ScenarioNodeCreate],
+) -> None:
+    if not nodes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Scenario must contain at least one node",
+        )
+
+    node_keys = [node.node_key for node in nodes]
+    if any(not key or not key.strip() for key in node_keys):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Every scenario node must have a non-empty node_key",
+        )
+
+    if len(node_keys) != len(set(node_keys)):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Duplicate node_key detected in scenario nodes",
+        )
+
+    if not any(node.is_enabled for node in nodes):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Scenario must contain at least one enabled node",
+        )
+
+    node_key_set = set(node_keys)
+    adjacency: Dict[str, List[str]] = {key: [] for key in node_keys}
+    indegree: Dict[str, int] = {key: 0 for key in node_keys}
+
+    for node in nodes:
+        depends_on = node.depends_on or []
+        if not isinstance(depends_on, list):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"depends_on must be a list: node={node.node_key}",
+            )
+
+        for dep in depends_on:
+            if dep == node.node_key:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Node cannot depend on itself: {node.node_key}",
+                )
+            if dep not in node_key_set:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Unknown dependency '{dep}' referenced by node '{node.node_key}'",
+                )
+            adjacency[dep].append(node.node_key)
+            indegree[node.node_key] += 1
+
+        ref_type = (node.ref_type or "api_case").lower()
+        if ref_type not in {"api_case", "api_definition"}:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Unsupported ref_type '{node.ref_type}' in node '{node.node_key}'",
+            )
+
+        if ref_type == "api_case":
+            case = db.query(ApiCase).filter(ApiCase.id == node.ref_id).first()
+            if not case:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"ApiCase not found for node '{node.node_key}': {node.ref_id}",
+                )
+            if case.project_id != project_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"ApiCase project mismatch for node '{node.node_key}'",
+                )
+            definition = db.query(ApiDefinition).filter(ApiDefinition.id == case.definition_id).first()
+            if not definition or definition.project_id != project_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"ApiDefinition project mismatch for node '{node.node_key}'",
+                )
+            effective_environment_id = scenario_environment_id or case.environment_id
+        else:
+            definition = db.query(ApiDefinition).filter(ApiDefinition.id == node.ref_id).first()
+            if not definition:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"ApiDefinition not found for node '{node.node_key}': {node.ref_id}",
+                )
+            if definition.project_id != project_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"ApiDefinition project mismatch for node '{node.node_key}'",
+                )
+            selected_case = _validate_api_definition_case_selection(
+                db=db,
+                project_id=project_id,
+                node=node,
+                definition=definition,
+            )
+            effective_environment_id = scenario_environment_id or selected_case.environment_id
+
+        if effective_environment_id is not None:
+            environment = db.query(Environment).filter(Environment.id == effective_environment_id).first()
+            if not environment:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Environment not found for node '{node.node_key}': {effective_environment_id}",
+                )
+            if environment.project_id != project_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Environment project mismatch for node '{node.node_key}'",
+                )
+
+    queue = [key for key, degree in indegree.items() if degree == 0]
+    visited = 0
+    while queue:
+        current = queue.pop(0)
+        visited += 1
+        for nxt in adjacency.get(current, []):
+            indegree[nxt] -= 1
+            if indegree[nxt] == 0:
+                queue.append(nxt)
+
+    if visited != len(nodes):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Scenario graph contains a cycle",
+        )
+
+
 # ========== 场景 CRUD 接口 ==========
 
 @router.post("/scenarios", response_model=ApiResponse)
@@ -183,6 +404,26 @@ async def create_scenario(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"?????????{request.version_id}"
             )
+
+    if request.environment_id is not None:
+        environment = db.query(Environment).filter(Environment.id == request.environment_id).first()
+        if not environment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"?????????{request.environment_id}"
+            )
+        if environment.project_id != project_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="??????????????"
+            )
+
+    validate_scenario_nodes(
+        db=db,
+        project_id=project_id,
+        scenario_environment_id=request.environment_id,
+        nodes=request.nodes,
+    )
 
     logger.info(f"[{trace_id}] 创建场景: name={request.name}, source_type={request.source_type}, user={current_user.username}")
 
@@ -457,6 +698,19 @@ async def update_scenario(
             )
         scenario.version_id = request.version_id
     if request.environment_id is not None:
+        environment = db.query(Environment).filter(
+            Environment.id == request.environment_id
+        ).first()
+        if not environment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"?????????{request.environment_id}"
+            )
+        if environment.project_id != scenario.project_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="??????????????"
+            )
         scenario.environment_id = request.environment_id
     if request.context_init is not None:
         scenario.context_init = request.context_init
@@ -475,6 +729,12 @@ async def update_scenario(
 
     # 更新节点（如果提供）
     if request.nodes is not None:
+        validate_scenario_nodes(
+            db=db,
+            project_id=scenario.project_id,
+            scenario_environment_id=request.environment_id if request.environment_id is not None else scenario.environment_id,
+            nodes=request.nodes,
+        )
         # 删除旧节点
         db.query(ScenarioNode).filter(ScenarioNode.scenario_id == scenario_id).delete()
 
@@ -665,6 +925,13 @@ async def execute_scenario(
         )
 
     executor = ScenarioExecutor()
+    execution = create_scenario_execution(
+        db=db,
+        scenario=scenario,
+        environment_id=resolved_environment_id,
+        operator_user_id=current_user.id,
+        triggered_by="manual",
+    )
     result = await executor.execute_scenario(
         scenario_id=scenario_id,
         graph_data=None,
@@ -672,6 +939,7 @@ async def execute_scenario(
         environment_id=resolved_environment_id,
         version_id=scenario.version_id,
         operator_user_id=current_user.id,
+        execution_id=execution.id,
         triggered_by="manual",
         db=db
     )

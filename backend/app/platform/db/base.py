@@ -62,6 +62,7 @@ class Project(Base, TimestampMixin):
     backend_framework = Column(String(100), nullable=True)  # Spring Boot/Django/Gin
     database = Column(String(50), nullable=True)  # MySQL/PgSQL/Mongo
     frontend_framework = Column(String(100), nullable=True)  # Vue/React
+    asset_config = Column(JSON, nullable=False, default=dict)
     
     # 审计字段
     created_by = Column(Integer, nullable=True)  # 创建者 UID
@@ -90,6 +91,7 @@ class Version(Base, TimestampMixin):
     change_summary = Column(Text, nullable=True)  # 变更摘要
     requirement_doc = Column(Text, nullable=True)  # 需求文档内容
     test_scope = Column(JSON, nullable=True)  # 重点测试范围 [tags]
+    mapping_config = Column(JSON, nullable=False, default=dict)
 
     # 预留字段
     notification_url = Column(String(500), nullable=True)  # WebHook

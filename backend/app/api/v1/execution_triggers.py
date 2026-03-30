@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.core.trace import get_trace_id
 from app.dependencies import get_db
-from app.execution.engine import ScenarioExecutor
+from app.execution.engine import ScenarioExecutor, create_scenario_execution
 from app.platform.db.base import (
     ApiScenario,
     Environment,
@@ -98,25 +98,14 @@ async def trigger_scenario(
         if request.async_mode:
             from app.celery.tasks import execute_scenario_task
 
-            execution = TestExecution(
-                project_id=scenario.project_id,
-                execution_type="scenario",
-                target_id=scenario_id,
+            execution = create_scenario_execution(
+                db=db,
+                scenario=scenario,
                 environment_id=request.environment_id,
-                execution_mode=scenario.execution_mode,
+                operator_user_id=None,
                 triggered_by="jenkins",
-                status="pending",
-                started_at=datetime.now(timezone.utc),
                 webhook_url=request.callback_url,
-                callback_status="pending" if request.callback_url else None,
-                total=0,
-                passed=0,
-                failed=0,
-                skipped=0,
             )
-            db.add(execution)
-            db.commit()
-            db.refresh(execution)
 
             celery_task = execute_scenario_task.apply_async(
                 args=[execution.id, scenario_id, request.environment_id],
@@ -130,6 +119,8 @@ async def trigger_scenario(
                     "execution_id": execution.id,
                     "scenario_id": scenario_id,
                     "status": execution.status,
+                    "result_status": execution.result_status,
+                    "success": False,
                     "async_mode": True,
                     "callback_url": request.callback_url,
                     "celery_task_id": celery_task.id,
@@ -138,15 +129,25 @@ async def trigger_scenario(
             )
 
         executor = ScenarioExecutor()
+        execution = create_scenario_execution(
+            db=db,
+            scenario=scenario,
+            environment_id=request.environment_id,
+            operator_user_id=None,
+            triggered_by="jenkins",
+        )
         result = await executor.execute_scenario(
             scenario_id=scenario_id,
             graph_data=None,
             variables={},
             environment_id=request.environment_id,
+            version_id=scenario.version_id,
+            execution_id=execution.id,
             db=db,
+            triggered_by="jenkins",
         )
 
-        code = 0 if result["status"] == "completed" and result["summary"]["failed"] == 0 else 1
+        code = 0 if result["success"] else 1
         return ApiResponse(
             code=code,
             message="Execution completed" if code == 0 else "Execution failed",
@@ -154,8 +155,11 @@ async def trigger_scenario(
                 "execution_id": result["execution_id"],
                 "scenario_id": scenario_id,
                 "status": result["status"],
+                "result_status": result["result_status"],
+                "success": result["success"],
                 "async_mode": False,
                 "summary": result["summary"],
+                "error_message": result.get("error_message"),
                 "results": result["results"],
             },
         )
@@ -209,7 +213,7 @@ async def get_trigger_result(
     )
 
     payload = _serialize_execution(execution, scenario_id, result_rows)
-    code = 0 if execution.status == "completed" and (execution.failed or 0) == 0 else 1
+    code = 0 if execution.status == "completed" and execution.result_status == "passed" else 1
     return ApiResponse(code=code, message=execution.status, data=payload)
 
 
@@ -268,16 +272,19 @@ def _serialize_execution(
         "execution_id": execution.id,
         "scenario_id": scenario_id,
         "status": execution.status,
+        "result_status": execution.result_status,
+        "success": execution.status == "completed" and execution.result_status == "passed",
         "started_at": execution.started_at.isoformat() if execution.started_at else None,
         "finished_at": execution.finished_at.isoformat() if execution.finished_at else None,
         "duration_ms": execution.duration,
-        "error_message": error_message,
+        "error_message": error_message or ((execution.summary_json or {}).get("error_message") if isinstance(execution.summary_json, dict) else None),
         "summary": {
             "total": execution.total or 0,
             "passed": execution.passed or 0,
             "failed": execution.failed or 0,
             "skipped": execution.skipped or 0,
             "duration_ms": execution.duration or 0,
+            "result_status": execution.result_status,
         },
         "results": serialized_results,
         "callback_status": execution.callback_status,

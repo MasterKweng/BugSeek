@@ -4,6 +4,9 @@ Execution center note:
 The baseline schema now includes ``public.test_executions`` and
 ``public.test_execution_results`` so fresh environments can initialize the
 execution center without applying a follow-up patch.
+Scenario orchestration note:
+The generated baseline should preserve the scenario execution parent-child
+linkage and node-level runtime controls used by the current executor.
 """
 
 from __future__ import annotations
@@ -73,6 +76,9 @@ def render_python(statements: list[str]) -> str:
 Execution center note:
 The baseline schema includes ``public.test_executions`` and
 ``public.test_execution_results``.
+Scenario orchestration note:
+The baseline should preserve scenario execution linkage and node runtime
+control fields required by the current executor.
 """
 
 from __future__ import annotations
@@ -111,6 +117,9 @@ def render_sql(statements: list[str]) -> str:
         "-- Execution center note:\n"
         "-- The baseline schema includes public.test_executions and\n"
         "-- public.test_execution_results.\n"
+        "-- Scenario orchestration note:\n"
+        "-- The baseline should preserve scenario execution linkage and node\n"
+        "-- runtime control fields required by the current executor.\n"
         "\n"
         + "\n\n".join(statements)
         + "\n"

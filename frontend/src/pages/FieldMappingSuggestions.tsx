@@ -23,10 +23,12 @@ import {
   CheckOutlined,
   CloseOutlined,
   ExperimentOutlined,
+  QuestionCircleOutlined,
   ReloadOutlined,
   RocketOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
+import { Link } from 'react-router-dom'
 import FieldMappingTaskObservability from '../components/FieldMappingTaskObservability'
 import WorkspaceModuleHero from '../components/WorkspaceModuleHero'
 import { useProjectStore } from '../store/project'
@@ -172,6 +174,11 @@ const FieldMappingSuggestions: React.FC = () => {
   const [includeQuery, setIncludeQuery] = useState(true)
   const [includeBody, setIncludeBody] = useState(true)
   const [useAi, setUseAi] = useState(true)
+  const [useSqlLineage, setUseSqlLineage] = useState(true)
+  const [useCodeLineage, setUseCodeLineage] = useState(true)
+  const [useRuntimeVerification, setUseRuntimeVerification] = useState(true)
+  const [evidenceMode, setEvidenceMode] = useState<'balanced' | 'conservative' | 'aggressive'>('balanced')
+  const [rebuildLineageBeforeRun, setRebuildLineageBeforeRun] = useState(false)
   const [highPriorityEnabled, setHighPriorityEnabled] = useState(true)
   const [mediumPriorityEnabled, setMediumPriorityEnabled] = useState(true)
   const [lowPriorityEnabled, setLowPriorityEnabled] = useState(false)
@@ -366,6 +373,21 @@ const FieldMappingSuggestions: React.FC = () => {
   }, [currentProject?.id, currentVersion?.id])
 
   useEffect(() => {
+    const projectDefaults = currentProject?.asset_config?.field_mapping_defaults
+    const versionOverrides = currentVersion?.mapping_config?.field_mapping_overrides
+    const runtimeBinding = currentVersion?.mapping_config?.runtime_binding
+
+    setUseAi(versionOverrides?.allow_ai ?? projectDefaults?.use_ai ?? true)
+    setUseSqlLineage(versionOverrides?.use_sql_lineage ?? projectDefaults?.use_sql_lineage ?? true)
+    setUseCodeLineage(versionOverrides?.use_code_lineage ?? projectDefaults?.use_code_lineage ?? true)
+    setUseRuntimeVerification(
+      versionOverrides?.use_runtime_verification ?? projectDefaults?.use_runtime_verification ?? true,
+    )
+    setEvidenceMode(projectDefaults?.evidence_mode ?? 'balanced')
+    setRebuildLineageBeforeRun(Boolean(runtimeBinding?.auto_build_sql_lineage))
+  }, [currentProject?.asset_config, currentVersion?.mapping_config])
+
+  useEffect(() => {
     if (!taskId || !task || (task.status !== 'pending' && task.status !== 'running')) {
       return
     }
@@ -406,6 +428,13 @@ const FieldMappingSuggestions: React.FC = () => {
           include_query: includeQuery,
           include_body: includeBody,
           use_ai: useAi,
+          use_sql_lineage: useSqlLineage,
+          use_code_lineage: useCodeLineage,
+          use_runtime_verification: useRuntimeVerification,
+          evidence_mode: evidenceMode,
+          rebuild_lineage_before_run: rebuildLineageBeforeRun,
+          selected_execution_ids: currentVersion?.mapping_config?.runtime_binding?.selected_execution_ids || [],
+          workspace_root: currentProject?.asset_config?.repository?.workspace_root,
           high_priority_enabled: highPriorityEnabled,
           medium_priority_enabled: mediumPriorityEnabled,
           low_priority_enabled: lowPriorityEnabled,
@@ -734,7 +763,15 @@ const FieldMappingSuggestions: React.FC = () => {
               <div className="governance-note-card">
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
                   <div>
-                    <Title level={5} style={{ marginBottom: 4 }}>生成配置</Title>
+                    <Space align="center" style={{ marginBottom: 4 }}>
+                      <Title level={5} style={{ marginBottom: 0 }}>生成配置</Title>
+                      <Link to="/version-center/field-mapping/help">
+                        <Space size={4}>
+                          <QuestionCircleOutlined />
+                          <Text>功能说明</Text>
+                        </Space>
+                      </Link>
+                    </Space>
                     <Paragraph type="secondary" style={{ marginBottom: 0 }}>
                       当前版本已导入 {schemaCount} 份数据库结构。任务会调用后端异步建议流程并写入可审阅的建议记录。
                     </Paragraph>
@@ -744,10 +781,28 @@ const FieldMappingSuggestions: React.FC = () => {
                     <span><Text>Query 参数</Text><Switch checked={includeQuery} onChange={setIncludeQuery} /></span>
                     <span><Text>Body 参数</Text><Switch checked={includeBody} onChange={setIncludeBody} /></span>
                     <span><Text>启用 AI</Text><Switch checked={useAi} onChange={setUseAi} /></span>
+                    <span><Text>SQL Lineage</Text><Switch checked={useSqlLineage} onChange={setUseSqlLineage} /></span>
+                    <span><Text>Code Lineage</Text><Switch checked={useCodeLineage} onChange={setUseCodeLineage} /></span>
+                    <span><Text>Runtime Verification</Text><Switch checked={useRuntimeVerification} onChange={setUseRuntimeVerification} /></span>
+                    <span><Text>运行前重建 Lineage</Text><Switch checked={rebuildLineageBeforeRun} onChange={setRebuildLineageBeforeRun} /></span>
                     <span><Text>高优先级</Text><Switch checked={highPriorityEnabled} onChange={setHighPriorityEnabled} disabled={!useAi} /></span>
                     <span><Text>中优先级</Text><Switch checked={mediumPriorityEnabled} onChange={setMediumPriorityEnabled} disabled={!useAi} /></span>
                     <span><Text>低优先级</Text><Switch checked={lowPriorityEnabled} onChange={setLowPriorityEnabled} disabled={!useAi} /></span>
                   </div>
+                  <Space wrap>
+                    <Text type="secondary">证据模式</Text>
+                    <Select value={evidenceMode} onChange={(value) => setEvidenceMode(value as typeof evidenceMode)} style={{ width: 180 }}>
+                      <Select.Option value="balanced">balanced</Select.Option>
+                      <Select.Option value="conservative">conservative</Select.Option>
+                      <Select.Option value="aggressive">aggressive</Select.Option>
+                    </Select>
+                    <Text type="secondary">
+                      版本绑定 Schema: {currentVersion?.mapping_config?.schema_binding?.selected_schema_id || '-'}
+                    </Text>
+                    <Text type="secondary">
+                      绑定 Execution: {(currentVersion?.mapping_config?.runtime_binding?.selected_execution_ids || []).length}
+                    </Text>
+                  </Space>
                   <Button type="primary" icon={<RocketOutlined />} loading={loading && (!task || task.status !== 'completed')} onClick={() => void handleCreateTask()}>
                     生成新任务
                   </Button>

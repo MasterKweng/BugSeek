@@ -171,7 +171,6 @@ export const messages: Record<AppLocale, MessageTree> = {
         intentText: '意图文本',
         jsonPayload: 'JSON 载荷',
         saveDraft: '保存草稿',
-        autoFix: '自动修复',
       },
       placeholders: {
         selectScenario: '选择场景',
@@ -743,7 +742,6 @@ export const messages: Record<AppLocale, MessageTree> = {
         intentText: 'Intent text',
         jsonPayload: 'JSON payload',
         saveDraft: 'Save draft',
-        autoFix: 'Auto fix',
       },
       placeholders: {
         selectScenario: 'Select scenario',
