@@ -24,6 +24,51 @@ def test_sql_lineage_parser_extracts_alias_join_and_expression():
     assert any("users" in edge["source_tables"] for edge in edges)
 
 
+def test_sql_lineage_parser_forced_sqlglot_handles_cte_transform_propagation(monkeypatch):
+    parser = SQLLineageParser()
+    sql = """
+        WITH base_orders AS (
+            SELECT o.user_id, COUNT(o.id) AS order_count
+            FROM orders o
+            GROUP BY o.user_id
+        ),
+        ranked_orders AS (
+            SELECT b.user_id, b.order_count
+            FROM base_orders b
+        )
+        SELECT r.order_count
+        FROM ranked_orders r
+    """
+
+    edges = parser.parse_sql(sql_text=sql)
+
+    assert any(
+        edge["projection_alias"] == "order_count"
+        and edge["source_table"] == "orders"
+        and edge["transform_type"] == "aggregate"
+        and edge["cte_hit"] is True
+        for edge in edges
+    )
+
+
+def test_sql_lineage_parser_forced_sqlglot_aligns_union_aliases(monkeypatch):
+    parser = SQLLineageParser()
+    sql = """
+        SELECT u.id AS user_id, u.name AS display_name FROM users u
+        UNION
+        SELECT a.user_id, a.nickname AS nickname_value FROM archived_users a
+    """
+
+    edges = parser.parse_sql(sql_text=sql)
+
+    assert any(
+        edge["source_table"] == "archived_users"
+        and edge["projection_alias"] == "display_name"
+        and edge["union_hit"] is True
+        for edge in edges
+    )
+
+
 def test_sql_lineage_parser_extracts_cte_aggregate_function_and_conditional_signals():
     parser = SQLLineageParser()
     sql = """

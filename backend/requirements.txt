@@ -26,7 +26,7 @@ prance>=23.6.21.0
 
 # Code analysis
 ruff>=0.1.0
-sqlparse>=0.4.4
+sqlglot>=25.0.0
 
 # Testing
 pytest>=7.4.0
