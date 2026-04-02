@@ -1,9 +1,21 @@
 """Prompt 模板管理"""
 from typing import Dict, Any
 import json
+from pathlib import Path
+
+from jinja2 import Environment, FileSystemLoader
 
 
 class PromptManager:
+    REAL_PLACEHOLDERS = [
+        "method", "path", "summary", "description", "request_schema", "response_schema",
+        "response_sample", "project_name", "tech_stack", "database", "test_types_config",
+        "old_definition", "new_definition", "diff_data", "affected_cases", "git_diff",
+        "test_cases", "error_message", "logs", "code", "language", "framework", "input",
+        "api_field_path", "schema_snapshot", "field_dictionary", "field_mappings",
+        "gravity_table", "api_field_name", "candidates_text", "num_candidates",
+        "user_intent", "candidate_apis", "business_domain",
+    ]
     """Prompt 模板管理器"""
 
     TEMPLATES = {
@@ -976,3 +988,109 @@ API 信息：
             "system": system_prompt,
             "user": user_prompt
         }
+
+
+def _prompt_get_template(cls, task_type: str) -> Dict[str, str]:
+    """Return a prompt template or a safe default."""
+    return cls.TEMPLATES.get(task_type, {
+        "system": "你是一个AI助手。",
+        "user": "{input}",
+    })
+
+
+def _prompt_serialize_variables(variables: Dict[str, Any]) -> Dict[str, Any]:
+    """Serialize dict/list values before placeholder replacement."""
+    serialized = dict(variables)
+    for key, value in serialized.items():
+        if isinstance(value, (dict, list)):
+            serialized[key] = json.dumps(value, indent=2, ensure_ascii=False)
+    return serialized
+
+
+def _prompt_replace_placeholders(template_text: str, variables: Dict[str, Any], placeholders) -> str:
+    """Replace only known placeholders while keeping literal braces intact."""
+    import re
+
+    rendered = template_text
+    for placeholder in placeholders:
+        if placeholder not in variables:
+            continue
+        pattern = r"\{" + re.escape(placeholder) + r"\}"
+        rendered = re.sub(pattern, str(variables[placeholder]), rendered)
+    return rendered
+
+
+def _prompt_render(cls, template: Dict[str, str], context: Dict[str, Any], input_data: Dict[str, Any]) -> Dict[str, str]:
+    """Render a prompt template with context and input data."""
+    all_vars = _prompt_serialize_variables({**context, **input_data})
+    system_prompt = template.get("system", "")
+    user_prompt = template.get("user", "")
+    user_prompt = _prompt_replace_placeholders(user_prompt, all_vars, cls.REAL_PLACEHOLDERS)
+    return {
+        "system": system_prompt,
+        "user": user_prompt,
+    }
+
+
+PromptManager.get_template = classmethod(_prompt_get_template)
+PromptManager.render = classmethod(_prompt_render)
+
+
+def _prompt_get_template_v2(cls, task_type: str) -> Dict[str, str]:
+    """Return a prompt template or a safe default."""
+    return cls.TEMPLATES.get(task_type, {
+        "system": "你是一个AI助手。",
+        "user": "{input}",
+    })
+
+
+def _prompt_find_task_type_v2(cls, template: Dict[str, str]):
+    """Find the task type key for the given inline template object."""
+    for task_type, candidate in cls.TEMPLATES.items():
+        if candidate is template:
+            return task_type
+    return None
+
+
+def _prompt_render_from_files_v2(task_type, variables: Dict[str, Any]):
+    """Render from Jinja2 template files when available."""
+    if not task_type:
+        return None
+
+    templates_root = Path(__file__).resolve().parent / "templates" / task_type
+    system_file = templates_root / "system.j2"
+    user_file = templates_root / "user.j2"
+    if not (system_file.exists() and user_file.exists()):
+        return None
+
+    env = Environment(
+        loader=FileSystemLoader(str(templates_root)),
+        autoescape=False,
+        trim_blocks=False,
+        lstrip_blocks=False,
+    )
+    return {
+        "system": env.get_template("system.j2").render(**variables),
+        "user": env.get_template("user.j2").render(**variables),
+    }
+
+
+def _prompt_render_v2(cls, template: Dict[str, str], context: Dict[str, Any], input_data: Dict[str, Any]) -> Dict[str, str]:
+    """Render a prompt template with Jinja2 file support and inline fallback."""
+    all_vars = _prompt_serialize_variables({**context, **input_data})
+    task_type = _prompt_find_task_type_v2(cls, template)
+    file_rendered = _prompt_render_from_files_v2(task_type, all_vars)
+    if file_rendered is not None:
+        return file_rendered
+
+    system_prompt = template.get("system", "")
+    user_prompt = template.get("user", "")
+    user_prompt = _prompt_replace_placeholders(user_prompt, all_vars, cls.REAL_PLACEHOLDERS)
+    return {
+        "system": system_prompt,
+        "user": user_prompt,
+    }
+
+
+PromptManager.get_template = classmethod(_prompt_get_template_v2)
+PromptManager.render = classmethod(_prompt_render_v2)

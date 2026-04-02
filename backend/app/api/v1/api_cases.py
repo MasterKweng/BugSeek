@@ -19,6 +19,12 @@ from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
 from app.core.pre_sql_generator import generate_pre_sql
 from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
+from app.ai.errors import (
+    AIEmptyResponseError,
+    AIModelInvocationError,
+    AIResponseFormatError,
+    AIResponseValidationError,
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -693,6 +699,30 @@ async def ai_generate_base_case(
             data=result
         )
 
+    except AIModelInvocationError as e:
+        logger.error(f"[{trace_id}] AI model invocation failed: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI 模型调用失败：{str(e)}"
+        )
+    except AIEmptyResponseError as e:
+        logger.error(f"[{trace_id}] AI returned empty content: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI 返回空内容：{str(e)}"
+        )
+    except AIResponseFormatError as e:
+        logger.error(f"[{trace_id}] AI returned malformed content: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"AI 返回格式错误：{str(e)}"
+        )
+    except AIResponseValidationError as e:
+        logger.error(f"[{trace_id}] AI returned invalid test case structure: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"AI 返回结构校验失败：{str(e)}"
+        )
     except Exception as e:
         logger.error(f"[{trace_id}] AI 生成基准用例失败: {str(e)}")
         raise HTTPException(
