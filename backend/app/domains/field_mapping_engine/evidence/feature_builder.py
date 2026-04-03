@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from app.utils.field_mapping_utils import normalize_field_name
 from typing import Any, Dict
 
 
@@ -34,6 +35,7 @@ class FeatureBuilder:
         )
         features["f_sql_transform_strength"] = self._sql_transform_strength(features)
         features["f_code_trace_strength"] = self._code_trace_strength(features)
+        features["f_cross_lineage_agreement"] = self._cross_lineage_agreement(candidate)
         return candidate
 
     def _field_position_match(self, source_type: str, field_name: str, db_column: str) -> float:
@@ -123,3 +125,40 @@ class FeatureBuilder:
             ),
             4,
         )
+
+    def _cross_lineage_agreement(self, candidate: Dict[str, Any]) -> float:
+        recall_sources = {str(source or "") for source in candidate.get("recall_sources", []) if source}
+        if "sql_lineage" not in recall_sources or "code_lineage" not in recall_sources:
+            return 0.0
+
+        features = candidate.get("features", {}) or {}
+        sql_exact = float(features.get("f_sql_lineage_exact", 0.0) or 0.0)
+        code_hit = float(features.get("f_code_assignment_hit", 0.0) or 0.0)
+        if sql_exact <= 0.0 or code_hit <= 0.0:
+            return 0.0
+
+        payload = candidate.get("raw_payload", {}) or {}
+        sql_payload = payload.get("sql_lineage", {}) if isinstance(payload, dict) else {}
+        code_payload = payload.get("code_lineage", {}) if isinstance(payload, dict) else {}
+        if not isinstance(sql_payload, dict):
+            sql_payload = {}
+        if not isinstance(code_payload, dict):
+            code_payload = {}
+
+        base = min(sql_exact, code_hit) * 0.8
+        sql_table = str(sql_payload.get("source_table") or candidate.get("db_table") or "").strip()
+        candidate_table = str(candidate.get("db_table") or "").strip()
+        if sql_table and candidate_table and sql_table == candidate_table:
+            base += 0.1
+
+        sql_names = {
+            normalize_field_name(str(sql_payload.get("source_column") or "")),
+            normalize_field_name(str(sql_payload.get("projection_alias") or "")),
+            normalize_field_name(str(candidate.get("db_column") or "")),
+        }
+        sql_names.discard("")
+        code_name = normalize_field_name(str(code_payload.get("source_field") or candidate.get("db_column") or ""))
+        if code_name and code_name in sql_names:
+            base += 0.1
+
+        return round(min(base, 1.0), 4)

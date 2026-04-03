@@ -9,7 +9,7 @@ import logging
 
 from app.dependencies import get_db
 from app.context import get_current_project_id, get_current_version_id
-from app.platform.db.base import AsyncTask, ApiDefinition, Version, User
+from app.platform.db.base import AsyncTask, ApiDefinition, Project, Version, User
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
 from app.domains.field_mapping_engine.constants import (
@@ -241,6 +241,18 @@ def _get_project_and_version(
     return {"project_id": project_id, "version_id": version_id}
 
 
+def _load_project_repository_config(db: Session, project_id: int) -> Dict[str, Any]:
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        return {}
+    raw_asset_config = getattr(project, "asset_config", None)
+    if not isinstance(raw_asset_config, dict):
+        return {}
+    asset_config = dict(raw_asset_config or {})
+    repository = asset_config.get("repository")
+    return dict(repository or {})
+
+
 @router.post("/field-mappings/suggest-task", response_model=ApiResponse)
 async def create_suggest_task(
     request: FieldMappingSuggestTaskRequest,
@@ -306,6 +318,8 @@ async def create_suggest_task(
         estimated_duration = int(estimated_fields * 0.05)  # 约0.05秒/字段
 
     # 构建任务参数
+    repository_config = _load_project_repository_config(db, ctx["project_id"])
+    workspace_root = request.workspace_root or str(repository_config.get("workspace_root") or "").strip() or None
     task_params = FieldMappingJobService.build_task_params(
         project_id=ctx["project_id"],
         version_id=ctx["version_id"],
@@ -319,7 +333,8 @@ async def create_suggest_task(
         evidence_mode=request.evidence_mode or "balanced",
         rebuild_lineage_before_run=bool(request.rebuild_lineage_before_run),
         selected_execution_ids=request.selected_execution_ids,
-        workspace_root=request.workspace_root,
+        workspace_root=workspace_root,
+        repository_config=repository_config,
         high_priority_enabled=request.high_priority_enabled,
         medium_priority_enabled=request.medium_priority_enabled,
         low_priority_enabled=request.low_priority_enabled,

@@ -172,6 +172,7 @@ class AIFieldMappingEnricher:
             "sql_lineage_exact": float(features.get("f_sql_lineage_exact", 0.0) or 0.0),
             "sql_projection_hit": float(features.get("f_sql_projection_hit", 0.0) or 0.0),
             "code_assignment_hit": float(features.get("f_code_assignment_hit", 0.0) or 0.0),
+            "cross_lineage_agreement": float(features.get("f_cross_lineage_agreement", 0.0) or 0.0),
             "mapper_annotation_hit": float(features.get("f_mapper_annotation_hit", 0.0) or 0.0),
             "top_candidate_sources": list(top_candidate.get("recall_sources", []) or []),
         }
@@ -198,6 +199,7 @@ class AIFieldMappingEnricher:
             "f_sql_lineage_exact": float(features.get("f_sql_lineage_exact", 0.0) or 0.0),
             "f_sql_projection_hit": float(features.get("f_sql_projection_hit", 0.0) or 0.0),
             "f_code_assignment_hit": float(features.get("f_code_assignment_hit", 0.0) or 0.0),
+            "f_cross_lineage_agreement": float(features.get("f_cross_lineage_agreement", 0.0) or 0.0),
             "f_code_field_hint": float(features.get("f_code_field_hint", 0.0) or 0.0),
         }
 

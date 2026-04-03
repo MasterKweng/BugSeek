@@ -331,6 +331,50 @@ def test_create_task_propagates_ai_threshold():
     assert task.task_params["ai_confidence_threshold"] == 0.55
 
 
+def test_create_task_uses_project_repository_workspace_when_request_omits_workspace_root():
+    current_user = SimpleNamespace(id=7, username="tester")
+    db = Mock()
+    db.query.return_value.filter.return_value.all.return_value = [SimpleNamespace(id=2586)]
+    db.query.return_value.filter.return_value.count.return_value = 1
+    db.add = Mock()
+    db.commit = Mock()
+    db.refresh = Mock()
+    app = _build_app(db, current_user)
+    client = TestClient(app)
+
+    created_task = SimpleNamespace(id=302, celery_task_id="celery-302")
+
+    def add_side_effect(task):
+        task.id = created_task.id
+        task.celery_task_id = created_task.celery_task_id
+
+    db.add.side_effect = add_side_effect
+
+    with patch("app.api.v1.field_mappings_async._get_project_and_version", return_value={"project_id": 1, "version_id": 1}):
+        with patch(
+            "app.api.v1.field_mappings_async._load_project_repository_config",
+            return_value={
+                "repo_url": "https://github.com/inventree/InvenTree.git",
+                "default_branch": "main",
+                "workspace_root": "/src/backend/InvenTree",
+            },
+        ):
+            with patch("app.celery.tasks.execute_field_mapping_task.apply_async") as apply_async:
+                apply_async.return_value = SimpleNamespace(id="celery-302")
+                response = client.post(
+                    "/field-mappings/suggest-task",
+                    json={
+                        "definition_ids": [2586],
+                        "use_ai": True,
+                    },
+                )
+
+    assert response.status_code == 200
+    task = db.add.call_args[0][0]
+    assert task.task_params["workspace_root"] == "/src/backend/InvenTree"
+    assert task.task_params["repository_config"]["repo_url"] == "https://github.com/inventree/InvenTree.git"
+
+
 def test_replay_suggestions_returns_consistency_summary():
     current_user = SimpleNamespace(id=7, username="tester")
     task = _build_task(

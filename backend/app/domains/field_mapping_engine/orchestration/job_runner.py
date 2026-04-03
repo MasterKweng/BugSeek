@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Dict, List
 
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.platform.db.base import AsyncTask
 from app.dependencies import engine as db_engine
 from app.domains.data_impact.engine import DataImpactEngine
+from app.domains.data_impact.repository_workspace import RepositoryWorkspaceService
 from ..constants import Stage, get_stage_name
 from ..persistence.artifact_store import ArtifactStore
 
@@ -202,6 +204,8 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
             return
         execution_ids = [str(item) for item in (params.get("selected_execution_ids") or []) if item is not None]
         workspace_root = params.get("workspace_root")
+        if params.get("use_code_lineage", True):
+            workspace_root = self._resolve_workspace_root(params, workspace_root)
         if not execution_ids and not workspace_root:
             return
 
@@ -221,6 +225,27 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
                     workspace_root=workspace_root,
                     version_id=params.get("version_id"),
                 )
+
+    def _resolve_workspace_root(self, params: Dict[str, Any], current_workspace_root: Any) -> Any:
+        workspace_root = str(current_workspace_root or "").strip()
+        repository_config = dict(params.get("repository_config") or {})
+        if workspace_root:
+            if Path(workspace_root).exists():
+                return workspace_root
+            if not repository_config:
+                return workspace_root
+        if not repository_config:
+            return workspace_root or None
+
+        workspace_info = RepositoryWorkspaceService(self.db).prepare_workspace(
+            project_id=int(params["project_id"]),
+            repository_config=repository_config,
+        )
+        resolved_workspace_root = str(workspace_info.get("workspace_root") or "").strip()
+        if resolved_workspace_root:
+            params["workspace_root"] = resolved_workspace_root
+            return resolved_workspace_root
+        return workspace_root or None
 
     def _init_stages(self, task: AsyncTask) -> None:
         task.stages = [

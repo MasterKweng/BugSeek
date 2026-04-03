@@ -102,6 +102,7 @@ class CandidateRanker:
             + features.get("f_sql_transform_strength", 0.0) * 0.08
             + features.get("f_code_assignment_hit", 0.0) * 0.18
             + features.get("f_code_trace_strength", 0.0) * 0.09
+            + features.get("f_cross_lineage_agreement", 0.0) * 0.08
             + features.get("f_code_field_hint", 0.0) * 0.06
             + features.get("f_field_position_match", 0.0) * 0.05
             + features.get("f_sibling_context_match", 0.0) * 0.04

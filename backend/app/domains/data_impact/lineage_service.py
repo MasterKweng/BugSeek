@@ -3,16 +3,22 @@
 from __future__ import annotations
 
 import json
+import logging
+from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List
 
 from sqlalchemy.orm import Session
 
 from app.utils.field_mapping_utils import field_similarity_score, normalize_field_name, tokenize_field
+from .code_analysis_pipeline import CodeAnalysisPipeline
+from .code_recall.file_recaller import RuleBasedFileRecaller
 from .code_lineage_parser import CodeLineageParser
 from .lineage_repository import LineageRepository
 from .orm_lineage_parser import ORMLineageParser
 from .sql_lineage_parser import SQLLineageParser
+
+logger = logging.getLogger(__name__)
 
 
 class LineageService:
@@ -24,6 +30,8 @@ class LineageService:
         self.sql_parser = SQLLineageParser()
         self.orm_parser = ORMLineageParser()
         self.code_parser = CodeLineageParser()
+        self.code_analysis_pipeline = CodeAnalysisPipeline()
+        self.file_recaller = RuleBasedFileRecaller()
 
     def list_sql_lineage_candidates(
         self,
@@ -31,6 +39,8 @@ class LineageService:
         definition_id: int,
         api_field_path: str,
     ) -> List[Dict[str, Any]]:
+        if self.db is None:
+            return []
         rows = self.repo.list_sql_lineage_edges(definition_id=definition_id, api_field_path=api_field_path)
         candidates = [self._payload_from_row(row) for row in rows]
         return [candidate for candidate in candidates if candidate]
@@ -41,6 +51,8 @@ class LineageService:
         definition_id: int,
         api_field_path: str,
     ) -> List[Dict[str, Any]]:
+        if self.db is None:
+            return []
         rows = self.repo.list_code_lineage_edges(definition_id=definition_id, api_field_path=api_field_path)
         candidates = [self._payload_from_row(row) for row in rows]
         return [candidate for candidate in candidates if candidate]
@@ -103,15 +115,26 @@ class LineageService:
         field_leaf_map = {path: path.split(".")[-1].replace("[]", "") for path in response_field_paths}
         created = 0
         scanned_files = 0
+        total_code_edges = 0
+        pipeline_source_counts: Counter[str] = Counter()
+        assignment_kind_counts: Counter[str] = Counter()
+        evidence_type_counts: Counter[str] = Counter()
+        fallback_files = 0
+        sql_table_hint_cache: Dict[tuple[str, str], List[str]] = {}
+        recall_result = self.file_recaller.recall_files(
+            workspace_root=str(root),
+            definition=definition,
+            response_field_paths=response_field_paths,
+            max_candidates=max_files,
+        )
+        files_to_scan = self._resolve_candidate_files(
+            root=root,
+            recall_result=recall_result,
+            max_files=max_files,
+        )
 
-        for file_path in root.rglob("*"):
-            if scanned_files >= max_files:
-                break
-            if not file_path.is_file():
-                continue
+        for file_path in files_to_scan:
             suffix = file_path.suffix.lower()
-            if suffix not in {".xml", ".java", ".kt", ".py"}:
-                continue
             scanned_files += 1
             try:
                 source_text = file_path.read_text(encoding="utf-8")
@@ -122,8 +145,10 @@ class LineageService:
                 orm_edges = self.orm_parser.parse_mapper_text(mapper_text=source_text)
                 grouped_orm = self._group_code_like_edges_by_field_path(
                     orm_edges,
+                    definition_id=definition_id,
                     field_leaf_map=field_leaf_map,
                     source_path=str(file_path),
+                    sql_table_hint_cache=sql_table_hint_cache,
                 )
                 for api_field_path, matched_edges in grouped_orm.items():
                     created += self.repo.save_lineage_edges(
@@ -139,8 +164,10 @@ class LineageService:
             orm_like_edges = self.orm_parser.parse_mapper_text(mapper_text=source_text)
             grouped_orm_like = self._group_code_like_edges_by_field_path(
                 orm_like_edges,
+                definition_id=definition_id,
                 field_leaf_map=field_leaf_map,
                 source_path=str(file_path),
+                sql_table_hint_cache=sql_table_hint_cache,
             )
             for api_field_path, matched_edges in grouped_orm_like.items():
                 created += self.repo.save_lineage_edges(
@@ -152,11 +179,42 @@ class LineageService:
                     edges=matched_edges,
                 )
 
-            code_edges = self.code_parser.parse_source_text(source_text=source_text)
+            code_analysis = self.code_analysis_pipeline.analyze_with_stats(
+                source_text=source_text,
+                file_path=str(file_path),
+            )
+            code_edges = list(code_analysis.get("edges") or [])
+            pipeline_stats = dict(code_analysis.get("stats") or {})
+            total_code_edges += len(code_edges)
+            pipeline_source_counts.update(
+                {
+                    str(key): int(value)
+                    for key, value in dict(pipeline_stats.get("pipeline_sources") or {}).items()
+                    if key
+                }
+            )
+            assignment_kind_counts.update(
+                {
+                    str(key): int(value)
+                    for key, value in dict(pipeline_stats.get("assignment_kinds") or {}).items()
+                    if key
+                }
+            )
+            evidence_type_counts.update(
+                {
+                    str(key): int(value)
+                    for key, value in dict(pipeline_stats.get("evidence_types") or {}).items()
+                    if key
+                }
+            )
+            if bool(pipeline_stats.get("used_fallback")):
+                fallback_files += 1
             grouped_code = self._group_code_like_edges_by_field_path(
                 code_edges,
+                definition_id=definition_id,
                 field_leaf_map=field_leaf_map,
                 source_path=str(file_path),
+                sql_table_hint_cache=sql_table_hint_cache,
             )
             for api_field_path, matched_edges in grouped_code.items():
                 created += self.repo.save_lineage_edges(
@@ -167,6 +225,25 @@ class LineageService:
                     evidence_type="code_lineage",
                     edges=matched_edges,
                 )
+        logger.info(
+            "Code lineage workspace build summary: definition_id=%s scanned_files=%s created=%s code_edges=%s fallback_files=%s recalled_candidates=%s recall_fallback=%s pipeline_sources=%s assignment_kinds=%s evidence_types=%s",
+            definition_id,
+            scanned_files,
+            created,
+            total_code_edges,
+            fallback_files,
+            len(recall_result.candidates),
+            recall_result.used_fallback_scan,
+            dict(sorted(pipeline_source_counts.items())),
+            dict(sorted(assignment_kind_counts.items())),
+            dict(sorted(evidence_type_counts.items())),
+        )
+        if getattr(recall_result, "candidates", None):
+            logger.info(
+                "Code lineage recall candidates: definition_id=%s top_candidates=%s",
+                definition_id,
+                self._summarize_recall_candidates(recall_result.candidates),
+            )
         return created
 
     def build_and_persist_sql_lineage_for_execution(
@@ -219,6 +296,44 @@ class LineageService:
             "confidence": float(getattr(row, "confidence", 0.0) or 0.0),
         }
 
+    def _resolve_candidate_files(
+        self,
+        *,
+        root: Path,
+        recall_result: Any,
+        max_files: int,
+    ) -> List[Path]:
+        if not bool(getattr(recall_result, "used_fallback_scan", False)):
+            candidates = [
+                Path(candidate.path)
+                for candidate in list(getattr(recall_result, "candidates", []) or [])
+                if Path(candidate.path).is_file()
+            ]
+            return candidates[:max_files]
+
+        files: List[Path] = []
+        for file_path in root.rglob("*"):
+            if len(files) >= max_files:
+                break
+            if not file_path.is_file():
+                continue
+            if file_path.suffix.lower() not in {".xml", ".java", ".kt", ".py"}:
+                continue
+            files.append(file_path)
+        return files
+
+    def _summarize_recall_candidates(self, candidates: List[Any], limit: int = 8) -> List[Dict[str, Any]]:
+        items: List[Dict[str, Any]] = []
+        for candidate in list(candidates or [])[:limit]:
+            items.append(
+                {
+                    "path": str(getattr(candidate, "path", "") or ""),
+                    "score": round(float(getattr(candidate, "score", 0.0) or 0.0), 2),
+                    "reasons": list(getattr(candidate, "reasons", []) or [])[:4],
+                }
+            )
+        return items
+
     def _group_edges_by_field_path(
         self,
         edges: List[Dict[str, Any]],
@@ -246,8 +361,10 @@ class LineageService:
         self,
         edges: List[Dict[str, Any]],
         *,
+        definition_id: int,
         field_leaf_map: Dict[str, str],
         source_path: str,
+        sql_table_hint_cache: Dict[tuple[str, str], List[str]] | None = None,
     ) -> Dict[str, List[Dict[str, Any]]]:
         grouped: Dict[str, List[Dict[str, Any]]] = {}
         for edge in edges:
@@ -255,8 +372,10 @@ class LineageService:
                 self._expand_wildcard_code_edge(
                     grouped=grouped,
                     edge=edge,
+                    definition_id=definition_id,
                     field_leaf_map=field_leaf_map,
                     source_path=source_path,
+                    sql_table_hint_cache=sql_table_hint_cache,
                 )
                 continue
             target_path = self._normalize_property_path(str(edge.get("target_field") or edge.get("api_field_path") or ""))
@@ -271,14 +390,19 @@ class LineageService:
                 ):
                     continue
                 grouped.setdefault(api_field_path, []).append(
-                    {
+                    self._enrich_code_edge_with_sql_hints(
+                        definition_id=definition_id,
+                        api_field_path=api_field_path,
+                        edge={
                         **edge,
                         "api_field_path": api_field_path,
                         "payload": {
                             **dict(edge.get("payload") or {}),
                             "source_path": source_path,
                         },
-                    }
+                        },
+                        sql_table_hint_cache=sql_table_hint_cache,
+                    )
                 )
         return grouped
 
@@ -287,8 +411,10 @@ class LineageService:
         *,
         grouped: Dict[str, List[Dict[str, Any]]],
         edge: Dict[str, Any],
+        definition_id: int,
         field_leaf_map: Dict[str, str],
         source_path: str,
+        sql_table_hint_cache: Dict[tuple[str, str], List[str]] | None = None,
     ) -> None:
         payload = dict(edge.get("payload") or {})
         ignored = {self._normalize_property_path(field_name) for field_name in payload.get("ignore_fields") or [] if field_name}
@@ -312,7 +438,54 @@ class LineageService:
                     "expanded_from_wildcard": True,
                 },
             }
-            grouped.setdefault(api_field_path, []).append(expanded_edge)
+            grouped.setdefault(api_field_path, []).append(
+                self._enrich_code_edge_with_sql_hints(
+                    definition_id=definition_id,
+                    api_field_path=api_field_path,
+                    edge=expanded_edge,
+                    sql_table_hint_cache=sql_table_hint_cache,
+                )
+            )
+
+    def _enrich_code_edge_with_sql_hints(
+        self,
+        *,
+        definition_id: int,
+        api_field_path: str,
+        edge: Dict[str, Any],
+        sql_table_hint_cache: Dict[tuple[str, str], List[str]] | None = None,
+    ) -> Dict[str, Any]:
+        payload = dict(edge.get("payload") or {})
+        source_field = str(edge.get("source_field") or "").strip()
+        if edge.get("db_table") or not source_field:
+            return {
+                **edge,
+                "payload": payload,
+            }
+
+        cache_key = (api_field_path, source_field)
+        inferred_tables = (sql_table_hint_cache or {}).get(cache_key)
+        if inferred_tables is None:
+            inferred_tables = self.infer_code_lineage_tables(
+                definition_id=definition_id,
+                api_field_path=api_field_path,
+                source_field=source_field,
+            )
+            if sql_table_hint_cache is not None:
+                sql_table_hint_cache[cache_key] = inferred_tables
+
+        if inferred_tables:
+            payload["sql_lineage_table_hints"] = list(inferred_tables)
+            payload["db_table_inferred_from"] = "sql_lineage"
+            return {
+                **edge,
+                "db_table": inferred_tables[0],
+                "payload": payload,
+            }
+        return {
+            **edge,
+            "payload": payload,
+        }
 
     def _is_property_path_match(
         self,

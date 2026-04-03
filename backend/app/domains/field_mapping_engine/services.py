@@ -868,6 +868,7 @@ class FieldMappingJobService:
         rebuild_lineage_before_run: bool = False,
         selected_execution_ids: Optional[List[int]] = None,
         workspace_root: Optional[str] = None,
+        repository_config: Optional[Dict[str, Any]] = None,
         high_priority_enabled: bool,
         medium_priority_enabled: bool,
         low_priority_enabled: bool,
@@ -900,6 +901,8 @@ class FieldMappingJobService:
             params["selected_execution_ids"] = selected_execution_ids
         if workspace_root:
             params["workspace_root"] = workspace_root
+        if repository_config:
+            params["repository_config"] = repository_config
         if definition_ids:
             params["definition_ids"] = definition_ids
         if scenario_id:

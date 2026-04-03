@@ -6,11 +6,6 @@
 - 摘要：{{ summary }}
 - 描述：{{ description }}
 
-重要要求：
-- 用例名称必须使用接口的实际路径，格式为 "基准用例 - {{ path }}"
-- 返回内容只能是一个 JSON 对象
-- 不要输出 markdown 代码块或额外说明
-
 请求参数 Schema：
 {{ request_schema }}
 
@@ -18,41 +13,24 @@
 {{ response_schema }}
 
 生成要求：
-1. 入参生成
-- 必填字段要生成合理的测试值
-- ID/外键字段（id, *_id, *Id）不要使用随机数字，应使用变量占位符，例如 {{ "{{user_id}}" }} / {{ "{{order_id}}" }}
-- 动态函数使用双大括号格式，例如 {{ "{{random_string(8)}}" }}、{{ "{{random_int(1, 100)}}" }}、{{ "{{timestamp()}}" }}、{{ "{{uuid()}}" }}
+1. 用例名称必须使用实际路径，格式固定为 "基准用例 - {{ path }}"
+2. 只生成一个基准用例
+3. 所有变量占位符都必须是字符串，例如 {% raw %}"{{user_id}}"、"{{random_int(1, 100)}}"{% endraw %}
+4. ID 或外键字段不要生成随机数字，改用变量占位符，并在 required_variables、data_prep 中体现来源
+5. GET/DELETE 的 request_data 不要包含 body
+6. POST/PUT/PATCH 的 request_data 必须包含 headers 和 body
+7. assertion_rules 至少包含状态码断言；如果响应可能有 code 字段，优先补充 code 成功断言
+8. 如果响应中存在可复用字段，再补 extraction_rules；字段路径使用 JSONPath
+9. assertion_rules 必须返回对象数组，不要返回字符串断言
+10. extraction_rules 必须返回对象数组，字段名使用 var_name 和 field
 
-2. request_data 结构规范
-- GET/DELETE：不要包含 body，可包含 path_params 和查询参数
-- POST/PUT/PATCH：应包含 headers 和 body
-
-3. 断言生成
-- 必须包含状态码断言
-- 如果响应里可能有 code 字段，优先补充 code 成功断言
-- 识别关键字段并补充非空或类型断言
-
-4. 变量提取
-- 如果响应中存在后续步骤可能复用的字段，请补充 extraction_rules
-- field 使用 JSONPath，例如 $.data.id
-
-返回 JSON 结构：
-{
-  "name": "基准用例 - {{ path }}",
-  "description": "该接口的基准测试用例",
-  "priority": "P0",
-  "request_data": {},
-  "required_variables": [],
-  "data_prep": [],
-  "assertion_rules": [
-    {
-      "source": "status",
-      "property": null,
-      "operator": "in",
-      "value": [200, 201, 204],
-      "description": "状态码应为 2xx"
-    }
-  ],
-  "extraction_rules": [],
-  "ai_confidence": 0.9
-}
+返回结果需要覆盖这些字段：
+- name
+- description
+- priority
+- request_data
+- required_variables
+- data_prep
+- assertion_rules
+- extraction_rules
+- ai_confidence

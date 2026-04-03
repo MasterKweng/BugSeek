@@ -107,6 +107,7 @@ class Settings(BaseSettings):
     DATA_IMPACT_ASSERTIONS_ENABLED: bool = False
     DATA_IMPACT_ASSERTIONS_MODE: str = "rule"  # rule | ai | hybrid
     DATA_IMPACT_SNAPSHOT_MODE: str = "full"  # full | incremental
+    DATA_IMPACT_JAVA_ADAPTER: str = ""  # empty | java_javalang | java_external
 
     # ??????
     AUTH_CACHE_TTL_SECONDS: int = 3600

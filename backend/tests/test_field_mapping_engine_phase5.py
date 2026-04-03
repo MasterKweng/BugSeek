@@ -3,7 +3,10 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from app.domains.field_mapping_engine.services import FieldMappingAppService, FieldMappingJobService
+from app.domains.field_mapping_engine.orchestration.job_runner import EngineV2FieldMappingJobRunner
 from app.domains.field_mapping_engine.ai.guardrail import AIFieldMappingGuardrail
+from app.domains.field_mapping_engine.evidence.feature_builder import FeatureBuilder
+from app.domains.field_mapping_engine.ranking.ranker import CandidateRanker
 
 
 def test_optimize_ranked_items_uses_ai_for_low_confidence():
@@ -161,6 +164,7 @@ def test_ai_enricher_receives_risk_lineage_and_runtime_context():
     ]
     assert field_mapping["rule_candidates"][0]["negative_evidence"] == ["enum_conflict"]
     assert field_mapping["rule_candidates"][0]["lineage_signals"]["f_sql_lineage_exact"] == 0.91
+    assert field_mapping["rule_candidates"][0]["lineage_signals"]["f_cross_lineage_agreement"] == 0.0
     assert field_mapping["rule_candidates"][0]["runtime_signals"]["f_runtime_field_hit"] == 1.0
 
 
@@ -948,6 +952,114 @@ def test_build_task_params_defaults_to_engine_v2():
     )
 
     assert params["engine_version"] == "engine_v2"
+
+
+def test_feature_builder_adds_cross_lineage_agreement_without_mutating_base_signals():
+    builder = FeatureBuilder()
+    candidate = {
+        "db_table": "users",
+        "db_column": "name",
+        "features": {
+            "f_sql_lineage_exact": 0.91,
+            "f_code_assignment_hit": 0.88,
+        },
+        "recall_sources": ["sql_lineage", "code_lineage"],
+        "raw_payload": {
+            "sql_lineage": {"source_table": "users", "source_column": "name", "projection_alias": "user_name"},
+            "code_lineage": {"source_field": "name"},
+        },
+    }
+
+    enriched = builder.enrich_candidate(
+        field_item={
+            "field_name": "name",
+            "api_field_path": "body.name",
+            "allowed_tables": ["users"],
+            "domain_anchor": "users",
+            "sibling_paths": [],
+            "source_type": "body",
+        },
+        candidate=candidate,
+    )
+
+    features = enriched["features"]
+    assert features["f_sql_lineage_exact"] == 0.91
+    assert features["f_code_assignment_hit"] == 0.88
+    assert features["f_cross_lineage_agreement"] > 0.8
+
+
+def test_ranker_uses_cross_lineage_agreement_as_independent_bonus():
+    ranker = CandidateRanker()
+    ranked = ranker.rank_from_dict(
+        [
+            {
+                "db_table": "users",
+                "db_column": "name",
+                "features": {
+                    "f_sql_lineage_exact": 0.9,
+                    "f_code_assignment_hit": 0.9,
+                    "f_cross_lineage_agreement": 0.85,
+                },
+                "explanations": ["sql_lineage_hit", "code_lineage_hit"],
+                "recall_sources": ["sql_lineage", "code_lineage"],
+                "raw_payload": {},
+            },
+            {
+                "db_table": "users",
+                "db_column": "status",
+                "features": {
+                    "f_sql_lineage_exact": 0.9,
+                    "f_code_assignment_hit": 0.9,
+                    "f_cross_lineage_agreement": 0.0,
+                },
+                "explanations": ["sql_lineage_hit", "code_lineage_hit"],
+                "recall_sources": ["sql_lineage", "code_lineage"],
+                "raw_payload": {},
+            },
+        ]
+    )
+
+    assert ranked[0]["db_column"] == "name"
+    assert ranked[0]["score"] > ranked[1]["score"]
+
+
+def test_build_task_params_includes_repository_config():
+    params = FieldMappingJobService.build_task_params(
+        project_id=1,
+        version_id=2,
+        include_paths=True,
+        include_query=True,
+        include_body=True,
+        use_ai=True,
+        repository_config={"repo_url": "https://github.com/acme/demo.git", "default_branch": "main"},
+        high_priority_enabled=True,
+        medium_priority_enabled=True,
+        low_priority_enabled=True,
+    )
+
+    assert params["repository_config"]["repo_url"] == "https://github.com/acme/demo.git"
+
+
+def test_runner_resolves_workspace_from_repository_config_when_configured_path_missing():
+    runner = EngineV2FieldMappingJobRunner(db=None)
+    params = {
+        "project_id": 1,
+        "use_code_lineage": True,
+        "repository_config": {
+            "repo_url": "https://github.com/acme/demo.git",
+            "default_branch": "main",
+        },
+        "workspace_root": "Z:/missing/workspace",
+    }
+
+    with patch(
+        "app.domains.field_mapping_engine.orchestration.job_runner.RepositoryWorkspaceService.prepare_workspace"
+    ) as prepare_workspace:
+        prepare_workspace.return_value = {"workspace_root": "D:/managed/project_1/demo"}
+        resolved = runner._resolve_workspace_root(params, params["workspace_root"])
+
+    assert resolved == "D:/managed/project_1/demo"
+    assert params["workspace_root"] == "D:/managed/project_1/demo"
 
 
 def test_resolve_runner_defaults_missing_engine_version_to_engine_v2():

@@ -2,11 +2,13 @@
 
 import json
 import logging
+import re
 from typing import Any, Dict, Optional
 
 from pydantic import ValidationError
 
 from app.ai.adapters import ModelAdapterFactory
+from app.ai.config import AI_CONFIG
 from app.ai.context import ContextInjector
 from app.ai.errors import (
     AIEmptyResponseError,
@@ -34,6 +36,9 @@ class AIService:
         if self.model_adapter is None:
             self.model_adapter = ModelAdapterFactory.create()
         return self.model_adapter
+
+    def _get_provider_name(self) -> str:
+        return (AI_CONFIG.get("default_provider") or "openai").lower()
 
     async def execute(
         self,
@@ -135,24 +140,68 @@ class AIService:
                 "response_schema": response_schema or {},
             }
 
-            result = await self.execute(
-                task_type="api_case_generation",
-                project_id=None,
-                input_data=input_data,
-            )
-
-            if not result.get("success"):
-                raise AIModelInvocationError(result.get("error", "AI generation failed"))
-
-            raw_result = result.get("result")
-            parsed_result = self._parse_json_payload(raw_result)
+            parsed_result = await self._generate_base_case_payload(input_data)
             validated_result = self._validate_test_case_spec(parsed_result)
+            validated_result = self._post_process_case(validated_result, method=method, path=path)
             validated_result = TestCaseValidator.validate_base_case(validated_result, method=method)
-            return self._post_process_case(validated_result, method=method, path=path)
+            return validated_result
 
         except Exception as exc:
             logger.error("AI base case generation failed: %s", str(exc))
             raise
+
+    async def _generate_base_case_payload(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate a base case payload using structured output first, then text fallback."""
+        structured_result = await self._execute_structured_base_case(input_data)
+        if structured_result is not None:
+            return structured_result
+
+        result = await self.execute(
+            task_type="api_case_generation",
+            project_id=None,
+            input_data=input_data,
+        )
+
+        if not result.get("success"):
+            raise AIModelInvocationError(result.get("error", "AI generation failed"))
+
+        raw_result = result.get("result")
+        return self._parse_json_payload(raw_result)
+
+    async def _execute_structured_base_case(self, input_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Attempt structured generation when the adapter supports it."""
+        adapter = self._get_adapter()
+        if not hasattr(adapter, "complete_structured"):
+            return None
+
+        template = self.prompt_manager.get_template("api_case_generation")
+        rendered = self.prompt_manager.render(template, {}, input_data)
+        provider_name = self._get_provider_name()
+        logger.info("Attempting structured AI generation: provider=%s", provider_name)
+
+        result = await adapter.complete_structured(
+            prompt=rendered["user"],
+            system_prompt=rendered["system"],
+            response_model=TestCaseSpec,
+        )
+        if result.get("error"):
+            logger.warning("Structured AI generation failed, falling back to text mode: %s", result["error"])
+            return None
+
+        payload = result.get("result")
+        if not isinstance(payload, dict):
+            logger.warning(
+                "Structured AI generation returned unexpected payload type: %s",
+                type(payload).__name__,
+            )
+            return None
+
+        logger.info(
+            "Structured AI generation succeeded: provider=%s, model=%s",
+            provider_name,
+            result.get("model"),
+        )
+        return payload
 
     def _parse_json_payload(self, raw_result: Any) -> Dict[str, Any]:
         """Parse a structured payload from model output."""
@@ -166,6 +215,7 @@ class AIService:
             )
 
         result_str = self._normalize_model_text(raw_result)
+        result_str = self._quote_template_placeholders(result_str)
         logger.info("AI raw content (first 500 chars): %s", result_str[:500])
 
         if not result_str:
@@ -199,6 +249,11 @@ class AIService:
         if normalized.endswith("```"):
             normalized = normalized[:-3]
         return normalized.strip()
+
+    def _quote_template_placeholders(self, result_str: str) -> str:
+        """Wrap bare {{placeholder}} values in JSON strings for text-mode fallback."""
+        placeholder_pattern = re.compile(r'(:\s*)(\{\{[^{}\n]+\}\})(\s*[,}\]])')
+        return placeholder_pattern.sub(r'\1"\2"\3', result_str)
 
     def _validate_test_case_spec(self, parsed_result: Dict[str, Any]) -> Dict[str, Any]:
         """Validate a parsed payload against the test case schema."""
