@@ -23,6 +23,56 @@
 8. 如果响应中存在可复用字段，再补 extraction_rules；字段路径使用 JSONPath
 9. assertion_rules 必须返回对象数组，不要返回字符串断言
 10. extraction_rules 必须返回对象数组，字段名使用 var_name 和 field
+11. priority 必须是字符串枚举："P0"、"P1"、"P2"、"P3"，不要返回数字
+12. required_variables 必须是字符串数组，例如 ["access_token", "category_id"]，不要返回对象数组
+13. data_prep 必须是字符串数组，例如 ["access_token: 通过登录接口获取"]，不要返回对象数组
+14. assertion_rules 每一项必须至少包含 source、operator、value，可选 property、description
+15. source 只能使用 status、body、header、time 之一
+16. 如果不确定，required_variables、data_prep、extraction_rules 返回空数组，不要发明复杂步骤对象
+17. 不要返回 workflow、action、step、output 这类流程编排对象
+
+最小合法示例：
+{
+  "name": "基准用例 - {{ path }}",
+  "description": "该接口的基准测试用例",
+  "priority": "P0",
+  "request_data": {
+    "method": "{{ method }}",
+    "path": "{{ path }}"
+  },
+  "required_variables": [
+    "access_token",
+    "category_id"
+  ],
+  "data_prep": [
+    "access_token: 通过登录接口获取",
+    "category_id: 通过前置分类创建接口获取"
+  ],
+  "assertion_rules": [
+    {
+      "source": "status",
+      "property": null,
+      "operator": "==",
+      "value": 200,
+      "description": "状态码应为 200"
+    },
+    {
+      "source": "body",
+      "property": "$.code",
+      "operator": "==",
+      "value": 0,
+      "description": "业务码应为成功"
+    }
+  ],
+  "extraction_rules": [
+    {
+      "var_name": "created_id",
+      "field": "$.data.id",
+      "description": "提取新建对象 ID"
+    }
+  ],
+  "ai_confidence": 0.9
+}
 
 返回结果需要覆盖这些字段：
 - name

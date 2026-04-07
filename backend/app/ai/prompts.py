@@ -1176,3 +1176,85 @@ def _prompt_render_v3(cls, template: Dict[str, str], context: Dict[str, Any], in
 
 PromptManager.get_template = classmethod(_prompt_get_template_v3)
 PromptManager.render = classmethod(_prompt_render_v3)
+
+
+def _prompt_get_template_canonical(cls, task_type: str) -> Dict[str, str]:
+    """Canonical template lookup used by PromptManager."""
+    return cls.TEMPLATES.get(task_type, {
+        "system": "You are an AI assistant.",
+        "user": "{input}",
+    })
+
+
+def _prompt_serialize_variables_canonical(variables: Dict[str, Any]) -> Dict[str, Any]:
+    """Serialize dict/list values before prompt rendering."""
+    serialized = dict(variables)
+    for key, value in serialized.items():
+        if isinstance(value, (dict, list)):
+            serialized[key] = json.dumps(value, indent=2, ensure_ascii=False)
+    return serialized
+
+
+def _prompt_replace_placeholders_canonical(template_text: str, variables: Dict[str, Any], placeholders) -> str:
+    """Replace only known placeholders while keeping literal braces intact."""
+    import re
+
+    rendered = template_text
+    for placeholder in placeholders:
+        if placeholder not in variables:
+            continue
+        pattern = r"\{" + re.escape(placeholder) + r"\}"
+        rendered = re.sub(pattern, str(variables[placeholder]), rendered)
+    return rendered
+
+
+def _prompt_find_task_type_canonical(cls, template: Dict[str, str]):
+    """Find the task type key for the given inline template object."""
+    for task_type, candidate in cls.TEMPLATES.items():
+        if candidate is template:
+            return task_type
+    return None
+
+
+def _prompt_render_from_files_canonical(task_type: str, variables: Dict[str, Any]):
+    """Render from Jinja2 template files when available."""
+    if not task_type:
+        return None
+
+    templates_root = Path(__file__).resolve().parent / "templates" / task_type
+    system_file = templates_root / "system.j2"
+    user_file = templates_root / "user.j2"
+    if not (system_file.exists() and user_file.exists()):
+        return None
+
+    env = Environment(
+        loader=FileSystemLoader(str(templates_root)),
+        autoescape=False,
+        trim_blocks=False,
+        lstrip_blocks=False,
+    )
+    return {
+        "system": env.get_template("system.j2").render(**variables),
+        "user": env.get_template("user.j2").render(**variables),
+    }
+
+
+def _prompt_render_canonical(cls, template: Dict[str, str], context: Dict[str, Any], input_data: Dict[str, Any]) -> Dict[str, str]:
+    """Canonical prompt renderer with file-template support and inline fallback."""
+    all_vars = _prompt_serialize_variables_canonical({**context, **input_data})
+    task_type = _prompt_find_task_type_canonical(cls, template)
+    file_rendered = _prompt_render_from_files_canonical(task_type, all_vars)
+    if file_rendered is not None:
+        return file_rendered
+
+    system_prompt = template.get("system", "")
+    user_prompt = template.get("user", "")
+    user_prompt = _prompt_replace_placeholders_canonical(user_prompt, all_vars, cls.REAL_PLACEHOLDERS)
+    return {
+        "system": system_prompt,
+        "user": user_prompt,
+    }
+
+
+PromptManager.get_template = classmethod(_prompt_get_template_canonical)
+PromptManager.render = classmethod(_prompt_render_canonical)

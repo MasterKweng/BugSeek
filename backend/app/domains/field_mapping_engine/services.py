@@ -10,6 +10,13 @@ from sqlalchemy.orm import Session
 
 from app.platform.db.base import ApiDefinition, AsyncTask, DbSchemaVersion
 from .contracts import DecisionArtifact, DecisionCandidate
+from .application import (
+    build_recall_artifacts as build_recall_artifacts_step,
+    build_suggestions as build_suggestions_step,
+    extract_field_specs as extract_field_specs_step,
+    optimize_ranked_items as optimize_ranked_items_step,
+    rank_recall_items as rank_recall_items_step,
+)
 from .ai.enricher import AIFieldMappingEnricher
 from .orchestration.job_runner import (
     EngineV2FieldMappingJobRunner,
@@ -17,10 +24,10 @@ from .orchestration.job_runner import (
 )
 from .extractor.api_schema_extractor import ApiSchemaExtractor
 from .extractor.db_schema_extractor import DbSchemaExtractor
-from .evidence.context_builder import ContextBuilder
+from .context.field_context_builder import ContextBuilder
 from .evidence.feature_builder import FeatureBuilder
-from .evidence.relation_classifier import RelationClassifier
-from .evidence.risk_policy import RiskPolicy
+from .adjudication.relation_classifier import RelationClassifier
+from .policy.risk_policy import RiskPolicy
 from .recall.history_recaller import HistoryRecaller
 from .recall.code_lineage_recaller import CodeLineageRecaller
 from .recall.lexical_recaller import LexicalRecaller
@@ -28,9 +35,9 @@ from .recall.runtime_recaller import RuntimeEvidenceRecaller
 from .recall.sql_lineage_recaller import SQLLineageRecaller
 from .recall.vector_recaller import VectorRecaller
 from .ranking.confidence_calibrator import ConfidenceCalibrator
-from .ranking.deterministic_rules import DeterministicRules
+from .adjudication.deterministic_rules import DeterministicRules
 from .ranking.ranker import CandidateRanker
-from .runtime.runtime_verification_service import RuntimeVerificationService
+from .adjudication.runtime_verification_service import RuntimeVerificationService
 
 
 class FieldMappingAppService:
@@ -110,20 +117,15 @@ class FieldMappingAppService:
         include_body: bool = True,
         definition_ids: Optional[List[int]] = None,
     ) -> List[Dict[str, Any]]:
-        definitions = self._get_definitions(project_id, definition_ids)
-        items: List[Dict[str, Any]] = []
-        for definition in definitions:
-            field_specs = self.api_extractor.extract_definition_fields(
-                definition,
-                include_paths=include_paths,
-                include_query=include_query,
-                include_body=include_body,
-            )
-            for field_spec in field_specs:
-                field_spec_dict = asdict(field_spec)
-                field_spec_dict["metadata"] = self._build_field_context_metadata(field_spec_dict)
-                items.append(field_spec_dict)
-        return items
+        return extract_field_specs_step.run(
+            self,
+            project_id=project_id,
+            version_id=version_id,
+            include_paths=include_paths,
+            include_query=include_query,
+            include_body=include_body,
+            definition_ids=definition_ids,
+        )
 
     def build_recall_artifacts(
         self,
@@ -135,96 +137,15 @@ class FieldMappingAppService:
         use_code_lineage: bool = True,
         use_runtime_verification: bool = True,
     ) -> List[Dict[str, Any]]:
-        schema_snapshot = self._load_db_schema(project_id, version_id)
-        db_columns = self.db_extractor.extract_columns(schema_snapshot)
-        history_prior_map = self.history_recaller.build_prior_map(project_id, version_id)
-        rejected_prior_map = self.history_recaller.build_rejected_prior_map(project_id, version_id)
-
-        items: List[Dict[str, Any]] = []
-        for field_spec in field_specs:
-            metadata = dict(field_spec.get("metadata") or {})
-            field_context = self.context_builder.build_field_context(field_spec=field_spec)
-            history_prior = self._resolve_history_prior(
-                field_spec["field_path"],
-                field_spec["field_name"],
-                history_prior_map,
-            )
-            rejected_prior = self._resolve_history_prior(
-                field_spec["field_path"],
-                field_spec["field_name"],
-                rejected_prior_map,
-            )
-            runtime_table_prior = (
-                self.runtime_recaller.get_field_table_prior_map(
-                    int(field_spec["definition_id"]),
-                    field_spec["field_path"],
-                )
-                if use_runtime_verification
-                else {}
-            )
-            lexical_candidates = self.lexical_recaller.recall_from_dict(
-                field_spec,
-                db_columns,
-                history_prior,
-                context=field_context,
-            )
-            lexical_candidates = self._apply_runtime_table_prior(lexical_candidates, runtime_table_prior)
-            vector_candidates = self.vector_recaller.recall_from_dict(
-                field_spec,
-                schema_snapshot,
-                context=field_context,
-                allowed_tables=list(metadata.get("allowed_tables") or runtime_table_prior.keys()) or None,
-            )
-            vector_candidates = self.vector_recaller.attach_table_prior(vector_candidates, runtime_table_prior)
-            runtime_candidates = (
-                self.runtime_recaller.recall_from_dict(field_spec, schema_snapshot)
-                if use_runtime_verification
-                else []
-            )
-            sql_lineage_candidates = (
-                self.sql_lineage_recaller.recall_from_dict(field_spec, schema_snapshot)
-                if use_sql_lineage
-                else []
-            )
-            code_lineage_candidates = (
-                self.code_lineage_recaller.recall_from_dict(field_spec)
-                if use_code_lineage
-                else []
-            )
-            code_lineage_candidates = self._attach_weak_code_lineage_hints(
-                code_lineage_candidates=code_lineage_candidates,
-                candidate_groups=[lexical_candidates, vector_candidates, runtime_candidates, sql_lineage_candidates],
-            )
-            candidate_evidence = self._merge_candidate_evidence(
-                lexical_candidates,
-                vector_candidates,
-                runtime_candidates,
-                sql_lineage_candidates,
-                code_lineage_candidates,
-            )
-            items.append(
-                {
-                    "definition_id": field_spec["definition_id"],
-                    "definition_method": field_spec["method"],
-                    "definition_path": field_spec["path"],
-                    "api_field_path": field_spec["field_path"],
-                    "field_name": field_spec["field_name"],
-                    "source_type": field_spec.get("source_type"),
-                    "field_description": field_spec.get("description"),
-                    "sibling_paths": field_spec.get("sibling_paths", []),
-                    "field_metadata": metadata,
-                    "field_context": field_context,
-                    "risk_level": metadata.get("risk_level", "medium"),
-                    "domain_anchor": metadata.get("domain_anchor"),
-                    "allowed_tables": list(metadata.get("allowed_tables") or list(runtime_table_prior.keys())),
-                    "api_summary": metadata.get("api_summary"),
-                    "module_tag": metadata.get("module_tag"),
-                    "runtime_table_prior": runtime_table_prior,
-                    "rejected_history_prior": rejected_prior,
-                    "candidate_evidence": candidate_evidence,
-                }
-            )
-        return items
+        return build_recall_artifacts_step.run(
+            self,
+            project_id=project_id,
+            version_id=version_id,
+            field_specs=field_specs,
+            use_sql_lineage=use_sql_lineage,
+            use_code_lineage=use_code_lineage,
+            use_runtime_verification=use_runtime_verification,
+        )
 
     def rank_recall_items(
         self,
@@ -232,36 +153,11 @@ class FieldMappingAppService:
         *,
         use_runtime_verification: bool = True,
     ) -> List[Dict[str, Any]]:
-        ranked_items: List[Dict[str, Any]] = []
-        for item in recall_items:
-            candidate_evidence = [dict(candidate) for candidate in item.get("candidate_evidence", [])]
-            for candidate in candidate_evidence:
-                self.feature_builder.enrich_candidate(field_item=item, candidate=candidate)
-                self.deterministic_rules.apply_from_dict(item, candidate)
-            ranked_candidates = self.ranker.rank_from_dict(candidate_evidence)
-            verified_evidence = (
-                self.runtime_verification_service.build_runtime_field_evidence(
-                    definition_id=int(item["definition_id"]),
-                    api_field_path=str(item["api_field_path"]),
-                    candidates=ranked_candidates[:10],
-                )
-                if use_runtime_verification
-                else []
-            )
-            if verified_evidence:
-                ranked_candidates = self._apply_runtime_verification_evidence(
-                    ranked_candidates,
-                    verified_evidence,
-                )
-                ranked_candidates = self.ranker.rank_from_dict(ranked_candidates)
-            ranked_items.append(
-                {
-                    **item,
-                    "rule_candidates": ranked_candidates[:10],
-                    "runtime_verification_evidence": verified_evidence,
-                }
-            )
-        return ranked_items
+        return rank_recall_items_step.run(
+            self,
+            recall_items,
+            use_runtime_verification=use_runtime_verification,
+        )
 
     async def optimize_ranked_items(
         self,
@@ -272,103 +168,17 @@ class FieldMappingAppService:
         use_ai: bool,
         ai_confidence_threshold: float,
     ) -> List[Dict[str, Any]]:
-        if not use_ai:
-            return [self._build_rule_only_optimized_item(item, ai_confidence_threshold) for item in ranked_items]
-
-        schema_snapshot = self._load_db_schema(project_id, version_id)
-        ai_eligible_items = [
-            item
-            for item in ranked_items
-            if self._should_trigger_ai(
-                item=item,
-                rule_candidates=item.get("rule_candidates", []),
-                ai_confidence_threshold=ai_confidence_threshold,
-            )
-        ]
-        if not ai_eligible_items:
-            return [self._build_rule_only_optimized_item(item, ai_confidence_threshold) for item in ranked_items]
-        ai_results = await self.ai_enricher.enrich_low_confidence_items(
+        return await optimize_ranked_items_step.run(
+            self,
             project_id=project_id,
-            schema_snapshot=schema_snapshot,
-            ranked_items=ai_eligible_items,
+            version_id=version_id,
+            ranked_items=ranked_items,
+            use_ai=use_ai,
             ai_confidence_threshold=ai_confidence_threshold,
         )
 
-        optimized: List[Dict[str, Any]] = []
-        for item in ranked_items:
-            rule_candidates = item.get("rule_candidates", [])
-            ai_payload = ai_results.get(item["api_field_path"], {})
-            ai_candidates = ai_payload.get("ai_candidates", [])
-            rejected_ai_candidates = ai_payload.get("rejected_ai_candidates", [])
-            rule_top = rule_candidates[0].get("score", 0.0) if rule_candidates else 0.0
-            ai_top = ai_candidates[0].get("score", 0.0) if ai_candidates else 0.0
-
-            decision_source = "rule"
-            final_candidates = rule_candidates
-            fallback_reason = None
-            if ai_candidates:
-                if self._should_prefer_ai_candidates(
-                    item=item,
-                    rule_candidates=rule_candidates,
-                    ai_candidates=ai_candidates,
-                ):
-                    decision_source = "ai"
-                    final_candidates = ai_candidates
-                else:
-                    decision_source = "fallback"
-                    fallback_reason = "rule_guardrail_stronger"
-            elif rejected_ai_candidates:
-                decision_source = "fallback"
-                fallback_reason = "ai_guardrail_rejected"
-
-            optimized.append(
-                {
-                    **item,
-                    "final_candidates": final_candidates[:10],
-                    "decision_source": decision_source,
-                    "ai_candidates": ai_candidates[:10],
-                    "rejected_ai_candidates": rejected_ai_candidates[:10],
-                    "ai_triggered": item["api_field_path"] in ai_results,
-                    "ai_raw_response": ai_payload.get("raw_response"),
-                    "fallback_reason": fallback_reason,
-                    "ai_threshold": ai_confidence_threshold,
-                    "rule_top_score": rule_top,
-                    "ai_top_score": ai_top,
-                }
-            )
-        return optimized
-
     def build_suggestions_from_ranked_items(self, ranked_items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        suggestions: List[Dict[str, Any]] = []
-        for item in ranked_items:
-            final_candidates = item.get("final_candidates", [])
-            if not final_candidates:
-                continue
-            decision_artifact = self._build_decision_artifact(item, final_candidates)
-            top_candidate = decision_artifact.get("top_candidate")
-            suggestions.append(
-                {
-                    "definition_id": item["definition_id"],
-                    "definition_method": item["definition_method"],
-                    "definition_path": item["definition_path"],
-                    "api_field_path": item["api_field_path"],
-                    "top_candidate": decision_artifact["top_candidate"],
-                    "candidate_list": decision_artifact["candidate_list"],
-                    "relation_type": decision_artifact["relation_type"],
-                    "confidence": decision_artifact["confidence"],
-                    "confidence_bucket": decision_artifact["confidence_bucket"],
-                    "review_policy": decision_artifact["review_policy"],
-                    "decision_source": decision_artifact["decision_source"],
-                    "decision_artifact": decision_artifact,
-                    "candidates": final_candidates[:10],
-                    "decision_trace": self._build_suggestion_trace(
-                        item=item,
-                        decision_artifact=decision_artifact,
-                        top_candidate=top_candidate,
-                    ),
-                }
-            )
-        return suggestions
+        return build_suggestions_step.run(self, ranked_items)
 
     def _build_decision_artifact(
         self,

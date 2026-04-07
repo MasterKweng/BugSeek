@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Set, Tuple
 
 from ..evidence.enum_dictionary import EnumDictionaryResolver
-from ..evidence.risk_policy import RiskPolicy
+from ..policy.risk_policy import RiskPolicy
 from ..extractor.db_schema_extractor import DbSchemaExtractor
 
 

@@ -51,18 +51,27 @@ class AssertionRule(BaseModel):
 
         normalized = dict(value)
         assertion_type = normalized.get("type")
+        normalized_source = cls._normalize_source(normalized.get("source"))
+        if normalized_source is not None:
+            normalized["source"] = normalized_source
+        elif "source" in normalized:
+            normalized.pop("source")
 
         if "source" not in normalized and assertion_type == "status_code":
             normalized["source"] = "status"
-        elif "source" not in normalized and assertion_type in {"json_path", "body"}:
+        elif "source" not in normalized and assertion_type in {"json_path", "json", "body"}:
             normalized["source"] = "body"
         elif "source" not in normalized and assertion_type in {"header", "headers"}:
             normalized["source"] = "header"
+        elif "source" not in normalized and assertion_type == "response_time":
+            normalized["source"] = "time"
 
         if "property" not in normalized and "path" in normalized:
             normalized["property"] = normalized["path"]
         if "property" not in normalized and "expression" in normalized:
             normalized["property"] = normalized["expression"]
+        if "property" not in normalized and "json_path" in normalized:
+            normalized["property"] = normalized["json_path"]
         if "property" not in normalized and assertion_type == "status_code":
             normalized["property"] = None
 
@@ -70,9 +79,26 @@ class AssertionRule(BaseModel):
             normalized["value"] = normalized["expect"]
 
         if "operator" not in normalized:
-            normalized["operator"] = "==" if assertion_type in {"status_code", "json_path", "body", "header"} else "exists"
+            normalized["operator"] = "==" if assertion_type in {"status_code", "json_path", "json", "body", "header"} else "exists"
 
         return normalized
+
+    @staticmethod
+    def _normalize_source(value: Any) -> Any:
+        """Normalize common source aliases into the expected enum-like values."""
+        if not isinstance(value, str):
+            return value
+
+        lowered = value.strip().lower()
+        if lowered in {"status", "status_code", "http_status"}:
+            return "status"
+        if lowered in {"body", "json", "response", "response_body"}:
+            return "body"
+        if lowered in {"header", "headers", "response_header"}:
+            return "header"
+        if lowered in {"time", "response_time", "duration"}:
+            return "time"
+        return value
 
     @classmethod
     def _parse_string_assertion(cls, text: str) -> Dict[str, Any]:
@@ -153,6 +179,87 @@ class TestCaseSpec(BaseModel):
             return value
 
         normalized = dict(value)
+        normalized["priority"] = cls._normalize_priority(normalized.get("priority"))
+        normalized["request_data"] = cls._normalize_request_data(normalized.get("request_data"))
+        normalized["required_variables"] = cls._normalize_required_variables(
+            normalized.get("required_variables")
+        )
+        normalized["data_prep"] = cls._normalize_data_prep(normalized.get("data_prep"))
         if isinstance(normalized.get("data_prep"), str):
             normalized["data_prep"] = [normalized["data_prep"]]
+        return normalized
+
+    @staticmethod
+    def _normalize_request_data(value: Any) -> Any:
+        """Normalize common request_data aliases before field validation."""
+        if not isinstance(value, dict):
+            return value
+
+        normalized = dict(value)
+        if "path" not in normalized and "url" in normalized:
+            normalized["path"] = normalized["url"]
+        if "headers" in normalized and not isinstance(normalized["headers"], dict):
+            normalized["headers"] = {}
+        return normalized
+
+    @staticmethod
+    def _normalize_priority(value: Any) -> Any:
+        if isinstance(value, str):
+            candidate = value.strip().upper()
+            if candidate in {"P0", "P1", "P2", "P3"}:
+                return candidate
+            if candidate.isdigit():
+                value = int(candidate)
+            else:
+                return value
+
+        if isinstance(value, (int, float)):
+            if value <= 0:
+                return "P0"
+            if value == 1:
+                return "P1"
+            if value == 2:
+                return "P2"
+            return "P3"
+
+        return value
+
+    @staticmethod
+    def _normalize_required_variables(value: Any) -> Any:
+        if not isinstance(value, list):
+            return value
+
+        normalized: List[str] = []
+        for item in value:
+            if isinstance(item, str):
+                normalized.append(item)
+                continue
+            if isinstance(item, dict):
+                name = item.get("name") or item.get("var_name") or item.get("variable")
+                if isinstance(name, str) and name:
+                    normalized.append(name)
+        return sorted(dict.fromkeys(normalized))
+
+    @staticmethod
+    def _normalize_data_prep(value: Any) -> Any:
+        if isinstance(value, str):
+            return [value]
+        if not isinstance(value, list):
+            return value
+
+        normalized: List[str] = []
+        for item in value:
+            if isinstance(item, str):
+                normalized.append(item)
+                continue
+            if isinstance(item, dict):
+                action = item.get("action") or item.get("step") or item.get("name")
+                output = item.get("output") or item.get("variable") or item.get("var_name")
+                description = item.get("description")
+                if action and output:
+                    normalized.append(f"{output}: {action}")
+                elif description:
+                    normalized.append(str(description))
+                else:
+                    normalized.append(str(item))
         return normalized
