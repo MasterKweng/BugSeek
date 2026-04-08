@@ -9,6 +9,8 @@ from app.platform.db.base import (
     ApiCase,
     ApiScenario,
     ScenarioNode,
+    ScenarioRevision,
+    ScenarioRunContext,
     SyncTask,
     VersionSnapshot,
     ApiExecutionTrace,

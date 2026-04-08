@@ -16,6 +16,9 @@ from app.domains.ai_testing.scenario_generator import ScenarioGenerator
 from app.domains.api_hub.retrieval.service import APIRetrievalService
 from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
 from app.platform.db.base import ApiScenario, Project, ScenarioNode, User, Version
+from app.api.v1.scenarios import ScenarioNodeCreate
+from app.services.scenario_revision_service import ScenarioRevisionService
+from app.services.scenario_validation_service import ScenarioValidationService
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -161,6 +164,11 @@ async def confirm_scenario_draft(
     body_project_id = payload.get("project_id")
     body_version_id = payload.get("version_id")
 
+    if not isinstance(project_id, int):
+        project_id = None
+    if not isinstance(version_id, int):
+        version_id = None
+
     if project_id is None:
         project_id = body_project_id or get_current_project_id(db, current_user)
     if version_id is None:
@@ -199,6 +207,14 @@ async def confirm_scenario_draft(
                     detail=f"Version not found: {resolved_version_id}",
                 )
 
+        normalized_nodes = [ScenarioNodeCreate(**node_data) for node_data in nodes_data]
+        ScenarioValidationService.validate_nodes(
+            db,
+            project_id=project_id,
+            scenario_environment_id=scenario_info.get("environment_id"),
+            nodes=normalized_nodes,
+        )
+
         scenario = ApiScenario(
             project_id=project_id,
             version_id=resolved_version_id,
@@ -214,6 +230,7 @@ async def confirm_scenario_draft(
             retry_count=scenario_info.get("retry_count", 0),
             continue_on_failure=scenario_info.get("continue_on_failure", False),
             status="draft",
+            lifecycle_status="draft",
             created_by=current_user.id,
             updated_by=current_user.id,
         )
@@ -240,6 +257,14 @@ async def confirm_scenario_draft(
                 extra_config=node_data.get("extra_config"),
             )
             db.add(node)
+
+        ScenarioRevisionService.create_revision(
+            db,
+            scenario=scenario,
+            nodes=[node.model_dump() for node in normalized_nodes],
+            created_by=current_user.id,
+            status="draft",
+        )
 
         db.commit()
         db.refresh(scenario)

@@ -8,7 +8,7 @@ from app.api.v1 import intent_workbench, scenarios
 from app.api.v1.deps import get_current_user
 from app.dependencies import get_db
 from app.domains.ai_testing.schemas import ScenarioDraft, ScenarioNodeSpec, ScenarioSpec
-from app.platform.db.base import ApiScenario, Environment, Project, Version
+from app.platform.db.base import ApiCase, ApiDefinition, ApiScenario, Environment, Project, ScenarioRevision, Version
 
 
 def _build_app(db, current_user):
@@ -39,8 +39,15 @@ def test_v2_main_flow_smoke_intent_confirm_execute():
             project_id=1,
             environment_id=9,
             nodes=[],
+            lifecycle_status="draft",
+            published_revision_id=None,
+            draft_revision_id=None,
+            version_id=2,
         )
     }
+    revision_holder = {"revision": None}
+    definition = SimpleNamespace(id=11, project_id=1)
+    case = SimpleNamespace(id=21, project_id=1, definition_id=11, status="active", environment_id=9)
 
     def add_side_effect(model):
         if isinstance(model, ApiScenario):
@@ -49,6 +56,9 @@ def test_v2_main_flow_smoke_intent_confirm_execute():
             model.environment_id = model.environment_id or 9
             model.nodes = []
             scenario_holder["scenario"] = model
+        elif isinstance(model, ScenarioRevision):
+            model.id = 5001
+            revision_holder["revision"] = model
 
     def query_side_effect(model):
         query = Mock()
@@ -59,11 +69,19 @@ def test_v2_main_flow_smoke_intent_confirm_execute():
             filtered.first.return_value = version
         elif model is ApiScenario:
             filtered.first.return_value = scenario_holder["scenario"]
+        elif model is ScenarioRevision:
+            filtered.first.return_value = revision_holder["revision"]
+            filtered.all.return_value = [revision_holder["revision"]] if revision_holder["revision"] else []
+        elif model is ApiDefinition:
+            filtered.first.return_value = definition
+        elif model is ApiCase:
+            filtered.first.return_value = case
         elif model is Environment:
             filtered.first.return_value = environment
         else:
             filtered.first.return_value = None
         query.filter.return_value = filtered
+        query.order_by.return_value = filtered
         return query
 
     db = Mock()
@@ -91,6 +109,7 @@ def test_v2_main_flow_smoke_intent_confirm_execute():
                 ref_id=11,
                 step_order=1,
                 extract_rules={"order_id": "$.id"},
+                extra_config={"case_selection": {"strategy": "first_active"}},
             )
         ],
         reasoning="use create order api",
@@ -101,8 +120,10 @@ def test_v2_main_flow_smoke_intent_confirm_execute():
         "scenario_id": 101,
         "execution_id": 501,
         "status": "completed",
+        "result_status": "passed",
         "summary": {"total": 1, "passed": 1, "failed": 0, "skipped": 0, "duration_ms": 12},
         "results": [{"node_key": "create_order", "status": "passed"}],
+        "run_context_id": 7001,
     }
 
     with patch(
@@ -118,9 +139,9 @@ def test_v2_main_flow_smoke_intent_confirm_execute():
         "app.api.v1.scenarios.get_current_project_id",
         return_value=1,
     ), patch(
-        "app.execution.engine.ScenarioExecutor.execute_scenario",
+        "app.api.v1.scenarios.ScenarioRunService.run",
         new=AsyncMock(return_value=execution_result),
-    ) as mock_execute:
+    ) as mock_run:
         generate_resp = client.post(
             "/generate-scenario",
             json={"intent_text": "create order flow", "project_id": 1, "version_id": 2},
@@ -139,6 +160,9 @@ def test_v2_main_flow_smoke_intent_confirm_execute():
         assert confirmed["scenario_id"] == 101
         assert confirmed["node_count"] == 1
 
+        publish_resp = client.post("/scenarios/101/publish", json={"publish_note": "smoke"})
+        assert publish_resp.status_code == 200
+
         execute_resp = client.post(
             "/scenarios/101/execute",
             json={"environment_id": 9, "variables": {"seed": "demo"}},
@@ -148,7 +172,7 @@ def test_v2_main_flow_smoke_intent_confirm_execute():
         assert execution_payload["execution_id"] == 501
         assert execution_payload["status"] == "completed"
 
-        _, kwargs = mock_execute.await_args
-        assert kwargs["scenario_id"] == 101
+        _, kwargs = mock_run.await_args
+        assert kwargs["scenario"].id == 101
         assert kwargs["environment_id"] == 9
         assert kwargs["variables"] == {"seed": "demo"}

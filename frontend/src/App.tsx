@@ -14,6 +14,9 @@ const Projects = lazy(() => import('./pages/Projects'))
 const Versions = lazy(() => import('./pages/Versions'))
 const DbSchema = lazy(() => import('./pages/version-center/DbSchema'))
 const FieldMapping = lazy(() => import('./pages/version-center/FieldMapping'))
+const FieldMappingTaskDetail = lazy(() => import('./pages/version-center/FieldMappingTaskDetail'))
+const FieldMappingGovernance = lazy(() => import('./pages/version-center/FieldMappingGovernance'))
+const FieldMappingDictionary = lazy(() => import('./pages/version-center/FieldMappingDictionary'))
 const FieldMappingHelp = lazy(() => import('./pages/version-center/FieldMappingHelp'))
 const KnowledgeGraph = lazy(() => import('./pages/KnowledgeGraph'))
 const EnvironmentManagement = lazy(() => import('./pages/project-center/EnvironmentManagement'))
@@ -69,6 +72,9 @@ function App() {
           <Route path="project-center/environments" element={<ProjectVersionGuard><EnvironmentManagement /></ProjectVersionGuard>} />
           <Route path="version-center/db-schema" element={<ProjectVersionGuard><DbSchema /></ProjectVersionGuard>} />
           <Route path="version-center/field-mapping" element={<ProjectVersionGuard><FieldMapping /></ProjectVersionGuard>} />
+          <Route path="version-center/field-mapping/tasks/:taskId" element={<ProjectVersionGuard><FieldMappingTaskDetail /></ProjectVersionGuard>} />
+          <Route path="version-center/field-mapping/mappings" element={<ProjectVersionGuard><FieldMappingGovernance /></ProjectVersionGuard>} />
+          <Route path="version-center/field-mapping/dictionary" element={<ProjectVersionGuard><FieldMappingDictionary /></ProjectVersionGuard>} />
           <Route path="version-center/field-mapping/help" element={<ProjectVersionGuard><FieldMappingHelp /></ProjectVersionGuard>} />
           <Route path="knowledge-graph" element={<ProjectVersionGuard><KnowledgeGraph /></ProjectVersionGuard>} />
           {/* 需求洞察模块 */}

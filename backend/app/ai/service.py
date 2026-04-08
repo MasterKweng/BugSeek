@@ -308,6 +308,26 @@ class AIService:
                 return val.startswith("{{") and val.endswith("}}") and "random_" not in val.lower()
             return False
 
+        def collect_placeholders(obj: Any) -> set[str]:
+            found: set[str] = set()
+            if isinstance(obj, dict):
+                for value in obj.values():
+                    found.update(collect_placeholders(value))
+                return found
+
+            if isinstance(obj, list):
+                for item in obj:
+                    found.update(collect_placeholders(item))
+                return found
+
+            if isinstance(obj, str):
+                text = obj.strip()
+                if text.startswith("{{") and text.endswith("}}"):
+                    inner = text[2:-2].strip()
+                    if inner and "(" not in inner and ")" not in inner:
+                        found.add(inner)
+            return found
+
         required_vars = []
         raw_required = case_result.get("required_variables")
         if isinstance(raw_required, list):
@@ -338,6 +358,7 @@ class AIService:
 
         if "request_data" in case_result:
             case_result["request_data"] = normalize(case_result.get("request_data"))
+            required_set.update(collect_placeholders(case_result["request_data"]))
 
         if required_set:
             case_result["required_variables"] = sorted(required_set)

@@ -375,6 +375,11 @@ class ApiScenario(Base, TimestampMixin):
 
     # 状态与审计
     status = Column(String(20), nullable=False, default="draft")  # draft | active | archived
+    lifecycle_status = Column(String(20), nullable=False, default="draft")  # draft | validated | published | archived
+    draft_revision_id = Column(BigInteger, nullable=True)
+    published_revision_id = Column(BigInteger, nullable=True)
+    latest_revision_no = Column(Integer, nullable=False, default=1)
+    labels = Column(JSON, nullable=True)
     created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     updated_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
@@ -433,6 +438,56 @@ class ScenarioNode(Base, TimestampMixin):
         Index("ix_scenario_nodes_scenario_id", "scenario_id"),
         Index("ix_scenario_nodes_scenario_step", "scenario_id", "step_order"),
         Index("ix_scenario_nodes_ref_type_ref_id", "ref_type", "ref_id"),
+    )
+
+
+class ScenarioRevision(Base, TimestampMixin):
+    """Versioned scenario snapshot."""
+    __tablename__ = "scenario_revisions"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    scenario_id = Column(Integer, ForeignKey("api_scenarios.id", ondelete="CASCADE"), nullable=False)
+    revision_no = Column(Integer, nullable=False)
+    status = Column(String(20), nullable=False, default="draft")
+    graph_schema_version = Column(String(20), nullable=False, default="1.0")
+    snapshot_json = Column(JSON, nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    published_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    published_at = Column(DateTime, nullable=True)
+
+    scenario = relationship("ApiScenario", foreign_keys=[scenario_id])
+    creator = relationship("User", foreign_keys=[created_by])
+    publisher = relationship("User", foreign_keys=[published_by])
+
+    __table_args__ = (
+        UniqueConstraint("scenario_id", "revision_no", name="uq_scenario_revision_no"),
+        Index("ix_scenario_revisions_scenario_id", "scenario_id"),
+        Index("ix_scenario_revisions_status", "status"),
+    )
+
+
+class ScenarioRunContext(Base, TimestampMixin):
+    """Persisted scenario runtime context snapshot."""
+    __tablename__ = "scenario_run_contexts"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    execution_id = Column(Integer, ForeignKey("test_executions.id", ondelete="CASCADE"), nullable=False)
+    scenario_id = Column(Integer, ForeignKey("api_scenarios.id", ondelete="CASCADE"), nullable=False)
+    revision_id = Column(BigInteger, ForeignKey("scenario_revisions.id", ondelete="CASCADE"), nullable=False)
+    input_context = Column(JSON, nullable=False, default=dict)
+    resolved_context = Column(JSON, nullable=False, default=dict)
+    effective_environment_id = Column(Integer, ForeignKey("environments.id", ondelete="SET NULL"), nullable=True)
+    effective_version_id = Column(Integer, ForeignKey("versions.id", ondelete="SET NULL"), nullable=True)
+
+    execution = relationship("TestExecution", foreign_keys=[execution_id])
+    scenario = relationship("ApiScenario", foreign_keys=[scenario_id])
+    revision = relationship("ScenarioRevision", foreign_keys=[revision_id])
+    environment = relationship("Environment", foreign_keys=[effective_environment_id])
+    version = relationship("Version", foreign_keys=[effective_version_id])
+
+    __table_args__ = (
+        Index("ix_scenario_run_contexts_execution_id", "execution_id"),
+        Index("ix_scenario_run_contexts_scenario_revision", "scenario_id", "revision_id"),
     )
 
 

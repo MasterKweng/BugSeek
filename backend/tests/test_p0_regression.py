@@ -23,6 +23,7 @@ from app.api.v1.scenarios import (
 from app.domains.ai_testing.scenario_generator import ScenarioGenerator
 from app.domains.ai_testing.schemas import ScenarioDraft, ScenarioSpec
 from app.platform.db.base import (
+    ApiDefinition,
     ApiScenario,
     Environment,
     GraphNode,
@@ -142,7 +143,23 @@ async def test_intent_generate_wraps_draft_and_confirm_accepts_wrapped_payload()
     db.flush.return_value = None
     db.commit.return_value = None
     db.refresh.return_value = None
-    db.query.return_value.filter.return_value.first.return_value = project
+
+    definition = SimpleNamespace(id=10, project_id=1)
+
+    def query_side_effect(model):
+        query = Mock()
+        model_name = getattr(model, "__name__", None)
+        if model_name == "Project":
+            query.filter.return_value.first.return_value = project
+        elif model is ApiDefinition:
+            query.filter.return_value.first.return_value = definition
+        else:
+            query.filter.return_value.first.return_value = None
+        if model_name is None:
+            query.filter.return_value.scalar.return_value = None
+        return query
+
+    db.query.side_effect = query_side_effect
 
     confirm_response = await confirm_scenario_draft(
         {
@@ -208,7 +225,7 @@ def test_serialize_execution_uses_current_test_execution_fields():
 @pytest.mark.asyncio
 async def test_trigger_scenario_async_creates_execution_with_target_id():
     user = SimpleNamespace(id=1)
-    scenario = SimpleNamespace(id=12, project_id=3, execution_mode="dag")
+    scenario = SimpleNamespace(id=12, project_id=3, execution_mode="dag", version_id=None, name="Scenario A")
     environment = SimpleNamespace(id=20, project_id=3)
 
     def query_side_effect(model):
@@ -264,6 +281,7 @@ async def test_get_trigger_result_reads_execution_by_target_id():
     execution = SimpleNamespace(
         id=7,
         status="completed",
+        result_status="passed",
         started_at=None,
         finished_at=None,
         duration=10,
@@ -272,6 +290,7 @@ async def test_get_trigger_result_reads_execution_by_target_id():
         failed=0,
         skipped=0,
         callback_status=None,
+        summary_json={},
     )
     result_row = SimpleNamespace(
         id=1,

@@ -22,6 +22,7 @@ from app.api.v1 import (
     knowledge_graph,
     projects,
     scenario_reports,
+    scenario_runs,
     scenarios,
     sync_tasks,
     task_status,
@@ -50,6 +51,7 @@ api_router.include_router(field_mappings_async.router, tags=["字段映射管理
 api_router.include_router(ai_router, tags=["AI服务"])
 
 api_router.include_router(scenarios.router, tags=["场景管理"])
+api_router.include_router(scenario_runs.router, tags=["场景运行"])
 api_router.include_router(intent_workbench.router, prefix="/intent-workbench", tags=["意图工作台"])
 api_router.include_router(execution_triggers.router, tags=["CI/CD触发"])
 api_router.include_router(task_status.router, tags=["Task Status"])

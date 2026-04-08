@@ -33,22 +33,27 @@ CREATE TABLE public.api_scenarios (
 	execution_order JSON DEFAULT '[]'::json NOT NULL, 
 	variables JSON, 
 	timeout INTEGER, 
-	retry_count INTEGER, 
-	continue_on_failure BOOLEAN, 
+	retry_count INTEGER DEFAULT 0 NOT NULL, 
+	continue_on_failure BOOLEAN DEFAULT false NOT NULL, 
 	endpoint_count INTEGER, 
 	status VARCHAR(20), 
 	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
-	source_type VARCHAR(50) DEFAULT 'manual'::character varying, 
+	source_type VARCHAR(50) DEFAULT 'manual'::character varying NOT NULL, 
 	source_module_chain_id INTEGER, 
 	version_id INTEGER, 
 	environment_id INTEGER, 
 	source_ref_id INTEGER, 
 	context_init JSON, 
-	execution_mode VARCHAR(20) DEFAULT 'sequential'::character varying, 
-	timeout_seconds INTEGER DEFAULT 600, 
+	execution_mode VARCHAR(20) DEFAULT 'sequential'::character varying NOT NULL, 
+	timeout_seconds INTEGER DEFAULT 600 NOT NULL, 
 	created_by INTEGER, 
 	updated_by INTEGER, 
+	lifecycle_status VARCHAR(20) DEFAULT 'draft'::character varying NOT NULL, 
+	draft_revision_id BIGINT, 
+	published_revision_id BIGINT, 
+	latest_revision_no INTEGER DEFAULT 1 NOT NULL, 
+	labels JSON, 
 	CONSTRAINT api_scenarios_pkey PRIMARY KEY (id)
 );
 
@@ -178,29 +183,6 @@ CREATE TABLE public.ai_memory (
 	CONSTRAINT ai_memory_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE public.scenario_nodes (
-	id SERIAL NOT NULL, 
-	scenario_id INTEGER NOT NULL, 
-	node_key VARCHAR(64) NOT NULL, 
-	node_name VARCHAR(255), 
-	node_type VARCHAR(20) DEFAULT 'api_call'::character varying NOT NULL, 
-	ref_type VARCHAR(20) DEFAULT 'api_case'::character varying NOT NULL, 
-	ref_id INTEGER NOT NULL, 
-	step_order INTEGER DEFAULT 0 NOT NULL, 
-	depends_on JSON, 
-	input_mapping JSON, 
-	extract_rules JSON, 
-	assertion_overrides JSON, 
-	timeout_seconds INTEGER, 
-	retry_count INTEGER DEFAULT 0 NOT NULL, 
-	continue_on_failure BOOLEAN DEFAULT false NOT NULL, 
-	is_enabled BOOLEAN DEFAULT true NOT NULL, 
-	extra_config JSON, 
-	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
-	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
-	CONSTRAINT scenario_nodes_pkey PRIMARY KEY (id)
-);
-
 CREATE TABLE public.api_execution_traces (
 	id SERIAL NOT NULL, 
 	execution_id VARCHAR(100) NOT NULL, 
@@ -259,6 +241,18 @@ CREATE TABLE public.api_table_impacts (
 	CONSTRAINT uq_api_table_impacts_api_table UNIQUE NULLS DISTINCT (api_id, table_name)
 );
 
+CREATE TABLE public.graph_nodes (
+	id UUID NOT NULL, 
+	node_type VARCHAR(50) NOT NULL, 
+	name VARCHAR(255) NOT NULL, 
+	display_name VARCHAR(255), 
+	source_id VARCHAR(255), 
+	properties JSONB, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	CONSTRAINT graph_nodes_pkey PRIMARY KEY (id)
+);
+
 CREATE TABLE public.projects (
 	id SERIAL NOT NULL, 
 	name VARCHAR(255) NOT NULL, 
@@ -269,12 +263,12 @@ CREATE TABLE public.projects (
 	backend_framework VARCHAR(100), 
 	database VARCHAR(50), 
 	frontend_framework VARCHAR(100), 
-	asset_config JSON DEFAULT '{}'::json NOT NULL, 
 	created_by INTEGER, 
 	owner_id INTEGER, 
 	is_deleted BOOLEAN, 
 	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	asset_config JSON DEFAULT '{}'::json NOT NULL, 
 	CONSTRAINT projects_pkey PRIMARY KEY (id), 
 	CONSTRAINT projects_owner_id_fkey FOREIGN KEY(owner_id) REFERENCES public.users (id)
 );
@@ -307,6 +301,30 @@ CREATE TABLE public.field_mapping_stage_artifacts (
 	CONSTRAINT uq_field_mapping_stage_artifact UNIQUE NULLS DISTINCT (task_id, stage, artifact_type, artifact_key)
 );
 
+CREATE TABLE public.scenario_nodes (
+	id SERIAL NOT NULL, 
+	scenario_id INTEGER NOT NULL, 
+	node_key VARCHAR(64) NOT NULL, 
+	node_name VARCHAR(255), 
+	node_type VARCHAR(20) DEFAULT 'api_call'::character varying NOT NULL, 
+	ref_type VARCHAR(20) DEFAULT 'api_case'::character varying NOT NULL, 
+	ref_id INTEGER NOT NULL, 
+	step_order INTEGER DEFAULT 0 NOT NULL, 
+	depends_on JSON, 
+	input_mapping JSON, 
+	extract_rules JSON, 
+	assertion_overrides JSON, 
+	timeout_seconds INTEGER, 
+	retry_count INTEGER DEFAULT 0 NOT NULL, 
+	continue_on_failure BOOLEAN DEFAULT false NOT NULL, 
+	is_enabled BOOLEAN DEFAULT true NOT NULL, 
+	extra_config JSON, 
+	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+	CONSTRAINT scenario_nodes_pkey PRIMARY KEY (id), 
+	CONSTRAINT scenario_nodes_scenario_id_fkey FOREIGN KEY(scenario_id) REFERENCES public.api_scenarios (id) ON DELETE CASCADE
+);
+
 CREATE TABLE public.field_impacts (
 	id SERIAL NOT NULL, 
 	table_impact_id INTEGER NOT NULL, 
@@ -320,27 +338,34 @@ CREATE TABLE public.field_impacts (
 	CONSTRAINT fk_field_impacts_table FOREIGN KEY(table_impact_id) REFERENCES public.table_impacts (id) ON DELETE CASCADE
 );
 
-CREATE TABLE public.versions (
-	id SERIAL NOT NULL, 
-	project_id INTEGER NOT NULL, 
-	version_number VARCHAR(50) NOT NULL, 
-	parent_version_id INTEGER, 
-	status VARCHAR(20), 
-	inherit_endpoints BOOLEAN, 
-	inherit_test_cases BOOLEAN, 
-	inherit_environments BOOLEAN, 
-	change_summary TEXT, 
-	requirement_doc TEXT, 
-	test_scope JSON, 
-	mapping_config JSON DEFAULT '{}'::json NOT NULL, 
-	endpoints_count INTEGER, 
-	test_cases_count INTEGER, 
-	notification_url VARCHAR(500), 
-	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
-	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
-	CONSTRAINT versions_pkey PRIMARY KEY (id), 
-	CONSTRAINT versions_parent_version_id_fkey FOREIGN KEY(parent_version_id) REFERENCES public.versions (id), 
-	CONSTRAINT versions_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id)
+CREATE TABLE public.graph_edges (
+	id BIGSERIAL NOT NULL, 
+	source_node_id UUID NOT NULL, 
+	target_node_id UUID NOT NULL, 
+	relation_type VARCHAR(50) NOT NULL, 
+	properties JSONB, 
+	CONSTRAINT graph_edges_pkey PRIMARY KEY (id), 
+	CONSTRAINT graph_edges_source_node_id_fkey FOREIGN KEY(source_node_id) REFERENCES public.graph_nodes (id), 
+	CONSTRAINT graph_edges_target_node_id_fkey FOREIGN KEY(target_node_id) REFERENCES public.graph_nodes (id)
+);
+
+CREATE TABLE public.scenario_revisions (
+	id BIGSERIAL NOT NULL, 
+	scenario_id INTEGER NOT NULL, 
+	revision_no INTEGER NOT NULL, 
+	status VARCHAR(20) DEFAULT 'draft'::character varying NOT NULL, 
+	graph_schema_version VARCHAR(20) DEFAULT '1.0'::character varying NOT NULL, 
+	snapshot_json JSON NOT NULL, 
+	created_by INTEGER, 
+	published_by INTEGER, 
+	published_at TIMESTAMP WITH TIME ZONE, 
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+	updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+	CONSTRAINT scenario_revisions_pkey PRIMARY KEY (id), 
+	CONSTRAINT scenario_revisions_created_by_fkey FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
+	CONSTRAINT scenario_revisions_published_by_fkey FOREIGN KEY(published_by) REFERENCES public.users (id) ON DELETE SET NULL, 
+	CONSTRAINT scenario_revisions_scenario_id_fkey FOREIGN KEY(scenario_id) REFERENCES public.api_scenarios (id) ON DELETE CASCADE, 
+	CONSTRAINT uq_scenario_revision_no UNIQUE NULLS DISTINCT (scenario_id, revision_no)
 );
 
 CREATE TABLE public.environments (
@@ -355,6 +380,29 @@ CREATE TABLE public.environments (
 	is_default BOOLEAN DEFAULT false, 
 	CONSTRAINT environments_pkey PRIMARY KEY (id), 
 	CONSTRAINT environments_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id)
+);
+
+CREATE TABLE public.versions (
+	id SERIAL NOT NULL, 
+	project_id INTEGER NOT NULL, 
+	version_number VARCHAR(50) NOT NULL, 
+	parent_version_id INTEGER, 
+	status VARCHAR(20), 
+	inherit_endpoints BOOLEAN, 
+	inherit_test_cases BOOLEAN, 
+	inherit_environments BOOLEAN, 
+	change_summary TEXT, 
+	requirement_doc TEXT, 
+	test_scope JSON, 
+	endpoints_count INTEGER, 
+	test_cases_count INTEGER, 
+	notification_url VARCHAR(500), 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	mapping_config JSON DEFAULT '{}'::json NOT NULL, 
+	CONSTRAINT versions_pkey PRIMARY KEY (id), 
+	CONSTRAINT versions_parent_version_id_fkey FOREIGN KEY(parent_version_id) REFERENCES public.versions (id), 
+	CONSTRAINT versions_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id)
 );
 
 CREATE TABLE public.database_configs (
@@ -778,6 +826,30 @@ CREATE TABLE public.api_cases (
 	CONSTRAINT api_cases_updated_by_fkey FOREIGN KEY(updated_by) REFERENCES public.users (id) ON DELETE SET NULL
 );
 
+CREATE TABLE public.sql_lineage_edges (
+	id BIGSERIAL NOT NULL, 
+	project_id INTEGER NOT NULL, 
+	version_id INTEGER, 
+	definition_id INTEGER NOT NULL, 
+	api_field_path VARCHAR(255) NOT NULL, 
+	source_table VARCHAR(255) NOT NULL, 
+	source_column VARCHAR(255) NOT NULL, 
+	projection_alias VARCHAR(255), 
+	expression_type VARCHAR(50), 
+	join_hit BOOLEAN NOT NULL, 
+	join_path JSON, 
+	confidence DOUBLE PRECISION, 
+	payload_json JSON, 
+	created_by INTEGER, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	CONSTRAINT sql_lineage_edges_pkey PRIMARY KEY (id), 
+	CONSTRAINT sql_lineage_edges_created_by_fkey FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
+	CONSTRAINT sql_lineage_edges_definition_id_fkey FOREIGN KEY(definition_id) REFERENCES public.api_definitions (id) ON DELETE CASCADE, 
+	CONSTRAINT sql_lineage_edges_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE, 
+	CONSTRAINT sql_lineage_edges_version_id_fkey FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE CASCADE
+);
+
 CREATE TABLE public.version_api_definitions (
 	id SERIAL NOT NULL, 
 	version_id INTEGER NOT NULL, 
@@ -814,6 +886,32 @@ CREATE TABLE public.version_snapshots (
 	CONSTRAINT version_snapshots_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE, 
 	CONSTRAINT version_snapshots_version_id_fkey FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE CASCADE, 
 	CONSTRAINT uq_definition_version_hash UNIQUE NULLS DISTINCT (definition_id, version_hash)
+);
+
+CREATE TABLE public.code_lineage_edges (
+	id BIGSERIAL NOT NULL, 
+	project_id INTEGER NOT NULL, 
+	version_id INTEGER, 
+	definition_id INTEGER NOT NULL, 
+	api_field_path VARCHAR(255) NOT NULL, 
+	target_field VARCHAR(255) NOT NULL, 
+	target_object VARCHAR(255), 
+	source_field VARCHAR(255) NOT NULL, 
+	source_object VARCHAR(255), 
+	db_table VARCHAR(255), 
+	db_column VARCHAR(255), 
+	evidence_type VARCHAR(50) NOT NULL, 
+	chain_depth INTEGER, 
+	confidence DOUBLE PRECISION, 
+	payload_json JSON, 
+	created_by INTEGER, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	CONSTRAINT code_lineage_edges_pkey PRIMARY KEY (id), 
+	CONSTRAINT code_lineage_edges_created_by_fkey FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
+	CONSTRAINT code_lineage_edges_definition_id_fkey FOREIGN KEY(definition_id) REFERENCES public.api_definitions (id) ON DELETE CASCADE, 
+	CONSTRAINT code_lineage_edges_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE, 
+	CONSTRAINT code_lineage_edges_version_id_fkey FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE CASCADE
 );
 
 CREATE TABLE public.project_auth_templates (
@@ -930,54 +1028,23 @@ CREATE TABLE public.field_mapping_runtime_evidence (
 	CONSTRAINT fk_field_mapping_runtime_evidence_version FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE CASCADE
 );
 
-CREATE TABLE public.sql_lineage_edges (
+CREATE TABLE public.scenario_run_contexts (
 	id BIGSERIAL NOT NULL, 
-	project_id INTEGER NOT NULL, 
-	version_id INTEGER, 
-	definition_id INTEGER NOT NULL, 
-	api_field_path VARCHAR(255) NOT NULL, 
-	source_table VARCHAR(255) NOT NULL, 
-	source_column VARCHAR(255) NOT NULL, 
-	projection_alias VARCHAR(255), 
-	expression_type VARCHAR(50), 
-	join_hit BOOLEAN DEFAULT false NOT NULL, 
-	join_path JSON, 
-	confidence DOUBLE PRECISION, 
-	payload_json JSON, 
-	created_by INTEGER, 
-	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
-	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
-	CONSTRAINT sql_lineage_edges_pkey PRIMARY KEY (id), 
-	CONSTRAINT fk_sql_lineage_edges_definition FOREIGN KEY(definition_id) REFERENCES public.api_definitions (id) ON DELETE CASCADE, 
-	CONSTRAINT fk_sql_lineage_edges_project FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE, 
-	CONSTRAINT fk_sql_lineage_edges_user FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
-	CONSTRAINT fk_sql_lineage_edges_version FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE CASCADE
-);
-
-CREATE TABLE public.code_lineage_edges (
-	id BIGSERIAL NOT NULL, 
-	project_id INTEGER NOT NULL, 
-	version_id INTEGER, 
-	definition_id INTEGER NOT NULL, 
-	api_field_path VARCHAR(255) NOT NULL, 
-	target_field VARCHAR(255) NOT NULL, 
-	target_object VARCHAR(255), 
-	source_field VARCHAR(255) NOT NULL, 
-	source_object VARCHAR(255), 
-	db_table VARCHAR(255), 
-	db_column VARCHAR(255), 
-	evidence_type VARCHAR(50) DEFAULT 'code_assignment'::character varying NOT NULL, 
-	chain_depth INTEGER, 
-	confidence DOUBLE PRECISION, 
-	payload_json JSON, 
-	created_by INTEGER, 
-	created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
-	updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL, 
-	CONSTRAINT code_lineage_edges_pkey PRIMARY KEY (id), 
-	CONSTRAINT fk_code_lineage_edges_definition FOREIGN KEY(definition_id) REFERENCES public.api_definitions (id) ON DELETE CASCADE, 
-	CONSTRAINT fk_code_lineage_edges_project FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE, 
-	CONSTRAINT fk_code_lineage_edges_user FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
-	CONSTRAINT fk_code_lineage_edges_version FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE CASCADE
+	execution_id INTEGER NOT NULL, 
+	scenario_id INTEGER NOT NULL, 
+	revision_id BIGINT NOT NULL, 
+	input_context JSON DEFAULT '{}'::json NOT NULL, 
+	resolved_context JSON DEFAULT '{}'::json NOT NULL, 
+	effective_environment_id INTEGER, 
+	effective_version_id INTEGER, 
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+	updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+	CONSTRAINT scenario_run_contexts_pkey PRIMARY KEY (id), 
+	CONSTRAINT scenario_run_contexts_effective_environment_id_fkey FOREIGN KEY(effective_environment_id) REFERENCES public.environments (id) ON DELETE SET NULL, 
+	CONSTRAINT scenario_run_contexts_effective_version_id_fkey FOREIGN KEY(effective_version_id) REFERENCES public.versions (id) ON DELETE SET NULL, 
+	CONSTRAINT scenario_run_contexts_execution_id_fkey FOREIGN KEY(execution_id) REFERENCES public.test_executions (id) ON DELETE CASCADE, 
+	CONSTRAINT scenario_run_contexts_revision_id_fkey FOREIGN KEY(revision_id) REFERENCES public.scenario_revisions (id) ON DELETE CASCADE, 
+	CONSTRAINT scenario_run_contexts_scenario_id_fkey FOREIGN KEY(scenario_id) REFERENCES public.api_scenarios (id) ON DELETE CASCADE
 );
 
 CREATE TABLE public.test_execution_results (
@@ -1106,43 +1173,21 @@ CREATE TABLE public.field_mapping_feedback (
 	CONSTRAINT fk_field_mapping_feedback_version FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE CASCADE
 );
 
-ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_source_module_chain_id_fkey FOREIGN KEY(source_module_chain_id) REFERENCES public.api_module_chains (id);
-
-ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id);
-
 ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_version_id_fkey FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE SET NULL;
-
-ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_environment_id_fkey FOREIGN KEY(environment_id) REFERENCES public.environments (id) ON DELETE SET NULL;
-
-ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_created_by_fkey FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL;
-
-ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_updated_by_fkey FOREIGN KEY(updated_by) REFERENCES public.users (id) ON DELETE SET NULL;
-
-ALTER TABLE public.api_scenarios ALTER COLUMN source_type SET DEFAULT 'manual';
-
-ALTER TABLE public.api_scenarios ALTER COLUMN execution_mode SET DEFAULT 'sequential';
-
-ALTER TABLE public.api_scenarios ALTER COLUMN timeout_seconds SET DEFAULT 600;
-
-ALTER TABLE public.api_scenarios ALTER COLUMN retry_count SET DEFAULT 0;
-
-ALTER TABLE public.api_scenarios ALTER COLUMN continue_on_failure SET DEFAULT false;
-
-ALTER TABLE public.api_scenarios ALTER COLUMN source_type SET NOT NULL;
-
-ALTER TABLE public.api_scenarios ALTER COLUMN execution_mode SET NOT NULL;
-
-ALTER TABLE public.api_scenarios ALTER COLUMN timeout_seconds SET NOT NULL;
-
-ALTER TABLE public.api_scenarios ALTER COLUMN retry_count SET NOT NULL;
-
-ALTER TABLE public.api_scenarios ALTER COLUMN continue_on_failure SET NOT NULL;
-
-ALTER TABLE public.scenario_nodes ADD CONSTRAINT scenario_nodes_scenario_id_fkey FOREIGN KEY(scenario_id) REFERENCES public.api_scenarios (id) ON DELETE CASCADE;
 
 ALTER TABLE public.api_module_chains ADD CONSTRAINT api_module_chains_related_scenario_id_fkey FOREIGN KEY(related_scenario_id) REFERENCES public.api_scenarios (id) ON DELETE SET NULL;
 
+ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_created_by_fkey FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL;
+
+ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id);
+
 ALTER TABLE public.api_module_chains ADD CONSTRAINT api_module_chains_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE;
+
+ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_source_module_chain_id_fkey FOREIGN KEY(source_module_chain_id) REFERENCES public.api_module_chains (id);
+
+ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_environment_id_fkey FOREIGN KEY(environment_id) REFERENCES public.environments (id) ON DELETE SET NULL;
+
+ALTER TABLE public.api_scenarios ADD CONSTRAINT api_scenarios_updated_by_fkey FOREIGN KEY(updated_by) REFERENCES public.users (id) ON DELETE SET NULL;
 
 CREATE UNIQUE INDEX ix_users_email ON public.users (email);
 
@@ -1155,14 +1200,6 @@ CREATE INDEX ix_projects_business_domain ON public.projects (business_domain);
 CREATE INDEX ix_projects_created_by ON public.projects (created_by);
 
 CREATE INDEX ix_projects_id ON public.projects (id);
-
-CREATE INDEX ix_versions_id ON public.versions (id);
-
-CREATE INDEX ix_versions_parent_version_id ON public.versions (parent_version_id);
-
-CREATE INDEX ix_versions_project_id ON public.versions (project_id);
-
-CREATE INDEX ix_versions_status ON public.versions (status);
 
 CREATE INDEX ix_test_executions_execution_type ON public.test_executions (execution_type);
 
@@ -1189,6 +1226,14 @@ CREATE INDEX ix_environments_id ON public.environments (id);
 CREATE INDEX ix_environments_name ON public.environments (name);
 
 CREATE INDEX ix_environments_project_id ON public.environments (project_id);
+
+CREATE INDEX ix_versions_id ON public.versions (id);
+
+CREATE INDEX ix_versions_parent_version_id ON public.versions (parent_version_id);
+
+CREATE INDEX ix_versions_project_id ON public.versions (project_id);
+
+CREATE INDEX ix_versions_status ON public.versions (status);
 
 CREATE INDEX ix_database_configs_id ON public.database_configs (id);
 
@@ -1312,6 +1357,24 @@ CREATE INDEX ix_script_generations_id ON public.script_generations (id);
 
 CREATE INDEX ix_script_generations_project_id ON public.script_generations (project_id);
 
+CREATE INDEX ix_sql_lineage_edges_api_field_path ON public.sql_lineage_edges (api_field_path);
+
+CREATE INDEX ix_sql_lineage_edges_definition_field ON public.sql_lineage_edges (definition_id, api_field_path);
+
+CREATE INDEX ix_sql_lineage_edges_definition_id ON public.sql_lineage_edges (definition_id);
+
+CREATE INDEX ix_sql_lineage_edges_id ON public.sql_lineage_edges (id);
+
+CREATE INDEX ix_sql_lineage_edges_project_id ON public.sql_lineage_edges (project_id);
+
+CREATE INDEX ix_sql_lineage_edges_source ON public.sql_lineage_edges (source_table, source_column);
+
+CREATE INDEX ix_sql_lineage_edges_source_column ON public.sql_lineage_edges (source_column);
+
+CREATE INDEX ix_sql_lineage_edges_source_table ON public.sql_lineage_edges (source_table);
+
+CREATE INDEX ix_sql_lineage_edges_version_id ON public.sql_lineage_edges (version_id);
+
 CREATE INDEX ix_api_dependencies_dependency_type ON public.api_dependencies (dependency_type);
 
 CREATE INDEX ix_api_dependencies_id ON public.api_dependencies (id);
@@ -1422,6 +1485,30 @@ CREATE INDEX ix_version_snapshots_type ON public.version_snapshots (snapshot_typ
 
 CREATE INDEX ix_version_snapshots_version_id ON public.version_snapshots (version_id);
 
+CREATE INDEX ix_code_lineage_edges_api_field_path ON public.code_lineage_edges (api_field_path);
+
+CREATE INDEX ix_code_lineage_edges_db_column ON public.code_lineage_edges (db_column);
+
+CREATE INDEX ix_code_lineage_edges_db_table ON public.code_lineage_edges (db_table);
+
+CREATE INDEX ix_code_lineage_edges_definition_field ON public.code_lineage_edges (definition_id, api_field_path);
+
+CREATE INDEX ix_code_lineage_edges_definition_id ON public.code_lineage_edges (definition_id);
+
+CREATE INDEX ix_code_lineage_edges_evidence_type ON public.code_lineage_edges (evidence_type);
+
+CREATE INDEX ix_code_lineage_edges_id ON public.code_lineage_edges (id);
+
+CREATE INDEX ix_code_lineage_edges_project_id ON public.code_lineage_edges (project_id);
+
+CREATE INDEX ix_code_lineage_edges_source ON public.code_lineage_edges (db_table, db_column);
+
+CREATE INDEX ix_code_lineage_edges_source_field ON public.code_lineage_edges (source_field);
+
+CREATE INDEX ix_code_lineage_edges_target_field ON public.code_lineage_edges (target_field);
+
+CREATE INDEX ix_code_lineage_edges_version_id ON public.code_lineage_edges (version_id);
+
 CREATE INDEX idx_api_project_auth_configs_auth_type ON public.api_project_auth_configs (auth_type);
 
 CREATE INDEX idx_api_project_auth_configs_project_id ON public.api_project_auth_configs (project_id);
@@ -1514,6 +1601,10 @@ CREATE INDEX ix_ai_memory_project_id ON public.ai_memory (project_id);
 
 CREATE INDEX ix_ai_memory_project_type ON public.ai_memory (project_id, memory_type);
 
+CREATE INDEX ix_field_mapping_stage_artifacts_artifact_type ON public.field_mapping_stage_artifacts (artifact_type);
+
+CREATE INDEX ix_field_mapping_stage_artifacts_task_stage ON public.field_mapping_stage_artifacts (task_id, stage);
+
 CREATE INDEX ix_scenario_nodes_ref_type_ref_id ON public.scenario_nodes (ref_type, ref_id);
 
 CREATE INDEX ix_scenario_nodes_scenario_id ON public.scenario_nodes (scenario_id);
@@ -1521,10 +1612,6 @@ CREATE INDEX ix_scenario_nodes_scenario_id ON public.scenario_nodes (scenario_id
 CREATE INDEX ix_scenario_nodes_scenario_step ON public.scenario_nodes (scenario_id, step_order);
 
 CREATE UNIQUE INDEX uq_scenario_node_key ON public.scenario_nodes (scenario_id, node_key);
-
-CREATE INDEX ix_field_mapping_stage_artifacts_artifact_type ON public.field_mapping_stage_artifacts (artifact_type);
-
-CREATE INDEX ix_field_mapping_stage_artifacts_task_stage ON public.field_mapping_stage_artifacts (task_id, stage);
 
 CREATE INDEX ix_api_execution_traces_execution_id ON public.api_execution_traces (execution_id);
 
@@ -1535,14 +1622,6 @@ CREATE INDEX ix_sql_traces_trace_id ON public.sql_traces (trace_id);
 CREATE INDEX ix_field_mapping_runtime_evidence_task_field ON public.field_mapping_runtime_evidence (task_id, definition_id, api_field_path);
 
 CREATE INDEX ix_field_mapping_runtime_evidence_type_source ON public.field_mapping_runtime_evidence (evidence_type, source);
-
-CREATE INDEX ix_sql_lineage_edges_definition_field ON public.sql_lineage_edges (definition_id, api_field_path);
-
-CREATE INDEX ix_sql_lineage_edges_source ON public.sql_lineage_edges (source_table, source_column);
-
-CREATE INDEX ix_code_lineage_edges_definition_field ON public.code_lineage_edges (definition_id, api_field_path);
-
-CREATE INDEX ix_code_lineage_edges_source ON public.code_lineage_edges (db_table, db_column);
 
 CREATE INDEX ix_table_impacts_execution_id ON public.table_impacts (execution_id);
 
@@ -1555,3 +1634,15 @@ CREATE INDEX ix_api_table_impacts_api_id ON public.api_table_impacts (api_id);
 CREATE INDEX ix_field_mapping_feedback_project_field ON public.field_mapping_feedback (project_id, definition_id, api_field_path);
 
 CREATE INDEX ix_field_mapping_feedback_type_created ON public.field_mapping_feedback (feedback_type, created_at);
+
+CREATE INDEX ix_graph_nodes_node_type ON public.graph_nodes (node_type);
+
+CREATE INDEX ix_graph_edges_relation_type ON public.graph_edges (relation_type);
+
+CREATE INDEX ix_scenario_revisions_scenario_id ON public.scenario_revisions (scenario_id);
+
+CREATE INDEX ix_scenario_revisions_status ON public.scenario_revisions (status);
+
+CREATE INDEX ix_scenario_run_contexts_execution_id ON public.scenario_run_contexts (execution_id);
+
+CREATE INDEX ix_scenario_run_contexts_scenario_revision ON public.scenario_run_contexts (scenario_id, revision_id);

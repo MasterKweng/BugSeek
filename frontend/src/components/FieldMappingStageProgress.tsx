@@ -8,7 +8,7 @@ import {
   resetTask, 
   type StageResult, 
   type TaskProgress 
-} from '../services/fieldMapping';
+} from '../services/fieldMappingTask';
 
 interface FieldMappingStageProgressProps {
   taskId: number;

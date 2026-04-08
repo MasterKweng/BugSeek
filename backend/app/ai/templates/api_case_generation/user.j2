@@ -16,20 +16,33 @@
 1. 用例名称必须使用实际路径，格式固定为 "基准用例 - {{ path }}"
 2. 只生成一个基准用例
 3. 所有变量占位符都必须是字符串，例如 {% raw %}"{{user_id}}"、"{{random_int(1, 100)}}"{% endraw %}
-4. ID 或外键字段不要生成随机数字，改用变量占位符，并在 required_variables、data_prep 中体现来源
-5. GET/DELETE 的 request_data 不要包含 body
-6. POST/PUT/PATCH 的 request_data 必须包含 headers 和 body
-7. assertion_rules 至少包含状态码断言；如果响应可能有 code 字段，优先补充 code 成功断言
-8. 如果响应中存在可复用字段，再补 extraction_rules；字段路径使用 JSONPath
-9. assertion_rules 必须返回对象数组，不要返回字符串断言
-10. extraction_rules 必须返回对象数组，字段名使用 var_name 和 field
-11. priority 必须是字符串枚举："P0"、"P1"、"P2"、"P3"，不要返回数字
-12. required_variables 必须是字符串数组，例如 ["access_token", "category_id"]，不要返回对象数组
-13. data_prep 必须是字符串数组，例如 ["access_token: 通过登录接口获取"]，不要返回对象数组
-14. assertion_rules 每一项必须至少包含 source、operator、value，可选 property、description
-15. source 只能使用 status、body、header、time 之一
-16. 如果不确定，required_variables、data_prep、extraction_rules 返回空数组，不要发明复杂步骤对象
-17. 不要返回 workflow、action、step、output 这类流程编排对象
+4. 只有以下两类字段优先使用变量占位符：
+   - 鉴权或环境依赖字段，例如 access_token、tenant_id
+   - 外键、ID、或前置接口/前置数据准备会产出的字段
+5. 普通业务字段不要滥用变量占位符。对于普通字符串、数字、布尔值、枚举值，请直接生成合理的示例值，不要写成 {% raw %}"{{keywords}}"{% endraw %}、{% raw %}"{{description}}"{% endraw %} 这种形式
+6. 像 keywords、description、revision、units、name 这类普通业务字段，优先直接给示例值，只有在确实依赖前置步骤时才使用变量占位符
+7. ID 或外键字段不要生成随机数字，改用变量占位符，并在 required_variables、data_prep 中体现来源
+8. GET/DELETE 的 request_data 不要包含 body
+9. POST/PUT/PATCH 的 request_data 必须包含 headers 和 body
+10. assertion_rules 至少包含状态码断言；如果响应可能有 code 字段，优先补充 code 成功断言
+11. 如果响应中存在后续步骤可复用字段，再生成 extraction_rules；字段路径使用 JSONPath
+12. assertion_rules 必须返回对象数组，不要返回字符串断言
+13. extraction_rules 必须返回对象数组，字段名使用 var_name 和 field
+14. priority 必须是字符串枚举："P0"、"P1"、"P2"、"P3"，不要返回数字
+15. required_variables 必须是字符串数组，例如 ["access_token", "category_id"]，不要返回对象数组
+16. data_prep 必须是字符串数组，例如 ["access_token: 通过登录接口获取"]，不要返回对象数组
+17. assertion_rules 每一项必须至少包含 source、operator、value，可选 property、description
+18. source 只能使用 status、body、header、time 之一
+19. 如果 request_data 中出现了 {% raw %}"{{xxx}}"{% endraw %}，required_variables 必须包含 "xxx"
+20. 如果 request_data 中没有使用某个变量占位符，就不要在 required_variables 里凭空添加这个变量
+21. data_prep 必须覆盖 required_variables 中每个变量的来源说明。required_variables 里的每个变量，都应该在 data_prep 中有一条对应说明
+22. 在输出前，必须自行检查以下一致性：
+   - request_data 中使用了哪些 {% raw %}"{{变量}}"{% endraw %}
+   - required_variables 是否完整列出了这些变量，且没有多余变量
+   - data_prep 是否为每个 required_variables 提供了来源说明
+23. 如果某个变量没有明确来源说明，就不要使用这个变量占位符，改成直接示例值或删除该字段
+24. 如果不确定，required_variables、data_prep、extraction_rules 返回空数组，不要发明复杂步骤对象
+25. 不要返回 workflow、action、step、output 这类流程编排对象
 
 最小合法示例：
 {
@@ -38,7 +51,15 @@
   "priority": "P0",
   "request_data": {
     "method": "{{ method }}",
-    "path": "{{ path }}"
+    "path": "{{ path }}",
+    "headers": {
+      "Authorization": "Bearer {% raw %}{{access_token}}{% endraw %}"
+    },
+    "body": {
+      "name": "demo part",
+      "description": "auto generated description",
+      "category": "{% raw %}{{category_id}}{% endraw %}"
+    }
   },
   "required_variables": [
     "access_token",
@@ -73,6 +94,26 @@
   ],
   "ai_confidence": 0.9
 }
+
+错误示例（不要这样返回）：
+{
+  "request_data": {
+    "body": {
+      "keywords": "{% raw %}{{keywords}}{% endraw %}"
+    }
+  },
+  "required_variables": [
+    "access_token"
+  ],
+  "data_prep": [
+    "access_token: 通过登录接口获取"
+  ]
+}
+
+上面这个错误示例的问题是：
+- request_data 使用了 {% raw %}{{keywords}}{% endraw %}，但 required_variables 没有包含 keywords
+- data_prep 也没有说明 keywords 的来源
+- 对于 keywords 这种普通业务字段，应该优先直接生成示例值，例如 "demo keyword"
 
 返回结果需要覆盖这些字段：
 - name

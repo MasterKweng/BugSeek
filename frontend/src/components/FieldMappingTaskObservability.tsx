@@ -1,7 +1,7 @@
 import React from 'react'
 import { Alert, Card, Descriptions, Empty, Progress, Space, Steps, Tag, Typography } from 'antd'
 
-import type { AsyncTask } from '../services/fieldMapping'
+import type { AsyncTask } from '../services/fieldMappingTask'
 
 const { Text } = Typography
 

@@ -1,8 +1,11 @@
 """Business validators for AI-generated API test cases."""
 
+import logging
 from typing import Any, Dict, List
 
 from app.ai.errors import AIResponseValidationError
+
+logger = logging.getLogger(__name__)
 
 
 class TestCaseValidator:
@@ -40,6 +43,12 @@ class TestCaseValidator:
         placeholders = sorted(set(cls._collect_placeholders(request_data)))
         missing = [item for item in placeholders if item not in required_variables and not item.startswith("random_")]
         if missing:
+            logger.warning(
+                "required_variables mismatch detected after post-processing: placeholders=%s, required_variables=%s, missing=%s",
+                placeholders,
+                required_variables,
+                missing,
+            )
             raise AIResponseValidationError(
                 "required_variables 缺少以下占位变量: " + ", ".join(missing)
             )

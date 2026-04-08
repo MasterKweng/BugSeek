@@ -21,6 +21,10 @@ from app.platform.db.base import (
 )
 from app.core.trace import get_trace_id
 from app.execution.worker import CaseExecutor, ExecutionStatus, ExecutionType, AssertionType
+from app.services.scenario_resolution_service import (
+    ScenarioResolutionError,
+    ScenarioResolutionService,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -36,12 +40,12 @@ def create_scenario_execution(
 ) -> TestExecution:
     execution = TestExecution(
         project_id=scenario.project_id,
-        version_id=scenario.version_id,
+        version_id=getattr(scenario, "version_id", None),
         execution_type=ExecutionType.SCENARIO,
         target_id=scenario.id,
         operator_user_id=operator_user_id,
         source_execution_id=source_execution_id,
-        title=scenario.name,
+        title=getattr(scenario, "name", f"Scenario {scenario.id}"),
         summary_json={
             "scenario_id": scenario.id,
             "scenario_name": scenario.name,
@@ -50,7 +54,7 @@ def create_scenario_execution(
         },
         result_status=None,
         environment_id=environment_id,
-        execution_mode=scenario.execution_mode,
+        execution_mode=getattr(scenario, "execution_mode", "dag"),
         triggered_by=triggered_by,
         status=ExecutionStatus.PENDING,
         started_at=None,
@@ -768,49 +772,15 @@ class ScenarioExecutor:
         case: Optional[ApiCase] = None
         definition: Optional[ApiDefinition] = None
 
-        if ref_type == "api_case":
-            case = db.query(ApiCase).filter(ApiCase.id == ref_id).first()
-            if not case:
-                raise ValueError(f"ApiCase not found: {ref_id}")
-            definition = db.query(ApiDefinition).filter(ApiDefinition.id == case.definition_id).first()
-        elif ref_type == "api_definition":
-            definition = db.query(ApiDefinition).filter(ApiDefinition.id == ref_id).first()
-            if not definition:
-                raise ValueError(f"ApiDefinition not found: {ref_id}")
-            case = self._select_case_for_definition(
+        try:
+            return ScenarioResolutionService.resolve_node_runtime_target(
+                db,
                 scenario=scenario,
                 node=node,
-                definition=definition,
-                db=db,
+                override_environment_id=node.get("environment_id") or environment_id,
             )
-        else:
-            raise ValueError(f"Unsupported ref_type={ref_type}")
-
-        environment_id = (
-            node.get("environment_id")
-            or environment_id
-            or scenario.environment_id
-            or case.environment_id
-        )
-        if not environment_id:
-            raise ValueError(f"Environment is required for node={node.get('node_key')}")
-
-        environment = db.query(Environment).filter(Environment.id == environment_id).first()
-        if not environment:
-            raise ValueError(f"Environment not found: {environment_id}")
-        if environment.project_id != scenario.project_id:
-            raise ValueError(
-                f"Environment project mismatch: env_project={environment.project_id}, "
-                f"scenario_project={scenario.project_id}"
-            )
-
-        if definition.project_id != scenario.project_id:
-            raise ValueError(
-                f"Definition project mismatch: def_project={definition.project_id}, "
-                f"scenario_project={scenario.project_id}"
-            )
-
-        return case, definition, environment
+        except ScenarioResolutionError as exc:
+            raise ValueError(str(exc)) from exc
 
     def _select_case_for_definition(
         self,
@@ -984,6 +954,7 @@ class ScenarioExecutor:
             execution.source_execution_id = source_execution_id
             execution.title = scenario.name
             execution.summary_json = {
+                **(execution.summary_json or {}),
                 "scenario_id": scenario.id,
                 "scenario_name": scenario.name,
                 "node_count": total,
