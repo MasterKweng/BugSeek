@@ -40,6 +40,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from jsonpath_ng import parse
 
+from app.execution.expression_evaluator import ExpressionEvaluator
 from app.platform.db.base import (
     ApiCase, ApiDefinition, ApiScenario, ScenarioNode, Environment,
     TestExecution, TestExecutionResult, AuthConfig
@@ -1339,6 +1340,7 @@ class CaseExecutor:
             for idx, rule in enumerate(case.extraction_rules, 1):
                 var_name = rule.get("var_name") or rule.get("variable_name")
                 field_path = rule.get("field") or rule.get("json_path")
+                dsl = (rule.get("dsl") or "").strip().lower()
 
                 if not var_name or not field_path:
                     logger.warning(f"[{trace_id}] [提取规则 #{idx}] 规则不完整，跳过 (var_name={var_name}, field_path={field_path})")
@@ -1346,8 +1348,12 @@ class CaseExecutor:
 
                 logger.info(f"[{trace_id}] [提取规则 #{idx}] 变量名: {var_name}, 字段路径: {field_path}")
 
-                # 使用 JSONPath 提取字段值
-                value = self._extract_field(response_body, field_path)
+                if dsl == "jmespath":
+                    value = ExpressionEvaluator.evaluate_jmespath(response_body, field_path)
+                elif dsl == "template":
+                    value = ExpressionEvaluator.render_template(field_path, {"response": response_body, **response_body})
+                else:
+                    value = self._extract_field(response_body, field_path)
 
                 if value is not None:
                     extracted_vars[var_name] = value

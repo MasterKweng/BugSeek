@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Card, Result, Space } from 'antd'
+import { Button, Card, Collapse, Result, Space } from 'antd'
 import { Link, useParams } from 'react-router-dom'
 import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
 import TaskHeaderCard from '../../components/field-mapping/TaskHeaderCard'
@@ -7,7 +7,6 @@ import TaskStagesPanel from '../../components/field-mapping/TaskStagesPanel'
 import SuggestionsToolbar from '../../components/field-mapping/SuggestionsToolbar'
 import SuggestionsTable from '../../components/field-mapping/SuggestionsTable'
 import SuggestionDetailDrawer from '../../components/field-mapping/SuggestionDetailDrawer'
-import TaskActionBar from '../../components/field-mapping/TaskActionBar'
 import StageDetailDrawer from '../../components/field-mapping/StageDetailDrawer'
 import ConsistencyDrawer from '../../components/field-mapping/ConsistencyDrawer'
 import TaskHistoryDrawer from '../../components/field-mapping/TaskHistoryDrawer'
@@ -125,28 +124,12 @@ const FieldMappingTaskDetail: React.FC = () => {
         )}
       />
 
-      <TaskHeaderCard task={task} />
-      <TaskEvidencePanel loading={evidenceLoading} contribution={evidenceContribution} />
-      <PartialSuccessRecoveryCard
-        task={task}
-        loading={replayLoading}
-        onReplay={() => void handleReplaySuggestions()}
-      />
-      <TaskActionBar
+      <TaskHeaderCard
         task={task}
         actionLoading={actionLoading}
         onCancel={() => void handleCancelTask()}
         onResume={() => void handleResumeTask()}
         onReset={() => void handleResetTask()}
-      />
-      <TaskStagesPanel
-        task={task}
-        retryingStageNum={retryingStageNum}
-        onViewStage={(stageNum) => {
-          setSelectedStageNum(stageNum)
-          setStageDetailOpen(true)
-        }}
-        onRetryStage={(stageNum) => void handleRetryStage(stageNum)}
       />
 
       <Card className="workspace-table-card" bordered={false}>
@@ -192,6 +175,37 @@ const FieldMappingTaskDetail: React.FC = () => {
           />
         </Space>
       </Card>
+
+      <Collapse
+        className="workspace-table-card"
+        bordered={false}
+        defaultActiveKey={['task-assist']}
+        items={[
+          {
+            key: 'task-assist',
+            label: '任务辅助信息',
+            children: (
+              <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                <PartialSuccessRecoveryCard
+                  task={task}
+                  loading={replayLoading}
+                  onReplay={() => void handleReplaySuggestions()}
+                />
+                <TaskStagesPanel
+                  task={task}
+                  retryingStageNum={retryingStageNum}
+                  onViewStage={(stageNum) => {
+                    setSelectedStageNum(stageNum)
+                    setStageDetailOpen(true)
+                  }}
+                  onRetryStage={(stageNum) => void handleRetryStage(stageNum)}
+                />
+                <TaskEvidencePanel loading={evidenceLoading} contribution={evidenceContribution} />
+              </Space>
+            ),
+          },
+        ]}
+      />
 
       <SuggestionDetailDrawer
         open={detailOpen}

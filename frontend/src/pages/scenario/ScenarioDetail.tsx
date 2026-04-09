@@ -1,5 +1,6 @@
-﻿import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
+  Alert,
   Button,
   Card,
   Descriptions,
@@ -8,26 +9,51 @@ import {
   Select,
   Space,
   Spin,
-  Steps,
   Table,
-  Tag,
+  Tooltip,
   Typography,
   message,
 } from 'antd'
-import { ArrowLeftOutlined, PlayCircleOutlined, SettingOutlined } from '@ant-design/icons'
+import {
+  ArrowLeftOutlined,
+  CheckCircleOutlined,
+  PlayCircleOutlined,
+  QuestionCircleOutlined,
+  RocketOutlined,
+  SettingOutlined,
+} from '@ant-design/icons'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import api from '../../services/api'
 import { useProjectStore } from '../../store/project'
-import type {
-  Environment,
-  ScenarioDetail as ScenarioDetailType,
-  ScenarioExecutionDetail,
+import {
+  type ScenarioDetail as ScenarioDetailType,
+  type ScenarioExecutionSummary,
+  type ScenarioRevisionListItem,
+  type ScenarioValidationResult,
+  type Environment,
 } from '../../types/scenario'
+import { createScenarioRun } from '../../services/scenarioRuns'
+import {
+  getScenario,
+  getScenarioRevisions,
+  listScenarioExecutionsLegacy,
+  publishScenario,
+  validateScenario,
+  type ScenarioExecutionListItem,
+} from '../../services/scenario'
+import api from '../../services/api'
+import ScenarioStatusTag from '../../components/scenario/ScenarioStatusTag'
 
 const { Paragraph, Text } = Typography
 
-interface ScenarioExecutionListItem extends Pick<ScenarioExecutionDetail, 'id' | 'status' | 'environment_id' | 'started_at' | 'finished_at' | 'summary'> {}
+const labelWithHint = (label: string, hint: string) => (
+  <Space size={4}>
+    <span>{label}</span>
+    <Tooltip title={hint}>
+      <QuestionCircleOutlined />
+    </Tooltip>
+  </Space>
+)
 
 const ScenarioDetail: React.FC = () => {
   const navigate = useNavigate()
@@ -35,11 +61,22 @@ const ScenarioDetail: React.FC = () => {
   const { currentProject } = useProjectStore()
   const [loading, setLoading] = useState(false)
   const [executing, setExecuting] = useState(false)
+  const [publishing, setPublishing] = useState(false)
+  const [validating, setValidating] = useState(false)
   const [scenario, setScenario] = useState<ScenarioDetailType | null>(null)
   const [environments, setEnvironments] = useState<Environment[]>([])
   const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<number | null>(null)
+  const [selectedRevisionId, setSelectedRevisionId] = useState<number | null>(null)
   const [executionModalVisible, setExecutionModalVisible] = useState(false)
   const [executions, setExecutions] = useState<ScenarioExecutionListItem[]>([])
+  const [revisions, setRevisions] = useState<ScenarioRevisionListItem[]>([])
+  const [validationResult, setValidationResult] = useState<ScenarioValidationResult | null>(null)
+
+  const resolvedLifecycleStatus = scenario?.lifecycle_status || scenario?.status || '-'
+  const defaultRevisionId = useMemo(() => {
+    if (!scenario) return null
+    return scenario.published_revision_id ?? scenario.draft_revision_id ?? null
+  }, [scenario])
 
   useEffect(() => {
     void loadScenario()
@@ -51,22 +88,22 @@ const ScenarioDetail: React.FC = () => {
 
   useEffect(() => {
     void loadExecutions()
+    void loadRevisions()
   }, [scenarioId])
 
-  const loadScenario = async () => {
-    if (!scenarioId) {
-      return
+  useEffect(() => {
+    if (!selectedRevisionId) {
+      setSelectedRevisionId(defaultRevisionId)
     }
+  }, [defaultRevisionId, selectedRevisionId])
 
+  const loadScenario = async () => {
+    if (!scenarioId) return
     setLoading(true)
     try {
-      const response = await api.get(`/scenarios/${scenarioId}`)
-      if (response.code === 0) {
-        setScenario(response.data)
-        setSelectedEnvironmentId(response.data.environment_id ?? null)
-      } else {
-        message.error(response.message || '加载场景失败')
-      }
+      const detail = await getScenario(Number(scenarioId))
+      setScenario(detail)
+      setSelectedEnvironmentId(detail.environment_id ?? null)
     } catch (error: any) {
       message.error(error.message || '加载场景失败')
     } finally {
@@ -79,12 +116,10 @@ const ScenarioDetail: React.FC = () => {
       setEnvironments([])
       return
     }
-
     try {
       const response = await api.get(`/environments?project_id=${currentProject.id}`)
       if (response.code === 0) {
-        const envs = response.data.environments || []
-        setEnvironments(envs)
+        setEnvironments(response.data.environments || [])
       }
     } catch (error) {
       console.error('加载环境失败:', error)
@@ -92,17 +127,57 @@ const ScenarioDetail: React.FC = () => {
   }
 
   const loadExecutions = async () => {
-    if (!scenarioId) {
-      return
-    }
-
+    if (!scenarioId) return
     try {
-      const response = await api.get(`/scenarios/${scenarioId}/executions?skip=0&limit=10`)
-      if (response.code === 0) {
-        setExecutions(response.data.items || [])
-      }
+      const data = await listScenarioExecutionsLegacy(Number(scenarioId), { skip: 0, limit: 10 })
+      setExecutions(data.items || [])
     } catch (error) {
       console.error('加载执行历史失败:', error)
+    }
+  }
+
+  const loadRevisions = async () => {
+    if (!scenarioId) return
+    try {
+      const data = await getScenarioRevisions(Number(scenarioId))
+      setRevisions(data.items || [])
+    } catch (error) {
+      console.error('加载版本快照失败:', error)
+    }
+  }
+
+  const handleValidate = async () => {
+    if (!scenarioId) return
+    setValidating(true)
+    try {
+      const result = await validateScenario(Number(scenarioId), {
+        environment_id: selectedEnvironmentId,
+      })
+      setValidationResult(result)
+      if (result.readiness_valid) {
+        message.success('场景校验通过')
+      } else {
+        message.warning('结构有效，但发布前检查未通过')
+      }
+    } catch (error: any) {
+      message.error(error.message || '场景校验失败')
+    } finally {
+      setValidating(false)
+    }
+  }
+
+  const handlePublish = async () => {
+    if (!scenarioId) return
+    setPublishing(true)
+    try {
+      const result = await publishScenario(Number(scenarioId), { publish_note: 'published from scenario detail' })
+      message.success(`场景已发布为版本 #${result.revision_no}`)
+      await loadScenario()
+      await loadRevisions()
+    } catch (error: any) {
+      message.error(error.message || '发布场景失败')
+    } finally {
+      setPublishing(false)
     }
   }
 
@@ -111,22 +186,17 @@ const ScenarioDetail: React.FC = () => {
       message.warning('请选择执行环境')
       return
     }
-
     setExecuting(true)
     try {
-      const response = await api.post(`/scenarios/${scenarioId}/execute`, {
+      const run = await createScenarioRun({
+        scenario_id: Number(scenarioId),
+        revision_id: selectedRevisionId ?? undefined,
         environment_id: selectedEnvironmentId,
       })
-      if (response.code !== 0) {
-        message.error(response.message || '执行场景失败')
-        return
-      }
-
-      message.success('场景执行完成')
+      message.success('场景运行已提交')
       setExecutionModalVisible(false)
-      await loadScenario()
       await loadExecutions()
-      navigate(`/scenario/${scenarioId}/execution/${response.data.execution_id}`)
+      navigate(`/scenario/${scenarioId}/execution/${run.run_id}`)
     } catch (error: any) {
       message.error(error.message || '执行场景失败')
     } finally {
@@ -157,10 +227,16 @@ const ScenarioDetail: React.FC = () => {
           返回列表
         </Button>
         <Button icon={<SettingOutlined />} onClick={() => navigate(`/scenario/${scenario.id}/design`)}>
-          编辑场景
+          进入设计页
+        </Button>
+        <Button icon={<CheckCircleOutlined />} onClick={() => void handleValidate()} loading={validating}>
+          校验场景
+        </Button>
+        <Button icon={<RocketOutlined />} onClick={() => void handlePublish()} loading={publishing}>
+          发布场景
         </Button>
         <Button type="primary" icon={<PlayCircleOutlined />} onClick={() => setExecutionModalVisible(true)}>
-          执行场景
+          创建运行
         </Button>
       </Space>
 
@@ -168,12 +244,10 @@ const ScenarioDetail: React.FC = () => {
         <Card title="场景详情">
           <Descriptions bordered column={2}>
             <Descriptions.Item label="场景 ID">{scenario.id}</Descriptions.Item>
-            <Descriptions.Item label="版本 ID">{scenario.version_id ?? '-'}</Descriptions.Item>
+            <Descriptions.Item label="项目 ID">{scenario.project_id}</Descriptions.Item>
             <Descriptions.Item label="场景名称">{scenario.name}</Descriptions.Item>
-            <Descriptions.Item label="状态">
-              <Tag color={scenario.status === 'active' ? 'success' : scenario.status === 'archived' ? 'default' : 'processing'}>
-                {scenario.status}
-              </Tag>
+            <Descriptions.Item label="生命周期">
+              <ScenarioStatusTag status={resolvedLifecycleStatus} />
             </Descriptions.Item>
             <Descriptions.Item label="场景类型">{scenario.scenario_type}</Descriptions.Item>
             <Descriptions.Item label="来源">{scenario.source_type}</Descriptions.Item>
@@ -181,53 +255,118 @@ const ScenarioDetail: React.FC = () => {
             <Descriptions.Item label="默认环境">{scenario.environment_id ?? '-'}</Descriptions.Item>
             <Descriptions.Item label="节点数量">{scenario.node_count}</Descriptions.Item>
             <Descriptions.Item label="超时">{scenario.timeout_seconds}s</Descriptions.Item>
+            <Descriptions.Item label={labelWithHint('草稿版本', '设计态的版本快照，可继续编辑。')}>
+              {scenario.draft_revision_id ?? '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label={labelWithHint('发布版本', '正式发布后可执行的版本快照。')}>
+              {scenario.published_revision_id ?? '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label={labelWithHint('最新版本号', '该场景当前已生成的最新版本序号。')}>
+              {scenario.latest_revision_no ?? '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="版本 ID">{scenario.version_id ?? '-'}</Descriptions.Item>
           </Descriptions>
 
           <Paragraph style={{ marginTop: 16 }}>{scenario.description || '暂无描述'}</Paragraph>
         </Card>
 
-        <Card title="场景节点">
-          <Steps
-            direction="vertical"
-            current={-1}
-            items={scenario.nodes.map((node) => ({
-              title: `${node.node_name || node.node_key}`,
-              description: (
-                <Space direction="vertical" size={2}>
-                  <Text type="secondary">
-                    {node.node_type} / {node.ref_type} #{node.ref_id}
-                  </Text>
-                  {node.depends_on.length > 0 && <Text type="secondary">依赖：{node.depends_on.join(', ')}</Text>}
-                  {node.input_mapping && Object.keys(node.input_mapping).length > 0 && (
-                    <Text type="secondary">输入映射：{JSON.stringify(node.input_mapping)}</Text>
-                  )}
-                </Space>
-              ),
-            }))}
+        {validationResult ? (
+          <Alert
+            type={validationResult.readiness_valid ? 'success' : 'warning'}
+            showIcon
+            message={validationResult.readiness_valid ? '场景已通过校验' : '场景结构通过，但 readiness 未通过'}
+            description={(
+              <Space direction="vertical" size={4}>
+                <Text>结构校验：{validationResult.structural_valid ? '通过' : '失败'}</Text>
+                <Text>执行前检查：{validationResult.readiness_valid ? '通过' : '未通过'}</Text>
+                {validationResult.errors.length > 0 ? (
+                  <Text type="danger">问题：{validationResult.errors.map((item) => item.message).join('；')}</Text>
+                ) : null}
+                {validationResult.warnings.length > 0 ? (
+                  <Text type="secondary">提示：{validationResult.warnings.map((item) => item.message).join('；')}</Text>
+                ) : null}
+              </Space>
+            )}
+          />
+        ) : null}
+
+        <Card title="版本快照列表">
+          <Table<ScenarioRevisionListItem>
+            rowKey="id"
+            dataSource={revisions}
+            pagination={false}
+            locale={{ emptyText: '暂无版本快照' }}
+            columns={[
+              { title: '版本快照 ID', dataIndex: 'id', key: 'id' },
+              { title: '版本号', dataIndex: 'revision_no', key: 'revision_no' },
+              {
+                title: '状态',
+                dataIndex: 'status',
+                key: 'status',
+                render: (value: string) => <ScenarioStatusTag status={value} />,
+              },
+              { title: '发布时间', dataIndex: 'published_at', key: 'published_at', render: (value?: string | null) => value || '-' },
+              {
+                title: '操作',
+                key: 'actions',
+                render: (_, record) => (
+                  <Button type="link" onClick={() => navigate(`/scenario/${scenario.id}/design?revisionId=${record.id}`)}>
+                    查看设计
+                  </Button>
+                ),
+              },
+            ]}
           />
         </Card>
 
-        <Card title="最近执行">
+        <Card title="场景节点">
+          <Table
+            rowKey={(node) => node.id ?? node.node_key}
+            dataSource={scenario.nodes}
+            pagination={false}
+            columns={[
+              { title: '节点名称', key: 'name', render: (_, node) => node.node_name || node.node_key },
+              { title: '节点标识', dataIndex: 'node_key', key: 'node_key' },
+              { title: '节点类型', dataIndex: 'node_type', key: 'node_type' },
+              {
+                title: '引用',
+                key: 'ref',
+                render: (_, node) => (node.ref_type ? `${node.ref_type} #${node.ref_id ?? '-'}` : '-'),
+              },
+              {
+                title: '依赖',
+                dataIndex: 'depends_on',
+                key: 'depends_on',
+                render: (value: string[]) => (value?.length ? value.join(', ') : '-'),
+              },
+            ]}
+          />
+        </Card>
+
+        <Card title="最近运行 / 执行记录">
           <Table<ScenarioExecutionListItem>
             rowKey="id"
             dataSource={executions}
             pagination={false}
             locale={{ emptyText: '暂无执行记录' }}
             columns={[
-              { title: '执行 ID', dataIndex: 'id', key: 'id' },
+              { title: '运行 ID', dataIndex: 'id', key: 'id' },
               {
                 title: '状态',
                 dataIndex: 'status',
                 key: 'status',
-                render: (value: string) => <Tag color={value === 'completed' ? 'success' : 'error'}>{value}</Tag>,
+                render: (value: string) => <ScenarioStatusTag status={value} />,
               },
               { title: '环境', dataIndex: 'environment_id', key: 'environment_id' },
               {
-                title: '汇总',
+                title: '摘要',
                 dataIndex: 'summary',
                 key: 'summary',
-                render: (summary: ScenarioExecutionDetail['summary']) =>
-                  summary ? `${summary.passed}/${summary.total} 通过，耗时 ${summary.duration_ms}ms` : '-',
+                render: (summary?: ScenarioExecutionSummary | Record<string, unknown>) => {
+                  const runSummary = summary as ScenarioExecutionSummary | undefined
+                  if (!runSummary?.total) return '-'
+                  return `${runSummary.passed}/${runSummary.total} 通过，耗时 ${runSummary.duration_ms}ms`
+                },
               },
               { title: '开始时间', dataIndex: 'started_at', key: 'started_at' },
               {
@@ -235,7 +374,7 @@ const ScenarioDetail: React.FC = () => {
                 key: 'actions',
                 render: (_, record) => (
                   <Button type="link" onClick={() => navigate(`/scenario/${scenario.id}/execution/${record.id}`)}>
-                    查看执行
+                    查看运行
                   </Button>
                 ),
               },
@@ -245,7 +384,7 @@ const ScenarioDetail: React.FC = () => {
       </Space>
 
       <Modal
-        title="执行场景"
+        title="创建场景运行"
         open={executionModalVisible}
         onOk={() => void handleExecute()}
         confirmLoading={executing}
@@ -261,6 +400,17 @@ const ScenarioDetail: React.FC = () => {
               value: item.id,
             }))}
           />
+          <Select<number>
+            allowClear
+            placeholder="可选：指定版本快照运行"
+            value={selectedRevisionId ?? undefined}
+            onChange={(value) => setSelectedRevisionId(value ?? null)}
+            options={revisions.map((revision) => ({
+              label: `#${revision.revision_no}（${revision.status}）`,
+              value: revision.id,
+            }))}
+          />
+          <Text type="secondary">未指定版本快照时，后端会默认运行已发布的版本。</Text>
         </Space>
       </Modal>
     </div>
@@ -268,6 +418,3 @@ const ScenarioDetail: React.FC = () => {
 }
 
 export default ScenarioDetail
-
-
-

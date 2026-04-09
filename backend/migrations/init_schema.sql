@@ -468,6 +468,53 @@ CREATE TABLE public.test_types (
 	CONSTRAINT uq_project_type_code UNIQUE NULLS DISTINCT (project_id, code)
 );
 
+CREATE TABLE public.scenario_edges (
+	id BIGSERIAL NOT NULL, 
+	revision_id BIGINT NOT NULL, 
+	source_node_key VARCHAR(64) NOT NULL, 
+	target_node_key VARCHAR(64) NOT NULL, 
+	edge_type VARCHAR(20) DEFAULT 'control'::character varying NOT NULL, 
+	condition_expr JSON, 
+	order_hint INTEGER, 
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+	updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL, 
+	CONSTRAINT scenario_edges_pkey PRIMARY KEY (id), 
+	CONSTRAINT scenario_edges_revision_id_fkey FOREIGN KEY(revision_id) REFERENCES public.scenario_revisions (id) ON DELETE CASCADE, 
+	CONSTRAINT uq_scenario_edge_revision_nodes UNIQUE NULLS DISTINCT (revision_id, source_node_key, target_node_key, edge_type)
+);
+
+CREATE TABLE public.scenario_templates (
+	id BIGSERIAL NOT NULL, 
+	project_id INTEGER, 
+	name VARCHAR(255) NOT NULL, 
+	description TEXT, 
+	category VARCHAR(64), 
+	status VARCHAR(20) NOT NULL, 
+	created_by INTEGER, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	CONSTRAINT scenario_templates_pkey PRIMARY KEY (id), 
+	CONSTRAINT scenario_templates_created_by_fkey FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
+	CONSTRAINT scenario_templates_project_id_fkey FOREIGN KEY(project_id) REFERENCES public.projects (id) ON DELETE CASCADE
+);
+
+CREATE TABLE public.scenario_ai_suggestions (
+	id BIGSERIAL NOT NULL, 
+	scenario_id INTEGER, 
+	revision_id BIGINT, 
+	suggestion_type VARCHAR(32) NOT NULL, 
+	payload_json JSON NOT NULL, 
+	confidence DOUBLE PRECISION, 
+	status VARCHAR(20) NOT NULL, 
+	created_by INTEGER, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	CONSTRAINT scenario_ai_suggestions_pkey PRIMARY KEY (id), 
+	CONSTRAINT scenario_ai_suggestions_created_by_fkey FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
+	CONSTRAINT scenario_ai_suggestions_revision_id_fkey FOREIGN KEY(revision_id) REFERENCES public.scenario_revisions (id) ON DELETE SET NULL, 
+	CONSTRAINT scenario_ai_suggestions_scenario_id_fkey FOREIGN KEY(scenario_id) REFERENCES public.api_scenarios (id) ON DELETE CASCADE
+);
+
 CREATE TABLE public.test_executions (
 	id SERIAL NOT NULL, 
 	project_id INTEGER NOT NULL, 
@@ -762,6 +809,20 @@ CREATE TABLE public.db_schema_versions (
 	CONSTRAINT db_schema_versions_version_id_fkey FOREIGN KEY(version_id) REFERENCES public.versions (id)
 );
 
+CREATE TABLE public.scenario_template_revisions (
+	id BIGSERIAL NOT NULL, 
+	template_id BIGINT NOT NULL, 
+	revision_no INTEGER NOT NULL, 
+	snapshot_json JSON NOT NULL, 
+	created_by INTEGER, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	CONSTRAINT scenario_template_revisions_pkey PRIMARY KEY (id), 
+	CONSTRAINT scenario_template_revisions_created_by_fkey FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
+	CONSTRAINT scenario_template_revisions_template_id_fkey FOREIGN KEY(template_id) REFERENCES public.scenario_templates (id) ON DELETE CASCADE, 
+	CONSTRAINT uq_scenario_template_revision_no UNIQUE NULLS DISTINCT (template_id, revision_no)
+);
+
 CREATE TABLE public.script_executions (
 	id SERIAL NOT NULL, 
 	project_id INTEGER NOT NULL, 
@@ -1026,6 +1087,29 @@ CREATE TABLE public.field_mapping_runtime_evidence (
 	CONSTRAINT fk_field_mapping_runtime_evidence_task FOREIGN KEY(task_id) REFERENCES public.async_tasks (id) ON DELETE CASCADE, 
 	CONSTRAINT fk_field_mapping_runtime_evidence_user FOREIGN KEY(created_by) REFERENCES public.users (id) ON DELETE SET NULL, 
 	CONSTRAINT fk_field_mapping_runtime_evidence_version FOREIGN KEY(version_id) REFERENCES public.versions (id) ON DELETE CASCADE
+);
+
+CREATE TABLE public.scenario_node_runs (
+	id BIGSERIAL NOT NULL, 
+	execution_id INTEGER NOT NULL, 
+	scenario_id INTEGER NOT NULL, 
+	revision_id BIGINT NOT NULL, 
+	node_key VARCHAR(64) NOT NULL, 
+	node_type VARCHAR(32) NOT NULL, 
+	attempt INTEGER NOT NULL, 
+	status VARCHAR(20) NOT NULL, 
+	input_snapshot JSON, 
+	output_snapshot JSON, 
+	resolved_ref_snapshot JSON, 
+	error_message TEXT, 
+	started_at TIMESTAMP WITHOUT TIME ZONE, 
+	finished_at TIMESTAMP WITHOUT TIME ZONE, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	CONSTRAINT scenario_node_runs_pkey PRIMARY KEY (id), 
+	CONSTRAINT scenario_node_runs_execution_id_fkey FOREIGN KEY(execution_id) REFERENCES public.test_executions (id) ON DELETE CASCADE, 
+	CONSTRAINT scenario_node_runs_revision_id_fkey FOREIGN KEY(revision_id) REFERENCES public.scenario_revisions (id) ON DELETE CASCADE, 
+	CONSTRAINT scenario_node_runs_scenario_id_fkey FOREIGN KEY(scenario_id) REFERENCES public.api_scenarios (id) ON DELETE CASCADE
 );
 
 CREATE TABLE public.scenario_run_contexts (
@@ -1639,6 +1723,14 @@ CREATE INDEX ix_graph_nodes_node_type ON public.graph_nodes (node_type);
 
 CREATE INDEX ix_graph_edges_relation_type ON public.graph_edges (relation_type);
 
+CREATE INDEX ix_scenario_node_runs_execution_id ON public.scenario_node_runs (execution_id);
+
+CREATE INDEX ix_scenario_node_runs_execution_node ON public.scenario_node_runs (execution_id, node_key, attempt);
+
+CREATE INDEX ix_scenario_node_runs_id ON public.scenario_node_runs (id);
+
+CREATE INDEX ix_scenario_node_runs_revision_id ON public.scenario_node_runs (revision_id);
+
 CREATE INDEX ix_scenario_revisions_scenario_id ON public.scenario_revisions (scenario_id);
 
 CREATE INDEX ix_scenario_revisions_status ON public.scenario_revisions (status);
@@ -1646,3 +1738,25 @@ CREATE INDEX ix_scenario_revisions_status ON public.scenario_revisions (status);
 CREATE INDEX ix_scenario_run_contexts_execution_id ON public.scenario_run_contexts (execution_id);
 
 CREATE INDEX ix_scenario_run_contexts_scenario_revision ON public.scenario_run_contexts (scenario_id, revision_id);
+
+CREATE INDEX ix_scenario_edges_revision_id ON public.scenario_edges (revision_id);
+
+CREATE INDEX ix_scenario_edges_target_node_key ON public.scenario_edges (target_node_key);
+
+CREATE INDEX ix_scenario_templates_id ON public.scenario_templates (id);
+
+CREATE INDEX ix_scenario_templates_project_id ON public.scenario_templates (project_id);
+
+CREATE INDEX ix_scenario_templates_status ON public.scenario_templates (status);
+
+CREATE INDEX ix_scenario_template_revisions_id ON public.scenario_template_revisions (id);
+
+CREATE INDEX ix_scenario_template_revisions_template_id ON public.scenario_template_revisions (template_id);
+
+CREATE INDEX ix_scenario_ai_suggestions_id ON public.scenario_ai_suggestions (id);
+
+CREATE INDEX ix_scenario_ai_suggestions_revision_id ON public.scenario_ai_suggestions (revision_id);
+
+CREATE INDEX ix_scenario_ai_suggestions_scenario_id ON public.scenario_ai_suggestions (scenario_id);
+
+CREATE INDEX ix_scenario_ai_suggestions_type_status ON public.scenario_ai_suggestions (suggestion_type, status);

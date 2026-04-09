@@ -3,16 +3,20 @@
  */
 
 export type ScenarioStatus = 'draft' | 'active' | 'archived'
+export type ScenarioLifecycleStatus = 'draft' | 'validated' | 'published' | 'archived'
 export type ScenarioSourceType = 'manual' | 'intent' | 'module_chain'
 export type ScenarioExecutionMode = 'sequential' | 'dag'
+export type ScenarioRuntimeType = 'local' | 'temporal'
+export type ScenarioSuggestionStatus = 'pending' | 'accepted' | 'rejected' | 'applied'
+export type ScenarioSuggestionType = 'draft' | 'mapping' | 'assertion' | 'failure_rca'
 
 export interface ScenarioNode {
   id?: number
   node_key: string
   node_name?: string
   node_type: string
-  ref_type: 'api_case' | 'api_definition' | string
-  ref_id: number
+  ref_type?: 'api_case' | 'api_definition' | 'internal' | string
+  ref_id?: number | null
   step_order: number
   depends_on: string[]
   input_mapping?: Record<string, unknown>
@@ -41,6 +45,11 @@ export interface ScenarioSummary {
   retry_count: number
   continue_on_failure: boolean
   status: ScenarioStatus | string
+  lifecycle_status?: ScenarioLifecycleStatus | string
+  labels?: Record<string, unknown> | null
+  draft_revision_id?: number | null
+  published_revision_id?: number | null
+  latest_revision_no?: number | null
   created_at: string
   updated_at: string
   created_by?: number | null
@@ -56,6 +65,7 @@ export type Scenario = ScenarioSummary
 
 export interface ScenarioDraft {
   scenario: {
+    scenario_id?: number | null
     name?: string
     description?: string
     scenario_type?: string
@@ -69,10 +79,13 @@ export interface ScenarioDraft {
     timeout_seconds?: number
     retry_count?: number
     continue_on_failure?: boolean
+    lifecycle_status?: ScenarioLifecycleStatus | string
   }
   nodes: ScenarioNode[]
   reasoning?: string
   candidate_apis?: Array<Record<string, unknown>>
+  confidence?: number | null
+  suggestion_id?: number | null
 }
 
 export interface ScenarioExecutionSummary {
@@ -108,6 +121,161 @@ export interface ScenarioExecutionDetail {
   summary: ScenarioExecutionSummary
   error_message?: string | null
   node_results: ScenarioExecutionNodeResult[]
+}
+
+export interface ScenarioRevisionListItem {
+  id: number
+  scenario_id: number
+  revision_no: number
+  status: string
+  published_at?: string | null
+}
+
+export interface ScenarioEdge {
+  source_node_key: string
+  target_node_key: string
+  edge_type?: string
+  condition_expr?: Record<string, unknown> | null
+  order_hint?: number | null
+}
+
+export interface ScenarioRevisionSnapshot {
+  graph_schema_version?: string
+  dsl_schema_version?: string
+  scenario?: Record<string, unknown>
+  nodes?: ScenarioNode[]
+  edges?: ScenarioEdge[]
+}
+
+export interface ScenarioRevision {
+  id: number
+  scenario_id: number
+  revision_no: number
+  status: string
+  graph_schema_version?: string
+  snapshot: ScenarioRevisionSnapshot
+}
+
+export interface ScenarioRevisionGraph {
+  nodes: Array<{
+    node_key: string
+    node_type: string
+    node_name?: string
+    depends_on?: string[]
+  }>
+  edges: ScenarioEdge[]
+}
+
+export interface ScenarioValidationError {
+  type?: string
+  field?: string
+  message: string
+}
+
+export interface ScenarioValidationResult {
+  scenario_id: number
+  structural_valid: boolean
+  readiness_valid: boolean
+  errors: ScenarioValidationError[]
+  warnings: ScenarioValidationError[]
+}
+
+export interface ScenarioReadinessResult {
+  ready: boolean
+  errors: ScenarioValidationError[]
+  warnings: ScenarioValidationError[]
+  effective_environment_id?: number | null
+  effective_version_id?: number | null
+}
+
+export interface ScenarioRunSummary {
+  total?: number
+  passed?: number
+  failed?: number
+  skipped?: number
+  duration_ms?: number
+  [key: string]: unknown
+}
+
+export interface ScenarioRun {
+  run_id: number
+  scenario_id: number
+  revision_id?: number | null
+  status: string
+  result_status?: string | null
+  runtime_type?: ScenarioRuntimeType | string | null
+  temporal_workflow_id?: string | null
+  temporal_run_id?: string | null
+  summary?: ScenarioRunSummary
+}
+
+export interface ScenarioRunContext {
+  run_id: number
+  revision_id?: number | null
+  input_context: Record<string, unknown>
+  resolved_context: Record<string, unknown>
+}
+
+export interface ScenarioNodeAttempt {
+  id?: number
+  execution_id?: number
+  scenario_id?: number
+  revision_id?: number
+  node_key: string
+  node_type: string
+  attempt: number
+  status: string
+  error_message?: string | null
+  input_snapshot?: Record<string, unknown>
+  output_snapshot?: Record<string, unknown>
+  resolved_ref_snapshot?: Record<string, unknown>
+  started_at?: string | null
+  finished_at?: string | null
+  response_time?: number | null
+  response_code?: number | null
+}
+
+export interface ScenarioNodeRun {
+  node_key: string
+  node_type: string
+  status: string
+  attempt: number
+  latest_attempt: ScenarioNodeAttempt
+  attempts: ScenarioNodeAttempt[]
+  error_message?: string | null
+}
+
+export interface ScenarioTemplate {
+  id: number
+  project_id?: number | null
+  name: string
+  description?: string | null
+  category?: string | null
+  status: string
+  latest_revision_id?: number | null
+  latest_revision_no?: number | null
+  node_count?: number
+  created_at?: string | null
+  updated_at?: string | null
+}
+
+export interface ScenarioAISuggestion {
+  suggestion_id: number
+  scenario_id?: number | null
+  revision_id?: number | null
+  suggestion_type: ScenarioSuggestionType | string
+  status: ScenarioSuggestionStatus | string
+  confidence?: number | null
+  payload?: Record<string, unknown>
+}
+
+export interface ScenarioFailureRcaResult {
+  failure_type?: string
+  root_cause?: string
+  suggested_fix?: string
+  suggested_rerun_point?: string
+  confidence?: number | null
+  [key: string]: unknown
 }
 
 export type AnalysisStatus = 'pending' | 'analyzing' | 'completed' | 'failed'

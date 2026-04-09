@@ -39,6 +39,8 @@ const ScenarioDetail = lazy(() => import('./pages/scenario/ScenarioDetail'))
 const ScenarioDesigner = lazy(() => import('./pages/scenario/ScenarioDesigner'))
 const ScenarioExecution = lazy(() => import('./pages/scenario/ScenarioExecution'))
 const ScenarioFieldMapping = lazy(() => import('./pages/scenario/ScenarioFieldMapping'))
+const ScenarioTemplates = lazy(() => import('./pages/scenario/ScenarioTemplates'))
+const ScenarioAISuggestions = lazy(() => import('./pages/scenario/ScenarioAISuggestions'))
 
 // 鉴权配置模块
 const AuthConfig = lazy(() => import('./pages/AuthConfig'))
@@ -92,6 +94,8 @@ function App() {
           <Route path="scenario/:scenarioId/design" element={<ProjectVersionGuard><ScenarioDesigner /></ProjectVersionGuard>} />
           <Route path="scenario/:scenarioId/execution/:executionId" element={<ProjectVersionGuard><ScenarioExecution /></ProjectVersionGuard>} />
           <Route path="scenario/:scenarioId/field-mapping" element={<ProjectVersionGuard><ScenarioFieldMapping /></ProjectVersionGuard>} />
+          <Route path="scenario/templates" element={<ProjectVersionGuard><ScenarioTemplates /></ProjectVersionGuard>} />
+          <Route path="scenario/ai-suggestions" element={<ProjectVersionGuard><ScenarioAISuggestions /></ProjectVersionGuard>} />
           {/* 鉴权配置模块 */}
           <Route path="projects/:projectId/auth-config" element={<ProjectVersionGuard><AuthConfig /></ProjectVersionGuard>} />
           <Route path="operations" element={<ProjectVersionGuard><OperationsCenter /></ProjectVersionGuard>} />

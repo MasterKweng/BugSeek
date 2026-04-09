@@ -16,6 +16,7 @@ from datetime import datetime
 import asyncio
 
 from app.execution.engine import ScenarioExecutor
+from app.execution.api_call_node_executor import ApiCallNodeExecutor
 from app.platform.db.base import ApiScenario, ApiCase, TestExecution, Environment, Project
 
 
@@ -253,6 +254,189 @@ class TestScenarioExecutorContextBus:
         assert context["node"]["node1"]["user_id"] == "123"
         assert context["node"]["node2"]["order_id"] == "456"
         assert context["node"]["node3"]["user_id"] == "789"
+
+
+class TestScenarioNodeExecutorRegistry:
+    @pytest.fixture
+    def executor(self):
+        return ScenarioExecutor()
+
+    def test_registry_registers_api_call_executor_by_default(self, executor):
+        node_executor = executor.node_executor_registry.get_executor("api_call")
+        assert isinstance(node_executor, ApiCallNodeExecutor)
+        assert executor.node_executor_registry.get_executor("condition") is not None
+        assert executor.node_executor_registry.get_executor("wait") is not None
+        assert executor.node_executor_registry.get_executor("script") is not None
+
+    @pytest.mark.asyncio
+    async def test_execute_single_node_once_dispatches_through_registry(self, executor):
+        node = {"id": 1, "node_key": "n1", "node_type": "api_call"}
+        scenario = Mock(spec=ApiScenario)
+        dispatched = {
+            "node_key": "n1",
+            "node_id": 1,
+            "status": "passed",
+            "result": {"status": "passed"},
+            "extracted_variables": {},
+        }
+        mocked_executor = Mock()
+        mocked_executor.execute = AsyncMock(return_value=dispatched)
+        executor.node_executor_registry.register("api_call", mocked_executor)
+
+        output = await executor._execute_single_node_once(
+            scenario=scenario,
+            node=node,
+            context={"vars": {}, "node": {}},
+            environment_id=1,
+            version_id=2,
+            operator_user_id=3,
+            execution_id=4,
+            triggered_by="manual",
+            db=Mock(spec=Session),
+            timeout_seconds=30,
+        )
+
+        assert output == dispatched
+        mocked_executor.execute.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_execute_single_node_once_fails_for_unknown_node_type(self, executor):
+        with pytest.raises(ValueError, match="Unsupported node_type"):
+            await executor._execute_single_node_once(
+                scenario=Mock(spec=ApiScenario),
+                node={"id": 1, "node_key": "n1", "node_type": "unsupported"},
+                context={"vars": {}, "node": {}},
+                environment_id=1,
+                version_id=2,
+                operator_user_id=3,
+                execution_id=4,
+                triggered_by="manual",
+                db=Mock(spec=Session),
+                timeout_seconds=30,
+            )
+
+    @pytest.mark.asyncio
+    async def test_condition_node_executor_evaluates_expression(self, executor):
+        output = await executor._execute_single_node_once(
+            scenario=Mock(spec=ApiScenario),
+            node={
+                "id": 1,
+                "node_key": "check_status",
+                "node_type": "condition",
+                "extra_config": {"expression": {"==": [{"var": "vars.status"}, "ready"]}},
+            },
+            context={"vars": {"status": "ready"}, "node": {}},
+            environment_id=None,
+            version_id=2,
+            operator_user_id=3,
+            execution_id=4,
+            triggered_by="manual",
+            db=Mock(spec=Session),
+            timeout_seconds=30,
+        )
+
+        assert output["status"] == "passed"
+        assert output["extracted_variables"]["check_status_result"] is True
+
+    @pytest.mark.asyncio
+    async def test_wait_node_executor_supports_sleep_mode(self, executor):
+        output = await executor._execute_single_node_once(
+            scenario=Mock(spec=ApiScenario),
+            node={
+                "id": 2,
+                "node_key": "pause",
+                "node_type": "wait",
+                "extra_config": {"mode": "sleep", "sleep_seconds": 0},
+            },
+            context={"vars": {}, "node": {}},
+            environment_id=None,
+            version_id=2,
+            operator_user_id=3,
+            execution_id=4,
+            triggered_by="manual",
+            db=Mock(spec=Session),
+            timeout_seconds=30,
+        )
+
+        assert output["status"] == "passed"
+        assert output["extracted_variables"]["pause_waited"] is True
+
+    @pytest.mark.asyncio
+    async def test_script_node_executor_sets_output_variables(self, executor):
+        output = await executor._execute_single_node_once(
+            scenario=Mock(spec=ApiScenario),
+            node={
+                "id": 3,
+                "node_key": "prepare_vars",
+                "node_type": "script",
+                "extra_config": {
+                    "outputs": {
+                        "order_id": {"dsl": "jmespath", "expr": "vars.seed"},
+                        "auth_header": {"dsl": "template", "template": "Bearer {{vars.token}}"},
+                    }
+                },
+            },
+            context={"vars": {"seed": "A-100", "token": "demo"}, "node": {}},
+            environment_id=None,
+            version_id=2,
+            operator_user_id=3,
+            execution_id=4,
+            triggered_by="manual",
+            db=Mock(spec=Session),
+            timeout_seconds=30,
+        )
+
+        assert output["status"] == "passed"
+        assert output["extracted_variables"]["order_id"] == "A-100"
+        assert output["extracted_variables"]["auth_header"] == "Bearer demo"
+
+    @pytest.mark.asyncio
+    async def test_run_node_with_retry_returns_attempt_history(self, executor):
+        scenario = Mock(spec=ApiScenario)
+        scenario.timeout_seconds = 30
+        scenario.retry_count = 1
+        node = {"id": 1, "node_key": "n1", "node_type": "api_call", "retry_count": 1}
+        outputs = [
+            {
+                "node_key": "n1",
+                "node_id": 1,
+                "node_type": "api_call",
+                "status": "failed",
+                "error_message": "timeout",
+                "error_type": "timeout_error",
+                "result": {"response_code": 0},
+                "extracted_variables": {},
+            },
+            {
+                "node_key": "n1",
+                "node_id": 1,
+                "node_type": "api_call",
+                "status": "passed",
+                "error_message": None,
+                "result": {"response_code": 200},
+                "extracted_variables": {"token": "demo"},
+            },
+        ]
+
+        with patch.object(executor, "_execute_single_node_once", new_callable=AsyncMock) as mocked_once:
+            mocked_once.side_effect = outputs
+            output = await executor._run_node_with_retry(
+                scenario=scenario,
+                node=node,
+                context={"vars": {}, "node": {}},
+                environment_id=1,
+                version_id=2,
+                operator_user_id=3,
+                execution_id=4,
+                triggered_by="manual",
+                db=Mock(spec=Session),
+            )
+
+        assert output["status"] == "passed"
+        assert output["attempt"] == 2
+        assert len(output["attempt_history"]) == 2
+        assert output["attempt_history"][0]["status"] == "failed"
+        assert output["attempt_history"][1]["status"] == "passed"
 
 
 class TestScenarioExecutorFailureStrategy:

@@ -6,7 +6,6 @@ import asyncio
 import time
 import json
 import logging
-import re
 import copy
 from datetime import datetime
 from collections import defaultdict
@@ -20,11 +19,20 @@ from app.platform.db.base import (
     TestExecution, TestExecutionResult, AuthConfig
 )
 from app.core.trace import get_trace_id
+from app.execution.api_call_node_executor import ApiCallNodeExecutor
+from app.execution.condition_node_executor import ConditionNodeExecutor
+from app.execution.expression_evaluator import ExpressionEvaluator
+from app.execution.node_executor_registry import NodeExecutorRegistry
+from app.execution.script_node_executor import ScriptNodeExecutor
+from app.execution.variable_resolver import VariableResolver
+from app.execution.wait_node_executor import WaitNodeExecutor
 from app.execution.worker import CaseExecutor, ExecutionStatus, ExecutionType, AssertionType
 from app.services.scenario_resolution_service import (
     ScenarioResolutionError,
     ScenarioResolutionService,
 )
+from app.services.scenario_node_run_service import ScenarioNodeRunService
+from app.services.dsl_normalizer import DslNormalizer
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +87,11 @@ class ScenarioExecutor:
     def __init__(self):
         self.case_executor = CaseExecutor()
         self.trace_id = get_trace_id()
+        self.node_executor_registry = NodeExecutorRegistry()
+        self.node_executor_registry.register("api_call", ApiCallNodeExecutor(self))
+        self.node_executor_registry.register("condition", ConditionNodeExecutor())
+        self.node_executor_registry.register("wait", WaitNodeExecutor())
+        self.node_executor_registry.register("script", ScriptNodeExecutor())
 
     async def execute_scenario(
         self,
@@ -109,9 +122,18 @@ class ScenarioExecutor:
                 raise ValueError(f"Scenario not found: {scenario_id}")
             execution_mode_effective = scenario.execution_mode or "dag"
 
+            graph = graph_data or self._build_graph_from_db_scenario(scenario)
+            nodes = graph.get("nodes", [])
+            if not nodes:
+                raise ValueError("Scenario graph has no nodes")
+
             if execution_id is None:
                 resolved_environment_id = environment_id or scenario.environment_id
-                if not resolved_environment_id:
+                requires_environment = any(
+                    str((node or {}).get("node_type", "api_call")).lower() == "api_call"
+                    for node in nodes
+                )
+                if requires_environment and not resolved_environment_id:
                     raise ValueError(f"Environment is required for scenario={scenario_id}")
                 execution = create_scenario_execution(
                     db=db,
@@ -122,11 +144,6 @@ class ScenarioExecutor:
                     source_execution_id=source_execution_id,
                 )
                 execution_id = execution.id
-
-            graph = graph_data or self._build_graph_from_db_scenario(scenario)
-            nodes = graph.get("nodes", [])
-            if not nodes:
-                raise ValueError("Scenario graph has no nodes")
 
             self._validate_graph(nodes)
             levels, execution_mode_effective = self._get_execution_plan(scenario, nodes)
@@ -173,11 +190,15 @@ class ScenarioExecutor:
                         output = {
                             "node_key": node["node_key"],
                             "node_id": node.get("id"),
+                            "node_type": node.get("node_type", "api_call"),
                             "status": "failed",
                             "error_message": f"{type(output).__name__}: {str(output)}",
                             "result": None,
                             "extracted_variables": {},
                         }
+
+                    output.setdefault("node_type", node.get("node_type", "api_call"))
+                    output.setdefault("input_snapshot", context_snapshot)
 
                     node_results.append(output)
 
@@ -207,11 +228,11 @@ class ScenarioExecutor:
                 if isinstance(response_time, (int, float)):
                     summed_response_time += int(response_time)
             result_status = self._aggregate_result_status(passed=passed, failed=failed, skipped=skipped)
-            final_status = ExecutionStatus.COMPLETED
+            final_status = ExecutionStatus.FAILED if failed > 0 else ExecutionStatus.COMPLETED
             execution_finished_at = datetime.utcnow()
             success = result_status == "passed"
 
-            self._save_scenario_execution_record(
+            saved_execution_id = self._save_scenario_execution_record(
                 db=db,
                 scenario=scenario,
                 execution_id=execution_id,
@@ -234,6 +255,8 @@ class ScenarioExecutor:
                 error_message=None,
                 execution_mode_effective=execution_mode_effective,
             )
+            if saved_execution_id is not None:
+                execution_id = saved_execution_id
 
             return {
                 "scenario_id": scenario_id,
@@ -429,6 +452,17 @@ class ScenarioExecutor:
         if visited != len(nodes):
             raise ValueError("Cycle detected in scenario graph")
 
+        isolated_nodes = [
+            key for key in node_key_set
+            if indegree.get(key, 0) == 0 and outdegree.get(key, 0) == 0
+        ]
+
+        if isolated_nodes:
+            logger.warning(
+                f"[{self.trace_id}] Detected isolated nodes (no dependencies and no dependents): "
+                f"{isolated_nodes}. These nodes will execute independently."
+            )
+
     def _aggregate_result_status(self, passed: int, failed: int, skipped: int) -> str:
         if failed > 0 and passed > 0:
             return "partial_failed"
@@ -543,8 +577,10 @@ class ScenarioExecutor:
         retry_count = self._get_effective_retry_count(scenario, node)
         max_attempts = max(retry_count, 0) + 1
         last_output: Optional[Dict[str, Any]] = None
+        attempt_history: List[Dict[str, Any]] = []
 
         for attempt in range(1, max_attempts + 1):
+            attempt_started_at = datetime.utcnow()
             logger.info(
                 f"[{trace_id}] execute node={node_key}, attempt={attempt}/{max_attempts}, timeout={timeout_seconds}s"
             )
@@ -560,23 +596,28 @@ class ScenarioExecutor:
                 db=db,
                 timeout_seconds=timeout_seconds,
             )
+            output["started_at"] = output.get("started_at") or attempt_started_at
+            output["finished_at"] = output.get("finished_at") or datetime.utcnow()
             output["attempt"] = attempt
             output["max_attempts"] = max_attempts
             output["timeout_seconds"] = timeout_seconds
             output["retry_count_effective"] = retry_count
+            attempt_history.append(copy.deepcopy(output))
             last_output = output
 
             if output.get("status") == "passed":
+                output["attempt_history"] = attempt_history
                 return output
 
             if attempt >= max_attempts or not self._is_retryable_node_output(output):
+                output["attempt_history"] = attempt_history
                 return output
 
             logger.warning(
                 f"[{trace_id}] retry node={node_key} after attempt={attempt}, error={output.get('error_message')}"
             )
 
-        return last_output or {
+        fallback_output = last_output or {
             "node_key": node_key,
             "node_id": node.get("id"),
             "status": "failed",
@@ -588,6 +629,8 @@ class ScenarioExecutor:
             "timeout_seconds": timeout_seconds,
             "retry_count_effective": retry_count,
         }
+        fallback_output["attempt_history"] = attempt_history or [copy.deepcopy(fallback_output)]
+        return fallback_output
 
     async def _execute_single_node_once(
         self,
@@ -602,94 +645,19 @@ class ScenarioExecutor:
         db: Session,
         timeout_seconds: int,
     ) -> Dict[str, Any]:
-        node_key = node["node_key"]
-        trace_id = get_trace_id()
-        node_db: Optional[Session] = None
-        try:
-            node_db = SessionLocal()
-            case, definition, environment = self._resolve_node_target(
-                scenario=scenario,
-                node=node,
-                context=context,
-                environment_id=environment_id,
-                db=node_db
-            )
-
-            node_input_mapping = node.get("input_mapping") or {}
-            rendered_mapping = self._render_with_context(node_input_mapping, context)
-
-            execution_variables = self._extract_flat_variables(context)
-            if isinstance(rendered_mapping, dict):
-                for k, v in rendered_mapping.items():
-                    if isinstance(k, str):
-                        execution_variables[k] = v
-
-            execution_case = self._build_execution_case(case, node)
-
-            result = await asyncio.wait_for(
-                self.case_executor.execute_case(
-                    case=execution_case,
-                    definition=definition,
-                    environment=environment,
-                    variables=execution_variables,
-                    db=node_db,
-                    project_id=scenario.project_id,
-                    version_id=version_id,
-                    operator_user_id=operator_user_id,
-                    parent_execution_id=execution_id,
-                    triggered_by=f"scenario:{triggered_by}",
-                ),
-                timeout=timeout_seconds,
-            )
-
-            return {
-                "node_key": node_key,
-                "node_id": node.get("id"),
-                "status": result.get("status"),
-                "error_message": result.get("error_message"),
-                "effective_assertion_rules": getattr(execution_case, "assertion_rules", None),
-                "effective_extraction_rules": getattr(execution_case, "extraction_rules", None),
-                "result": result,
-                "extracted_variables": result.get("extracted_variables", {}) or {},
-            }
-        except asyncio.TimeoutError:
-            if node_db is not None:
-                node_db.rollback()
-            logger.error(f"[{trace_id}] node execute timeout: node={node_key}, timeout={timeout_seconds}s")
-            return {
-                "node_key": node_key,
-                "node_id": node.get("id"),
-                "status": "failed",
-                "error_message": f"Node execution timeout after {timeout_seconds}s",
-                "error_type": "timeout_error",
-                "effective_assertion_rules": getattr(execution_case, "assertion_rules", None),
-                "effective_extraction_rules": getattr(execution_case, "extraction_rules", None),
-                "result": {
-                    "status": "failed",
-                    "error_message": f"Node execution timeout after {timeout_seconds}s",
-                    "response_code": 0,
-                    "response_time": timeout_seconds * 1000,
-                },
-                "extracted_variables": {},
-            }
-        except Exception as e:
-            if node_db is not None:
-                node_db.rollback()
-            logger.error(f"[{trace_id}] node execute failed: node={node_key}, error={str(e)}", exc_info=True)
-            return {
-                "node_key": node_key,
-                "node_id": node.get("id"),
-                "status": "failed",
-                "error_message": str(e),
-                "error_type": self._classify_exception_type(e),
-                "effective_assertion_rules": getattr(execution_case, "assertion_rules", None) if 'execution_case' in locals() else None,
-                "effective_extraction_rules": getattr(execution_case, "extraction_rules", None) if 'execution_case' in locals() else None,
-                "result": None,
-                "extracted_variables": {},
-            }
-        finally:
-            if node_db is not None:
-                node_db.close()
+        executor = self.node_executor_registry.get_executor(node.get("node_type", "api_call"))
+        return await executor.execute(
+            scenario=scenario,
+            node=node,
+            context=context,
+            environment_id=environment_id,
+            version_id=version_id,
+            operator_user_id=operator_user_id,
+            execution_id=execution_id,
+            triggered_by=triggered_by,
+            db=db,
+            timeout_seconds=timeout_seconds,
+        )
 
     def _build_execution_case(self, case: ApiCase, node: Dict[str, Any]) -> ApiCase:
         execution_case = copy.copy(case)
@@ -705,7 +673,7 @@ class ScenarioExecutor:
 
         extract_rules = node.get("extract_rules")
         if extract_rules:
-            execution_case.extraction_rules = copy.deepcopy(extract_rules)
+            execution_case.extraction_rules = DslNormalizer.normalize_extract_rules(copy.deepcopy(extract_rules))
 
         return execution_case
 
@@ -849,56 +817,13 @@ class ScenarioExecutor:
         )
 
     def _render_with_context(self, payload: Any, context: Dict[str, Any]) -> Any:
-        if isinstance(payload, str):
-            pattern = re.compile(r"\{\{\s*([a-zA-Z_][\w\.]*)\s*\}\}")
-
-            def repl(match: re.Match) -> str:
-                key_path = match.group(1)
-                value = self._get_context_value(context, key_path)
-                if value is None:
-                    return match.group(0)
-                return str(value)
-
-            return pattern.sub(repl, payload)
-
-        if isinstance(payload, dict):
-            return {k: self._render_with_context(v, context) for k, v in payload.items()}
-
-        if isinstance(payload, list):
-            return [self._render_with_context(v, context) for v in payload]
-
-        return payload
+        return VariableResolver.render(payload, context)
 
     def _get_context_value(self, context: Dict[str, Any], key_path: str) -> Any:
-        current: Any = context
-        for part in key_path.split("."):
-            if isinstance(current, dict) and part in current:
-                current = current[part]
-            else:
-                return None
-        return current
+        return ExpressionEvaluator.get_context_value(context, key_path)
 
     def _extract_flat_variables(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        flat: Dict[str, Any] = {}
-
-        for k, v in context.items():
-            if isinstance(v, (str, int, float, bool)):
-                flat[k] = v
-
-        vars_bucket = context.get("vars")
-        if isinstance(vars_bucket, dict):
-            for k, v in vars_bucket.items():
-                if isinstance(v, (str, int, float, bool)):
-                    flat[k] = v
-
-        node_bucket = context.get("node")
-        if isinstance(node_bucket, dict):
-            for _, extracted in node_bucket.items():
-                if isinstance(extracted, dict):
-                    for k, v in extracted.items():
-                        if isinstance(v, (str, int, float, bool)):
-                            flat[k] = v
-        return flat
+        return VariableResolver.flatten_context(context)
 
     def _merge_context(self, context: Dict[str, Any], node_key: str, extracted_variables: Dict[str, Any]) -> None:
         context.setdefault("node", {})
@@ -995,6 +920,16 @@ class ScenarioExecutor:
                     error_message=item.get("error_message"),
                 )
                 db.add(execution_result)
+
+            revision_id = (execution.summary_json or {}).get("scenario_revision_id")
+            if revision_id is not None:
+                ScenarioNodeRunService.replace_execution_node_runs(
+                    db,
+                    execution_id=execution.id,
+                    scenario_id=scenario.id,
+                    revision_id=revision_id,
+                    node_results=node_results,
+                )
 
             db.commit()
             self._sync_graph_from_execution(db, node_results)

@@ -61,6 +61,13 @@ class IntentConfirmRequest(BaseModel):
     version_id: Optional[int] = Field(None, description="Optional version id")
 
 
+def _normalize_node_reference(node_type: str, ref_type: Optional[str], ref_id: Optional[int]) -> tuple[str, int]:
+    normalized_type = (node_type or "api_call").strip().lower()
+    if normalized_type == "api_call":
+        return (ref_type or "api_case"), int(ref_id) if ref_id is not None else 0
+    return "internal", 0
+
+
 @router.post("/generate-scenario", response_model=ApiResponse)
 async def generate_scenario_from_intent(
     request: IntentGenerateRequest,
@@ -238,13 +245,18 @@ async def confirm_scenario_draft(
         db.flush()
 
         for index, node_data in enumerate(nodes_data, start=1):
+            ref_type, ref_id = _normalize_node_reference(
+                node_data.get("node_type", "api_call"),
+                node_data.get("ref_type"),
+                node_data.get("ref_id"),
+            )
             node = ScenarioNode(
                 scenario_id=scenario.id,
                 node_key=node_data.get("node_key"),
                 node_name=node_data.get("node_name"),
                 node_type=node_data.get("node_type", "api_call"),
-                ref_type=node_data.get("ref_type", "api_definition"),
-                ref_id=node_data.get("ref_id"),
+                ref_type=ref_type,
+                ref_id=ref_id,
                 step_order=node_data.get("step_order", index),
                 depends_on=node_data.get("depends_on", []),
                 input_mapping=node_data.get("input_mapping", {}),

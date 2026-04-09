@@ -7,7 +7,7 @@ type MessageTree = {
 export const messages: Record<AppLocale, MessageTree> = {
   'zh-CN': {
     shell: {
-      badge: 'Release Workbench',
+      badge: '发布工作台',
       brand: 'BugSeek',
       searchPlaceholder: '搜索页面、命令或资产',
       searchHint: '按 / 快速聚焦',
@@ -167,7 +167,7 @@ export const messages: Record<AppLocale, MessageTree> = {
         execution: '执行',
         asyncMode: '异步模式',
         callbackUrl: '回调地址',
-        includeRca: '包含 RCA',
+        includeRca: '包含根因分析',
         intentText: '意图文本',
         jsonPayload: 'JSON 载荷',
         saveDraft: '保存草稿',
@@ -196,13 +196,13 @@ export const messages: Record<AppLocale, MessageTree> = {
       cards: {
         latestTriggerResult: '最近一次触发结果',
         summary: '摘要',
-        rca: 'RCA',
+        rca: '根因分析',
         latestAiResponse: '最近一次 AI 响应',
       },
       empty: {
         noTriggerResultYet: '暂无触发结果',
         noSummary: '暂无摘要',
-        noRcaResult: '暂无 RCA 结果',
+        noRcaResult: '暂无根因分析结果',
         noAiResponseYet: '暂无 AI 响应',
       },
       tags: {
@@ -450,6 +450,14 @@ export const messages: Record<AppLocale, MessageTree> = {
           list: {
             label: '场景目录',
             description: '浏览场景列表、状态和关联资产。',
+          },
+          templates: {
+            label: '场景模板',
+            description: '集中浏览、创建和实例化可复用的场景模板。',
+          },
+          aiSuggestions: {
+            label: 'AI 建议台',
+            description: '统一执行 AI 草稿生成、建议处理和失败分析动作。',
           },
           detail: {
             label: '场景详情',
@@ -1021,6 +1029,14 @@ export const messages: Record<AppLocale, MessageTree> = {
           list: {
             label: 'Scenario catalog',
             description: 'Browse scenarios, states, and linked assets.',
+          },
+          templates: {
+            label: 'Scenario templates',
+            description: 'Browse, create, and instantiate reusable scenario templates.',
+          },
+          aiSuggestions: {
+            label: 'AI suggestions',
+            description: 'Run AI draft generation, suggestion handling, and failure analysis from one place.',
           },
           detail: {
             label: 'Scenario detail',

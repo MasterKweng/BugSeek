@@ -29,6 +29,8 @@ from app.platform.db.base import (
 from app.api.v1.deps import get_current_user
 from app.core.trace import get_trace_id
 from app.domains.knowledge_graph.graph_service import KnowledgeGraphService
+from app.services.scenario_graph_service import ScenarioGraphService
+from app.services.dsl_normalizer import DslNormalizer
 from app.services.scenario_readiness_service import ScenarioReadinessService
 from app.services.scenario_revision_service import ScenarioRevisionService
 from app.services.scenario_run_service import ScenarioRunService
@@ -76,8 +78,8 @@ class ScenarioNodeCreate(BaseModel):
     node_key: str = Field(..., description="节点唯一标识")
     node_name: Optional[str] = Field(None, description="节点名称")
     node_type: str = Field(default="api_call", description="节点类型")
-    ref_type: str = Field(default="api_case", description="引用类型：api_case 或 api_definition")
-    ref_id: int = Field(..., description="引用ID（用例ID或接口定义ID）")
+    ref_type: Optional[str] = Field(default="api_case", description="引用类型：api_case 或 api_definition")
+    ref_id: Optional[int] = Field(default=None, description="引用ID（用例ID或接口定义ID）")
     step_order: int = Field(default=0, description="执行顺序")
     depends_on: Optional[List[str]] = Field(default=[], description="依赖的节点键列表")
     input_mapping: Optional[Dict[str, Any]] = Field(default={}, description="输入变量映射")
@@ -161,6 +163,17 @@ class ScenarioExecuteRequest(BaseModel):
 
 class ScenarioPublishRequest(BaseModel):
     publish_note: Optional[str] = Field(None, description="Optional publish note")
+
+
+class ScenarioDslLintRequest(BaseModel):
+    strict: bool = Field(default=True, description="Enable strict lint mode")
+
+
+def _normalize_node_reference(node_type: str, ref_type: Optional[str], ref_id: Optional[int]) -> tuple[str, int]:
+    normalized_type = (node_type or "api_call").strip().lower()
+    if normalized_type == "api_call":
+        return (ref_type or "api_case"), int(ref_id) if ref_id is not None else 0
+    return "internal", 0
 
 
 def _validate_api_definition_case_selection(
@@ -350,13 +363,18 @@ async def create_scenario(
 
     # 创建场景节点
     for node_data in request.nodes:
+        ref_type, ref_id = _normalize_node_reference(
+            node_data.node_type,
+            node_data.ref_type,
+            node_data.ref_id,
+        )
         node = ScenarioNode(
             scenario_id=scenario.id,
             node_key=node_data.node_key,
             node_name=node_data.node_name,
             node_type=node_data.node_type,
-            ref_type=node_data.ref_type,
-            ref_id=node_data.ref_id,
+            ref_type=ref_type,
+            ref_id=ref_id,
             step_order=node_data.step_order,
             depends_on=node_data.depends_on,
             input_mapping=node_data.input_mapping,
@@ -647,13 +665,18 @@ async def update_scenario(
 
         # 创建新节点
         for node_data in request.nodes:
+            ref_type, ref_id = _normalize_node_reference(
+                node_data.node_type,
+                node_data.ref_type,
+                node_data.ref_id,
+            )
             node = ScenarioNode(
                 scenario_id=scenario.id,
                 node_key=node_data.node_key,
                 node_name=node_data.node_name,
                 node_type=node_data.node_type,
-                ref_type=node_data.ref_type,
-                ref_id=node_data.ref_id,
+                ref_type=ref_type,
+                ref_id=ref_id,
                 step_order=node_data.step_order,
                 depends_on=node_data.depends_on,
                 input_mapping=node_data.input_mapping,
@@ -915,6 +938,51 @@ async def get_scenario_revision(
             "status": revision.status,
             "snapshot": revision.snapshot_json,
         }
+    )
+
+
+@router.get("/scenario-revisions/{revision_id}/graph", response_model=ApiResponse)
+async def get_scenario_revision_graph(
+    revision_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    revision = db.query(ScenarioRevision).filter(ScenarioRevision.id == revision_id).first()
+    if not revision:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Scenario revision not found: {revision_id}")
+    scenario = db.query(ApiScenario).filter(ApiScenario.id == revision.scenario_id).first()
+    if not scenario or scenario.project_id != get_current_project_id(db, current_user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="閺冪姵娼堢拋鍧楁６鐠囥儱婧€閺?")
+    return ApiResponse(
+        code=0,
+        message="ok",
+        data=ScenarioGraphService.get_revision_graph(db, revision=revision),
+    )
+
+
+@router.post("/scenario-revisions/{revision_id}/lint-dsl", response_model=ApiResponse)
+async def lint_scenario_revision_dsl(
+    revision_id: int,
+    request: Optional[ScenarioDslLintRequest] = Body(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    revision = db.query(ScenarioRevision).filter(ScenarioRevision.id == revision_id).first()
+    if not revision:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Scenario revision not found: {revision_id}")
+    scenario = db.query(ApiScenario).filter(ApiScenario.id == revision.scenario_id).first()
+    if not scenario or scenario.project_id != get_current_project_id(db, current_user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="閺冪姵娼堢拋鍧楁６鐠囥儱婧€閺?")
+
+    lint_result = DslNormalizer.lint_snapshot(revision.snapshot_json or {})
+    return ApiResponse(
+        code=0,
+        message="ok",
+        data={
+            "revision_id": revision.id,
+            "strict": request.strict if request else True,
+            **lint_result,
+        },
     )
 
 

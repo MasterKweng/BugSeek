@@ -67,7 +67,7 @@ export const navigationSections: NavigationSection[] = [
   {
     key: 'overview',
     labelKey: 'nav.overview.label',
-    shortLabel: 'Home',
+    shortLabel: '总览',
     descriptionKey: 'nav.overview.description',
     icon: HomeOutlined,
     accent: 'brand',
@@ -85,7 +85,7 @@ export const navigationSections: NavigationSection[] = [
   {
     key: 'project-center',
     labelKey: 'nav.projectCenter.label',
-    shortLabel: 'Project',
+    shortLabel: '项目',
     descriptionKey: 'nav.projectCenter.description',
     icon: ProjectOutlined,
     accent: 'accent',
@@ -129,7 +129,7 @@ export const navigationSections: NavigationSection[] = [
   {
     key: 'api-assets',
     labelKey: 'nav.apiAssets.label',
-    shortLabel: 'API',
+    shortLabel: '接口',
     descriptionKey: 'nav.apiAssets.description',
     icon: ApiOutlined,
     accent: 'accent',
@@ -171,7 +171,7 @@ export const navigationSections: NavigationSection[] = [
   {
     key: 'scenario',
     labelKey: 'nav.scenario.label',
-    shortLabel: 'Flow',
+    shortLabel: '场景',
     descriptionKey: 'nav.scenario.description',
     icon: ClusterOutlined,
     accent: 'gold',
@@ -193,6 +193,22 @@ export const navigationSections: NavigationSection[] = [
         getPath: () => '/scenario/list',
       },
       {
+        key: '/scenario/templates',
+        labelKey: 'nav.scenario.items.templates.label',
+        descriptionKey: 'nav.scenario.items.templates.description',
+        icon: BuildOutlined,
+        matchers: ['/scenario/templates', '/scenario/templates/*'],
+        getPath: () => '/scenario/templates',
+      },
+      {
+        key: '/scenario/ai-suggestions',
+        labelKey: 'nav.scenario.items.aiSuggestions.label',
+        descriptionKey: 'nav.scenario.items.aiSuggestions.description',
+        icon: RobotOutlined,
+        matchers: ['/scenario/ai-suggestions', '/scenario/ai-suggestions/*'],
+        getPath: () => '/scenario/ai-suggestions',
+      },
+      {
         key: 'scenario-detail',
         menuKey: '/scenario/list',
         labelKey: 'nav.scenario.items.detail.label',
@@ -212,7 +228,7 @@ export const navigationSections: NavigationSection[] = [
   {
     key: 'operations',
     labelKey: 'nav.operations.label',
-    shortLabel: 'Ops',
+    shortLabel: '运营',
     descriptionKey: 'nav.operations.description',
     icon: DeploymentUnitOutlined,
     accent: 'slate',
@@ -230,7 +246,7 @@ export const navigationSections: NavigationSection[] = [
   {
     key: 'ui-automation',
     labelKey: 'nav.uiAutomation.label',
-    shortLabel: 'UI',
+    shortLabel: 'UI自动化',
     descriptionKey: 'nav.uiAutomation.description',
     icon: RobotOutlined,
     accent: 'brand',
@@ -248,7 +264,7 @@ export const navigationSections: NavigationSection[] = [
   {
     key: 'governance',
     labelKey: 'nav.governance.label',
-    shortLabel: 'Gov',
+    shortLabel: '治理',
     descriptionKey: 'nav.governance.description',
     icon: SafetyOutlined,
     accent: 'slate',

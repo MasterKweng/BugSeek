@@ -48,6 +48,13 @@ class Settings(BaseSettings):
     # CI/CD 集成开关
     CI_CD_INTEGRATION_ENABLED: bool = True
 
+    # Scenario runtime
+    SCENARIO_RUNTIME_DEFAULT: str = "local"  # local | temporal
+    TEMPORAL_ENABLED: bool = False
+    TEMPORAL_TARGET_HOST: str = "localhost:7233"
+    TEMPORAL_NAMESPACE: str = "default"
+    TEMPORAL_TASK_QUEUE: str = "bugseek-scenario-center"
+
     # 数据库配置
     DATABASE_URL: str = "postgresql://bugseek:bugseek@localhost:5432/bugseek"
 

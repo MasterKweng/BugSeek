@@ -1,12 +1,14 @@
 import React from 'react'
-import { Button, Input, Select, Space } from 'antd'
 import { CheckOutlined, CloseOutlined, ReloadOutlined } from '@ant-design/icons'
+import { Button, Input, Select, Space, Typography } from 'antd'
 
 type SuggestionStatusFilter = 'all' | 'pending' | 'confirmed' | 'rejected'
 type MethodFilter = 'all' | 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 type FieldTypeFilter = 'all' | 'path' | 'query' | 'body'
 type DecisionSourceFilter = 'all' | 'rule' | 'ai' | 'fallback'
 type RelationTypeFilter = 'all' | 'direct' | 'fk' | 'derived'
+
+const { Text } = Typography
 
 interface SuggestionsToolbarProps {
   searchKeyword: string
@@ -52,22 +54,22 @@ const SuggestionsToolbar: React.FC<SuggestionsToolbarProps> = ({
   onRefresh,
 }) => {
   return (
-    <>
-      <div className="governance-toolbar">
+    <div className="suggestions-toolbar-stack">
+      <div className="governance-toolbar suggestions-toolbar-row">
         <Input.Search
           allowClear
           value={searchKeyword}
           placeholder="搜索 API 字段、表名或列名"
           onChange={(event) => onSearchKeywordChange(event.target.value.trim())}
           onSearch={(value) => onSearchKeywordChange(value.trim())}
-          style={{ maxWidth: 280 }}
+          style={{ flex: '1 1 280px', minWidth: 240 }}
         />
         <Input
           allowClear
           value={pathFilter}
           placeholder="按 API 路径过滤"
           onChange={(event) => onPathFilterChange(event.target.value.trim())}
-          style={{ maxWidth: 260 }}
+          style={{ flex: '1 1 260px', minWidth: 220 }}
         />
         <Select value={statusFilter} onChange={onStatusFilterChange} style={{ width: 140 }}>
           <Select.Option value="all">全部状态</Select.Option>
@@ -83,6 +85,9 @@ const SuggestionsToolbar: React.FC<SuggestionsToolbarProps> = ({
           <Select.Option value="DELETE">DELETE</Select.Option>
           <Select.Option value="PATCH">PATCH</Select.Option>
         </Select>
+      </div>
+
+      <div className="governance-toolbar suggestions-toolbar-row suggestions-toolbar-row--secondary">
         <Select value={fieldTypeFilter} onChange={onFieldTypeFilterChange} style={{ width: 120 }}>
           <Select.Option value="all">全部位置</Select.Option>
           <Select.Option value="path">path</Select.Option>
@@ -101,36 +106,37 @@ const SuggestionsToolbar: React.FC<SuggestionsToolbarProps> = ({
           <Select.Option value="fk">fk</Select.Option>
           <Select.Option value="derived">derived</Select.Option>
         </Select>
-      </div>
 
-      <Space wrap>
-        <Button
-          type="primary"
-          icon={<CheckOutlined />}
-          disabled={selectedCount === 0}
-          loading={loading}
-          onClick={onConfirm}
-        >
-          批量确认
-        </Button>
-        <Button
-          danger
-          icon={<CloseOutlined />}
-          disabled={selectedCount === 0}
-          loading={loading}
-          onClick={onReject}
-        >
-          批量拒绝
-        </Button>
-        <Button
-          icon={<ReloadOutlined />}
-          loading={loading}
-          onClick={onRefresh}
-        >
-          刷新结果
-        </Button>
-      </Space>
-    </>
+        <Space wrap size={12} className="suggestions-toolbar-actions">
+          <Text type="secondary">已选 {selectedCount} 项</Text>
+          <Button
+            type="primary"
+            icon={<CheckOutlined />}
+            disabled={selectedCount === 0}
+            loading={loading}
+            onClick={onConfirm}
+          >
+            批量确认
+          </Button>
+          <Button
+            danger
+            icon={<CloseOutlined />}
+            disabled={selectedCount === 0}
+            loading={loading}
+            onClick={onReject}
+          >
+            批量拒绝
+          </Button>
+          <Button
+            icon={<ReloadOutlined />}
+            loading={loading}
+            onClick={onRefresh}
+          >
+            刷新结果
+          </Button>
+        </Space>
+      </div>
+    </div>
   )
 }
 

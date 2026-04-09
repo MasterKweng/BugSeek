@@ -446,7 +446,7 @@ class ScenarioRevision(Base, TimestampMixin):
     __tablename__ = "scenario_revisions"
 
     id = Column(BigInteger, primary_key=True, index=True)
-    scenario_id = Column(Integer, ForeignKey("api_scenarios.id", ondelete="CASCADE"), nullable=False)
+    scenario_id = Column(Integer, ForeignKey("api_scenarios.id", ondelete="CASCADE"), nullable=True)
     revision_no = Column(Integer, nullable=False)
     status = Column(String(20), nullable=False, default="draft")
     graph_schema_version = Column(String(20), nullable=False, default="1.0")
@@ -466,13 +466,40 @@ class ScenarioRevision(Base, TimestampMixin):
     )
 
 
+class ScenarioEdge(Base, TimestampMixin):
+    """Persisted scenario graph edges for a specific revision."""
+    __tablename__ = "scenario_edges"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    revision_id = Column(BigInteger, ForeignKey("scenario_revisions.id", ondelete="CASCADE"), nullable=False)
+    source_node_key = Column(String(64), nullable=False)
+    target_node_key = Column(String(64), nullable=False)
+    edge_type = Column(String(20), nullable=False, default="control")
+    condition_expr = Column(JSON, nullable=True)
+    order_hint = Column(Integer, nullable=True)
+
+    revision = relationship("ScenarioRevision", foreign_keys=[revision_id])
+
+    __table_args__ = (
+        UniqueConstraint(
+            "revision_id",
+            "source_node_key",
+            "target_node_key",
+            "edge_type",
+            name="uq_scenario_edge_revision_nodes",
+        ),
+        Index("ix_scenario_edges_revision_id", "revision_id"),
+        Index("ix_scenario_edges_target_node_key", "target_node_key"),
+    )
+
+
 class ScenarioRunContext(Base, TimestampMixin):
     """Persisted scenario runtime context snapshot."""
     __tablename__ = "scenario_run_contexts"
 
     id = Column(BigInteger, primary_key=True, index=True)
     execution_id = Column(Integer, ForeignKey("test_executions.id", ondelete="CASCADE"), nullable=False)
-    scenario_id = Column(Integer, ForeignKey("api_scenarios.id", ondelete="CASCADE"), nullable=False)
+    scenario_id = Column(Integer, ForeignKey("api_scenarios.id", ondelete="CASCADE"), nullable=True)
     revision_id = Column(BigInteger, ForeignKey("scenario_revisions.id", ondelete="CASCADE"), nullable=False)
     input_context = Column(JSON, nullable=False, default=dict)
     resolved_context = Column(JSON, nullable=False, default=dict)
@@ -488,6 +515,100 @@ class ScenarioRunContext(Base, TimestampMixin):
     __table_args__ = (
         Index("ix_scenario_run_contexts_execution_id", "execution_id"),
         Index("ix_scenario_run_contexts_scenario_revision", "scenario_id", "revision_id"),
+    )
+
+
+class ScenarioNodeRun(Base, TimestampMixin):
+    """Persisted scenario node runtime snapshots."""
+    __tablename__ = "scenario_node_runs"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    execution_id = Column(Integer, ForeignKey("test_executions.id", ondelete="CASCADE"), nullable=False)
+    scenario_id = Column(Integer, ForeignKey("api_scenarios.id", ondelete="CASCADE"), nullable=False)
+    revision_id = Column(BigInteger, ForeignKey("scenario_revisions.id", ondelete="CASCADE"), nullable=False)
+    node_key = Column(String(64), nullable=False)
+    node_type = Column(String(32), nullable=False)
+    attempt = Column(Integer, nullable=False, default=1)
+    status = Column(String(20), nullable=False)
+    input_snapshot = Column(JSON, nullable=True)
+    output_snapshot = Column(JSON, nullable=True)
+    resolved_ref_snapshot = Column(JSON, nullable=True)
+    error_message = Column(Text, nullable=True)
+    started_at = Column(DateTime, nullable=True)
+    finished_at = Column(DateTime, nullable=True)
+
+    execution = relationship("TestExecution", foreign_keys=[execution_id])
+    scenario = relationship("ApiScenario", foreign_keys=[scenario_id])
+    revision = relationship("ScenarioRevision", foreign_keys=[revision_id])
+
+    __table_args__ = (
+        Index("ix_scenario_node_runs_execution_id", "execution_id"),
+        Index("ix_scenario_node_runs_execution_node", "execution_id", "node_key", "attempt"),
+        Index("ix_scenario_node_runs_revision_id", "revision_id"),
+    )
+
+
+class ScenarioTemplate(Base, TimestampMixin):
+    """Reusable scenario template header."""
+    __tablename__ = "scenario_templates"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    category = Column(String(64), nullable=True)
+    status = Column(String(20), nullable=False, default="active")
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    project = relationship("Project", foreign_keys=[project_id])
+    creator = relationship("User", foreign_keys=[created_by])
+
+    __table_args__ = (
+        Index("ix_scenario_templates_project_id", "project_id"),
+        Index("ix_scenario_templates_status", "status"),
+    )
+
+
+class ScenarioTemplateRevision(Base, TimestampMixin):
+    """Versioned scenario template snapshot."""
+    __tablename__ = "scenario_template_revisions"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    template_id = Column(BigInteger, ForeignKey("scenario_templates.id", ondelete="CASCADE"), nullable=False)
+    revision_no = Column(Integer, nullable=False)
+    snapshot_json = Column(JSON, nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    template = relationship("ScenarioTemplate", foreign_keys=[template_id])
+    creator = relationship("User", foreign_keys=[created_by])
+
+    __table_args__ = (
+        UniqueConstraint("template_id", "revision_no", name="uq_scenario_template_revision_no"),
+        Index("ix_scenario_template_revisions_template_id", "template_id"),
+    )
+
+
+class ScenarioAISuggestion(Base, TimestampMixin):
+    """AI generated scenario suggestions and RCA reports."""
+    __tablename__ = "scenario_ai_suggestions"
+
+    id = Column(BigInteger, primary_key=True, index=True)
+    scenario_id = Column(Integer, ForeignKey("api_scenarios.id", ondelete="CASCADE"), nullable=False)
+    revision_id = Column(BigInteger, ForeignKey("scenario_revisions.id", ondelete="SET NULL"), nullable=True)
+    suggestion_type = Column(String(32), nullable=False)
+    payload_json = Column(JSON, nullable=False)
+    confidence = Column(Float, nullable=True)
+    status = Column(String(20), nullable=False, default="pending")
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    scenario = relationship("ApiScenario", foreign_keys=[scenario_id])
+    revision = relationship("ScenarioRevision", foreign_keys=[revision_id])
+    creator = relationship("User", foreign_keys=[created_by])
+
+    __table_args__ = (
+        Index("ix_scenario_ai_suggestions_scenario_id", "scenario_id"),
+        Index("ix_scenario_ai_suggestions_revision_id", "revision_id"),
+        Index("ix_scenario_ai_suggestions_type_status", "suggestion_type", "status"),
     )
 
 

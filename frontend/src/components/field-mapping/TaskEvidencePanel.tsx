@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Col, Empty, Row, Space, Statistic, Tag, Typography } from 'antd'
+import { Card, Collapse, Col, Empty, Row, Space, Statistic, Tag, Typography } from 'antd'
 import type { TaskEvidenceContribution } from '../../hooks/field-mapping/useFieldMappingTaskDetail'
 
 const { Text, Title } = Typography
@@ -34,28 +34,28 @@ const TaskEvidencePanel: React.FC<TaskEvidencePanelProps> = ({ loading = false, 
       ) : (
         <Space direction="vertical" size={16} style={{ width: '100%' }}>
           <Row gutter={[16, 16]}>
-            <Col xs={12} md={6}>
+            <Col xs={12} md={12}>
               <Statistic title="Total suggestions" value={contribution.totalSuggestions} />
             </Col>
-            <Col xs={12} md={6}>
+            <Col xs={12} md={12}>
               <Statistic title="Analyzed" value={contribution.analyzedSuggestions} />
             </Col>
-            <Col xs={12} md={6}>
+            <Col xs={12} md={12}>
               <Statistic title="SQL hits" value={contribution.effectiveSignals.sql} />
             </Col>
-            <Col xs={12} md={6}>
+            <Col xs={12} md={12}>
               <Statistic title="Code hits" value={contribution.effectiveSignals.code} />
             </Col>
-            <Col xs={12} md={6}>
+            <Col xs={12} md={12}>
               <Statistic title="Runtime hits" value={contribution.effectiveSignals.runtime} />
             </Col>
-            <Col xs={12} md={6}>
+            <Col xs={12} md={12}>
               <Statistic title="Cross hits" value={contribution.effectiveSignals.cross} />
             </Col>
-            <Col xs={12} md={6}>
+            <Col xs={12} md={12}>
               <Statistic title="Vector hits" value={contribution.effectiveSignals.vector} />
             </Col>
-            <Col xs={12} md={6}>
+            <Col xs={12} md={12}>
               <Statistic title="History hits" value={contribution.effectiveSignals.history} />
             </Col>
           </Row>
@@ -65,19 +65,34 @@ const TaskEvidencePanel: React.FC<TaskEvidencePanelProps> = ({ loading = false, 
           </Text>
 
           <Row gutter={[16, 16]}>
-            <Col xs={24} lg={12}>
+            <Col xs={24}>
               {renderTagList('Decision sources', contribution.decisionSources)}
             </Col>
-            <Col xs={24} lg={12}>
+            <Col xs={24}>
               {renderTagList('Recall sources', contribution.recallSources)}
             </Col>
-            <Col xs={24} lg={12}>
-              {renderTagList('Top positive features', contribution.positiveFeatures)}
-            </Col>
-            <Col xs={24} lg={12}>
-              {renderTagList('Top negative evidence', contribution.negativeEvidence)}
-            </Col>
           </Row>
+
+          <Collapse
+            size="small"
+            ghost
+            items={[
+              {
+                key: 'advanced-features',
+                label: 'Advanced signals',
+                children: (
+                  <Row gutter={[16, 16]}>
+                    <Col xs={24}>
+                      {renderTagList('Top positive features', contribution.positiveFeatures)}
+                    </Col>
+                    <Col xs={24}>
+                      {renderTagList('Top negative evidence', contribution.negativeEvidence)}
+                    </Col>
+                  </Row>
+                ),
+              },
+            ]}
+          />
 
           {contribution.analyzedSuggestions < contribution.totalSuggestions ? (
             <Title level={5} style={{ margin: 0 }}>

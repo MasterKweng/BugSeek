@@ -1254,6 +1254,40 @@ code {
   align-items: center;
 }
 
+.suggestions-toolbar-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.suggestions-toolbar-row {
+  width: 100%;
+}
+
+.suggestions-toolbar-row--secondary {
+  justify-content: space-between;
+}
+
+.suggestions-toolbar-actions {
+  margin-left: auto;
+}
+
+.field-mapping-task-main,
+.field-mapping-task-side {
+  min-width: 0;
+}
+
+@media (min-width: 1200px) {
+  .field-mapping-task-side {
+    align-self: flex-start;
+  }
+
+  .field-mapping-task-side > .ant-space {
+    position: sticky;
+    top: 24px;
+  }
+}
+
 .governance-switch-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

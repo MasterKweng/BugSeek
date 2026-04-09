@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Button, Card, message, Result, Space, Typography } from 'antd'
+import { Button, Card, Result, Space, Typography, message } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -61,10 +61,7 @@ const ScenarioFieldMapping: React.FC = () => {
   }, [scenarioId])
 
   const loadScenario = async () => {
-    if (!scenarioId) {
-      return
-    }
-
+    if (!scenarioId) return
     try {
       const response = await api.get(`/scenarios/${scenarioId}`)
       if (response.code === 0) {
@@ -80,7 +77,6 @@ const ScenarioFieldMapping: React.FC = () => {
       message.warning('未找到映射任务 ID')
       return
     }
-
     setLoading(true)
     try {
       const response = await api.get(`/field-mappings/suggestions?task_id=${taskId}`)
@@ -96,10 +92,7 @@ const ScenarioFieldMapping: React.FC = () => {
   }
 
   const loadTask = async () => {
-    if (!taskId) {
-      return
-    }
-
+    if (!taskId) return
     try {
       const response = await getAsyncTask(taskId)
       setTask(response.data || null)
@@ -110,22 +103,15 @@ const ScenarioFieldMapping: React.FC = () => {
   }
 
   const applyMappingToScenario = async (items: AcceptedMapping[]) => {
-    if (!scenario || !scenarioId) {
-      return
-    }
-
+    if (!scenario || !scenarioId) return
     try {
       const updatedNodes = (scenario.nodes || []).map((node) => {
         const nodeMappings = items.filter((item) => item.definition_id === node.ref_id)
-        if (nodeMappings.length === 0) {
-          return node
-        }
+        if (nodeMappings.length === 0) return node
 
         const inputMapping = { ...(node.input_mapping || {}) }
         nodeMappings.forEach((mapping) => {
-          if (!mapping.db_table || !mapping.db_column) {
-            return
-          }
+          if (!mapping.db_table || !mapping.db_column) return
           const fieldPath = mapping.api_field_path.replace(/^body\./, '')
           inputMapping[fieldPath] = `{{${mapping.db_table}_${mapping.db_column}}}`
         })
@@ -242,9 +228,10 @@ const ScenarioFieldMapping: React.FC = () => {
 
         {scenario ? (
           <div className="workspace-inline-note">
-            {`场景: ${scenario.name}，包含 ${scenario.nodes?.length || 0} 个节点和 ${suggestions.length} 个字段映射建议。`}
+            {`场景：${scenario.name}，包含 ${scenario.nodes?.length || 0} 个节点和 ${suggestions.length} 个字段映射建议。`}
           </div>
         ) : null}
+
         {!taskId ? (
           <Paragraph type="secondary" style={{ marginTop: 12 }}>
             当前没有 task_id，无法加载字段映射建议。请从字段映射任务结果页进入场景应用。

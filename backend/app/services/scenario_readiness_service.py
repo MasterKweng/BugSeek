@@ -21,8 +21,10 @@ class ScenarioReadinessService:
 
         effective_environment_id = environment_id or scenario.environment_id
         effective_version_id = version_id or scenario.version_id
+        node_list = list(nodes or [])
+        requires_environment = any(str((node or {}).get("node_type", "api_call")).lower() == "api_call" for node in node_list)
 
-        if not effective_environment_id:
+        if requires_environment and not effective_environment_id:
             errors.append(
                 {
                     "type": "readiness",
@@ -42,7 +44,10 @@ class ScenarioReadinessService:
                     }
                 )
 
-        for node in list(nodes or []):
+        for node in node_list:
+            node_type = str(node.get("node_type", "api_call")).lower()
+            if node_type != "api_call":
+                continue
             try:
                 ScenarioResolutionService.resolve_node_runtime_target(
                     db,

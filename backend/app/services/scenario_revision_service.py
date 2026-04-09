@@ -7,6 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.platform.db.base import ApiScenario, ScenarioNode, ScenarioRevision
+from app.services.scenario_graph_service import ScenarioGraphService
 
 
 class ScenarioRevisionService:
@@ -65,6 +66,7 @@ class ScenarioRevisionService:
 
         return {
             "graph_schema_version": graph_schema_version,
+            "dsl_schema_version": "1.0",
             "scenario": {
                 "scenario_id": scenario.id,
                 "project_id": scenario.project_id,
@@ -83,6 +85,7 @@ class ScenarioRevisionService:
                 "lifecycle_status": getattr(scenario, "lifecycle_status", None) or scenario.status,
             },
             "nodes": serialized_nodes,
+            "edges": ScenarioGraphService.build_edges(serialized_nodes),
         }
 
     @staticmethod
@@ -117,6 +120,11 @@ class ScenarioRevisionService:
         )
         db.add(revision)
         db.flush()
+        ScenarioGraphService.persist_revision_edges(
+            db,
+            revision=revision,
+            edges=snapshot.get("edges") or [],
+        )
         scenario.latest_revision_no = revision_no
         scenario.draft_revision_id = revision.id
         return revision

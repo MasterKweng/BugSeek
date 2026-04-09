@@ -16,6 +16,8 @@ def _node_value(node: Any, field: str, default: Any = None) -> Any:
 
 
 class ScenarioValidationService:
+    SUPPORTED_NODE_TYPES = {"api_call", "condition", "wait", "script"}
+
     @staticmethod
     def validate_nodes(
         db: Session,
@@ -56,11 +58,17 @@ class ScenarioValidationService:
 
         for node in node_list:
             node_key = str(_node_value(node, "node_key"))
+            node_type = str(_node_value(node, "node_type", "api_call")).lower()
             depends_on = _node_value(node, "depends_on", []) or []
             if not isinstance(depends_on, list):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"depends_on must be a list: node={node_key}",
+                )
+            if node_type not in ScenarioValidationService.SUPPORTED_NODE_TYPES:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Unsupported node_type '{node_type}' in node '{node_key}'",
                 )
             for dep in depends_on:
                 if dep == node_key:
@@ -75,6 +83,42 @@ class ScenarioValidationService:
                     )
                 adjacency[str(dep)].append(node_key)
                 indegree[node_key] += 1
+
+            if node_type == "condition":
+                extra_config = _node_value(node, "extra_config", {}) or {}
+                if extra_config.get("expression") is None and extra_config.get("condition") is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Condition node '{node_key}' requires extra_config.expression",
+                    )
+                continue
+
+            if node_type == "wait":
+                extra_config = _node_value(node, "extra_config", {}) or {}
+                mode = str(extra_config.get("mode", "sleep")).lower()
+                if mode not in {"sleep", "poll"}:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Wait node '{node_key}' has unsupported mode '{mode}'",
+                    )
+                if mode == "poll" and extra_config.get("until") is None and extra_config.get("condition") is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Wait node '{node_key}' in poll mode requires extra_config.until",
+                    )
+                continue
+
+            if node_type == "script":
+                extra_config = _node_value(node, "extra_config", {}) or {}
+                outputs = extra_config.get("outputs")
+                if not isinstance(outputs, dict):
+                    outputs = extra_config.get("set_vars")
+                if not isinstance(outputs, dict) or not outputs:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Script node '{node_key}' requires extra_config.outputs or extra_config.set_vars",
+                    )
+                continue
 
             ref_type = str(_node_value(node, "ref_type", "api_case")).lower()
             ref_id = _node_value(node, "ref_id")

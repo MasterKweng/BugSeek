@@ -1,173 +1,259 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Alert, Button, Card, Progress, Space, Spin, Steps, Tag, Timeline, Typography, message } from 'antd'
-import { ArrowLeftOutlined, RedoOutlined } from '@ant-design/icons'
+import React, { useCallback, useEffect, useState } from 'react'
+import {
+  Alert,
+  Button,
+  Card,
+  Descriptions,
+  Empty,
+  Input,
+  Modal,
+  Space,
+  Spin,
+  Table,
+  Tooltip,
+  Typography,
+  message,
+} from 'antd'
+import {
+  ArrowLeftOutlined,
+  PauseCircleOutlined,
+  PlayCircleOutlined,
+  QuestionCircleOutlined,
+  RedoOutlined,
+  RobotOutlined,
+  SendOutlined,
+} from '@ant-design/icons'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import api from '../../services/api'
-import { getTaskStatus, isTerminalTaskStatus, type UnifiedTaskStatus } from '../../services/taskStatus'
+import './ScenarioExecution.css'
+import { getScenario } from '../../services/scenario'
+import {
+  analyzeScenarioFailure,
+  continueFromScenarioNode,
+  createScenarioRun,
+  getScenarioRun,
+  getScenarioRunContext,
+  getScenarioRunNodes,
+  pauseScenarioRun,
+  rerunScenarioNode,
+  resumeScenarioRun,
+  signalScenarioRun,
+} from '../../services/scenarioRuns'
 import type {
   ScenarioDetail,
-  ScenarioExecutionDetail,
-  ScenarioExecutionNodeResult,
+  ScenarioFailureRcaResult,
+  ScenarioNodeAttempt,
+  ScenarioNodeRun,
+  ScenarioRun,
+  ScenarioRunContext,
 } from '../../types/scenario'
-import './ScenarioExecution.css'
+import ScenarioStatusTag from '../../components/scenario/ScenarioStatusTag'
 
-const { Text } = Typography
+const { Text, Paragraph } = Typography
+const { TextArea } = Input
+
+const runtimeLabelMap: Record<string, string> = {
+  local: '本地执行器',
+  temporal: 'Temporal 持久化工作流',
+}
+
+const nodeTypeLabelMap: Record<string, string> = {
+  api_call: 'API 调用',
+  condition: '条件判断',
+  wait: '等待/轮询',
+  script: '脚本处理',
+}
+
+const hintLabel = (label: string, hint: string) => (
+  <Space size={4}>
+    <span>{label}</span>
+    <Tooltip title={hint}>
+      <QuestionCircleOutlined />
+    </Tooltip>
+  </Space>
+)
+
+const formatJson = (value: unknown) => JSON.stringify(value ?? {}, null, 2)
 
 const ScenarioExecution: React.FC = () => {
   const navigate = useNavigate()
   const { scenarioId, executionId } = useParams()
+  const runId = Number(executionId)
   const [loading, setLoading] = useState(false)
-  const [execution, setExecution] = useState<ScenarioExecutionDetail | null>(null)
+  const [actionLoading, setActionLoading] = useState(false)
+  const [run, setRun] = useState<ScenarioRun | null>(null)
   const [scenario, setScenario] = useState<ScenarioDetail | null>(null)
-  const [taskStatus, setTaskStatus] = useState<UnifiedTaskStatus<ScenarioExecutionDetail> | null>(null)
-
-  const loadExecution = useCallback(async () => {
-    if (!scenarioId || !executionId) {
-      return
-    }
-
-    setLoading(true)
-    try {
-      const response = await api.get(`/scenarios/${scenarioId}/executions/${executionId}`)
-      if (response.code === 0) {
-        setExecution(response.data)
-      } else {
-        message.error(response.message || '加载执行详情失败')
-      }
-    } catch (error: any) {
-      message.error(error.message || '加载执行详情失败')
-    } finally {
-      setLoading(false)
-    }
-  }, [executionId, scenarioId])
+  const [runContext, setRunContext] = useState<ScenarioRunContext | null>(null)
+  const [nodeRuns, setNodeRuns] = useState<ScenarioNodeRun[]>([])
+  const [failureRca, setFailureRca] = useState<ScenarioFailureRcaResult | null>(null)
+  const [signalModalVisible, setSignalModalVisible] = useState(false)
+  const [signalName, setSignalName] = useState('approve')
+  const [signalPayload, setSignalPayload] = useState('{}')
 
   const loadScenario = useCallback(async () => {
-    if (!scenarioId) {
-      return
-    }
-
+    if (!scenarioId) return
     try {
-      const response = await api.get(`/scenarios/${scenarioId}`)
-      if (response.code === 0) {
-        setScenario(response.data)
-      }
+      const detail = await getScenario(Number(scenarioId))
+      setScenario(detail)
     } catch (error) {
       console.error('加载场景失败:', error)
     }
   }, [scenarioId])
 
-  const loadTaskStatus = useCallback(async () => {
-    if (!executionId) {
-      return null
-    }
+  const loadRun = useCallback(async () => {
+    if (Number.isNaN(runId)) return
+    const detail = await getScenarioRun(runId)
+    setRun(detail)
+  }, [runId])
 
-    const numericExecutionId = Number(executionId)
-    if (Number.isNaN(numericExecutionId)) {
-      return null
-    }
-
+  const loadRunContext = useCallback(async () => {
+    if (Number.isNaN(runId)) return
     try {
-      const response = await getTaskStatus<ScenarioExecutionDetail>('scenario-execution', numericExecutionId)
-      if (response.code === 0) {
-        setTaskStatus(response.data)
-        return response.data
-      }
+      const detail = await getScenarioRunContext(runId)
+      setRunContext(detail)
     } catch (error) {
-      console.error('加载任务状态失败:', error)
+      console.error('加载运行上下文失败:', error)
+      setRunContext(null)
     }
+  }, [runId])
 
-    return null
-  }, [executionId])
-
-  useEffect(() => {
-    void loadExecution()
-    void loadScenario()
-  }, [loadExecution, loadScenario])
-
-  useEffect(() => {
-    let intervalId: ReturnType<typeof setInterval> | null = null
-    let disposed = false
-
-    const poll = async () => {
-      const status = await loadTaskStatus()
-      if (!status || disposed) {
-        return
-      }
-
-      if (isTerminalTaskStatus(status.status)) {
-        if (intervalId) {
-          clearInterval(intervalId)
-        }
-        if (!execution || execution.status !== status.status) {
-          await loadExecution()
-        }
-      }
+  const loadNodeRuns = useCallback(async () => {
+    if (Number.isNaN(runId)) return
+    try {
+      const detail = await getScenarioRunNodes(runId)
+      setNodeRuns(detail.items || [])
+    } catch (error) {
+      console.error('加载节点运行记录失败:', error)
+      setNodeRuns([])
     }
+  }, [runId])
 
-    void poll()
-    if (!isTerminalTaskStatus(execution?.status)) {
-      intervalId = setInterval(() => {
-        void poll()
-      }, 3000)
-    }
-
-    return () => {
-      disposed = true
-      if (intervalId) {
-        clearInterval(intervalId)
-      }
-    }
-  }, [execution, loadExecution, loadTaskStatus])
-
-  const handleRetry = async () => {
-    const environmentId = scenario?.environment_id
-    if (!scenarioId || !environmentId) {
-      message.warning('请先为场景选择环境')
-      return
-    }
-
+  const loadAll = useCallback(async () => {
+    if (Number.isNaN(runId)) return
     setLoading(true)
     try {
-      const response = await api.post(`/scenarios/${scenarioId}/execute`, {
-        environment_id: environmentId,
-      })
-      if (response.code === 0) {
-        message.success('场景已重新执行')
-        navigate(`/scenario/${scenarioId}/execution/${response.data.execution_id}`)
-      } else {
-        message.error(response.message || '重新执行失败')
-      }
+      await Promise.all([loadScenario(), loadRun(), loadRunContext(), loadNodeRuns()])
     } catch (error: any) {
-      message.error(error.message || '重新执行失败')
+      message.error(error.message || '加载运行详情失败')
     } finally {
       setLoading(false)
     }
+  }, [loadNodeRuns, loadRun, loadRunContext, loadScenario, runId])
+
+  useEffect(() => {
+    void loadAll()
+  }, [loadAll])
+
+  useEffect(() => {
+    if (!run || !['pending', 'running'].includes(run.status)) return undefined
+    const timer = setInterval(() => {
+      void loadRun()
+      void loadNodeRuns()
+    }, 3000)
+    return () => clearInterval(timer)
+  }, [loadNodeRuns, loadRun, run])
+
+  const handleRerunWholeScenario = async () => {
+    if (!scenarioId || !scenario?.environment_id) {
+      message.warning('当前场景没有默认环境，暂时无法整次重跑')
+      return
+    }
+    setActionLoading(true)
+    try {
+      const nextRun = await createScenarioRun({
+        scenario_id: Number(scenarioId),
+        revision_id: run?.revision_id ?? undefined,
+        environment_id: scenario.environment_id,
+      })
+      message.success('已提交新的场景运行')
+      navigate(`/scenario/${scenarioId}/execution/${nextRun.run_id}`)
+    } catch (error: any) {
+      message.error(error.message || '重新运行失败')
+    } finally {
+      setActionLoading(false)
+    }
   }
 
-  const results = useMemo(() => execution?.node_results || [], [execution])
-  const displayStatus = taskStatus?.status || execution?.status || '-'
-  const isRunning = displayStatus === 'pending' || displayStatus === 'running'
-  const successCount = results.filter((item) => item.status === 'passed').length
-  const failedCount = results.filter((item) => item.status !== 'passed').length
-  const totalCount = results.length
-  const passRate = totalCount > 0 ? (successCount / totalCount) * 100 : 0
-  const progressPercent = isRunning ? taskStatus?.progress || 0 : Math.round(passRate)
-
-  const mapStepStatus = (stageStatus: string): 'wait' | 'process' | 'finish' | 'error' => {
-    if (stageStatus === 'running') {
-      return 'process'
+  const handleNodeAction = async (type: 'rerun' | 'continue', nodeKey: string) => {
+    if (Number.isNaN(runId)) return
+    setActionLoading(true)
+    try {
+      const action = type === 'rerun' ? rerunScenarioNode : continueFromScenarioNode
+      const result = await action(runId, { node_key: nodeKey })
+      message.success(type === 'rerun' ? '节点重跑已提交' : '续跑已提交')
+      navigate(`/scenario/${scenarioId}/execution/${result.new_run_id}`)
+    } catch (error: any) {
+      message.error(error.message || '节点操作失败')
+    } finally {
+      setActionLoading(false)
     }
-    if (stageStatus === 'completed') {
-      return 'finish'
-    }
-    if (stageStatus === 'failed' || stageStatus === 'cancelled') {
-      return 'error'
-    }
-    return 'wait'
   }
 
-  if (loading && !execution) {
+  const handlePause = async () => {
+    if (Number.isNaN(runId)) return
+    setActionLoading(true)
+    try {
+      await pauseScenarioRun(runId)
+      message.success('运行已暂停')
+      await loadRun()
+    } catch (error: any) {
+      message.error(error.message || '暂停运行失败')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleResume = async () => {
+    if (Number.isNaN(runId)) return
+    setActionLoading(true)
+    try {
+      await resumeScenarioRun(runId)
+      message.success('运行已恢复')
+      await loadRun()
+    } catch (error: any) {
+      message.error(error.message || '恢复运行失败')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleSignal = async () => {
+    if (Number.isNaN(runId)) return
+    setActionLoading(true)
+    try {
+      await signalScenarioRun(runId, {
+        signal_name: signalName.trim(),
+        payload: signalPayload.trim() ? JSON.parse(signalPayload) : {},
+      })
+      message.success('控制信号已发送')
+      setSignalModalVisible(false)
+    } catch (error: any) {
+      message.error(error.message || '发送控制信号失败')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleAnalyzeFailure = async () => {
+    if (Number.isNaN(runId)) return
+    setActionLoading(true)
+    try {
+      const result = await analyzeScenarioFailure(runId)
+      setFailureRca(result)
+      message.success('失败分析已完成')
+    } catch (error: any) {
+      message.error(error.message || '失败分析失败')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const isTemporal = run?.runtime_type === 'temporal'
+  const runSummary = run?.summary || {}
+  const nodeRunCount = nodeRuns.length
+  const failedNodeCount = nodeRuns.filter((item) => item.status !== 'passed' && item.status !== 'completed').length
+
+  if (loading && !run) {
     return (
       <div style={{ padding: 24, textAlign: 'center' }}>
         <Spin size="large" tip="加载中..." />
@@ -175,143 +261,226 @@ const ScenarioExecution: React.FC = () => {
     )
   }
 
-  const renderNodeTitle = (result: ScenarioExecutionNodeResult) => {
-    const node = scenario?.nodes?.find((item) => item.id === result.target_id)
-    return node?.node_name || node?.node_key || `Node ${result.target_id ?? '-'}`
+  if (!run || Number.isNaN(runId)) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Empty description="未找到运行记录" />
+      </div>
+    )
   }
 
   return (
     <div className="scenario-execution">
-      <Space style={{ marginBottom: 24 }}>
+      <Space style={{ marginBottom: 24 }} wrap>
         <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(`/scenario/${scenarioId}`)}>
           返回场景
         </Button>
-        <Button icon={<RedoOutlined />} onClick={() => void handleRetry()} loading={loading}>
-          重新执行
+        <Button icon={<RedoOutlined />} onClick={() => void handleRerunWholeScenario()} loading={actionLoading}>
+          重新运行整次
         </Button>
-        {!Number.isNaN(Number(executionId)) ? (
-          <Button onClick={() => navigate(`/operations/executions/${executionId}`)}>
-            查看执行中心记录
-          </Button>
+        {isTemporal ? (
+          <>
+            <Button icon={<PauseCircleOutlined />} onClick={() => void handlePause()} loading={actionLoading}>
+              暂停
+            </Button>
+            <Button icon={<PlayCircleOutlined />} onClick={() => void handleResume()} loading={actionLoading}>
+              恢复
+            </Button>
+            <Button icon={<SendOutlined />} onClick={() => setSignalModalVisible(true)}>
+              发送控制信号
+            </Button>
+          </>
         ) : null}
+        <Button icon={<RobotOutlined />} onClick={() => void handleAnalyzeFailure()} loading={actionLoading}>
+          AI 失败分析
+        </Button>
       </Space>
 
-      <Card title="场景执行详情">
-        <Space direction="vertical" style={{ width: '100%' }} size="large">
-          <div>
-            <h3>执行概览</h3>
-            <Space size="large" wrap>
-              <span>场景: {scenario?.name || '-'}</span>
-              <span>执行 ID: {executionId}</span>
-              <Tag color={displayStatus === 'completed' ? 'success' : isRunning ? 'processing' : 'error'}>
-                {displayStatus}
-              </Tag>
-            </Space>
-            <div style={{ marginTop: 16 }}>
-              <Progress
-                percent={progressPercent}
-                status={isRunning ? 'active' : failedCount > 0 ? 'exception' : 'success'}
-                format={() => (isRunning ? `${progressPercent}%` : `${successCount}/${totalCount} 通过`)}
-              />
-            </div>
-            {isRunning && taskStatus?.progress_message && (
-              <Text type="secondary">{taskStatus.progress_message}</Text>
-            )}
-            {execution?.summary && (
-              <div style={{ marginTop: 8 }}>
-                <Space>
-                  <span>总耗时: {execution.summary.duration_ms}ms</span>
-                  <span>成功: {execution.summary.passed}</span>
-                  <span>失败: {execution.summary.failed}</span>
-                  <span>跳过: {execution.summary.skipped}</span>
-                </Space>
-              </div>
-            )}
-            {isRunning && taskStatus?.stages && taskStatus.stages.length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <Steps
-                  direction="vertical"
-                  size="small"
-                  current={Math.max(taskStatus.stages.findIndex((stage) => stage.status === 'running'), 0)}
-                  items={taskStatus.stages.map((stage) => ({
-                    key: stage.key,
-                    title: stage.name,
-                    description: stage.description || undefined,
-                    status: mapStepStatus(stage.status),
-                  }))}
-                />
-              </div>
-            )}
-            {execution?.error_message && (
-              <Alert style={{ marginTop: 12 }} type="error" showIcon message="执行失败" description={execution.error_message} />
-            )}
-          </div>
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Card title="运行概览">
+          <Descriptions bordered column={2}>
+            <Descriptions.Item label="运行 ID">{run.run_id}</Descriptions.Item>
+            <Descriptions.Item label="场景 ID">{run.scenario_id}</Descriptions.Item>
+            <Descriptions.Item label="场景名称">{scenario?.name || '-'}</Descriptions.Item>
+            <Descriptions.Item label={hintLabel('版本快照 ID', '本次运行绑定的版本快照。')}>{run.revision_id ?? '-'}</Descriptions.Item>
+            <Descriptions.Item label="运行状态"><ScenarioStatusTag status={run.status} /></Descriptions.Item>
+            <Descriptions.Item label="结果状态"><ScenarioStatusTag status={run.result_status || '-'} /></Descriptions.Item>
+            <Descriptions.Item label={hintLabel('运行时', '本地执行器用于快速执行，Temporal 用于持久化工作流运行。')}>
+              {run.runtime_type ? runtimeLabelMap[run.runtime_type] || run.runtime_type : '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label={hintLabel('工作流 ID', 'Temporal 运行时中的工作流标识。')}>
+              {run.temporal_workflow_id || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label={hintLabel('运行实例 ID', 'Temporal 运行时中的本次执行实例标识。')}>
+              {run.temporal_run_id || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="节点数">{nodeRunCount}</Descriptions.Item>
+            <Descriptions.Item label="失败节点数">{failedNodeCount}</Descriptions.Item>
+            <Descriptions.Item label="总耗时">{String(runSummary.duration_ms ?? '-')} ms</Descriptions.Item>
+            <Descriptions.Item label="通过 / 失败">
+              {String(runSummary.passed ?? 0)} / {String(runSummary.failed ?? 0)}
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
 
-          <div>
-            <h3>执行时间线</h3>
-            {results.length > 0 ? (
-              <Timeline
-                items={results.map((result) => ({
-                  color: result.status === 'passed' ? 'green' : 'red',
-                  children: (
-                    <div className="execution-item">
-                      <div className="execution-item-header">
-                        <Space>
-                          <Tag color={result.status === 'passed' ? 'success' : 'error'}>{result.status}</Tag>
-                          <strong>{renderNodeTitle(result)}</strong>
-                        </Space>
-                        <Text type="secondary">耗时: {result.response_time ?? 0}ms</Text>
-                      </div>
-                      <div className="execution-item-details">
-                        {result.request_body !== undefined && result.request_body !== null && (
-                          <div>
-                            <strong>请求:</strong>
-                            <pre>{JSON.stringify(result.request_body, null, 2)}</pre>
-                          </div>
-                        )}
-                        {result.response_body !== undefined && result.response_body !== null && (
-                          <div>
-                            <strong>响应:</strong>
-                            <pre>{JSON.stringify(result.response_body, null, 2)}</pre>
-                          </div>
-                        )}
-                        {result.assertion_results !== undefined && result.assertion_results !== null && (
-                          <div>
-                            <strong>断言:</strong>
-                            <pre>{JSON.stringify(result.assertion_results, null, 2)}</pre>
-                          </div>
-                        )}
-                        {result.extracted_variables && Object.keys(result.extracted_variables).length > 0 && (
-                          <div>
-                            <strong>提取变量:</strong>
-                            <pre>{JSON.stringify(result.extracted_variables, null, 2)}</pre>
-                          </div>
-                        )}
-                        {result.error_message && (
-                          <Alert
-                            message="错误信息"
-                            description={result.error_message}
-                            type="error"
-                            showIcon
-                            style={{ marginTop: 8 }}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  ),
-                }))}
-              />
-            ) : (
-              <div className="workspace-inline-note">
-                {isRunning ? '执行中，等待节点结果回传。' : '暂无节点执行结果。'}
+        <Card title={hintLabel('运行上下文', '展示本次运行的输入上下文和解析后的上下文。')}>
+          {runContext ? (
+            <Space direction="vertical" style={{ width: '100%' }} size="middle">
+              <div>
+                <Text strong>输入上下文</Text>
+                <pre>{formatJson(runContext.input_context)}</pre>
               </div>
+              <div>
+                <Text strong>解析后上下文</Text>
+                <pre>{formatJson(runContext.resolved_context)}</pre>
+              </div>
+            </Space>
+          ) : (
+            <Empty description="暂无运行上下文" />
+          )}
+        </Card>
+
+        {failureRca ? (
+          <Alert
+            type="warning"
+            showIcon
+            message="AI 失败分析"
+            description={(
+              <Space direction="vertical" size={4}>
+                <Text>失败类型：{failureRca.failure_type || '-'}</Text>
+                <Paragraph style={{ marginBottom: 0 }}>根因：{failureRca.root_cause || '-'}</Paragraph>
+                <Paragraph style={{ marginBottom: 0 }}>建议修复：{failureRca.suggested_fix || '-'}</Paragraph>
+                <Text type="secondary">置信度：{failureRca.confidence ?? '-'}</Text>
+              </Space>
             )}
-          </div>
+          />
+        ) : null}
+
+        <Card title="节点运行记录">
+          <Table<ScenarioNodeRun>
+            rowKey="node_key"
+            dataSource={nodeRuns}
+            pagination={false}
+            locale={{ emptyText: '暂无节点运行数据' }}
+            expandable={{
+              expandedRowRender: (record) => (
+                <Table<ScenarioNodeAttempt>
+                  rowKey={(attempt) => `${record.node_key}-${attempt.attempt}-${attempt.id ?? 'local'}`}
+                  dataSource={record.attempts}
+                  pagination={false}
+                  size="small"
+                  columns={[
+                    {
+                      title: hintLabel('尝试序号', '每一次重试都会形成一条独立的尝试记录。'),
+                      dataIndex: 'attempt',
+                      key: 'attempt',
+                      width: 120,
+                    },
+                    {
+                      title: '状态',
+                      dataIndex: 'status',
+                      key: 'status',
+                      width: 110,
+                      render: (value: string) => <ScenarioStatusTag status={value} />,
+                    },
+                    { title: '响应码', dataIndex: 'response_code', key: 'response_code', width: 100 },
+                    { title: '耗时(ms)', dataIndex: 'response_time', key: 'response_time', width: 110 },
+                    {
+                      title: '错误信息',
+                      dataIndex: 'error_message',
+                      key: 'error_message',
+                      render: (value?: string | null) => value || '-',
+                    },
+                  ]}
+                  summary={() => (
+                    <>
+                      {record.attempts.map((attempt) => (
+                        <tr key={`detail-${record.node_key}-${attempt.attempt}`}>
+                          <td colSpan={5} style={{ padding: 12, background: '#fafafa' }}>
+                            <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                              <div>
+                                <Text strong>输入快照</Text>
+                                <pre>{formatJson(attempt.input_snapshot)}</pre>
+                              </div>
+                              <div>
+                                <Text strong>输出快照</Text>
+                                <pre>{formatJson(attempt.output_snapshot)}</pre>
+                              </div>
+                              <div>
+                                <Text strong>引用解析快照</Text>
+                                <pre>{formatJson(attempt.resolved_ref_snapshot)}</pre>
+                              </div>
+                            </Space>
+                          </td>
+                        </tr>
+                      ))}
+                    </>
+                  )}
+                />
+              ),
+            }}
+            columns={[
+              { title: '节点标识', dataIndex: 'node_key', key: 'node_key' },
+              {
+                title: '节点类型',
+                dataIndex: 'node_type',
+                key: 'node_type',
+                width: 120,
+                render: (value: string) => nodeTypeLabelMap[value] || value,
+              },
+              {
+                title: '状态',
+                dataIndex: 'status',
+                key: 'status',
+                width: 120,
+                render: (value: string) => <ScenarioStatusTag status={value} />,
+              },
+              {
+                title: hintLabel('最终尝试', '该节点最终一次执行对应的重试序号。'),
+                dataIndex: 'attempt',
+                key: 'attempt',
+                width: 120,
+              },
+              {
+                title: '错误信息',
+                dataIndex: 'error_message',
+                key: 'error_message',
+                render: (value?: string | null) => value || '-',
+              },
+              {
+                title: '操作',
+                key: 'actions',
+                width: 220,
+                render: (_, record) => (
+                  <Space>
+                    <Button size="small" onClick={() => void handleNodeAction('rerun', record.node_key)} loading={actionLoading}>
+                      重跑节点
+                    </Button>
+                    <Button size="small" type="link" onClick={() => void handleNodeAction('continue', record.node_key)} loading={actionLoading}>
+                      从此续跑
+                    </Button>
+                  </Space>
+                ),
+              },
+            ]}
+          />
+        </Card>
+      </Space>
+
+      <Modal
+        title={hintLabel('发送控制信号', '向 Temporal 工作流发送外部控制事件，例如审批、放行或继续执行。')}
+        open={signalModalVisible}
+        onOk={() => void handleSignal()}
+        onCancel={() => setSignalModalVisible(false)}
+        confirmLoading={actionLoading}
+      >
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Input value={signalName} onChange={(event) => setSignalName(event.target.value)} placeholder="请输入信号名称" />
+          <TextArea value={signalPayload} onChange={(event) => setSignalPayload(event.target.value)} rows={6} />
         </Space>
-      </Card>
+      </Modal>
     </div>
   )
 }
 
 export default ScenarioExecution
-

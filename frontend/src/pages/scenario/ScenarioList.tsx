@@ -7,13 +7,20 @@ import api from '../../services/api'
 import { useProjectStore } from '../../store/project'
 import type { ScenarioSummary } from '../../types/scenario'
 import WorkspaceModuleHero from '../../components/WorkspaceModuleHero'
+import ScenarioStatusTag from '../../components/scenario/ScenarioStatusTag'
 
 const { Text } = Typography
 
-const statusColorMap: Record<string, string> = {
-  active: 'success',
-  archived: 'default',
-  draft: 'processing',
+const sourceTypeLabelMap: Record<string, string> = {
+  intent: 'AI 意图生成',
+  manual: '手工创建',
+  template: '模板实例化',
+}
+
+const scenarioTypeLabelMap: Record<string, string> = {
+  business_flow: '业务流程',
+  regression: '回归测试',
+  smoke: '冒烟测试',
 }
 
 const ScenarioList: React.FC = () => {
@@ -97,12 +104,17 @@ const ScenarioList: React.FC = () => {
                 title: '来源',
                 dataIndex: 'source_type',
                 key: 'source_type',
-                render: (value: string) => <Tag color={value === 'intent' ? 'blue' : 'green'}>{value}</Tag>,
+                render: (value: string) => (
+                  <Tag color={value === 'intent' ? 'blue' : 'green'}>
+                    {sourceTypeLabelMap[value] || value}
+                  </Tag>
+                ),
               },
               {
                 title: '类型',
                 dataIndex: 'scenario_type',
                 key: 'scenario_type',
+                render: (value: string) => scenarioTypeLabelMap[value] || value,
               },
               {
                 title: '节点数量',
@@ -111,9 +123,14 @@ const ScenarioList: React.FC = () => {
               },
               {
                 title: '状态',
-                dataIndex: 'status',
+                dataIndex: 'lifecycle_status',
                 key: 'status',
-                render: (value: string) => <Tag color={statusColorMap[value] || 'default'}>{value}</Tag>,
+                render: (_: string, record) => <ScenarioStatusTag status={record.lifecycle_status || record.status} />,
+              },
+              {
+                title: '版本摘要',
+                key: 'revision',
+                render: (_, record) => `草稿:${record.draft_revision_id ?? '-'} / 发布:${record.published_revision_id ?? '-'}`,
               },
               {
                 title: '更新时间',

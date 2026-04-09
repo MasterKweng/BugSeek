@@ -1,5 +1,5 @@
 import React from 'react'
-import { Alert, Card, Descriptions, Progress, Space, Tag, Typography } from 'antd'
+import { Alert, Button, Card, Descriptions, Progress, Space, Tag, Typography } from 'antd'
 import type { AsyncTask } from '../../services/fieldMappingTask'
 
 const { Text } = Typography
@@ -29,9 +29,19 @@ const getStatusColor = (status?: string) => {
 
 interface TaskHeaderCardProps {
   task: AsyncTask | null
+  actionLoading?: 'cancel' | 'resume' | 'reset' | null
+  onCancel?: () => void
+  onResume?: () => void
+  onReset?: () => void
 }
 
-const TaskHeaderCard: React.FC<TaskHeaderCardProps> = ({ task }) => {
+const TaskHeaderCard: React.FC<TaskHeaderCardProps> = ({
+  task,
+  actionLoading = null,
+  onCancel,
+  onResume,
+  onReset,
+}) => {
   if (!task) {
     return null
   }
@@ -42,11 +52,38 @@ const TaskHeaderCard: React.FC<TaskHeaderCardProps> = ({ task }) => {
   const resultTableMismatch = task.result_table_mismatch ?? task.statistics?.result_table_mismatch
   const resultTraceMismatch = task.result_trace_mismatch ?? task.statistics?.result_trace_mismatch
   const resultArtifactMismatch = task.result_artifact_mismatch ?? task.statistics?.result_artifact_mismatch
+  const showCancel = task.status === 'pending' || task.status === 'running'
+  const showRecovery = task.status === 'failed' || task.status === 'partial_success' || task.status === 'cancelled'
 
   return (
-    <Card className="workspace-table-card" bordered={false}>
+    <Card
+      className="workspace-table-card"
+      bordered={false}
+      extra={(
+        <Space wrap>
+          {showCancel && onCancel ? (
+            <Button danger loading={actionLoading === 'cancel'} onClick={onCancel}>
+              取消任务
+            </Button>
+          ) : null}
+          {showRecovery && onResume ? (
+            <Button type="primary" loading={actionLoading === 'resume'} onClick={onResume}>
+              继续执行
+            </Button>
+          ) : null}
+          {showRecovery && onReset ? (
+            <Button loading={actionLoading === 'reset'} onClick={onReset}>
+              重置任务
+            </Button>
+          ) : null}
+        </Space>
+      )}
+    >
       <Space direction="vertical" size={16} style={{ width: '100%' }}>
-        <Descriptions size="small" column={1}>
+        <Descriptions
+          size="small"
+          column={{ xs: 1, md: 2, xl: 4 }}
+        >
           <Descriptions.Item label="任务 ID">#{task.id}</Descriptions.Item>
           <Descriptions.Item label="状态">
             <Tag color={getStatusColor(task.status)}>{task.status}</Tag>
@@ -74,11 +111,11 @@ const TaskHeaderCard: React.FC<TaskHeaderCardProps> = ({ task }) => {
 
         {artifactsSummary ? (
           <Text type="secondary">
-            by stage: {Object.entries(artifactsSummary.by_stage || {}).map(([key, value]) => `${key}:${value}`).join(', ') || '-'}
+            按阶段产物数: {Object.entries(artifactsSummary.by_stage || {}).map(([key, value]) => `${key}:${value}`).join(', ') || '-'}
           </Text>
         ) : null}
         {typeof consistencyDiff === 'number' ? (
-          <Text type="secondary">consistency diff: {consistencyDiff}</Text>
+          <Text type="secondary">Consistency diff: {consistencyDiff}</Text>
         ) : null}
         {!consistencyOk && (resultTableMismatch || resultTraceMismatch || resultArtifactMismatch) ? (
           <Space wrap>
