@@ -8,7 +8,6 @@ import {
   DatabaseOutlined,
   DeploymentUnitOutlined,
   EnvironmentOutlined,
-  FundOutlined,
   HomeOutlined,
   ProjectOutlined,
   RobotOutlined,
@@ -176,14 +175,6 @@ export const navigationSections: NavigationSection[] = [
     icon: ClusterOutlined,
     accent: 'gold',
     items: [
-      {
-        key: '/scenario/intent-workbench',
-        labelKey: 'nav.scenario.items.intentWorkbench.label',
-        descriptionKey: 'nav.scenario.items.intentWorkbench.description',
-        icon: FundOutlined,
-        matchers: ['/scenario/intent-workbench', '/scenario/intent-workbench/*'],
-        getPath: () => '/scenario/intent-workbench',
-      },
       {
         key: '/scenario/list',
         labelKey: 'nav.scenario.items.list.label',

@@ -443,10 +443,6 @@ export const messages: Record<AppLocale, MessageTree> = {
         label: '场景编排中心',
         description: '从意图整理到执行闭环，统一管理场景设计和运行过程。',
         items: {
-          intentWorkbench: {
-            label: '意图工作台',
-            description: '整理需求意图、候选流和可执行场景。',
-          },
           list: {
             label: '场景目录',
             description: '浏览场景列表、状态和关联资产。',
@@ -456,8 +452,8 @@ export const messages: Record<AppLocale, MessageTree> = {
             description: '集中浏览、创建和实例化可复用的场景模板。',
           },
           aiSuggestions: {
-            label: 'AI 建议台',
-            description: '统一执行 AI 草稿生成、建议处理和失败分析动作。',
+            label: 'AI 建议台【待完善】',
+            description: '预留 AI 草稿生成、建议处理和失败分析入口，当前版本仍待完善。',
           },
           detail: {
             label: '场景详情',

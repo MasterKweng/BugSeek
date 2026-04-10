@@ -70,8 +70,8 @@ const ScenarioList: React.FC = () => {
             <Button icon={<ReloadOutlined />} onClick={() => void loadScenarios()} loading={loading}>
               刷新
             </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/scenario/intent-workbench')}>
-              创建场景
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/scenario/templates')}>
+              从模板创建
             </Button>
           </Space>
         }

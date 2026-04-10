@@ -14,12 +14,12 @@ const ScenarioAISuggestions: React.FC = () => {
     <div className="workspace-page">
       <WorkspaceModuleHero
         eyebrow="Scenario"
-        title="AI 场景建议"
-        description="集中查看和承接 AI 生成的场景草稿、映射建议、断言建议和失败分析能力。当前版本先恢复页面入口。"
+        title="AI 建议台【待完善】"
+        description="这里预留给 AI 草稿、映射建议、断言建议和失败分析。当前版本仅恢复入口，完整工作流仍待完善。"
         metrics={[
           { label: '当前项目', value: currentProject?.name || '-' },
           { label: '当前版本', value: currentVersion?.version_number || '-' },
-          { label: '模块状态', value: '入口已恢复' },
+          { label: '模块状态', value: '待完善' },
         ]}
       />
 
@@ -28,8 +28,8 @@ const ScenarioAISuggestions: React.FC = () => {
           <Alert
             type="info"
             showIcon
-            message="AI 场景建议页面已恢复访问"
-            description="为了先恢复路由和构建，这里保留为稳定入口页。后续可以再逐步接回 AI 草稿生成、建议处理、映射建议和失败分析能力。"
+            message="AI 建议台仍在完善中"
+            description="当前页面主要用于保留入口和说明状态，后续会逐步接回 AI 草稿生成、建议处理、映射建议和失败分析能力。"
           />
 
           <Empty
