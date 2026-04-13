@@ -104,10 +104,20 @@ class LineageService:
         definition: Any,
         version_id: int | None = None,
         max_files: int = 200,
-    ) -> int:
+    ) -> Dict[str, Any]:
         root = Path(workspace_root)
         if not root.exists():
-            return 0
+            return {
+                "created": 0,
+                "scanned_files": 0,
+                "code_edges": 0,
+                "fallback_files": 0,
+                "pipeline_sources": {},
+                "assignment_kinds": {},
+                "evidence_types": {},
+                "recall_candidates": 0,
+                "recall_fallback": False,
+            }
 
         definition_id = int(getattr(definition, "id"))
         project_id = int(getattr(definition, "project_id"))
@@ -244,7 +254,17 @@ class LineageService:
                 definition_id,
                 self._summarize_recall_candidates(recall_result.candidates),
             )
-        return created
+        return {
+            "created": created,
+            "scanned_files": scanned_files,
+            "code_edges": total_code_edges,
+            "fallback_files": fallback_files,
+            "pipeline_sources": dict(sorted(pipeline_source_counts.items())),
+            "assignment_kinds": dict(sorted(assignment_kind_counts.items())),
+            "evidence_types": dict(sorted(evidence_type_counts.items())),
+            "recall_candidates": len(recall_result.candidates),
+            "recall_fallback": bool(recall_result.used_fallback_scan),
+        }
 
     def build_and_persist_sql_lineage_for_execution(
         self,

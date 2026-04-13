@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 
 async def run(
@@ -13,8 +13,11 @@ async def run(
     ranked_items: List[Dict[str, Any]],
     use_ai: bool,
     ai_confidence_threshold: float,
+    progress_callback: Optional[Callable[[str, int, int, str | None], None]] = None,
 ) -> List[Dict[str, Any]]:
     if not use_ai:
+        if progress_callback:
+            progress_callback("optimize_with_ai", 1, 1, "AI disabled, skipping optimization")
         return [service._build_rule_only_optimized_item(item, ai_confidence_threshold) for item in ranked_items]
 
     schema_snapshot = service._load_db_schema(project_id, version_id)
@@ -27,17 +30,31 @@ async def run(
             ai_confidence_threshold=ai_confidence_threshold,
         )
     ]
+    if progress_callback:
+        progress_callback(
+            "select_ai_candidates",
+            len(ai_eligible_items),
+            len(ranked_items),
+            f"Selected {len(ai_eligible_items)} / {len(ranked_items)} items for AI optimization",
+        )
     if not ai_eligible_items:
+        if progress_callback:
+            progress_callback("optimize_with_ai", 1, 1, "No items eligible for AI optimization")
         return [service._build_rule_only_optimized_item(item, ai_confidence_threshold) for item in ranked_items]
+    if progress_callback:
+        progress_callback("optimize_with_ai", 0, len(ai_eligible_items), "Running AI optimization")
     ai_results = await service.ai_enricher.enrich_low_confidence_items(
         project_id=project_id,
         schema_snapshot=schema_snapshot,
         ranked_items=ai_eligible_items,
         ai_confidence_threshold=ai_confidence_threshold,
     )
+    if progress_callback:
+        progress_callback("optimize_with_ai", len(ai_eligible_items), len(ai_eligible_items), "AI optimization finished")
 
     optimized: List[Dict[str, Any]] = []
-    for item in ranked_items:
+    total_items = len(ranked_items)
+    for index, item in enumerate(ranked_items, start=1):
         rule_candidates = item.get("rule_candidates", [])
         ai_payload = ai_results.get(item["api_field_path"], {})
         ai_candidates = ai_payload.get("ai_candidates", [])
@@ -78,4 +95,11 @@ async def run(
                 "ai_top_score": ai_top,
             }
         )
+        if progress_callback and (index == total_items or index == 1 or index % 50 == 0):
+            progress_callback(
+                "merge_ai_results",
+                index,
+                total_items,
+                f"Merged AI results for {index} / {total_items} fields",
+            )
     return optimized

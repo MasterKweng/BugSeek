@@ -884,6 +884,7 @@ async def get_field_mapping_stage_result(
                 "stage_num": stage_num,
                 "status": stage_result.get("status", StageStatus.COMPLETED),
                 "summary": stage_result.get("data"),
+                "children": stage_result.get("children", []),
                 "artifacts": [
                     {
                         "id": artifact.id,
@@ -908,7 +909,8 @@ async def get_field_mapping_stage_result(
             data={
                 "stage_num": stage_num,
                 "status": StageStatus.NOT_STARTED,
-                "data": None
+                "data": None,
+                "children": []
             }
         )
     

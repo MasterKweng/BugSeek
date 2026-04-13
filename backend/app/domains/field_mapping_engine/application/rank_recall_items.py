@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 
 def run(
@@ -10,9 +10,11 @@ def run(
     recall_items: List[Dict[str, Any]],
     *,
     use_runtime_verification: bool = True,
+    progress_callback: Optional[Callable[[str, int, int, str | None], None]] = None,
 ) -> List[Dict[str, Any]]:
     ranked_items: List[Dict[str, Any]] = []
-    for item in recall_items:
+    total_items = len(recall_items)
+    for index, item in enumerate(recall_items, start=1):
         candidate_evidence = [dict(candidate) for candidate in item.get("candidate_evidence", [])]
         for candidate in candidate_evidence:
             service.feature_builder.enrich_candidate(field_item=item, candidate=candidate)
@@ -40,4 +42,11 @@ def run(
                 "runtime_verification_evidence": verified_evidence,
             }
         )
+        if progress_callback and (index == total_items or index == 1 or index % 50 == 0):
+            progress_callback(
+                "rank_candidates",
+                index,
+                total_items,
+                f"Ranked candidates for {index} / {total_items} fields",
+            )
     return ranked_items

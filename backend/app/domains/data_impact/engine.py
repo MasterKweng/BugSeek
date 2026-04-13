@@ -144,6 +144,7 @@ class DataImpactEngine:
 
         sql_edges_created = 0
         code_edges_created = 0
+        code_lineage_summary: Dict[str, Any] | None = None
         if execution_id:
             sql_edges_created = self.lineage_service.build_and_persist_sql_lineage_for_execution(
                 execution_id=execution_id,
@@ -151,16 +152,18 @@ class DataImpactEngine:
                 version_id=version_id,
             )
         if workspace_root:
-            code_edges_created = self.lineage_service.build_and_persist_code_lineage_from_workspace(
+            code_lineage_summary = self.lineage_service.build_and_persist_code_lineage_from_workspace(
                 workspace_root=workspace_root,
                 definition=definition,
                 version_id=version_id,
                 max_files=max_files,
             )
+            code_edges_created = int(code_lineage_summary.get("created", 0) or 0)
         return {
             "definition_id": definition_id,
             "execution_id": execution_id,
             "workspace_root": workspace_root,
             "sql_lineage_edges_created": sql_edges_created,
             "code_lineage_edges_created": code_edges_created,
+            "code_lineage_summary": code_lineage_summary,
         }

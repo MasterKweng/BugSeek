@@ -17,6 +17,13 @@ interface StageDetailData {
   status?: string
   summary?: unknown
   data?: unknown
+  children?: Array<{
+    key?: string
+    name?: string
+    status?: string
+    progress?: number
+    message?: string
+  }>
   artifacts?: StageArtifact[]
 }
 
@@ -89,6 +96,28 @@ const StageDetailDrawer: React.FC<StageDetailDrawerProps> = ({ open, taskId, sta
 
           <Paragraph strong>阶段摘要</Paragraph>
           {renderJson(detail.summary ?? detail.data)}
+
+          <Paragraph strong style={{ marginTop: 16 }}>子步骤进度</Paragraph>
+          {detail.children?.length ? (
+            <Collapse
+              items={detail.children.map((child, index) => ({
+                key: child.key || `child-${index}`,
+                label: `${child.name || '子步骤'} · ${child.status || 'unknown'} · ${child.progress ?? 0}%`,
+                children: (
+                  <Descriptions size="small" column={1}>
+                    <Descriptions.Item label="名称">{child.name || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="状态">
+                      <Tag>{child.status || '-'}</Tag>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="进度">{child.progress ?? 0}%</Descriptions.Item>
+                    <Descriptions.Item label="说明">{child.message || '-'}</Descriptions.Item>
+                  </Descriptions>
+                ),
+              }))}
+            />
+          ) : (
+            <Text type="secondary">当前阶段没有子步骤数据</Text>
+          )}
 
           <Paragraph strong style={{ marginTop: 16 }}>Artifacts</Paragraph>
           {detail.artifacts?.length ? (

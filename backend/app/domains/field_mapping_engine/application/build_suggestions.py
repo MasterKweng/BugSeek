@@ -2,14 +2,26 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 
-def run(service: Any, ranked_items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def run(
+    service: Any,
+    ranked_items: List[Dict[str, Any]],
+    progress_callback: Optional[Callable[[str, int, int, str | None], None]] = None,
+) -> List[Dict[str, Any]]:
     suggestions: List[Dict[str, Any]] = []
-    for item in ranked_items:
+    total_items = len(ranked_items)
+    for index, item in enumerate(ranked_items, start=1):
         final_candidates = item.get("final_candidates", [])
         if not final_candidates:
+            if progress_callback and (index == total_items or index == 1 or index % 50 == 0):
+                progress_callback(
+                    "build_final_suggestions",
+                    index,
+                    total_items,
+                    f"Processed {index} / {total_items} ranked items",
+                )
             continue
         decision_artifact = service._build_decision_artifact(item, final_candidates)
         top_candidate = decision_artifact.get("top_candidate")
@@ -35,4 +47,11 @@ def run(service: Any, ranked_items: List[Dict[str, Any]]) -> List[Dict[str, Any]
                 ),
             }
         )
+        if progress_callback and (index == total_items or index == 1 or index % 50 == 0):
+            progress_callback(
+                "build_final_suggestions",
+                index,
+                total_items,
+                f"Built {len(suggestions)} suggestions from {index} / {total_items} ranked items",
+            )
     return suggestions

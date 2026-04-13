@@ -4,10 +4,14 @@ import { getFromCache, removeFromCache, saveToCache } from './fieldMappingCache'
 import type { ApiResponse } from '../types'
 
 export interface StageResult {
+  key?: string
   name: string
   status: 'not_started' | 'running' | 'completed' | 'failed' | 'skipped'
   progress: number
   completed_at?: string
+  message?: string
+  description?: string | null
+  children?: StageResult[]
   data?: any
 }
 
@@ -40,10 +44,12 @@ export interface AsyncTask {
     stage5?: StageResult
   }
   stages?: Array<{
+    key?: string
     name: string
     status: string
     progress: number
     description?: string | null
+    children?: StageResult[]
   }>
   statistics?: Record<string, any>
   consistency_ok?: boolean | null

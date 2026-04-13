@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
@@ -116,6 +116,7 @@ class FieldMappingAppService:
         include_query: bool = True,
         include_body: bool = True,
         definition_ids: Optional[List[int]] = None,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
     ) -> List[Dict[str, Any]]:
         return extract_field_specs_step.run(
             self,
@@ -125,6 +126,7 @@ class FieldMappingAppService:
             include_query=include_query,
             include_body=include_body,
             definition_ids=definition_ids,
+            progress_callback=progress_callback,
         )
 
     def build_recall_artifacts(
@@ -136,6 +138,7 @@ class FieldMappingAppService:
         use_sql_lineage: bool = True,
         use_code_lineage: bool = True,
         use_runtime_verification: bool = True,
+        progress_callback: Optional[Callable[[str, int, int, str | None], None]] = None,
     ) -> List[Dict[str, Any]]:
         return build_recall_artifacts_step.run(
             self,
@@ -145,6 +148,7 @@ class FieldMappingAppService:
             use_sql_lineage=use_sql_lineage,
             use_code_lineage=use_code_lineage,
             use_runtime_verification=use_runtime_verification,
+            progress_callback=progress_callback,
         )
 
     def rank_recall_items(
@@ -152,11 +156,13 @@ class FieldMappingAppService:
         recall_items: List[Dict[str, Any]],
         *,
         use_runtime_verification: bool = True,
+        progress_callback: Optional[Callable[[str, int, int, str | None], None]] = None,
     ) -> List[Dict[str, Any]]:
         return rank_recall_items_step.run(
             self,
             recall_items,
             use_runtime_verification=use_runtime_verification,
+            progress_callback=progress_callback,
         )
 
     async def optimize_ranked_items(
@@ -167,6 +173,7 @@ class FieldMappingAppService:
         ranked_items: List[Dict[str, Any]],
         use_ai: bool,
         ai_confidence_threshold: float,
+        progress_callback: Optional[Callable[[str, int, int, str | None], None]] = None,
     ) -> List[Dict[str, Any]]:
         return await optimize_ranked_items_step.run(
             self,
@@ -175,10 +182,16 @@ class FieldMappingAppService:
             ranked_items=ranked_items,
             use_ai=use_ai,
             ai_confidence_threshold=ai_confidence_threshold,
+            progress_callback=progress_callback,
         )
 
-    def build_suggestions_from_ranked_items(self, ranked_items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        return build_suggestions_step.run(self, ranked_items)
+    def build_suggestions_from_ranked_items(
+        self,
+        ranked_items: List[Dict[str, Any]],
+        *,
+        progress_callback: Optional[Callable[[str, int, int, str | None], None]] = None,
+    ) -> List[Dict[str, Any]]:
+        return build_suggestions_step.run(self, ranked_items, progress_callback=progress_callback)
 
     def _build_decision_artifact(
         self,

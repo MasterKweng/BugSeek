@@ -42,6 +42,7 @@ class UnifiedTaskStage(BaseModel):
     status: str
     progress: int = 0
     description: Optional[str] = None
+    children: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class UnifiedTaskStatus(BaseModel):
@@ -102,6 +103,7 @@ def _build_field_mapping_stages(task: AsyncTask) -> List[UnifiedTaskStage]:
                 status=stage_dict.get("status", "pending"),
                 progress=stage_dict.get("progress", 0) or 0,
                 description=description,
+                children=list(stage_dict.get("children") or []),
             )
         )
 

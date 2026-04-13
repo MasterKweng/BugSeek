@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 
 def run(
@@ -14,14 +14,20 @@ def run(
     use_sql_lineage: bool = True,
     use_code_lineage: bool = True,
     use_runtime_verification: bool = True,
+    progress_callback: Optional[Callable[[str, int, int, str | None], None]] = None,
 ) -> List[Dict[str, Any]]:
+    if progress_callback:
+        progress_callback("prepare_sources", 0, 1, "Loading schema and history priors")
     schema_snapshot = service._load_db_schema(project_id, version_id)
     db_columns = service.db_extractor.extract_columns(schema_snapshot)
     history_prior_map = service.history_recaller.build_prior_map(project_id, version_id)
     rejected_prior_map = service.history_recaller.build_rejected_prior_map(project_id, version_id)
+    if progress_callback:
+        progress_callback("prepare_sources", 1, 1, "Schema and priors loaded")
 
     items: List[Dict[str, Any]] = []
-    for field_spec in field_specs:
+    total_fields = len(field_specs)
+    for index, field_spec in enumerate(field_specs, start=1):
         metadata = dict(field_spec.get("metadata") or {})
         field_context = service.context_builder.build_field_context(field_spec=field_spec)
         history_prior = service._resolve_history_prior(
@@ -104,4 +110,11 @@ def run(
                 "candidate_evidence": candidate_evidence,
             }
         )
+        if progress_callback and (index == total_fields or index == 1 or index % 50 == 0):
+            progress_callback(
+                "build_recall_candidates",
+                index,
+                total_fields,
+                f"Built recall evidence for {index} / {total_fields} fields",
+            )
     return items
