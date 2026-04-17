@@ -733,6 +733,9 @@ const SyncTasksList: React.FC = () => {
                         <div key={index} style={{ padding: '8px', background: 'rgba(82, 196, 26, 0.1)', marginBottom: '4px', borderRadius: '4px' }}>
                           <Tag color="green">{item.method}</Tag>
                           <span style={{ fontWeight: 'bold' }}>{item.path}</span>
+                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            模块: {item.module_name ?? item.group_name ?? '-'}
+                          </div>
                           <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
                             {item.summary || '无描述'}
                           </div>
@@ -744,6 +747,9 @@ const SyncTasksList: React.FC = () => {
                         <div key={index} style={{ padding: '8px', background: 'var(--bg-elevated)', marginBottom: '4px', borderRadius: '4px' }}>
                           <Tag color="red">{item.method}</Tag>
                           <span style={{ fontWeight: 'bold' }}>{item.path}</span>
+                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            模块: {item.module_name ?? item.group_name ?? '-'}
+                          </div>
                           <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
                             {item.summary || '无描述'}
                           </div>
@@ -755,6 +761,9 @@ const SyncTasksList: React.FC = () => {
                         <div key={index} style={{ padding: '8px', background: 'var(--bg-elevated)', marginBottom: '4px', borderRadius: '4px' }}>
                           <Tag color="orange">{item.method}</Tag>
                           <span style={{ fontWeight: 'bold' }}>{item.path}</span>
+                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            模块: {item.module_name ?? item.group_name ?? '-'}
+                          </div>
                           <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>
                             {item.summary || '无描述'}
                           </div>
@@ -895,6 +904,12 @@ const SyncTasksList: React.FC = () => {
                       key: 'path'
                     },
                     {
+                      title: '\u6A21\u5757',
+                      key: 'module_name',
+                      width: 140,
+                      render: (_: any, record: any) => record.module_name ?? record.group_name ?? '-'
+                    },
+                    {
                       title: '描述',
                       dataIndex: 'summary',
                       key: 'summary',
@@ -935,6 +950,12 @@ const SyncTasksList: React.FC = () => {
                       title: '路径',
                       dataIndex: 'path',
                       key: 'path'
+                    },
+                    {
+                      title: '\u6A21\u5757',
+                      key: 'module_name',
+                      width: 140,
+                      render: (_: any, record: any) => record.module_name ?? record.group_name ?? '-'
                     },
                     {
                       title: '描述',
@@ -1001,6 +1022,12 @@ const SyncTasksList: React.FC = () => {
                       title: '路径',
                       dataIndex: 'path',
                       key: 'path'
+                    },
+                    {
+                      title: '\u6A21\u5757',
+                      key: 'module_name',
+                      width: 140,
+                      render: (_: any, record: any) => record.module_name ?? record.group_name ?? '-'
                     },
                     {
                       title: '描述',

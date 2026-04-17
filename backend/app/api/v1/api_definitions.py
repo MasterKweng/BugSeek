@@ -1,105 +1,80 @@
-"""API 定义管理接口（V2.0 层级一 - API 资产库）
-符合后端代码规范：
-1. 统一响应体：{ code, message, data }
-2. IDOR 防御：校验资源归属
-3. 全链路 TraceID：使用 get_trace_id()
-4. 魔法值清理：使用枚举定义状态
-"""
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
-from sqlalchemy import or_, func, and_
+"""API definition management endpoints."""
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, ConfigDict, Field
-import logging
-from datetime import datetime
 import hashlib
+import logging
+import json
 
-from app.dependencies import get_db
-from app.context import get_current_project_id, get_current_version_id
-from app.platform.db.base import (
-    ApiDefinition, ApiCase, VersionSnapshot,
-    ApiEndpointGroup, Environment, User, Version, VersionApiDefinition
-)
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import and_, or_
+from sqlalchemy.orm import Session
+
 from app.api.v1.deps import get_current_user
+from app.context import get_current_project_id, get_current_version_id
 from app.core.trace import get_trace_id
+from app.dependencies import get_db
+from app.platform.db.base import ApiDefinition, ApiEndpointGroup, Environment, User
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-# ========== 枚举定义（避免魔法值） ==========
-
 class ApiDefinitionStatus(str):
-    """接口状态枚举"""
     ACTIVE = "active"
     ARCHIVED = "archived"
     DEPRECATED = "deprecated"
 
 
 class SyncStatus(str):
-    """同步状态枚举"""
     SYNCED = "synced"
     CONFLICT = "conflict"
     PENDING = "pending"
 
 
 class LockStatus(str):
-    """锁定状态枚举"""
-    LOCKED = "locked"
-    UNLOCKED = "unlocked"
-
-
-# ========== 统一响应模型 ==========
-
-class ApiResponse(BaseModel):
-    """统一响应模型"""
-    code: int = 0
-    message: str = "success"
-    data: Any = None
-
-
-# ========== 枚举定义（避免魔法值） ==========
-
-class LockStatus(str):
-    """锁定状态枚举"""
     UNLOCKED = "unlocked"
     LOCKED = "locked"
     LOCKED_FIELDS = "locked_fields"
 
 
-# ========== API 定义相关模型 ==========
+class ApiResponse(BaseModel):
+    code: int = 0
+    message: str = "success"
+    data: Any = None
+
 
 class ApiDefinitionCreate(BaseModel):
-    """创建 API 定义请求模型"""
-    method: str = Field(..., description="请求方法：GET/POST/PUT/DELETE/PATCH")
-    path: str = Field(..., description="接口路径")
-    summary: Optional[str] = Field(None, description="接口摘要")
-    description: Optional[str] = Field(None, description="接口描述")
-    tags: Optional[List[str]] = Field(default=[], description="标签列表")
-    group_id: Optional[int] = Field(None, description="分组ID")
-    request_schema: Optional[Dict[str, Any]] = Field(None, description="请求参数结构")
-    response_schema: Optional[Dict[str, Any]] = Field(None, description="响应结构")
-    mock_data: Optional[Dict[str, Any]] = Field(None, description="Mock数据")
+    method: str = Field(..., description="Request method")
+    path: str = Field(..., description="API path")
+    summary: Optional[str] = Field(None, description="API summary")
+    description: Optional[str] = Field(None, description="API description")
+    tags: List[str] = Field(default_factory=list, description="Tag list")
+    module_id: Optional[int] = Field(None, description="Module ID")
+    group_id: Optional[int] = Field(None, description="Legacy group ID")
+    request_schema: Optional[Dict[str, Any]] = Field(None, description="Request schema")
+    response_schema: Optional[Dict[str, Any]] = Field(None, description="Response schema")
+    mock_data: Optional[Dict[str, Any]] = Field(None, description="Mock data")
 
 
 class ApiDefinitionUpdate(BaseModel):
-    """更新 API 定义请求模型"""
-    method: Optional[str] = Field(None, description="请求方法")
-    path: Optional[str] = Field(None, description="接口路径")
-    summary: Optional[str] = Field(None, description="接口摘要")
-    description: Optional[str] = Field(None, description="接口描述")
-    tags: Optional[List[str]] = Field(None, description="标签列表")
-    group_id: Optional[int] = Field(None, description="分组ID")
-    request_schema: Optional[Dict[str, Any]] = Field(None, description="请求参数结构")
-    response_schema: Optional[Dict[str, Any]] = Field(None, description="响应结构")
-    mock_data: Optional[Dict[str, Any]] = Field(None, description="Mock数据")
-    status: Optional[str] = Field(None, description="状态：active/archived/deprecated")
+    method: Optional[str] = Field(None, description="Request method")
+    path: Optional[str] = Field(None, description="API path")
+    summary: Optional[str] = Field(None, description="API summary")
+    description: Optional[str] = Field(None, description="API description")
+    tags: Optional[List[str]] = Field(None, description="Tag list")
+    module_id: Optional[int] = Field(None, description="Module ID")
+    group_id: Optional[int] = Field(None, description="Legacy group ID")
+    request_schema: Optional[Dict[str, Any]] = Field(None, description="Request schema")
+    response_schema: Optional[Dict[str, Any]] = Field(None, description="Response schema")
+    mock_data: Optional[Dict[str, Any]] = Field(None, description="Mock data")
+    status: Optional[str] = Field(None, description="Status")
 
 
 class ApiDefinitionResponse(BaseModel):
-    """API 定义响应模型"""
     id: int
     project_id: int
+    module_id: Optional[int]
+    module_name: Optional[str]
     group_id: Optional[int]
     group_name: Optional[str]
     method: str
@@ -126,278 +101,85 @@ class ApiDefinitionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-# ========== 工具函数 ==========
+class ApiModuleCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100, description="Module name")
+    description: Optional[str] = Field(None, description="Module description")
+    sort_order: int = Field(0, description="Sort order")
+
+
+class ApiModuleUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=100, description="Module name")
+    description: Optional[str] = Field(None, description="Module description")
+    sort_order: Optional[int] = Field(None, description="Sort order")
+
+
+class DebugRequest(BaseModel):
+    environment_id: int = Field(..., description="Environment ID")
+    path_params: Optional[Dict[str, Any]] = Field(None, description="Path params")
+    query_params: Optional[Dict[str, Any]] = Field(None, description="Query params")
+    headers: Optional[Dict[str, str]] = Field(None, description="Headers")
+    body: Optional[Dict[str, Any]] = Field(None, description="Body")
+
+
+class UpdateMockDataRequest(BaseModel):
+    mock_data: Dict[str, Any] = Field(..., description="Mock data")
+    mock_rules: Optional[Dict[str, Any]] = Field(None, description="Mock rules")
+
 
 def calculate_content_hash(schema_snapshot: Dict[str, Any]) -> str:
-    """计算内容的 MD5 哈希值，用于快速比对"""
-    import json
     content_str = json.dumps(schema_snapshot, sort_keys=True)
     return hashlib.md5(content_str.encode()).hexdigest()
 
 
-def get_api_definitions_query(
-    db: Session,
-    project_id: int,
-    version_id: Optional[int] = None,
-    method: Optional[str] = None,
-    tag: Optional[str] = None,
-    group_id: Optional[int] = None,
-    keyword: Optional[str] = None,
-    status: Optional[str] = None
-):
-    """构建 API 定义查询"""
-    query = db.query(ApiDefinition).filter(ApiDefinition.project_id == project_id)
-
-    # 注意：V2.0 的 API 资产库不需要通过 version_api_definitions 关联表过滤
-    # 版本过滤在 UI 层面通过选择器控制，不在这里关联表查询
-    # 如果需要按版本过滤，应该在 api_definitions 表添加 version_id 字段或使用其他方式
-
-    # 方法过滤
-    if method:
-        query = query.filter(ApiDefinition.method == method.upper())
-
-    # 标签过滤 - JSON 数组包含查询
-    if tag:
-        query = query.filter(ApiDefinition.tags.contains([tag]))
-
-    # 分组过滤
-    if group_id:
-        query = query.filter(ApiDefinition.group_id == group_id)
-
-    # 状态过滤
-    if status:
-        query = query.filter(ApiDefinition.status == status)
-
-    # 关键词搜索
-    if keyword:
-        keyword_pattern = f"%{keyword}%"
-        query = query.filter(
-            or_(
-                ApiDefinition.path.ilike(keyword_pattern),
-                ApiDefinition.summary.ilike(keyword_pattern),
-                ApiDefinition.description.ilike(keyword_pattern)
-            )
-        )
-
-    return query
-
-
-# ========== API 定义 CRUD 接口 ==========
-
-@router.post("/api-definitions", response_model=ApiResponse)
-async def create_api_definition(
-    request: ApiDefinitionCreate,
-    project_id: Optional[int] = Query(None, description="项目ID（可选，未提供则使用用户上下文）"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    创建 API 定义
-
-    - **method**: 请求方法（GET/POST/PUT/DELETE/PATCH）
-    - **path**: 接口路径
-    - **summary**: 接口摘要
-    - **description**: 接口描述
-    - **tags**: 标签列表
-    - **group_id**: 分组ID
-    - **request_schema**: 请求参数结构
-    - **response_schema**: 响应结构
-    - **mock_data**: Mock数据
-    """
-    trace_id = get_trace_id()
-
-    # 获取项目ID
-    if project_id is None:
-        project_id = get_current_project_id(db, current_user)
-
-    logger.info(f"[{trace_id}] 创建 API 定义: method={request.method}, path={request.path}, user={current_user.username}")
-
-    # 检查路径和方法是否已存在
-    existing = db.query(ApiDefinition).filter(
-        and_(
-            ApiDefinition.project_id == project_id,
-            ApiDefinition.path == request.path,
-            ApiDefinition.method == request.method.upper()
-        )
-    ).first()
-
-    if existing:
+def normalize_module_id(module_id: Optional[int], group_id: Optional[int]) -> Optional[int]:
+    if module_id is None and group_id is None:
+        return None
+    if module_id is None:
+        return group_id
+    if group_id is None:
+        return module_id
+    if module_id != group_id:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"API 定义已存在：{request.method} {request.path}"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="module_id and group_id must match when both are provided",
         )
-
-    # 计算内容哈希
-    schema_snapshot = {
-        "request": request.request_schema,
-        "response": request.response_schema
-    }
-    content_hash = calculate_content_hash(schema_snapshot)
-
-    # 创建 API 定义
-    api_definition = ApiDefinition(
-        project_id=project_id,
-        group_id=request.group_id,
-        method=request.method.upper(),
-        path=request.path,
-        summary=request.summary,
-        description=request.description,
-        tags=request.tags or [],
-        request_schema=request.request_schema,
-        response_schema=request.response_schema,
-        mock_data=request.mock_data,
-        schema_snapshot=schema_snapshot,
-        content_hash=content_hash,
-        source_type="manual",
-        created_by=current_user.id,
-        updated_by=current_user.id
-    )
-
-    db.add(api_definition)
-    db.commit()
-    db.refresh(api_definition)
-
-    logger.info(f"[{trace_id}] API 定义创建成功: id={api_definition.id}")
-
-    return ApiResponse(
-        code=0,
-        message="创建成功",
-        data={"id": api_definition.id}
-    )
+    return module_id
 
 
-@router.get("/api-definitions", response_model=ApiResponse)
-async def get_api_definitions(
-    skip: int = Query(0, ge=0, description="跳过记录数"),
-    limit: int = Query(50, ge=1, le=200, description="每页记录数"),
-    method: Optional[str] = Query(None, description="请求方法过滤"),
-    tag: Optional[str] = Query(None, description="标签过滤"),
-    group_id: Optional[int] = Query(None, description="分组ID过滤"),
-    keyword: Optional[str] = Query(None, description="关键词搜索"),
-    status: Optional[str] = Query(None, description="状态过滤"),
-    project_id: Optional[int] = Query(None, description="项目ID过滤"),
-    version_id: Optional[int] = Query(None, description="版本ID过滤"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    获取 API 定义列表
-
-    - **skip**: 跳过记录数（分页）
-    - **limit**: 每页记录数（最大200）
-    - **method**: 请求方法过滤
-    - **tag**: 标签过滤
-    - **group_id**: 分组ID过滤
-    - **keyword**: 关键词搜索（路径、摘要、描述）
-    - **status**: 状态过滤
-    - **project_id**: 项目ID过滤（可选，未提供则使用用户上下文）
-    - **version_id**: 版本ID过滤（可选，未提供则使用用户上下文）
-    """
-    trace_id = get_trace_id()
-
-    # 获取项目ID和版本ID
-    if project_id is None:
-        project_id = get_current_project_id(db, current_user)
-    if version_id is None:
-        version_id = get_current_version_id(db, current_user)
-
-    logger.info(f"[{trace_id}] 查询 API 定义列表: skip={skip}, limit={limit}, user={current_user.username}, project_id={project_id}, version_id={version_id}")
-
-    # 构建查询
-    query = get_api_definitions_query(
-        db, project_id, version_id=version_id, method=method, tag=tag,
-        group_id=group_id, keyword=keyword, status=status
-    )
-
-    # 分页
-    total = query.count()
-    definitions = query.order_by(ApiDefinition.updated_at.desc()).offset(skip).limit(limit).all()
-
-    # 转换为响应模型
-    result_list = []
-    for definition in definitions:
-        group_name = None
-        if definition.group:
-            group_name = definition.group.name
-
-        case_count = len(definition.cases) if definition.cases else 0
-
-        result_list.append({
-            "id": definition.id,
-            "project_id": definition.project_id,
-            "group_id": definition.group_id,
-            "group_name": group_name,
-            "method": definition.method,
-            "path": definition.path,
-            "summary": definition.summary,
-            "description": definition.description,
-            "tags": definition.tags or [],
-            "request_schema": definition.request_schema,
-            "response_schema": definition.response_schema,
-            "mock_data": definition.mock_data,
-            "status": definition.status,
-            "sync_status": definition.sync_status,
-            "lock_status": definition.lock_status,
-            "content_hash": definition.content_hash,
-            "source_type": definition.source_type,
-            "source_version": definition.source_version,
-            "last_sync_at": definition.last_sync_at.isoformat() if definition.last_sync_at else None,
-            "case_count": case_count,
-            "created_at": definition.created_at.isoformat() if definition.created_at else "",
-            "updated_at": definition.updated_at.isoformat() if definition.updated_at else "",
-            "created_by": definition.created_by,
-            "updated_by": definition.updated_by
-        })
-
-    return ApiResponse(
-        code=0,
-        message="查询成功",
-        data={
-            "total": total,
-            "items": result_list
-        }
-    )
-
-
-@router.get("/api-definitions/{definition_id}", response_model=ApiResponse)
-async def get_api_definition(
-    definition_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    获取 API 定义详情
-
-    - **definition_id**: API 定义ID
-    """
-    trace_id = get_trace_id()
-
-    logger.info(f"[{trace_id}] 查询 API 定义详情: id={definition_id}, user={current_user.username}")
-
-    definition = db.query(ApiDefinition).filter(ApiDefinition.id == definition_id).first()
-
-    if not definition:
+def validate_group_belongs_to_project(db: Session, project_id: int, group_id: Optional[int]) -> None:
+    if group_id is None:
+        return
+    group = db.query(ApiEndpointGroup).filter(ApiEndpointGroup.id == group_id).first()
+    if not group:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"API 定义不存在：{definition_id}"
+            detail=f"API module not found: {group_id}",
         )
-
-    # IDOR 防御：检查资源归属
-    if definition.project_id != get_current_project_id(db, current_user):
+    if group.project_id != project_id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权访问该资源"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Selected module does not belong to the current project",
         )
 
-    group_name = None
-    if definition.group:
-        group_name = definition.group.name
 
-    case_count = len(definition.cases) if definition.cases else 0
+def serialize_module(module: ApiEndpointGroup) -> Dict[str, Any]:
+    return {
+        "id": module.id,
+        "name": module.name,
+        "description": module.description,
+        "sort_order": module.sort_order,
+        "created_at": module.created_at.isoformat() if module.created_at else "",
+        "updated_at": module.updated_at.isoformat() if module.updated_at else "",
+    }
 
+
+def serialize_definition(definition: ApiDefinition, include_snapshot: bool = False) -> Dict[str, Any]:
+    group_name = definition.group.name if definition.group else None
     result = {
         "id": definition.id,
         "project_id": definition.project_id,
+        "module_id": definition.group_id,
+        "module_name": group_name,
         "group_id": definition.group_id,
         "group_name": group_name,
         "method": definition.method,
@@ -407,7 +189,6 @@ async def get_api_definition(
         "tags": definition.tags or [],
         "request_schema": definition.request_schema,
         "response_schema": definition.response_schema,
-        "schema_snapshot": definition.schema_snapshot,  # 添加完整的 schema 快照
         "mock_data": definition.mock_data,
         "status": definition.status,
         "sync_status": definition.sync_status,
@@ -416,18 +197,217 @@ async def get_api_definition(
         "source_type": definition.source_type,
         "source_version": definition.source_version,
         "last_sync_at": definition.last_sync_at.isoformat() if definition.last_sync_at else None,
-        "case_count": case_count,
+        "case_count": len(definition.cases) if definition.cases else 0,
         "created_at": definition.created_at.isoformat() if definition.created_at else "",
         "updated_at": definition.updated_at.isoformat() if definition.updated_at else "",
         "created_by": definition.created_by,
-        "updated_by": definition.updated_by
+        "updated_by": definition.updated_by,
     }
+    if include_snapshot:
+        result["schema_snapshot"] = definition.schema_snapshot
+    return result
+
+
+def get_api_definitions_query(
+    db: Session,
+    project_id: int,
+    version_id: Optional[int] = None,
+    method: Optional[str] = None,
+    tag: Optional[str] = None,
+    module_id: Optional[int] = None,
+    group_id: Optional[int] = None,
+    keyword: Optional[str] = None,
+    status: Optional[str] = None,
+):
+    _ = db
+    _ = version_id
+    query = db.query(ApiDefinition).filter(ApiDefinition.project_id == project_id)
+
+    if method:
+        query = query.filter(ApiDefinition.method == method.upper())
+
+    if tag:
+        query = query.filter(ApiDefinition.tags.contains([tag]))
+
+    resolved_group_id = normalize_module_id(module_id, group_id)
+    if resolved_group_id is not None:
+        query = query.filter(ApiDefinition.group_id == resolved_group_id)
+
+    if status:
+        query = query.filter(ApiDefinition.status == status)
+
+    if keyword:
+        keyword_pattern = f"%{keyword}%"
+        query = query.filter(
+            or_(
+                ApiDefinition.path.ilike(keyword_pattern),
+                ApiDefinition.summary.ilike(keyword_pattern),
+                ApiDefinition.description.ilike(keyword_pattern),
+            )
+        )
+
+    return query
+
+
+def get_definition_or_404(db: Session, definition_id: int) -> ApiDefinition:
+    definition = db.query(ApiDefinition).filter(ApiDefinition.id == definition_id).first()
+    if not definition:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"API definition not found: {definition_id}",
+        )
+    return definition
+
+
+def ensure_definition_access(db: Session, definition: ApiDefinition, current_user: User) -> None:
+    if definition.project_id != get_current_project_id(db, current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission to access this resource",
+        )
+
+
+def get_module_or_404(db: Session, module_id: int) -> ApiEndpointGroup:
+    module = db.query(ApiEndpointGroup).filter(ApiEndpointGroup.id == module_id).first()
+    if not module:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"API module not found: {module_id}",
+        )
+    return module
+
+
+def ensure_module_access(db: Session, module: ApiEndpointGroup, current_user: User) -> None:
+    if module.project_id != get_current_project_id(db, current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No permission to access this resource",
+        )
+
+
+@router.post("/api-definitions", response_model=ApiResponse)
+async def create_api_definition(
+    request: ApiDefinitionCreate,
+    project_id: Optional[int] = Query(None, description="Project ID"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    trace_id = get_trace_id()
+    project_id = project_id or get_current_project_id(db, current_user)
+    resolved_group_id = normalize_module_id(request.module_id, request.group_id)
+    validate_group_belongs_to_project(db, project_id, resolved_group_id)
+
+    logger.info(
+        "[%s] create api definition: method=%s path=%s user=%s",
+        trace_id,
+        request.method,
+        request.path,
+        current_user.username,
+    )
+
+    existing = db.query(ApiDefinition).filter(
+        and_(
+            ApiDefinition.project_id == project_id,
+            ApiDefinition.path == request.path,
+            ApiDefinition.method == request.method.upper(),
+        )
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"API definition already exists: {request.method.upper()} {request.path}",
+        )
+
+    schema_snapshot = {
+        "request": request.request_schema,
+        "response": request.response_schema,
+    }
+
+    api_definition = ApiDefinition(
+        project_id=project_id,
+        group_id=resolved_group_id,
+        method=request.method.upper(),
+        path=request.path,
+        summary=request.summary,
+        description=request.description,
+        tags=request.tags or [],
+        request_schema=request.request_schema,
+        response_schema=request.response_schema,
+        mock_data=request.mock_data,
+        schema_snapshot=schema_snapshot,
+        content_hash=calculate_content_hash(schema_snapshot),
+        source_type="manual",
+        created_by=current_user.id,
+        updated_by=current_user.id,
+    )
+
+    db.add(api_definition)
+    db.commit()
+    db.refresh(api_definition)
+
+    return ApiResponse(code=0, message="created", data={"id": api_definition.id})
+
+
+@router.get("/api-definitions", response_model=ApiResponse)
+async def get_api_definitions(
+    skip: int = Query(0, ge=0, description="Skip count"),
+    limit: int = Query(50, ge=1, le=200, description="Page size"),
+    method: Optional[str] = Query(None, description="Method filter"),
+    tag: Optional[str] = Query(None, description="Tag filter"),
+    module_id: Optional[int] = Query(None, description="Module filter"),
+    group_id: Optional[int] = Query(None, description="Legacy group filter"),
+    keyword: Optional[str] = Query(None, description="Keyword"),
+    status: Optional[str] = Query(None, description="Status filter"),
+    project_id: Optional[int] = Query(None, description="Project filter"),
+    version_id: Optional[int] = Query(None, description="Version filter"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    trace_id = get_trace_id()
+    project_id = project_id or get_current_project_id(db, current_user)
+    version_id = version_id or get_current_version_id(db, current_user)
+
+    logger.info(
+        "[%s] list api definitions: skip=%s limit=%s user=%s project_id=%s version_id=%s",
+        trace_id,
+        skip,
+        limit,
+        current_user.username,
+        project_id,
+        version_id,
+    )
+
+    query = get_api_definitions_query(
+        db,
+        project_id,
+        version_id=version_id,
+        method=method,
+        tag=tag,
+        module_id=module_id,
+        group_id=group_id,
+        keyword=keyword,
+        status=status,
+    )
+
+    total = query.count()
+    definitions = query.order_by(ApiDefinition.updated_at.desc()).offset(skip).limit(limit).all()
 
     return ApiResponse(
         code=0,
-        message="查询成功",
-        data=result
+        message="success",
+        data={"total": total, "items": [serialize_definition(item) for item in definitions]},
     )
+
+
+@router.get("/api-definitions/{definition_id}", response_model=ApiResponse)
+async def get_api_definition(
+    definition_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    definition = get_definition_or_404(db, definition_id)
+    ensure_definition_access(db, definition, current_user)
+    return ApiResponse(code=0, message="success", data=serialize_definition(definition, include_snapshot=True))
 
 
 @router.put("/api-definitions/{definition_id}", response_model=ApiResponse)
@@ -435,145 +415,186 @@ async def update_api_definition(
     definition_id: int,
     request: ApiDefinitionUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    """
-    更新 API 定义
-
-    - **definition_id**: API 定义ID
-    - **request**: 更新请求数据
-    """
     trace_id = get_trace_id()
+    definition = get_definition_or_404(db, definition_id)
+    ensure_definition_access(db, definition, current_user)
 
-    logger.info(f"[{trace_id}] 更新 API 定义: id={definition_id}, user={current_user.username}")
+    logger.info("[%s] update api definition: id=%s user=%s", trace_id, definition_id, current_user.username)
 
-    definition = db.query(ApiDefinition).filter(ApiDefinition.id == definition_id).first()
-
-    if not definition:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"API 定义不存在：{definition_id}"
-        )
-
-    # IDOR 防御：检查资源归属
-    if definition.project_id != get_current_project_id(db, current_user):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权修改该资源"
-        )
-
-    # 更新字段
     update_data = request.model_dump(exclude_unset=True)
+    requested_module_id = update_data.pop("module_id", None) if "module_id" in update_data else None
+    requested_group_id = update_data.get("group_id") if "group_id" in update_data else None
+    if "module_id" in request.model_fields_set or "group_id" in request.model_fields_set:
+        update_data["group_id"] = normalize_module_id(requested_module_id, requested_group_id)
+        validate_group_belongs_to_project(db, definition.project_id, update_data["group_id"])
 
-    # 如果修改了路径或方法，检查是否冲突
-    if 'path' in update_data or 'method' in update_data:
-        new_path = update_data.get('path', definition.path)
-        new_method = update_data.get('method', definition.method).upper()
-
+    if "path" in update_data or "method" in update_data:
+        new_path = update_data.get("path", definition.path)
+        new_method = update_data.get("method", definition.method).upper()
         existing = db.query(ApiDefinition).filter(
             and_(
                 ApiDefinition.project_id == definition.project_id,
                 ApiDefinition.path == new_path,
                 ApiDefinition.method == new_method,
-                ApiDefinition.id != definition_id
+                ApiDefinition.id != definition_id,
             )
         ).first()
-
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"API 定义已存在：{new_method} {new_path}"
+                detail=f"API definition already exists: {new_method} {new_path}",
             )
+        update_data["path"] = new_path
+        update_data["method"] = new_method
 
-        update_data['path'] = new_path
-        update_data['method'] = new_method
+    if "tags" in update_data:
+        definition.tags = update_data.pop("tags") or []
 
-    # 更新其他字段
+    if "group_id" in update_data:
+        definition.group_id = update_data.pop("group_id")
+
     for key, value in update_data.items():
-        if key == 'tags' and value is not None:
-            setattr(definition, key, value or [])
-        elif value is not None:
+        if value is not None:
             setattr(definition, key, value)
 
-    # 重新计算内容哈希
-    if 'request_schema' in update_data or 'response_schema' in update_data:
-        schema_snapshot = {
+    if "request_schema" in request.model_fields_set or "response_schema" in request.model_fields_set:
+        definition.schema_snapshot = {
             "request": definition.request_schema,
-            "response": definition.response_schema
+            "response": definition.response_schema,
         }
-        definition.content_hash = calculate_content_hash(schema_snapshot)
+        definition.content_hash = calculate_content_hash(definition.schema_snapshot)
 
-    # 手动修改后锁定
     definition.lock_status = LockStatus.LOCKED
     definition.updated_by = current_user.id
-
     db.commit()
 
-    logger.info(f"[{trace_id}] API 定义更新成功: id={definition_id}")
-
-    return ApiResponse(
-        code=0,
-        message="更新成功",
-        data={"id": definition.id}
-    )
+    return ApiResponse(code=0, message="updated", data={"id": definition.id})
 
 
 @router.delete("/api-definitions/{definition_id}", response_model=ApiResponse)
 async def delete_api_definition(
     definition_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    """
-    删除 API 定义
-
-    - **definition_id**: API 定义ID
-    """
-    trace_id = get_trace_id()
-
-    logger.info(f"[{trace_id}] 删除 API 定义: id={definition_id}, user={current_user.username}")
-
-    definition = db.query(ApiDefinition).filter(ApiDefinition.id == definition_id).first()
-
-    if not definition:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"API 定义不存在：{definition_id}"
-        )
-
-    # IDOR 防御：检查资源归属
-    if definition.project_id != get_current_project_id(db, current_user):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权删除该资源"
-        )
-
+    definition = get_definition_or_404(db, definition_id)
+    ensure_definition_access(db, definition, current_user)
     db.delete(definition)
     db.commit()
+    return ApiResponse(code=0, message="deleted")
 
-    logger.info(f"[{trace_id}] API 定义删除成功: id={definition_id}")
 
-    return ApiResponse(
-        code=0,
-        message="删除成功"
+@router.get("/api-modules", response_model=ApiResponse)
+async def get_api_modules(
+    project_id: Optional[int] = Query(None, description="Project ID"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project_id = project_id or get_current_project_id(db, current_user)
+    modules = db.query(ApiEndpointGroup).filter(
+        ApiEndpointGroup.project_id == project_id
+    ).order_by(ApiEndpointGroup.sort_order.asc(), ApiEndpointGroup.id.asc()).all()
+    return ApiResponse(code=0, message="success", data={"items": [serialize_module(item) for item in modules]})
+
+
+@router.post("/api-modules", response_model=ApiResponse)
+async def create_api_module(
+    request: ApiModuleCreate,
+    project_id: Optional[int] = Query(None, description="Project ID"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    project_id = project_id or get_current_project_id(db, current_user)
+    normalized_name = request.name.strip()
+    if not normalized_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Module name cannot be empty",
+        )
+    existing = db.query(ApiEndpointGroup).filter(
+        and_(ApiEndpointGroup.project_id == project_id, ApiEndpointGroup.name == normalized_name)
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"API module already exists: {normalized_name}",
+        )
+
+    module = ApiEndpointGroup(
+        project_id=project_id,
+        name=normalized_name,
+        description=request.description,
+        sort_order=request.sort_order,
     )
+    db.add(module)
+    db.commit()
+    db.refresh(module)
+    return ApiResponse(code=0, message="created", data=serialize_module(module))
 
 
-# ========== 在线调试与 Mock 功能 ==========
+@router.put("/api-modules/{module_id}", response_model=ApiResponse)
+async def update_api_module(
+    module_id: int,
+    request: ApiModuleUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    module = get_module_or_404(db, module_id)
+    ensure_module_access(db, module, current_user)
+    update_data = request.model_dump(exclude_unset=True)
 
-class DebugRequest(BaseModel):
-    """调试请求模型"""
-    environment_id: int = Field(..., description="环境ID")
-    path_params: Optional[Dict[str, Any]] = Field(None, description="路径参数")
-    query_params: Optional[Dict[str, Any]] = Field(None, description="查询参数")
-    headers: Optional[Dict[str, str]] = Field(None, description="请求头")
-    body: Optional[Dict[str, Any]] = Field(None, description="请求体")
+    if "name" in update_data and update_data["name"] is not None:
+        next_name = update_data["name"].strip()
+        if not next_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Module name cannot be empty",
+            )
+        existing = db.query(ApiEndpointGroup).filter(
+            and_(
+                ApiEndpointGroup.project_id == module.project_id,
+                ApiEndpointGroup.name == next_name,
+                ApiEndpointGroup.id != module.id,
+            )
+        ).first()
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"API module already exists: {next_name}",
+            )
+        module.name = next_name
+
+    if "description" in update_data:
+        module.description = update_data["description"]
+    if "sort_order" in update_data and update_data["sort_order"] is not None:
+        module.sort_order = update_data["sort_order"]
+
+    db.commit()
+    db.refresh(module)
+    return ApiResponse(code=0, message="updated", data=serialize_module(module))
 
 
-class UpdateMockDataRequest(BaseModel):
-    """更新 Mock 数据请求模型"""
-    mock_data: Dict[str, Any] = Field(..., description="Mock 数据")
-    mock_rules: Optional[Dict[str, Any]] = Field(None, description="Mock 规则（延迟、错误率等）")
+@router.delete("/api-modules/{module_id}", response_model=ApiResponse)
+async def delete_api_module(
+    module_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    module = get_module_or_404(db, module_id)
+    ensure_module_access(db, module, current_user)
+
+    linked_definition = db.query(ApiDefinition).filter(ApiDefinition.group_id == module.id).first()
+    if linked_definition:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete a module that is still used by API definitions",
+        )
+
+    db.delete(module)
+    db.commit()
+    return ApiResponse(code=0, message="deleted", data={"id": module_id})
 
 
 @router.post("/api-definitions/{definition_id}/debug", response_model=ApiResponse)
@@ -581,79 +602,40 @@ async def debug_api_definition(
     definition_id: int,
     request: DebugRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    """
-    在线调试接口
+    import time
+    from urllib.parse import urlencode, urljoin
 
-    - **definition_id**: API 定义ID
-    - **environment_id**: 环境ID
-    - **path_params**: 路径参数
-    - **query_params**: 查询参数
-    - **headers**: 请求头
-    - **body**: 请求体
-    """
+    import httpx
+
     trace_id = get_trace_id()
+    definition = get_definition_or_404(db, definition_id)
+    ensure_definition_access(db, definition, current_user)
 
-    logger.info(f"[{trace_id}] 在线调试: definition_id={definition_id}, user={current_user.username}")
-
-    # 查询接口定义
-    definition = db.query(ApiDefinition).filter(ApiDefinition.id == definition_id).first()
-    if not definition:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"API 定义不存在：{definition_id}"
-        )
-
-    # IDOR 防御
-    if definition.project_id != get_current_project_id(db, current_user):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权访问该资源"
-        )
-
-    # 查询环境
     environment = db.query(Environment).filter(Environment.id == request.environment_id).first()
     if not environment:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"环境不存在：{request.environment_id}"
+            detail=f"Environment not found: {request.environment_id}",
         )
-
-    # IDOR 防御
     if environment.project_id != get_current_project_id(db, current_user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权访问该环境"
+            detail="No permission to access this resource",
         )
 
+    full_url = urljoin(environment.base_url, definition.path)
+    if request.path_params:
+        for key, value in request.path_params.items():
+            full_url = full_url.replace(f"{{{key}}}", str(value))
+    if request.query_params:
+        full_url = f"{full_url}?{urlencode(request.query_params)}"
+
+    headers = {"Content-Type": "application/json", **(request.headers or {})}
+
     try:
-        import httpx
-        import time
-        from urllib.parse import urljoin
-
-        # 构建完整 URL
-        base_url = environment.base_url
-        full_url = urljoin(base_url, definition.path)
-
-        # 替换路径参数
-        if request.path_params:
-            for key, value in request.path_params.items():
-                full_url = full_url.replace(f"{{{key}}}", str(value))
-
-        # 添加查询参数
-        if request.query_params:
-            from urllib.parse import urlencode
-            query_string = urlencode(request.query_params)
-            full_url = f"{full_url}?{query_string}"
-
-        # 构建请求头
-        headers = {
-            "Content-Type": "application/json",
-            **(request.headers or {})
-        }
-
-        # 发送请求
+        logger.info("[%s] debug api definition: id=%s user=%s", trace_id, definition_id, current_user.username)
         start_time = time.time()
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.request(
@@ -661,96 +643,58 @@ async def debug_api_definition(
                 url=full_url,
                 headers=headers,
                 json=request.body,
-                follow_redirects=True
+                follow_redirects=True,
             )
         elapsed_time = int((time.time() - start_time) * 1000)
-
-        # 解析响应
-        response_data = None
         try:
-            response_data = response.json()
-        except:
-            response_data = response.text
-
-        logger.info(f"[{trace_id}] 调试成功: status={response.status_code}, time={elapsed_time}ms")
+            response_body: Any = response.json()
+        except Exception:
+            response_body = response.text
 
         return ApiResponse(
             code=0,
-            message="调试成功",
+            message="debug success",
             data={
                 "status_code": response.status_code,
                 "response_time": elapsed_time,
                 "response_headers": dict(response.headers),
-                "response_body": response_data,
+                "response_body": response_body,
                 "request_url": full_url,
                 "request_method": definition.method,
                 "request_headers": headers,
-                "request_body": request.body
-            }
+                "request_body": request.body,
+            },
         )
-
-    except httpx.TimeoutException:
-        logger.error(f"[{trace_id}] 调试超时")
-        raise HTTPException(
-            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-            detail="请求超时"
-        )
-    except httpx.ConnectError as e:
-        logger.error(f"[{trace_id}] 连接失败: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"连接失败：{str(e)}"
-        )
-    except Exception as e:
-        logger.error(f"[{trace_id}] 调试失败: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"调试失败：{str(e)}"
-        )
+    except httpx.TimeoutException as exc:
+        logger.error("[%s] debug timeout: %s", trace_id, exc)
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="Request timeout") from exc
+    except httpx.ConnectError as exc:
+        logger.error("[%s] debug connect error: %s", trace_id, exc)
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=f"Connection failed: {exc}") from exc
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("[%s] debug failed: %s", trace_id, exc, exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Debug failed: {exc}") from exc
 
 
 @router.get("/api-definitions/{definition_id}/mock-url", response_model=ApiResponse)
 async def get_mock_url(
     definition_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    """
-    获取 Mock 地址
-
-    - **definition_id**: API 定义ID
-    """
-    trace_id = get_trace_id()
-
-    logger.info(f"[{trace_id}] 获取 Mock 地址: definition_id={definition_id}, user={current_user.username}")
-
-    # 查询接口定义
-    definition = db.query(ApiDefinition).filter(ApiDefinition.id == definition_id).first()
-    if not definition:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"API 定义不存在：{definition_id}"
-        )
-
-    # IDOR 防御
-    if definition.project_id != get_current_project_id(db, current_user):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权访问该资源"
-        )
-
-    # 生成 Mock 地址
-    mock_url = f"/mock/{definition.id}/{definition.method.lower()}{definition.path}"
-
+    definition = get_definition_or_404(db, definition_id)
+    ensure_definition_access(db, definition, current_user)
     return ApiResponse(
         code=0,
-        message="获取成功",
+        message="success",
         data={
-            "mock_url": mock_url,
+            "mock_url": f"/mock/{definition.id}/{definition.method.lower()}{definition.path}",
             "definition_id": definition.id,
             "method": definition.method,
-            "path": definition.path
-        }
+            "path": definition.path,
+        },
     )
 
 
@@ -759,95 +703,39 @@ async def update_mock_data(
     definition_id: int,
     request: UpdateMockDataRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    """
-    更新 Mock 数据
-
-    - **definition_id**: API 定义ID
-    - **mock_data**: Mock 数据模板
-    - **mock_rules**: Mock 规则配置
-    """
-    trace_id = get_trace_id()
-
-    logger.info(f"[{trace_id}] 更新 Mock 数据: definition_id={definition_id}, user={current_user.username}")
-
-    # 查询接口定义
-    definition = db.query(ApiDefinition).filter(ApiDefinition.id == definition_id).first()
-    if not definition:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"API 定义不存在：{definition_id}"
-        )
-
-    # IDOR 防御
-    if definition.project_id != get_current_project_id(db, current_user):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权修改该资源"
-        )
-
-    # 更新 Mock 数据
+    definition = get_definition_or_404(db, definition_id)
+    ensure_definition_access(db, definition, current_user)
     definition.mock_data = request.mock_data
     if request.mock_rules:
         definition.mock_rules = request.mock_rules
-
     definition.updated_by = current_user.id
     db.commit()
-
-    logger.info(f"[{trace_id}] Mock 数据更新成功: id={definition_id}")
-
     return ApiResponse(
         code=0,
-        message="更新成功",
+        message="updated",
         data={
             "definition_id": definition.id,
             "mock_data": definition.mock_data,
-            "mock_rules": definition.mock_rules
-        }
+            "mock_rules": definition.mock_rules,
+        },
     )
 
-
-# ========== 锁定管理接口 ==========
 
 @router.post("/api-definitions/{definition_id}/unlock", response_model=ApiResponse)
 async def unlock_api_definition(
     definition_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    """
-    解锁 API 定义
-
-    - **definition_id**: API 定义ID
-    """
-    trace_id = get_trace_id()
-
-    logger.info(f"[{trace_id}] 解锁 API 定义: id={definition_id}, user={current_user.username}")
-
-    definition = db.query(ApiDefinition).filter(ApiDefinition.id == definition_id).first()
-    if not definition:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"API 定义不存在：{definition_id}"
-        )
-
-    # IDOR 防御
-    if definition.project_id != get_current_project_id(db, current_user):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权操作该资源"
-        )
-
-    # 解锁
+    definition = get_definition_or_404(db, definition_id)
+    ensure_definition_access(db, definition, current_user)
     definition.lock_status = LockStatus.UNLOCKED
     definition.updated_by = current_user.id
     db.commit()
-
-    logger.info(f"[{trace_id}] API 定义解锁成功: id={definition_id}")
-
     return ApiResponse(
         code=0,
-        message="解锁成功",
-        data={"id": definition.id, "lock_status": definition.lock_status}
+        message="unlocked",
+        data={"id": definition.id, "lock_status": definition.lock_status},
     )

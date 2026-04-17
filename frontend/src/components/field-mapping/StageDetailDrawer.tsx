@@ -12,18 +12,27 @@ interface StageArtifact {
   created_at?: string | null
 }
 
+interface StageChild {
+  key?: string
+  name?: string
+  status?: string
+  progress?: number
+  message?: string
+}
+
+interface LineageFailureExample {
+  error?: string
+  message?: string
+  target_field?: string
+  source_field?: string
+}
+
 interface StageDetailData {
   stage_num?: number
   status?: string
   summary?: unknown
   data?: unknown
-  children?: Array<{
-    key?: string
-    name?: string
-    status?: string
-    progress?: number
-    message?: string
-  }>
+  children?: StageChild[]
   artifacts?: StageArtifact[]
 }
 
@@ -43,6 +52,72 @@ const renderJson = (value: unknown) => {
     <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
       {JSON.stringify(value, null, 2)}
     </pre>
+  )
+}
+
+const renderLineageSummary = (summary: unknown) => {
+  if (!summary || typeof summary !== 'object') {
+    return null
+  }
+
+  const lineage = (summary as any).lineage_rebuild
+  if (!lineage || typeof lineage !== 'object') {
+    return null
+  }
+
+  const skipped = Number(lineage.code_skipped_total || 0)
+  const failed = Number(lineage.code_failed_total || 0)
+  const examples = Array.isArray(lineage.failure_examples)
+    ? (lineage.failure_examples as LineageFailureExample[])
+    : []
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <Paragraph strong>Lineage rebuild summary</Paragraph>
+      <Descriptions size="small" column={1} bordered style={{ marginBottom: 12 }}>
+        <Descriptions.Item label="Definitions">{lineage.definitions_total ?? '-'}</Descriptions.Item>
+        <Descriptions.Item label="SQL edges">{lineage.sql_edges_total ?? '-'}</Descriptions.Item>
+        <Descriptions.Item label="Code edges">{lineage.code_edges_total ?? '-'}</Descriptions.Item>
+        <Descriptions.Item label="Attempted edges">{lineage.code_attempted_total ?? '-'}</Descriptions.Item>
+        <Descriptions.Item label="Skipped edges">{lineage.code_skipped_total ?? '-'}</Descriptions.Item>
+        <Descriptions.Item label="Failed edges">{lineage.code_failed_total ?? '-'}</Descriptions.Item>
+      </Descriptions>
+
+      {(skipped > 0 || failed > 0) ? (
+        <Alert
+          type={failed > 0 ? 'warning' : 'info'}
+          showIcon
+          style={{ marginBottom: 12 }}
+          message={`Code lineage persistence: skipped ${skipped}, failed ${failed}`}
+        />
+      ) : null}
+
+      {examples.length ? (
+        <Collapse
+          size="small"
+          items={[
+            {
+              key: 'lineage-failure-examples',
+              label: `Failure examples (${examples.length})`,
+              children: (
+                <Descriptions size="small" column={1}>
+                  {examples.map((example, index) => (
+                    <Descriptions.Item key={`failure-${index}`} label={`Example ${index + 1}`}>
+                      <div style={{ display: 'grid', gap: 6 }}>
+                        <Text strong>{example.error || 'Unknown error'}</Text>
+                        <Text type="secondary">{example.message || '-'}</Text>
+                        <Text>Target field: {example.target_field || '-'}</Text>
+                        <Text>Source field: {example.source_field || '-'}</Text>
+                      </div>
+                    </Descriptions.Item>
+                  ))}
+                </Descriptions>
+              ),
+            },
+          ]}
+        />
+      ) : null}
+    </div>
   )
 }
 
@@ -83,7 +158,9 @@ const StageDetailDrawer: React.FC<StageDetailDrawerProps> = ({ open, taskId, sta
     >
       {loading ? <Spin /> : null}
       {!loading && error ? <Alert type="error" showIcon message={error} /> : null}
-      {!loading && !error && !detail ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无阶段数据" /> : null}
+      {!loading && !error && !detail ? (
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无阶段数据" />
+      ) : null}
       {!loading && !error && detail ? (
         <>
           <Descriptions size="small" column={1} style={{ marginBottom: 16 }}>
@@ -95,6 +172,7 @@ const StageDetailDrawer: React.FC<StageDetailDrawerProps> = ({ open, taskId, sta
           </Descriptions>
 
           <Paragraph strong>阶段摘要</Paragraph>
+          {renderLineageSummary(detail.summary ?? detail.data)}
           {renderJson(detail.summary ?? detail.data)}
 
           <Paragraph strong style={{ marginTop: 16 }}>子步骤进度</Paragraph>
@@ -102,7 +180,7 @@ const StageDetailDrawer: React.FC<StageDetailDrawerProps> = ({ open, taskId, sta
             <Collapse
               items={detail.children.map((child, index) => ({
                 key: child.key || `child-${index}`,
-                label: `${child.name || '子步骤'} · ${child.status || 'unknown'} · ${child.progress ?? 0}%`,
+                label: `${child.name || '子步骤'} / ${child.status || 'unknown'} / ${child.progress ?? 0}%`,
                 children: (
                   <Descriptions size="small" column={1}>
                     <Descriptions.Item label="名称">{child.name || '-'}</Descriptions.Item>

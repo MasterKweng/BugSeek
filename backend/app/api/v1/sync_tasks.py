@@ -113,6 +113,29 @@ class ApplyChangesResponse(BaseModel):
 
 # ========== 鍚屾浠诲姟 CRUD 鎺ュ彛 ==========
 
+def _with_module_alias(diff_data: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Add module aliases for sync diff payloads."""
+    payload = diff_data or {}
+    result: Dict[str, Any] = {}
+    for key, value in payload.items():
+        if isinstance(value, list):
+            next_items = []
+            for item in value:
+                if isinstance(item, dict):
+                    next_item = dict(item)
+                    if "group_name" in next_item and "module_name" not in next_item:
+                        next_item["module_name"] = next_item.get("group_name")
+                    if "group_id" in next_item and "module_id" not in next_item:
+                        next_item["module_id"] = next_item.get("group_id")
+                    next_items.append(next_item)
+                else:
+                    next_items.append(item)
+            result[key] = next_items
+        else:
+            result[key] = value
+    return result
+
+
 @router.post("/sync-tasks", response_model=ApiResponse)
 async def create_sync_task(
     request: SyncTaskCreate,
@@ -236,7 +259,7 @@ async def get_sync_tasks(
             "conflict_count": task.conflict_count,
             "error_message": task.error_message,
             "execution_log": task.execution_log,
-            "diff_data": task.diff_data,  # 娣诲姞鍙樻洿鏁版嵁
+            "diff_data": _with_module_alias(task.diff_data),  # ??????
             "impact_analysis": task.impact_analysis,  # 娣诲姞褰卞搷鍒嗘瀽
             "started_at": task.started_at.isoformat() if task.started_at else None,
             "completed_at": task.completed_at.isoformat() if task.completed_at else None,
@@ -301,7 +324,7 @@ async def get_sync_task(
         "conflict_count": task.conflict_count,
         "error_message": task.error_message,
         "execution_log": task.execution_log,
-        "diff_data": task.diff_data,  # 娣诲姞鍙樻洿鏁版嵁
+        "diff_data": _with_module_alias(task.diff_data),  # ??????
         "impact_analysis": task.impact_analysis,  # 娣诲姞褰卞搷鍒嗘瀽
         "started_at": task.started_at.isoformat() if task.started_at else None,
         "completed_at": task.completed_at.isoformat() if task.completed_at else None,
@@ -451,7 +474,7 @@ def _apply_changes_impl(
     removed_map = {(item['method'], item['path']): item for item in diff_data.get('removed', [])}
 
     # 鑷姩鍒涘缓鍒嗙粍锛堝弬鑰冩帴鍙ｉ泦鎴愮殑閫昏緫锛?
-    groups_map = {}  # group_name -> group_id
+    groups_map = {}  # module_name -> group_id
     all_groups = set()
     
     # 鏀堕泦鎵€鏈夐渶瑕佸垱寤虹殑鍒嗙粍
@@ -481,7 +504,7 @@ def _apply_changes_impl(
             new_group = ApiEndpointGroup(
                 project_id=sync_task.project_id,
                 name=group_name,
-                description=f"{group_name}鍒嗙粍",
+                description=f"{group_name} module",
                 sort_order=len(groups_map)  # 鎸夐『搴忔帓搴?
             )
             db.add(new_group)
@@ -542,7 +565,7 @@ def _apply_changes_impl(
                 db.flush()  # 鍒锋柊浠ヨ幏鍙?ID
                 result.added_count += 1
                 result.applied_count += 1
-                logger.info(f"[{trace_id}] 鏂板鎺ュ彛: {op.method} {op.path}, group={group_name}")
+                logger.info(f"[{trace_id}] Added endpoint: {op.method} {op.path}, module={group_name}")
 
                 # 鑷姩鍒涘缓鐗堟湰蹇収锛堝湪鏂板鍚庯級
                 try:
@@ -668,7 +691,7 @@ def _apply_changes_impl(
 
         logger.info(
             f"[{trace_id}] Apply changes completed: "
-            f"{result.applied_count} applied, {len(groups_map)} groups created"
+            f"{result.applied_count} applied, {len(groups_map)} modules prepared"
         )
 
     except Exception as e:

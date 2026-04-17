@@ -89,6 +89,7 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
         extracted_fields_payload = self.artifact_store.load_artifact(
             task_id=task.id, stage=Stage.RULE_SCORING, artifact_type="field_specs"
         )
+        lineage_rebuild_summary = None
         if extracted_fields_payload:
             field_specs = extracted_fields_payload.get("items", [])
         else:
@@ -112,8 +113,9 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
                 definition_ids=params.get("definition_ids"),
                 progress_callback=lambda processed, total: self._handle_field_extraction_progress(task, processed, total),
             )
+            lineage_rebuild_summary = None
             if params.get("rebuild_lineage_before_run"):
-                self._rebuild_lineage_assets(task, params, field_specs)
+                lineage_rebuild_summary = self._rebuild_lineage_assets(task, params, field_specs)
             extracted_fields_payload = {"items": field_specs}
             self.artifact_store.save_artifact(
                 task_id=task.id,
@@ -137,6 +139,7 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
             "artifact_type": "field_specs",
             "field_count": len(field_specs),
             "context_enriched_count": sum(1 for item in field_specs if item.get("metadata")),
+            "lineage_rebuild": lineage_rebuild_summary,
         }, 45, "字段规格已提取")
 
         recall_payload = self.artifact_store.load_artifact(
@@ -324,10 +327,10 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
             return max(0.5, round(base_threshold - 0.1, 4))
         return base_threshold
 
-    def _rebuild_lineage_assets(self, task: AsyncTask, params: Dict[str, Any], field_specs: List[Dict[str, Any]]) -> None:
+    def _rebuild_lineage_assets(self, task: AsyncTask, params: Dict[str, Any], field_specs: List[Dict[str, Any]]) -> Dict[str, Any] | None:
         definition_ids = sorted({int(item.get("definition_id")) for item in field_specs if item.get("definition_id")})
         if not definition_ids:
-            return
+            return None
         execution_ids = [str(item) for item in (params.get("selected_execution_ids") or []) if item is not None]
         workspace_root = params.get("workspace_root")
         child_steps = [
@@ -359,12 +362,24 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
             child_steps=child_steps,
         )
         if not execution_ids and not workspace_root:
-            return
+            return {
+                "definitions_total": len(definition_ids),
+                "sql_edges_total": 0,
+                "code_edges_total": 0,
+                "code_attempted_total": 0,
+                "code_skipped_total": 0,
+                "code_failed_total": 0,
+                "failure_examples": [],
+            }
 
         engine = DataImpactEngine(self.db, db_engine)
         total_definitions = len(definition_ids)
         sql_edges_total = 0
         code_edges_total = 0
+        code_attempted_total = 0
+        code_skipped_total = 0
+        code_failed_total = 0
+        failure_examples: List[Dict[str, Any]] = []
         if execution_ids:
             child_steps[1] = self._child_step("build_sql_lineage", "Build SQL lineage", StageStatus.RUNNING, 0)
         else:
@@ -411,6 +426,14 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
                     version_id=params.get("version_id"),
                 )
                 code_edges_total += int(result.get("code_lineage_edges_created", 0) or 0)
+            code_summary = dict(result.get("code_lineage_summary") or {})
+            code_attempted_total += int(code_summary.get("attempted_edges", 0) or 0)
+            code_skipped_total += int(code_summary.get("skipped_edges", 0) or 0)
+            code_failed_total += int(code_summary.get("failed_edges", 0) or 0)
+            for example in list(code_summary.get("failure_examples") or []):
+                if len(failure_examples) >= 5:
+                    break
+                failure_examples.append(example)
 
             if index == total_definitions or index == 1 or index % 20 == 0:
                 self._update_lineage_rebuild_progress(
@@ -421,6 +444,8 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
                     workspace_root=workspace_root,
                     sql_edges_total=sql_edges_total,
                     code_edges_total=code_edges_total,
+                    code_skipped_total=code_skipped_total,
+                    code_failed_total=code_failed_total,
                 )
 
         child_steps[1] = self._child_step(
@@ -435,15 +460,32 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
             "Build Code lineage",
             StageStatus.COMPLETED if workspace_root else StageStatus.SKIPPED,
             100,
-            f"Created {code_edges_total} code edges" if workspace_root else "Skipped: no workspace root",
+            (
+                f"Created {code_edges_total} code edges "
+                f"(attempted={code_attempted_total}, skipped={code_skipped_total}, failed={code_failed_total})"
+                if workspace_root
+                else "Skipped: no workspace root"
+            ),
         )
         self._update_stage_progress(
             task,
             Stage.RULE_SCORING,
             progress=self.LINEAGE_REBUILD_END_PROGRESS,
-            message=f"Lineage rebuild complete: SQL edges={sql_edges_total}, Code edges={code_edges_total}",
+            message=(
+                f"Lineage rebuild complete: SQL edges={sql_edges_total}, "
+                f"Code edges={code_edges_total}, skipped={code_skipped_total}, failed={code_failed_total}"
+            ),
             child_steps=child_steps,
         )
+        return {
+            "definitions_total": total_definitions,
+            "sql_edges_total": sql_edges_total,
+            "code_edges_total": code_edges_total,
+            "code_attempted_total": code_attempted_total,
+            "code_skipped_total": code_skipped_total,
+            "code_failed_total": code_failed_total,
+            "failure_examples": failure_examples[:5],
+        }
 
     def _resolve_workspace_root(self, params: Dict[str, Any], current_workspace_root: Any) -> Any:
         workspace_root = str(current_workspace_root or "").strip()
@@ -575,6 +617,8 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
         workspace_root: Any,
         sql_edges_total: int,
         code_edges_total: int,
+        code_skipped_total: int = 0,
+        code_failed_total: int = 0,
     ) -> None:
         total = max(total, 1)
         ratio = min(max(processed / total, 0.0), 1.0)
@@ -602,7 +646,8 @@ class EngineV2FieldMappingJobRunner(FieldMappingJobRunner):
                 StageStatus.RUNNING if workspace_root else StageStatus.SKIPPED,
                 int(ratio * 100) if workspace_root else 100,
                 (
-                    f"Processed {processed} / {total} definitions, created {code_edges_total} code edges"
+                    f"Processed {processed} / {total} definitions, created {code_edges_total} code edges, "
+                    f"skipped {code_skipped_total}, failed {code_failed_total}"
                     if workspace_root
                     else "Skipped: no workspace root"
                 ),

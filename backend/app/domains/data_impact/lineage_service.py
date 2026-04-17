@@ -124,6 +124,10 @@ class LineageService:
         response_field_paths = self._extract_response_field_paths(definition)
         field_leaf_map = {path: path.split(".")[-1].replace("[]", "") for path in response_field_paths}
         created = 0
+        attempted_edges = 0
+        skipped_edges = 0
+        failed_edges = 0
+        failure_examples: List[Dict[str, Any]] = []
         scanned_files = 0
         total_code_edges = 0
         pipeline_source_counts: Counter[str] = Counter()
@@ -161,7 +165,7 @@ class LineageService:
                     sql_table_hint_cache=sql_table_hint_cache,
                 )
                 for api_field_path, matched_edges in grouped_orm.items():
-                    created += self.repo.save_lineage_edges(
+                    persistence_summary = self.repo.save_lineage_edges_with_summary(
                         project_id=project_id,
                         version_id=version_id,
                         definition_id=definition_id,
@@ -169,6 +173,11 @@ class LineageService:
                         evidence_type="code_lineage",
                         edges=matched_edges,
                     )
+                    created += int(persistence_summary.get("created", 0) or 0)
+                    attempted_edges += int(persistence_summary.get("attempted", 0) or 0)
+                    skipped_edges += int(persistence_summary.get("skipped", 0) or 0)
+                    failed_edges += int(persistence_summary.get("failed", 0) or 0)
+                    failure_examples.extend(list(persistence_summary.get("failure_examples") or []))
                 continue
 
             orm_like_edges = self.orm_parser.parse_mapper_text(mapper_text=source_text)
@@ -180,7 +189,7 @@ class LineageService:
                 sql_table_hint_cache=sql_table_hint_cache,
             )
             for api_field_path, matched_edges in grouped_orm_like.items():
-                created += self.repo.save_lineage_edges(
+                persistence_summary = self.repo.save_lineage_edges_with_summary(
                     project_id=project_id,
                     version_id=version_id,
                     definition_id=definition_id,
@@ -188,6 +197,11 @@ class LineageService:
                     evidence_type="code_lineage",
                     edges=matched_edges,
                 )
+                created += int(persistence_summary.get("created", 0) or 0)
+                attempted_edges += int(persistence_summary.get("attempted", 0) or 0)
+                skipped_edges += int(persistence_summary.get("skipped", 0) or 0)
+                failed_edges += int(persistence_summary.get("failed", 0) or 0)
+                failure_examples.extend(list(persistence_summary.get("failure_examples") or []))
 
             code_analysis = self.code_analysis_pipeline.analyze_with_stats(
                 source_text=source_text,
@@ -227,7 +241,7 @@ class LineageService:
                 sql_table_hint_cache=sql_table_hint_cache,
             )
             for api_field_path, matched_edges in grouped_code.items():
-                created += self.repo.save_lineage_edges(
+                persistence_summary = self.repo.save_lineage_edges_with_summary(
                     project_id=project_id,
                     version_id=version_id,
                     definition_id=definition_id,
@@ -235,11 +249,19 @@ class LineageService:
                     evidence_type="code_lineage",
                     edges=matched_edges,
                 )
+                created += int(persistence_summary.get("created", 0) or 0)
+                attempted_edges += int(persistence_summary.get("attempted", 0) or 0)
+                skipped_edges += int(persistence_summary.get("skipped", 0) or 0)
+                failed_edges += int(persistence_summary.get("failed", 0) or 0)
+                failure_examples.extend(list(persistence_summary.get("failure_examples") or []))
         logger.info(
-            "Code lineage workspace build summary: definition_id=%s scanned_files=%s created=%s code_edges=%s fallback_files=%s recalled_candidates=%s recall_fallback=%s pipeline_sources=%s assignment_kinds=%s evidence_types=%s",
+            "Code lineage workspace build summary: definition_id=%s scanned_files=%s created=%s attempted=%s skipped=%s failed=%s code_edges=%s fallback_files=%s recalled_candidates=%s recall_fallback=%s pipeline_sources=%s assignment_kinds=%s evidence_types=%s",
             definition_id,
             scanned_files,
             created,
+            attempted_edges,
+            skipped_edges,
+            failed_edges,
             total_code_edges,
             fallback_files,
             len(recall_result.candidates),
@@ -256,6 +278,10 @@ class LineageService:
             )
         return {
             "created": created,
+            "attempted_edges": attempted_edges,
+            "skipped_edges": skipped_edges,
+            "failed_edges": failed_edges,
+            "failure_examples": failure_examples[:5],
             "scanned_files": scanned_files,
             "code_edges": total_code_edges,
             "fallback_files": fallback_files,
